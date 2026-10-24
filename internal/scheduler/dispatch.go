@@ -7,7 +7,8 @@ func (s *Scheduler) dispatch(now time.Time) {
 		s.continueSoon()
 		return
 	}
-	for grants := 0; grants < batchSize; grants++ {
+	processed := 0
+	for ; processed < batchSize; processed++ {
 		if s.active >= s.limits.Effective {
 			break
 		}
@@ -38,9 +39,11 @@ func (s *Scheduler) dispatch(now time.Time) {
 		w.active++
 		p.activeNode = w.activeList.PushBack(p)
 		s.finish(e, p, nil)
-		if grants == batchSize-1 && s.queued > 0 && s.active < s.limits.Effective {
-			s.continueSoon()
-		}
+	}
+	// Every selected entry consumes the batch budget, including cancellation and
+	// expiry removals. A no-progress pass breaks early and does not spin.
+	if processed == batchSize && s.queued > 0 && s.active < s.limits.Effective {
+		s.continueSoon()
 	}
 	s.armTimer(time.Now())
 }

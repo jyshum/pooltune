@@ -27,7 +27,8 @@ func (s *Scheduler) StopCohort(name string) error {
 // must use a trusted immutable workload mapping to the supplied stable policy,
 // and must not change workload, fairness identity, or buffered bytes. A new
 // deadline can shorten but cannot extend the original. Callback errors preserve
-// the stopped candidate entry for retry; stable blocked results reject it.
+// the stopped candidate entry for retry, including ErrBlocked. Only successful,
+// validated stable mappings with Blocked=true reject the waiter.
 // Active permits are never relabelled. Concurrent batches on a cohort reject.
 func (s *Scheduler) RollbackBatch(candidate, stable string, reclassify func(domain.Classification) (domain.Classification, error)) (remaining int, err error) {
 	if candidate == stable || reclassify == nil {
@@ -61,6 +62,7 @@ func (s *Scheduler) RollbackBatch(candidate, stable string, reclassify func(doma
 		if !e.finished {
 			original := e.classification
 			updated.Cohort = stable
+			validBlocked := false
 			if callbackErr == nil {
 				target = s.cohorts[stable]
 				switch {
@@ -71,17 +73,21 @@ func (s *Scheduler) RollbackBatch(candidate, stable string, reclassify func(doma
 				case updated.Revision != target.policy.Revision():
 					callbackErr = ErrStale
 				default:
-					callbackErr = s.validateClassification(updated, false)
+					if updated.Blocked {
+						validBlocked = true
+					} else {
+						callbackErr = s.validateClassification(updated, false)
+					}
 				}
 			}
 			switch {
-			case callbackErr == ErrBlocked:
-				s.finish(e, nil, ErrBlocked)
 			case callbackErr != nil:
 				s.attach(e)
 				if err == nil {
 					err = callbackErr
 				}
+			case validBlocked:
+				s.finish(e, nil, ErrBlocked)
 			default:
 				if updated.QueueDeadline.After(original.QueueDeadline) {
 					updated.QueueDeadline = original.QueueDeadline

@@ -3,6 +3,7 @@ package scheduler
 import (
 	"context"
 	"errors"
+	"fmt"
 	"math"
 	"runtime"
 	"strings"
@@ -989,5 +990,108 @@ func TestDeadlineExpiringDuringMutexWaitCannotGrant(t *testing.T) {
 	}
 	if st := s.Stats(); st.Active != 0 || st.Queued != 0 {
 		t.Fatalf("expired waiter retained: %+v", st)
+	}
+}
+
+func TestCancellationOnlyDispatchBatchContinuesToLiveWaiter(t *testing.T) {
+	s := newScheduler(t, config(), snapshot(t, 0, 0))
+	c := classification(domain.ClassNormal, "tenant")
+	canceled, cancelCanceled := context.WithCancel(context.Background())
+	cancelCanceled()
+	// Insert the already-canceled heads without Acquire goroutines. Only dispatch
+	// can remove them, so cancellation handlers cannot mask a missing wakeup.
+	s.mu.Lock()
+	s.tenants[c.FairnessKey] = &tenantState{key: c.FairnessKey, tokens: float64(s.cfg.RateBurst), updated: time.Now(), heapIndex: -1}
+	s.workloads[c.Workload] = &workloadState{}
+	var heads []*entry
+	for i := 0; i < batchSize; i++ {
+		s.nextOrder++
+		e := &entry{classification: c, ctx: canceled, enqueued: time.Now(), order: s.nextOrder, done: make(chan struct{}), heapIndex: -1, queueIndex: -1}
+		s.enqueue(e)
+		heads = append(heads, e)
+	}
+	s.mu.Unlock()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	live := waiting(s, ctx, c)
+	awaitQueued(t, s, batchSize+1)
+	if err := s.InstallLimits(snapshot(t, 1, 0).Limits); err != nil {
+		t.Fatal(err)
+	}
+	for _, e := range heads {
+		<-e.done
+		if !errors.Is(e.err, context.Canceled) {
+			t.Fatalf("head result %v", e.err)
+		}
+	}
+	r := receive(t, live)
+	if r.err != nil {
+		t.Fatal(r.err)
+	}
+	s.Release(r.p, Finished)
+	if st := s.Stats(); st.Active != 0 || st.Queued != 0 {
+		t.Fatalf("batch leaked %+v", st)
+	}
+}
+
+func TestRollbackBlockedErrorsRetainCandidate(t *testing.T) {
+	wrapped := fmt.Errorf("mapping unavailable: %w", ErrBlocked)
+	for _, tc := range []struct {
+		name string
+		fn   func(domain.Classification) (domain.Classification, error)
+		want error
+	}{
+		{"direct_error", func(domain.Classification) (domain.Classification, error) { return domain.Classification{}, ErrBlocked }, ErrBlocked},
+		{"wrapped_error", func(domain.Classification) (domain.Classification, error) { return domain.Classification{}, wrapped }, wrapped},
+		{"blocked_wrong_identity", func(c domain.Classification) (domain.Classification, error) {
+			c.Revision = "r1"
+			c.Blocked = true
+			c.FairnessKey = "forged"
+			return c, nil
+		}, ErrInvalid},
+		{"blocked_wrong_workload", func(c domain.Classification) (domain.Classification, error) {
+			c.Revision = "r1"
+			c.Blocked = true
+			c.Workload = "forged"
+			return c, nil
+		}, ErrInvalid},
+		{"blocked_wrong_revision", func(c domain.Classification) (domain.Classification, error) { c.Blocked = true; return c, nil }, ErrStale},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			snap := splitSnapshot(t)
+			snap.Limits.Effective = 0
+			snap.Limits.CohortBudgets = map[string]int{"stable": 0, "candidate": 0}
+			s := newScheduler(t, config(), snap)
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+			c := classification(domain.ClassNormal, "a")
+			c.Cohort = "candidate"
+			c.Revision = "r2"
+			ch := waiting(s, ctx, c)
+			awaitQueued(t, s, 1)
+			remaining, err := s.RollbackBatch("candidate", "stable", tc.fn)
+			if !errors.Is(err, tc.want) || remaining != 1 {
+				t.Fatalf("mapping error lost candidate: remaining=%d err=%v", remaining, err)
+			}
+			if st := s.Stats(); st.Queued != 1 || st.Cohorts["candidate"].Queued != 1 || !st.Cohorts["candidate"].Stopped {
+				t.Fatalf("candidate not retained %+v", st)
+			}
+			noResult(t, ch)
+			// Retry a successful, identity/revision-validated policy block. Only this
+			// explicit result is allowed to reject the retained waiter.
+			remaining, err = s.RollbackBatch("candidate", "stable", func(c domain.Classification) (domain.Classification, error) {
+				c.Revision = "r1"
+				c.Blocked = true
+				c.ConcurrencyCap = 0
+				c.QueueLimit = 0
+				return c, nil
+			})
+			if err != nil || remaining != 0 {
+				t.Fatalf("valid blocked mapping failed: remaining=%d err=%v", remaining, err)
+			}
+			if r := receive(t, ch); r.p != nil || !errors.Is(r.err, ErrBlocked) {
+				t.Fatalf("blocked result %+v", r)
+			}
+		})
 	}
 }
