@@ -310,7 +310,7 @@ func validWorkload(w Workload) bool {
 		}
 		seenClasses[class] = true
 	}
-	if !identifier(w.ID) || !identifier(s.Target) || !identifier(s.Principal) || (s.Path != domain.PathREST && s.Path != domain.PathPostgres) || !allowed(w.DefaultClass, w.AllowedClasses) ||
+	if w.ID == "overflow" || !identifier(w.ID) || !identifier(s.Target) || !identifier(s.Principal) || (s.Path != domain.PathREST && s.Path != domain.PathPostgres) || !allowed(w.DefaultClass, w.AllowedClasses) ||
 		len(w.AllowedClasses) == 0 || w.MaxQueueWait <= 0 || w.MaxQueueWait > time.Hour || w.MaxQueueLimit <= 0 || w.MaxQueueLimit > 100_000 || w.MaxConcurrency <= 0 || w.MaxConcurrency > 1_000_000 {
 		return false
 	}

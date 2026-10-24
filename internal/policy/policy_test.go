@@ -294,3 +294,12 @@ func TestRejectsMissingOrStaleBaseline(t *testing.T) {
 		t.Fatalf("stale baseline: %v", err)
 	}
 }
+
+func TestRegistryCannotAliasFallbackWorkload(t *testing.T) {
+	p, g, r := fixture()
+	r.Workloads[1].ID = "overflow"
+	p.Workloads[1].WorkloadID = "overflow"
+	if _, err := Compile(p, g, r); !errors.Is(err, ErrBoundary) {
+		t.Fatalf("reserved fallback workload accepted: %v", err)
+	}
+}

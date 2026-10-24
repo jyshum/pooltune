@@ -30,6 +30,9 @@ type RequestContext struct {
 }
 
 type Classification struct {
+	// Cohort and BufferedBytes are assigned by the trusted ingress adapter.
+	Cohort                        string
+	BufferedBytes                 int64
 	Class                         Class
 	Workload, FairnessKey, RuleID string
 	Revision                      RevisionID
