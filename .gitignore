@@ -1,0 +1,6 @@
+.superpowers/
+bin/
+coverage.out
+*.test
+.env
+secrets/
