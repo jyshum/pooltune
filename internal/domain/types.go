@@ -34,6 +34,9 @@ type Classification struct {
 	Workload, FairnessKey, RuleID string
 	Revision                      RevisionID
 	QueueDeadline                 time.Time
+	ConcurrencyCap                int
+	QueueLimit                    int
+	Blocked                       bool
 }
 
 type LimitSnapshot struct {

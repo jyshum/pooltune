@@ -1,0 +1,50 @@
+package policy
+
+import (
+	"strconv"
+	"time"
+
+	"pooltune/internal/domain"
+)
+
+// Classify performs bounded exact lookups. The ingress adapter owns identity
+// verification and must reject authentication/protocol errors before calling it.
+func Classify(c *CompiledPolicy, ctx domain.RequestContext) domain.Classification {
+	return c.classifyAt(ctx, time.Now())
+}
+
+func (c *CompiledPolicy) classifyAt(ctx domain.RequestContext, now time.Time) domain.Classification {
+	if c == nil {
+		return domain.Classification{Class: domain.ClassNormal, Workload: "blocked", FairnessKey: "overflow", Blocked: true, QueueDeadline: now}
+	}
+	key := Selector{Target: ctx.Target, Path: ctx.Path, Principal: ctx.Principal, Method: ctx.Method, Route: ctx.Route}
+	v, ok := c.exact[key]
+	if !ok {
+		v, ok = c.defaults[Selector{Target: ctx.Target, Path: ctx.Path, Principal: ctx.Principal}]
+	}
+	if !ok {
+		return fallback(ctx, now, c.revision, c.fallback)
+	}
+	deadline := now.Add(v.queueWait)
+	if !ctx.ClientDeadline.IsZero() && ctx.ClientDeadline.Before(deadline) {
+		deadline = ctx.ClientDeadline
+	}
+	fairness := fairKey(ctx.Target, ctx.Path, ctx.Principal, "")
+	if v.tenantTrust && ctx.TrustedTenant && identifier(ctx.Tenant) {
+		fairness = fairKey(ctx.Target, ctx.Path, ctx.Principal, ctx.Tenant)
+	}
+	return domain.Classification{Class: v.class, Workload: v.id, FairnessKey: fairness, RuleID: v.ruleID, Revision: c.revision, QueueDeadline: deadline, ConcurrencyCap: v.concurrencyCap, QueueLimit: v.queueLimit, Blocked: v.blocked}
+}
+
+func fallback(ctx domain.RequestContext, now time.Time, revision domain.RevisionID, limit Fallback) domain.Classification {
+	deadline := now.Add(limit.QueueWait)
+	if !ctx.ClientDeadline.IsZero() && ctx.ClientDeadline.Before(deadline) {
+		deadline = ctx.ClientDeadline
+	}
+	return domain.Classification{Class: domain.ClassNormal, Workload: "overflow", FairnessKey: "overflow", Revision: revision, QueueDeadline: deadline, ConcurrencyCap: limit.ConcurrencyCap, QueueLimit: limit.QueueLimit}
+}
+
+func fairKey(target string, path domain.PathKind, principal, tenant string) string {
+	// Length prefixes prevent distinct components from sharing a key.
+	return strconv.Itoa(len(target)) + ":" + target + strconv.Itoa(len(path)) + ":" + string(path) + strconv.Itoa(len(principal)) + ":" + principal + strconv.Itoa(len(tenant)) + ":" + tenant
+}
