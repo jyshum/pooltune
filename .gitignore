@@ -4,3 +4,4 @@ coverage.out
 *.test
 .env
 secrets/
+.DS_Store
