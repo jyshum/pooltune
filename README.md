@@ -4,17 +4,19 @@ Pooltune is under construction. B01 provides typed configuration and a local, he
 
 ## Run
 
-Use Go 1.27.3 or the local installed binary:
+Install Go 1.27.3, clone this repository, then run:
 
 ```sh
-GO=/Users/jshum/Documents/Codex/2026-10-24/work-from-this-folder-users-jshum/work/toolchains/go1.27.3/go/bin/go
-$GO test ./...
-$GO run ./cmd/pooltune traffic -listen 127.0.0.1:8080
-$GO run ./cmd/pooltune control -listen 127.0.0.1:8081 -config /absolute/path/config.json
-$GO run ./cmd/pooltune gateway -listen '[::1]:8082'
+git clone https://github.com/jyshum/pooltune.git
+cd pooltune
+go test ./...
+go run ./cmd/pooltune traffic -listen 127.0.0.1:8080
+# In separate terminals:
+go run ./cmd/pooltune control -listen 127.0.0.1:8081
+go run ./cmd/pooltune gateway -listen '[::1]:8082'
 ```
 
-Each mode serves only `GET /healthz` (200, process alive) and `GET /readyz` (503, unavailable). All other paths, including admission and administration, return 404. Bind addresses must be literal loopback IPs. Port 0 is available for tests. Supplying a valid config does not make a mode ready. Missing config is allowed for health checks. A supplied invalid config stops startup. No startup log is emitted. Errors go to stderr.
+Each mode serves only `GET /healthz` (200, process alive) and `GET /readyz` (503, unavailable). All other paths, including admission and administration, return 404. Bind addresses must be literal loopback IPs. Port 0 is available for tests. Pass `-config /absolute/path/config.json` to validate a supplied configuration. Supplying a valid config does not make a mode ready. Missing config is allowed for health checks. A supplied invalid config stops startup. No startup log is emitted. Errors go to stderr.
 
 ## Config
 
@@ -73,4 +75,4 @@ The provider key reference is accepted only in gateway mode. Customer config can
 
 When `automation_enabled` is false, the evaluation and model profiles and secret references may be omitted. A supplied evaluation profile must still have valid version and bounds. Safety limits and ownership remain required for any supplied config. This flag cannot start automation in B01. No model or cloud calls occur.
 
-Release gates G1 through G5 remain open. This foundation has no verified provider, driver, browser, recovery, performance, funded AI, or promotion capability. The authoritative design and build plan are in the parent `docs/superpowers` folder.
+Release gates G1 through G5 remain open. This foundation has no verified provider, driver, browser, recovery, performance, funded AI, or promotion capability. See [build status and next steps](docs/build-status.md).
