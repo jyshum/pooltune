@@ -15,6 +15,10 @@ The configuration examples in the README are synthetic. Their numbers are not pr
 
 SQLite now records append-only intent, uncertainty and confirmation events with idempotency and predecessor checks. Pending revisions survive reopen; projection rebuild and consistent backup are available. Secret files are read through a bounded, permission-checked root directory. These are internal libraries, not live traffic activation. See [storage contract](storage.md).
 
+## Implemented: B03 policy libraries
+
+The compiler enforces trusted selectors, owner locks, approved classes, bounded scheduling settings and change-size limits against an immutable baseline. The local classifier supplies rule/revision identity, tenant fairness keys, deadlines and bounded normal fallback. There is no per-request model call. See [policy contract](policy.md). Admission and live activation are not wired yet.
+
 ## One repository, separate processes
 
 The customer-local traffic and control processes share this Go codebase. The owned managed-AI gateway can use the same repository while deploying separately under Pooltune's control. Provider API keys stay on that gateway; customer installations receive revocable installation tokens. Dashboard and SDK source will also live here. A separate deployment does not require a separate source repository.
@@ -25,7 +29,7 @@ The customer-local traffic and control processes share this Go codebase. The own
 | --- | --- | --- |
 | B01 | Domain, configuration and bootable modes | Implemented; see verification below |
 | B02 | Durable history and secret files | Implemented and task-review approved |
-| B03 | Policy compiler and deterministic classifier | Not started |
+| B03 | Policy compiler and deterministic classifier | Implemented and task-review approved |
 | B04 | Bounded scheduler and permit accounting | Not started |
 | B05 | Telemetry and capacity equations | Not started |
 | B06 | PostgreSQL protocol path | Not started |
