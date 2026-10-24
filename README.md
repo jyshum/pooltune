@@ -2,6 +2,8 @@
 
 Pooltune is under construction. B01 provides typed configuration and a local, health-only executable. It does not forward traffic, control capacity, contact a model, or admit requests.
 
+B02 adds internal durable history and restricted secret-file reading. These are not wired into the health-only executable yet. See [local storage and secret boundaries](docs/storage.md).
+
 ## Run
 
 Install Go 1.27.3, clone this repository, then run:

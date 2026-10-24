@@ -3,5 +3,5 @@ bin/
 coverage.out
 *.test
 .env
-secrets/
+/secrets/
 .DS_Store
