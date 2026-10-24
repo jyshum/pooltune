@@ -20,6 +20,8 @@ const validJSON = `{
 
 const gatewayJSON = `{"schema_version":"v1","gateway":{"provider":"anthropic","model":"test-model","provider_api_key_file":"/secrets/provider-key"}}`
 
+const evaluationJSON = `"evaluation_profile":{"version":"v1","min_window":"30s","max_window":"5m","min_samples_per_workload":2000,"max_failure_rate_increase":0.01,"max_latency_ratio":1.05},`
+
 func TestLoadConfigAcceptsSyntheticBounds(t *testing.T) {
 	c, err := LoadConfig(strings.NewReader(validJSON))
 	if err != nil {
@@ -94,5 +96,30 @@ func TestValidateRejectsDuplicateTargetOwnership(t *testing.T) {
 	c.Targets[1].Owner = "node2"
 	if err := Validate(c); err == nil {
 		t.Fatal("duplicate target accepted")
+	}
+}
+
+func TestDisabledAutomationValidatesSuppliedEvaluationProfile(t *testing.T) {
+	disabled := strings.Replace(validJSON, `"automation_enabled":true`, `"automation_enabled":false`, 1)
+	tests := []struct {
+		name      string
+		input     string
+		wantValid bool
+	}{
+		{"valid profile", disabled, true},
+		{"omitted profile", strings.Replace(disabled, evaluationJSON, ``, 1), true},
+		{"zero profile", strings.Replace(disabled, evaluationJSON, `"evaluation_profile":{},`, 1), true},
+		{"unsupported version", strings.Replace(disabled, `"version":"v1","min_window"`, `"version":"v2","min_window"`, 1), false},
+		{"negative duration", strings.Replace(disabled, `"min_window":"30s"`, `"min_window":"-30s"`, 1), false},
+		{"invalid numeric bound", strings.Replace(disabled, `"max_latency_ratio":1.05`, `"max_latency_ratio":0.5`, 1), false},
+		{"enabled missing profile", strings.Replace(validJSON, evaluationJSON, ``, 1), false},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := LoadConfig(strings.NewReader(tc.input))
+			if (err == nil) != tc.wantValid {
+				t.Fatalf("valid=%t, want %t, error=%v", err == nil, tc.wantValid, err)
+			}
+		})
 	}
 }

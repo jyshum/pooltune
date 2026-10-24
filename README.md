@@ -71,6 +71,6 @@ Traffic and control use customer config. The owned gateway uses a separate shape
 
 The provider key reference is accepted only in gateway mode. Customer config can name an approved gateway profile and reference an installation token. Neither reference is read by B01.
 
-When `automation_enabled` is false, the evaluation and model profiles and secret references may be omitted. Safety limits and ownership remain required for any supplied config. This flag cannot start automation in B01. No model or cloud calls occur.
+When `automation_enabled` is false, the evaluation and model profiles and secret references may be omitted. A supplied evaluation profile must still have valid version and bounds. Safety limits and ownership remain required for any supplied config. This flag cannot start automation in B01. No model or cloud calls occur.
 
 Release gates G1 through G5 remain open. This foundation has no verified provider, driver, browser, recovery, performance, funded AI, or promotion capability. The authoritative design and build plan are in the parent `docs/superpowers` folder.

@@ -285,10 +285,11 @@ func Validate(c Config) error {
 			return errors.New("missing or invalid guardrails")
 		}
 	}
+	hasProfile := c.EvaluationProfile != (EvaluationProfile{})
+	if (c.AutomationEnabled && !hasProfile) || (hasProfile && (c.EvaluationProfile.Version != "v1" || !c.EvaluationProfile.Valid())) {
+		return errors.New("missing or invalid evaluation profile")
+	}
 	if c.AutomationEnabled {
-		if c.EvaluationProfile.Version != "v1" || !c.EvaluationProfile.Valid() {
-			return errors.New("missing or invalid evaluation profile")
-		}
 		if c.ModelProfile.GatewayProfileID == "" {
 			return errors.New("missing model profile")
 		}
