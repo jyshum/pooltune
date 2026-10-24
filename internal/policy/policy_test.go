@@ -167,6 +167,31 @@ func TestFairnessDeadlinesAndImmutability(t *testing.T) {
 	}
 }
 
+func TestTrustedTenantFairnessSeparatesRegisteredPrincipals(t *testing.T) {
+	p, g, r := fixture()
+	other := r.Workloads[0]
+	other.ID = "voice-other"
+	other.Selector.Principal = "other-app"
+	other.LockedRuleID = "operator-voice-other"
+	r.Workloads = append(r.Workloads, other)
+	p.Workloads = append(p.Workloads, WorkloadSettings{WorkloadID: other.ID, QueueWait: 500 * time.Millisecond, QueueLimit: 5, ConcurrencyCap: 5})
+
+	c, err := Compile(p, g, r)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctx := domain.RequestContext{Target: "db", Path: domain.PathREST, Principal: "app", Method: "GET", Route: "/voice", Tenant: "shared-tenant", TrustedTenant: true}
+	first := Classify(c, ctx)
+	ctx.Principal = "other-app"
+	second := Classify(c, ctx)
+	if first.Workload != "voice" || second.Workload != "voice-other" || first.Workload == "overflow" || second.Workload == "overflow" {
+		t.Fatalf("registered workloads = %+v, %+v", first, second)
+	}
+	if first.FairnessKey == second.FairnessKey {
+		t.Fatalf("trusted tenant merged principals: %q", first.FairnessKey)
+	}
+}
+
 func TestExplicitlyBlockedWorkload(t *testing.T) {
 	p, g, r := fixture()
 	r.Workloads[1].AllowBlocked = true
