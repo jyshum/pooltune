@@ -1,0 +1,20 @@
+# Deny by default. No private profiles, credentials, evidence or website assets.
+**
+!go.mod
+!go.sum
+!cmd/**/*.go
+!internal/**/*.go
+!internal/store/schema.sql
+!ui/package.json
+!ui/package-lock.json
+!ui/index.html
+!ui/tsconfig.json
+!ui/vite.config.ts
+!ui/src/**/*.ts
+!ui/src/**/*.tsx
+!ui/src/**/*.css
+!deploy/docker/verify.sh
+!Dockerfile
+!.dockerignore
+ui/src/**/*.test.ts
+ui/src/**/*.test.tsx

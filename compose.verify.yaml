@@ -1,0 +1,17 @@
+# Local packaging verification only. Does not start cloud resources.
+services:
+  verify:
+    build:
+      context: .
+      target: verification
+    init: true
+    network_mode: none
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,size=512m,mode=1777
+    pids_limit: 128
+    mem_limit: 768m
+    cpus: 2
+    restart: "no"
