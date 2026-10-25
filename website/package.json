@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "check": "node scripts/check-site.mjs",
-    "build": "node scripts/check-site.mjs && tsc --noEmit && vite build && node scripts/check-site.mjs --dist",
+    "build": "node scripts/fetch-delivery.mjs && node scripts/check-site.mjs && tsc --noEmit && vite build && node scripts/copy-delivery.mjs && node scripts/check-site.mjs --dist",
     "preview": "vite preview --host 127.0.0.1"
   },
   "dependencies": {

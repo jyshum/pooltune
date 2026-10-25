@@ -1,0 +1,12 @@
+import {copyFileSync,mkdirSync,readFileSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+import {fileURLToPath} from 'node:url';
+import {join} from 'node:path';
+const root=fileURLToPath(new URL('..',import.meta.url));
+const files=['pooltune-macos-arm64.tar.gz','pooltune-macos-arm64.tar.gz.sha256','managed-setup-guide.md','managed-mvp-results.md','managed-dashboard.png'];
+const archive=readFileSync(join(root,'.delivery',files[0]));
+const expected=readFileSync(join(root,'.delivery',files[1]),'utf8').trim().split(/\s+/)[0];
+if(createHash('sha256').update(archive).digest('hex')!==expected)throw new Error('Delivery archive checksum mismatch');
+mkdirSync(join(root,'dist/downloads'),{recursive:true});
+for(const file of files)copyFileSync(join(root,'.delivery',file),join(root,'dist/downloads',file));
+console.log('Verified delivery assets copied from explicit allowlist.');

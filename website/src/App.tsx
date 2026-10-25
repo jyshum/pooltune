@@ -120,9 +120,11 @@ export default function App() {
             </ol>
             <div className="code reveal">
               <div className="code__bar"><span className="dots"><i /><i /><i /></span><span>Terminal</span></div>
-              <pre><code><span className="code__dim">$</span> Install guide coming soon</code></pre>
+              <pre><code><span className="code__dim">$</span> bin/pooltune-burst -config /absolute/private/profile.json -resume</code></pre>
             </div>
             <div className="setup__cta reveal">
+              <a className="btn" href="./downloads/pooltune-macos-arm64.tar.gz" download>Download for Mac</a>
+              <a className="btn btn--dark" href="./setup.html">Setup guide</a>
               <a className="btn btn--dark" href={repoUrl}>View on GitHub</a>
             </div>
           </div>

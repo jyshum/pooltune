@@ -12,7 +12,7 @@ npm run build    # copy check, type check, Vite build, output check
 npm run dev      # http://127.0.0.1:5173
 ```
 
-Output goes to `dist/`. Asset paths are relative, so the folder works on any static host. No host is chosen and nothing has been deployed.
+Output goes to `dist/`. Asset paths are relative, so the folder works on any static host. Production is https://pooltune.vercel.app. The setup page is /setup.html.
 
 `npm run build` fails when:
 
@@ -78,3 +78,11 @@ Only real runs from `src/data/recorded-results.json` are shown. It ships empty. 
 - React Bits `SpotlightCard`, vendored in `src/reactbits/`. Unchanged except for removing the `use client` line. License: MIT plus Commons Clause, copyright David Haz. Commons Clause does not allow selling the components themselves.
 
 No fonts, scripts or images load from other origins.
+
+## Download assets
+
+The build restores the five allowlisted delivery assets from the GitHub prerelease named in `delivery-manifest.json`. Every file is checked against its pinned SHA-256 hash. The generated `.delivery/` cache is ignored by Git. A missing or mismatched release asset fails the build rather than deploying broken download links. No private configuration or credentials are copied.
+
+The archive is the tested macOS Apple Silicon managed gateway package. Its included RELEASE.json records the integration branch commit and dirty build provenance; the website main commit does not imply the backend source is identical. The setup page and separate operating guide describe the actual connection route.
+
+Deploy the built `dist/` directory to the Vercel project `jyshums-projects/pooltune`. Always build first so setup.html and downloads are included. Keep the existing hero, animation and marketing copy unchanged when updating delivery links.
