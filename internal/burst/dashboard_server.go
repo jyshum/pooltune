@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-// Dashboard is a private, authenticated observation server. Close it before Runtime.
+// Dashboard is a private, authenticated control server. Close it before Runtime.
 type Dashboard struct {
 	URL    string
 	Errors <-chan error

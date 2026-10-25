@@ -2,17 +2,21 @@ package burst
 
 import (
 	"context"
-	"fmt"
 	"pooltune/internal/admin"
 	"pooltune/internal/provider"
 	"strings"
 	"time"
 )
 
-// DashboardBackend exposes observations only. Runtime ownership and admission
-// controls remain with the gateway process, not browser requests.
+// DashboardBackend routes authenticated owner commands through the same
+// controller lock, safety gates and durable journal as automatic changes.
 type DashboardBackend struct{ Controller *Controller }
 type DashboardState struct {
+	ControlsAvailable     bool                   `json:"controls_available"`
+	CanResume             bool                   `json:"can_resume"`
+	CanRestore            bool                   `json:"can_restore"`
+	ManualLimit           int                    `json:"manual_limit"`
+	AuditHealthy          bool                   `json:"audit_healthy"`
 	Transactions          *provider.Transactions `json:"transactions"`
 	Mode                  string                 `json:"mode"`
 	Revision              string                 `json:"revision"`
@@ -39,12 +43,18 @@ type DashboardState struct {
 }
 
 func (b DashboardBackend) Read(_ context.Context, resource string) (any, error) {
-	if resource != "state" || b.Controller == nil {
+	if b.Controller == nil {
 		return nil, admin.ErrDenied
 	}
 	c := b.Controller
 	c.mu.Lock()
 	defer c.mu.Unlock()
+	if resource == "revisions" {
+		return c.historyView(), nil
+	}
+	if resource != "state" {
+		return nil, admin.ErrDenied
+	}
 	now := time.Now()
 	s := c.Scheduler.Stats()
 	h := c.health
@@ -57,8 +67,12 @@ func (b DashboardBackend) Read(_ context.Context, resource string) (any, error) 
 	if !h.PressureAt.IsZero() {
 		age = now.Sub(h.PressureAt).Seconds()
 	}
-	return DashboardState{Transactions: h.Transactions, Mode: "managed-burst", Revision: fmt.Sprintf("burst-%d", c.state.Changes), Target: c.cfg.Target, Provider: kind, ObservedAt: now, HealthAt: h.At, PressureAt: h.PressureAt, PressureAgeSeconds: age, PressureMaxAgeSeconds: c.cfg.PressureMaxAge.Seconds(), CPU: h.CPU, Memory: h.Memory, Base: c.cfg.Base, Ceiling: c.cfg.Ceiling, Warm: h.Warm, Effective: s.Effective, Active: s.Active, Queued: s.Queued, Uncertain: s.Uncertain, Ready: c.enabled && !c.latched && s.Effective > 0 && verified, Frozen: c.state.Frozen, HealthVerified: verified, Reason: c.state.Reason}, nil
+	controls := c.persist != nil && !c.auditFailed
+	return DashboardState{ControlsAvailable: controls, CanResume: controls && c.safeToEnable(now), CanRestore: controls && c.enabled && !c.latched && c.safeToEnable(now), ManualLimit: c.state.ManualLimit, AuditHealthy: !c.auditFailed, Transactions: h.Transactions, Mode: "managed-burst", Revision: c.state.Revision, Target: c.cfg.Target, Provider: kind, ObservedAt: now, HealthAt: h.At, PressureAt: h.PressureAt, PressureAgeSeconds: age, PressureMaxAgeSeconds: c.cfg.PressureMaxAge.Seconds(), CPU: h.CPU, Memory: h.Memory, Base: c.cfg.Base, Ceiling: c.cfg.Ceiling, Warm: h.Warm, Effective: s.Effective, Active: s.Active, Queued: s.Queued, Uncertain: s.Uncertain, Ready: c.enabled && !c.latched && s.Effective > 0 && verified, Frozen: c.state.Frozen, HealthVerified: verified, Reason: c.state.Reason}, nil
 }
-func (b DashboardBackend) Execute(context.Context, string, admin.Command) (any, error) {
-	return nil, admin.ErrDenied
+func (b DashboardBackend) Execute(ctx context.Context, action string, command admin.Command) (any, error) {
+	if b.Controller == nil {
+		return nil, admin.ErrDenied
+	}
+	return b.Controller.execute(ctx, action, command)
 }

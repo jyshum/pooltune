@@ -58,7 +58,7 @@ Google host-pressure samples are delayed, with a240-second maximum source age. A
 
 ## Operating limits
 
-The CLI emits redacted current state. Effective admission, warm backend count and queue occupancy are different quantities. The managed gateway has its own authenticated, read-only dashboard. The older background-tuner dashboard remains a separate profile.
+The CLI emits redacted current state. Effective admission, warm backend count and queue occupancy are different quantities. The managed gateway has its own authenticated dashboard with durable admission history and reviewed restore controls. The older background-tuner dashboard remains a separate profile.
 
 SIGINT/SIGTERM after startup freezes new admission and waits for active transactions. Unknown outcomes retain their reservations and require operator reconciliation. No automatic bypass or backup route exists. A crash is not transparent: retain state and reconcile old backend work before restart. Do not delete the ownership lock or edit lifecycle records to force recovery.
 
@@ -77,6 +77,6 @@ bin/pooltune-burst -config /absolute/private/profile.json -resume \
 
 Open http://127.0.0.1:8081. Read `claim.token` from your private state directory and paste it into the installation claim form. Choose an administrator password of12 to72characters. Keep this token and database credentials out of URLs and screenshots. Subsequent visits use the administrator password.
 
-The UI shows live admission, established connections, active/queued work, uncertain outcomes, provider CPU/memory and source age. It marks stale or lost observations unavailable. It does not claim query speed or money saved from connection counts. The UI is read-only: startup `-resume` enables admission; Ctrl+C freezes new work and drains the process. Browser/server clock skew can produce a false stale display over a remote tunnel.
+The UI shows live admission, established connections, active/queued work, uncertain outcomes, provider CPU/memory and source age. It marks stale or lost observations unavailable. It does not claim query speed or money saved from connection counts. Startup `-resume` enables admission; Ctrl+C permanently freezes this process while active work drains. The authenticated dashboard can freeze admission, resume automation, or restore a confirmed historical admission limit as a new revision. Restore holds the selected limit while safety checks remain active. See [managed history and restore](managed-restore.md) for persistence, bounds and recovery limits. Browser/server clock skew can produce a false stale display over a remote tunnel.
 
 The UI folder must be separate from state and credential folders. Dashboard bind addresses are loopback-only. No public managed service or automatic backup route is included.

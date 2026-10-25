@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"os"
 	"path/filepath"
+	adminapi "pooltune/internal/admin"
 	"pooltune/internal/provider"
 	"pooltune/internal/testpg"
 	"testing"
@@ -95,11 +96,22 @@ func TestOwnedPoolPreservesTransactionWhileReserveOpens(t *testing.T) {
 	if e = a.QueryRow(ctx, "SELECT pg_backend_pid()").Scan(&afterPID); e != nil || afterPID != firstPID {
 		t.Fatal("active transaction moved or interrupted")
 	}
+	// Restore the recorded base while this real transaction retains its backend.
+	baseline := initialView.(DashboardState).Revision
+	if _, e = (DashboardBackend{r.Controller}).Execute(ctx, "revert", adminapi.Command{ExpectedRevision: r.Controller.State().Revision, IdempotencyKey: "restore-active-sql", Revision: baseline}); e != nil {
+		t.Fatal(e)
+	}
+	if r.Controller.Scheduler.Stats().Active != 1 || r.Controller.State().Effective != 1 {
+		t.Fatal("restore changed active reservation")
+	}
+	if e = a.QueryRow(ctx, "SELECT pg_backend_pid()").Scan(&afterPID); e != nil || afterPID != firstPID {
+		t.Fatal("restore interrupted active transaction")
+	}
 	if _, e = a.Exec(ctx, "COMMIT"); e != nil {
 		t.Fatal(e)
 	}
-	if r.Controller.State().Effective != 2 {
-		t.Fatal("actual gateway did not expand admission")
+	if r.Controller.State().Effective != 1 || r.Controller.State().ManualLimit != 1 {
+		t.Fatal("actual gateway did not retain restored admission")
 	}
 	deadlineCount := time.Now().Add(2 * time.Second)
 	for {
@@ -124,6 +136,20 @@ func TestOwnedPoolPreservesTransactionWhileReserveOpens(t *testing.T) {
 	}
 	defer restarted.Close()
 	restartedView, _ := (DashboardBackend{Controller: restarted.Controller}).Read(ctx, "state")
+	if !restartedView.(DashboardState).Frozen || restartedView.(DashboardState).Effective != 0 {
+		t.Fatal("restart replayed admission")
+	}
+	history, _ := (DashboardBackend{restarted.Controller}).Read(ctx, "revisions")
+	restoredRecord := false
+	for _, record := range history.(HistoryView).Items {
+		if record.RestoredFrom == baseline && record.Status == "confirmed" {
+			restoredRecord = true
+		}
+	}
+	if !restoredRecord {
+		t.Fatal("restore history lost across real runtime restart")
+	}
+
 	if counter := restartedView.(DashboardState).Transactions; counter == nil || counter.Epoch == initialCounter.Epoch {
 		t.Fatal("restart did not reset telemetry epoch")
 	}

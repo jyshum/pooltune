@@ -76,11 +76,11 @@ func run(path string, resume bool, dashboardListen, assets string) error {
 		case <-dashboardErrors:
 			dashboardErrors = nil
 			closing = true
-			r.Controller.Freeze()
+			r.Controller.Shutdown()
 			fmt.Println("Dashboard unavailable; admission frozen while active work drains.")
 		case <-signals:
 			closing = true
-			r.Controller.Freeze()
+			r.Controller.Shutdown()
 			fmt.Println("Admission frozen; waiting for active transactions. Unknown outcomes require manual reconciliation.")
 		case <-tick.C:
 			if closing {
@@ -88,7 +88,10 @@ func run(path string, resume bool, dashboardListen, assets string) error {
 					return nil
 				}
 			} else {
-				_ = enc.Encode(r.Controller.State())
+				snapshot := r.Controller.State()
+				snapshot.History = nil
+				snapshot.Scope = ""
+				_ = enc.Encode(snapshot)
 			}
 		}
 	}

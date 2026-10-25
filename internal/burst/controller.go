@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"pooltune/internal/admin"
 	"pooltune/internal/domain"
 	"pooltune/internal/policy"
 	"pooltune/internal/provider"
@@ -18,6 +19,7 @@ import (
 var ErrUnsafe = errors.New("burst capacity is not verified")
 
 type Config struct {
+	historyScope         string
 	Target               string
 	Base, Ceiling, Queue int
 	QueueWait            time.Duration
@@ -33,11 +35,17 @@ type Health struct {
 	BudgetVerified bool
 }
 type State struct {
-	At        time.Time
-	Effective int
-	Reason    string
-	Frozen    bool
-	Changes   uint64
+	AuditFault  bool
+	Version     int
+	Scope       string
+	Revision    string
+	ManualLimit int
+	History     []Revision
+	At          time.Time
+	Effective   int
+	Reason      string
+	Frozen      bool
+	Changes     uint64
 }
 type Controller struct {
 	mu               sync.Mutex
@@ -47,6 +55,9 @@ type Controller struct {
 	health           Health
 	state            State
 	enabled, latched bool
+	auditFailed      bool
+	closing          bool
+	manualLimit      int
 	lastBusy         time.Time
 	persist          func(State) error
 }
@@ -65,7 +76,7 @@ func NewController(c Config, persist func(State) error) (*Controller, error) {
 	if e != nil {
 		return nil, e
 	}
-	b := &Controller{cfg: c, policy: p, persist: persist, state: State{Frozen: true, Reason: "startup_frozen"}}
+	b := &Controller{cfg: c, policy: p, persist: persist, state: State{Version: 1, Scope: configScope(c), Revision: revisionID(), Frozen: true, Reason: "startup_frozen"}}
 	b.Scheduler, e = scheduler.New(scheduler.Config{MaxActive: c.Ceiling, MaxQueued: c.Queue, MaxQueuedBytes: 16 << 20, MaxTenants: 1024, MaxWorkloads: 1, MaxTenantQueued: c.Queue, MaxTenantActive: c.Ceiling, RatePerSecond: 100000, RateBurst: 100000}, b.snapshot(0, 0))
 	return b, e
 }
@@ -78,46 +89,17 @@ func (b *Controller) valid(now time.Time) bool {
 	return h.BudgetVerified && h.Warm >= b.cfg.Ceiling && !h.At.IsZero() && !h.At.After(now) && now.Sub(h.At) <= 2*time.Second && !h.PressureAt.IsZero() && !h.PressureAt.After(now) && now.Sub(h.PressureAt) <= b.cfg.PressureMaxAge && h.Source == b.cfg.PressureSource && !math.IsNaN(h.CPU) && !math.IsNaN(h.Memory) && h.CPU >= 0 && h.CPU <= 1 && h.Memory >= 0 && h.Memory <= 1
 }
 func (b *Controller) apply(now time.Time, n int, reason string) error {
-	next := State{At: now, Effective: n, Reason: reason, Frozen: !b.enabled || b.latched, Changes: b.state.Changes}
-	if n == b.state.Effective {
-		b.state = next
-		return nil
-	}
-	next.Changes++
-	snap := b.snapshot(n, next.Changes)
-	persist := func() error {
-		if b.persist != nil {
-			return b.persist(next)
-		}
-		return nil
-	}
-	var e error
-	if n > b.state.Effective {
-		e = b.Scheduler.InstallDurably(snap, false, persist)
-	} else {
-		e = persist()
-		if e == nil {
-			e = b.Scheduler.InstallLimits(snap.Limits)
-		}
-	}
-	if e != nil {
-		b.latched = true
-		// Failure to record a transition never leaves growth or new admission enabled.
-		_ = b.Scheduler.InstallLimits(b.snapshot(0, next.Changes).Limits)
-		b.state = State{At: now, Effective: 0, Frozen: true, Reason: "transition_failed", Changes: next.Changes}
-		return e
-	}
-	b.state = next
-	return nil
+	return b.transition(now, n, reason, "controller", "", admin.Command{})
 }
 func (b *Controller) Resume(now time.Time) error {
 	b.mu.Lock()
 	defer b.mu.Unlock()
-	if !b.valid(now) || b.health.CPU >= .7 || b.health.Memory >= .8 || b.Scheduler.Stats().Uncertain != 0 {
+	if !b.safeToEnable(now) {
 		return ErrUnsafe
 	}
 	b.enabled = true
 	b.latched = false
+	b.manualLimit = 0
 	b.lastBusy = now
 	return b.apply(now, b.cfg.Base, "ready")
 }
@@ -125,6 +107,9 @@ func (b *Controller) Tick(now time.Time) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 	stats := b.Scheduler.Stats()
+	if b.auditFailed {
+		return
+	}
 	if stats.Uncertain != 0 {
 		b.latched = true
 		_ = b.apply(now, 0, "uncertain_work")
@@ -147,6 +132,10 @@ func (b *Controller) Tick(now time.Time) {
 		_ = b.apply(now, b.cfg.Base, "pressure_backoff")
 		return
 	}
+	if b.manualLimit > 0 {
+		_ = b.apply(now, b.manualLimit, "owner_hold")
+		return
+	}
 	if stats.Active > 0 || stats.Queued > 0 {
 		b.lastBusy = now
 	}
@@ -159,7 +148,7 @@ func (b *Controller) Tick(now time.Time) {
 		return
 	}
 }
-func (b *Controller) State() State { b.mu.Lock(); defer b.mu.Unlock(); return b.state }
+func (b *Controller) State() State { b.mu.Lock(); defer b.mu.Unlock(); return cloneState(b.state) }
 func (b *Controller) Ready() bool {
 	b.mu.Lock()
 	defer b.mu.Unlock()
@@ -175,4 +164,14 @@ func (b *Controller) Freeze() {
 	defer b.mu.Unlock()
 	b.enabled = false
 	_ = b.apply(time.Now(), 0, "frozen")
+}
+
+// Shutdown permanently fences this process while its active work drains.
+// A browser Resume cannot race SIGTERM or Runtime.Close to reopen admission.
+func (b *Controller) Shutdown() {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	b.closing = true
+	b.enabled = false
+	_ = b.apply(time.Now(), 0, "shutdown")
 }

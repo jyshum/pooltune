@@ -132,6 +132,10 @@ func Start(ctx context.Context, c Settings) (r *Runtime, err error) {
 	if e != nil && !os.IsNotExist(e) {
 		return nil, e
 	}
+	// Bind historical limits to the actual approved backend and budget, not a display label.
+	scopeBytes, _ := json.Marshal([]any{c.Backend.Host, c.Backend.Port, c.Backend.Database, c.Backend.User, c.SQLRole, c.BackendIP, c.OtherReserve, c.ProviderLimit})
+	scopeHash := sha256.Sum256(scopeBytes)
+	c.Control.historyScope = hex.EncodeToString(scopeHash[:])
 	r.Controller, err = NewController(c.Control, func(s State) error {
 		b, e := json.Marshal(s)
 		if e != nil {
@@ -141,6 +145,24 @@ func Start(ctx context.Context, c Settings) (r *Runtime, err error) {
 	})
 	if err != nil {
 		return nil, err
+	}
+	if saved, loadErr := r.files.Load("state.json"); loadErr == nil {
+		if err = r.Controller.loadHistory(saved); err != nil {
+			return nil, errors.New("admission history requires operator review")
+		}
+		var version struct{ Version int }
+		_ = json.Unmarshal(saved, &version)
+		if version.Version == 0 {
+			if _, oldErr := r.files.Load("state.pre-history.json"); os.IsNotExist(oldErr) {
+				if err = r.files.Save("state.pre-history.json", saved); err != nil {
+					return nil, err
+				}
+			} else if oldErr != nil {
+				return nil, oldErr
+			}
+		}
+	} else if !os.IsNotExist(loadErr) {
+		return nil, loadErr
 	}
 	r.monitor, err = pgx.ConnectConfig(ctx, c.Monitor.Copy())
 	if err != nil {
@@ -398,7 +420,7 @@ log_disconnections = 0
 			case <-run.Done():
 				return
 			case <-parent.Done():
-				r.Controller.Freeze()
+				r.Controller.Shutdown()
 				return
 			case <-tick.C:
 				q, done := context.WithTimeout(run, 3*time.Second)
@@ -520,12 +542,12 @@ func (r *Runtime) ClientConfig() *pgx.ConnConfig { return r.client.Copy() }
 // Close freezes new work and refuses to interrupt active or uncertain transactions.
 // The caller retries after drain. There is no automatic bypass or SQL replay.
 func (r *Runtime) Close() error {
-	r.Controller.Freeze()
+	r.Controller.Shutdown()
 	stats := r.Controller.Scheduler.Stats()
 	if stats.Active != 0 || stats.Uncertain != 0 {
 		return errors.New("gateway still owns active or uncertain work")
 	}
-	r.dispose(true)
+	r.dispose(!r.Controller.State().AuditFault)
 	return nil
 }
 func (r *Runtime) dispose(clean bool) {
