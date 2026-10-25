@@ -52,8 +52,8 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--brand); outline
 .wordmark__mark { display: inline-flex; align-items: flex-end; gap: 0.13em; height: 0.82em; }
 .wordmark__mark i { width: 0.25em; border-radius: 0.13em; background: var(--brand); }
 .wordmark__mark i:nth-child(1) { height: 45%; }
-.wordmark__mark i:nth-child(2) { height: 70%; }
-.wordmark__mark i:nth-child(3) { height: 100%; }
+.wordmark__mark i:nth-child(2) { height: 100%; }
+.wordmark__mark i:nth-child(3) { height: 70%; }
 .wordmark__word { font-family: 'Nunito', var(--sans); font-weight: 800; letter-spacing: -0.02em; }
 .wordmark--nav { font-size: 1.2rem; }
 .wordmark--footer { font-size: 1.05rem; }

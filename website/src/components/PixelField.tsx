@@ -1,22 +1,24 @@
 import { useEffect, useRef } from 'react';
 
 // Background for the Works with section: a flat grid of pixels seen from above.
-// Swells travel across it like a wave viewed from overhead. Troughs are dim grey and
-// crests fade into cyan, drawn a little larger, so the field reads as depth rather
-// than a vertical wave.
+// Swells travel across it like a wave viewed from overhead. Each swell fades from grey
+// at its edges to cyan at its crest, and crest pixels are drawn a little larger, so the
+// field reads as depth rather than a vertical wave.
 
-const CELL = 14; // pixel pitch in CSS px
-const SIZES = [2, 3, 4, 5]; // trough to crest
-const SHADES = 8;
+const CELL = 11; // pixel pitch in CSS px
+const SIZES = [3, 3.5, 4, 4.5, 5]; // trough to crest
+const SHADES = 14;
 const GREY = [150, 150, 150];
 const CYAN = [63, 181, 196]; // --brand
 
-// Colour and alpha for each shade, from grey trough to cyan crest.
+// Colour and alpha for each shade. Troughs are clearly visible grey. Partway up the swell
+// the colour starts blending toward cyan, so each band is a grey to cyan gradient.
 const shadeStyle = Array.from({ length: SHADES }, (_, i) => {
   const f = i / (SHADES - 1);
-  const mix = f * f; // stay grey through most of the swell, turn cyan near the crest
+  const t = Math.min(1, Math.max(0, (f - 0.5) / 0.45));
+  const mix = t * t * (3 - 2 * t);
   const [r, g, b] = GREY.map((c, k) => Math.round(c + (CYAN[k] - c) * mix));
-  const a = 0.06 + f * 0.5;
+  const a = 0.16 + f * 0.42;
   return `rgba(${r}, ${g}, ${b}, ${a.toFixed(3)})`;
 });
 
@@ -44,14 +46,15 @@ export default function PixelField() {
     };
 
     // Height of the water surface at a point, 0 (trough) to 1 (crest).
+    // Higher spatial frequencies than before give more, narrower swells.
     const swell = (x: number, y: number, t: number) => {
-      const a = Math.sin(x * 0.011 + y * 0.005 - t * 0.8);
-      const b = Math.sin(x * -0.004 + y * 0.013 - t * 0.55 + 1.3);
+      const a = Math.sin(x * 0.018 + y * 0.008 - t * 0.8);
+      const b = Math.sin(x * -0.007 + y * 0.021 - t * 0.55 + 1.3);
       const d = Math.hypot(x - w * 0.15, y + h * 0.6);
-      const c = Math.sin(d * 0.018 - t * 1.05);
+      const c = Math.sin(d * 0.028 - t * 1.05);
       const v = (a * 0.5 + b * 0.3 + c * 0.2 + 1) / 2;
-      // Sharpen so crests are narrow bands and troughs stay dark.
-      const s = Math.min(1, Math.max(0, (v - 0.3) / 0.7));
+      // Mild contrast so the full grey to cyan range shows across each band.
+      const s = Math.min(1, Math.max(0, (v - 0.15) / 0.75));
       return s * s * (3 - 2 * s);
     };
 

@@ -34,7 +34,7 @@ const scenes: Scene[] = [
   },
   {
     title: 'A fixed limit makes requests wait.',
-    line: 'Set once, the limit cannot follow the traffic.',
+    line: 'Set once, it stays the same as requests rise and fall.',
     mood: 'idle',
     action: 'Not installed',
     limit: [4, 4], busy: [4, 4], waiting: [2, 7], cpu: [34, 40], tuner: false,
@@ -103,7 +103,7 @@ export default function ScrollStory() {
         {/* The heading is pinned with the story so it stays in view while scrolling through the steps. */}
         <div className="story__head">
           <p className="kicker">How it works</p>
-          <h2 id="how-title">A pool limit that follows the traffic.</h2>
+          <h2 id="how-title">Database connections that adjust to your requests.</h2>
         </div>
         <div className="story__body">
           <ol className="story__steps">
