@@ -10,6 +10,8 @@ import PixelField from './components/PixelField';
 import Wordmark, { withBrand } from './components/Wordmark';
 import DashboardPreview from './components/DashboardPreview';
 import { results, validRuns } from './data/results';
+import tigerDataLogo from './assets/partners/tiger-data.svg';
+import manaLogo from './assets/partners/mana.png';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -64,6 +66,16 @@ export default function App() {
               ) : (
                 <a className="btn btn--dark" href="#how">See how it works</a>
               )}
+            </div>
+            <div className="hero__built-with" aria-label="Built with Tiger Data and Mana">
+              <span>Built with</span>
+              <a href="https://www.tigerdata.com" title="Tiger Data powers optional traffic history">
+                <img src={tigerDataLogo} width="109" height="24" alt="Tiger Data" />
+              </a>
+              <a href="https://www.mana.space/a/pooltune" title="Explore the demo built in Mana">
+                <img src={manaLogo} width="24" height="24" alt="" />
+                <span className="hero__mana-name">Mana</span>
+              </a>
             </div>
           </div>
         </section>

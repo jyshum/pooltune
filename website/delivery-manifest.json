@@ -1,9 +1,9 @@
 {
-  "release": "managed-dashboard-preview-2026-10-25",
-  "base_url": "https://github.com/jyshum/pooltune/releases/download/managed-dashboard-preview-2026-10-25/",
+  "release": "managed-history-preview-2026-10-25",
+  "base_url": "https://github.com/jyshum/pooltune/releases/download/managed-history-preview-2026-10-25/",
   "files": {
-    "pooltune-macos-arm64.tar.gz": "f3da8a278cdd5083df08ab92466137f4c2b9d62f3046ca6be8edca39660d51b5",
-    "pooltune-macos-arm64.tar.gz.sha256": "2e7c51537e1ff241eeee8214410ce96fbbdc1025ae55832163721e1798a7c839",
+    "pooltune-macos-arm64.tar.gz": "1c728a8d4ec4b5777de99939c8f1e3069b19e23b1707dce4ba881861ba63bebf",
+    "pooltune-macos-arm64.tar.gz.sha256": "c1cba412483d02e98c6372afb54f6245af30acdda18a03e726f47f8b810e07b3",
     "managed-setup-guide.md": "974589060d17a8148bc8b9294058ca6be590181382b40b0d4179b7fb44c060ea",
     "managed-mvp-results.md": "35c4d48bfd18fe31c69d8e75e72fcc8b2607b9cbb5d3519c04c3026bba2ea82a",
     "managed-dashboard.png": "4d2c4be2a3775f4761f174155163d3f335501052f48b959b56b9947d1fb19432"

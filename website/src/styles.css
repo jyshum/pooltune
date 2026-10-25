@@ -78,6 +78,12 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--brand); outline
 .hero h1 span { display: block; color: var(--brand); }
 .hero__sub { margin-top: 24px; max-width: 34em; color: var(--muted); font-size: clamp(1rem, 1.6vw, 1.15rem); }
 .hero__cta { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 32px; }
+.hero__built-with { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 22px; margin-top: 30px; color: var(--muted); font-size: .78rem; }
+.hero__built-with a { display: inline-flex; align-items: center; gap: 7px; min-height: 32px; opacity: .8; text-decoration: none; transition: opacity .2s; }
+.hero__built-with a:hover, .hero__built-with a:focus-visible { opacity: 1; }
+.hero__built-with img { display: block; object-fit: contain; }
+.hero__built-with a:last-child img { border-radius: 6px; }
+.hero__mana-name { color: var(--text); font-size: 1.12rem; font-weight: 800; letter-spacing: -.03em; }
 
 /* Sections */
 .section { padding: 112px 0; border-bottom: 1px solid var(--border); }
