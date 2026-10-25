@@ -111,10 +111,20 @@ export default function App() {
             </div>
             <ol className="setup">
               {setup.map((s, i) => (
-                <li key={s.title} className="setup__step reveal">
-                  <span className="setup__n">{i + 1}</span>
-                  <h3>{s.title}</h3>
-                  <p>{withBrand(s.body)}</p>
+                <li key={s.title} className={`setup__step${i === 2 ? ' setup__step--dashboard' : ''} reveal`}>
+                  <div className={i === 2 ? 'setup__dashboard-bar' : undefined}>
+                    <span className="setup__n">{i + 1}</span>
+                    <div>
+                      <h3>{s.title}</h3>
+                      <p>{withBrand(s.body)}</p>
+                    </div>
+                  </div>
+                  {i === 2 && (
+                    <figure className="setup__preview">
+                      <img src="./downloads/managed-dashboard.png" alt="Pooltune dashboard showing connection capacity, queue demand and database resource pressure with sample data" width="1280" height="1352" loading="lazy" />
+                      <figcaption>Dashboard preview <span aria-hidden="true">·</span> Sample data</figcaption>
+                    </figure>
+                  )}
                 </li>
               ))}
             </ol>
@@ -123,8 +133,7 @@ export default function App() {
               <pre><code><span className="code__dim">$</span> bin/pooltune-burst -config /absolute/private/profile.json -resume</code></pre>
             </div>
             <div className="setup__cta reveal">
-              <a className="btn" href="./downloads/pooltune-macos-arm64.tar.gz" download>Download for Mac</a>
-              <a className="btn btn--dark" href="./setup.html">Setup guide</a>
+              <a className="btn" href="./setup.html">Setup &amp; Download</a>
               <a className="btn btn--dark" href={repoUrl}>View on GitHub</a>
             </div>
           </div>
