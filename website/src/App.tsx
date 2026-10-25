@@ -8,6 +8,7 @@ import RecordedResults from './components/RecordedResults';
 import { limits, repoUrl, setup, targets } from './content';
 import PixelField from './components/PixelField';
 import Wordmark, { withBrand } from './components/Wordmark';
+import DashboardPreview from './components/DashboardPreview';
 import { results, validRuns } from './data/results';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -109,32 +110,38 @@ export default function App() {
               <p className="kicker">Get started</p>
               <h2 id="setup-title">Start your project.</h2>
             </div>
-            <ol className="setup">
-              {setup.map((s, i) => (
-                <li key={s.title} className={`setup__step${i === 2 ? ' setup__step--dashboard' : ''} reveal`}>
-                  <div className={i === 2 ? 'setup__dashboard-bar' : undefined}>
-                    <span className="setup__n">{i + 1}</span>
-                    <div>
+            <div className="setup-layout">
+              <div className="setup__start">
+                <ol className="setup">
+                  {setup.slice(0, 2).map((s, i) => (
+                    <li key={s.title} className="setup__step reveal">
+                      <span className="setup__n">{i + 1}</span>
                       <h3>{s.title}</h3>
                       <p>{withBrand(s.body)}</p>
-                    </div>
+                    </li>
+                  ))}
+                </ol>
+                <div className="code reveal">
+                  <div className="code__bar"><span className="dots"><i /><i /><i /></span><span>Terminal</span></div>
+                  <pre><code><span className="code__dim">$</span> bin/pooltune-burst -config /absolute/private/profile.json -resume</code></pre>
+                </div>
+                <div className="setup__cta reveal">
+                  <a className="btn" href="./setup.html">Setup &amp; Download</a>
+                  <a className="btn btn--dark" href={repoUrl}>View on GitHub</a>
+                </div>
+              </div>
+              <ol className="setup setup--preview" start={3}>
+                <li className="setup__step setup__step--dashboard reveal">
+                  <div className="setup__dashboard-bar">
+                    <span className="setup__n">3</span>
+                    <div><h3>{setup[2].title}</h3><p>{withBrand(setup[2].body)}</p></div>
                   </div>
-                  {i === 2 && (
-                    <figure className="setup__preview">
-                      <img src="./downloads/managed-dashboard.png" alt="Pooltune dashboard showing connection capacity, queue demand and database resource pressure with sample data" width="1280" height="1352" loading="lazy" />
-                      <figcaption>Dashboard preview <span aria-hidden="true">·</span> Sample data</figcaption>
-                    </figure>
-                  )}
+                  <figure className="setup__preview">
+                    <DashboardPreview />
+                    <figcaption>Dashboard preview <span aria-hidden="true">·</span> Sample data</figcaption>
+                  </figure>
                 </li>
-              ))}
-            </ol>
-            <div className="code reveal">
-              <div className="code__bar"><span className="dots"><i /><i /><i /></span><span>Terminal</span></div>
-              <pre><code><span className="code__dim">$</span> bin/pooltune-burst -config /absolute/private/profile.json -resume</code></pre>
-            </div>
-            <div className="setup__cta reveal">
-              <a className="btn" href="./setup.html">Setup &amp; Download</a>
-              <a className="btn btn--dark" href={repoUrl}>View on GitHub</a>
+              </ol>
             </div>
           </div>
         </section>
