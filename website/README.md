@@ -25,7 +25,7 @@ Output goes to `dist/`. Asset paths are relative, so the folder works on any sta
 1. Hero with the pixel wave (`src/components/PixelWave.tsx`, canvas, pauses offscreen, still frame on reduced motion).
 2. How it works: a sticky scroll story (`src/components/ScrollStory.tsx`). GSAP ScrollTrigger maps scroll to five hand-written states. The panel is tagged Illustrative. It is not measured data.
 3. Results: hidden until `recorded-results.json` has a valid run.
-4. Works with: status per target.
+4. Works with: logo cards for each target over `src/components/PixelField.tsx`, a grey pixel swell seen from above with random cyan flashes.
 5. Get started: placeholder steps and terminal until the install path is ready.
 6. Footer: one line of known limits.
 
@@ -33,9 +33,9 @@ Output goes to `dist/`. Asset paths are relative, so the folder works on any sta
 
 Every public claim is in `src/content.ts`:
 
-- `targets`: status per target. `local` means verified locally, `testing` means an adapter exists without a live run, `readonly` means changes are disabled (Supabase).
+- `targets`: the Works with cards, in display order. Per-target support status is not shown on this section; the footer's limits line covers it.
 - `setup`: Get started copy. Replace the terminal placeholder in `App.tsx` with the real install command once it exists.
-- `limits`: backup routing, hosted provider testing, no speed or cost claims. Keep it until those gaps close.
+- `limits`: backup routing, hosted provider testing, no speed claims. Keep it until those gaps close.
 
 ## Recorded results (for Codex)
 
@@ -73,6 +73,7 @@ Only real runs from `src/data/recorded-results.json` are shown. It ships empty. 
 - React 19.3.1 and Vite 8.3.5, pinned to match `ui/`.
 - GSAP 3.15.0 with ScrollTrigger: scroll story and reveals. Both respect reduced motion.
 - thinking-orbs 0.3.2 (MIT, Jakub Antalik): the status orb on the Pooltune box in the scroll story. Mood to state mapping is in `src/components/TunerOrb.tsx`.
+- Logos in `src/logos.ts`: four SVGs copied from the Iconify logos set (CC0). PgBouncer has no logo, so it uses the PostgreSQL elephant. Logos are trademarks of their owners.
 - React Bits `SpotlightCard`, vendored in `src/reactbits/`. Unchanged except for removing the `use client` line. License: MIT plus Commons Clause, copyright David Haz. Commons Clause does not allow selling the components themselves.
 
 No fonts, scripts or images load from other origins.

@@ -5,7 +5,8 @@ import SpotlightCard from './reactbits/SpotlightCard';
 import PixelWave from './components/PixelWave';
 import ScrollStory from './components/ScrollStory';
 import RecordedResults from './components/RecordedResults';
-import { levelLabel, limits, repoUrl, setup, targets } from './content';
+import { limits, repoUrl, setup, targets } from './content';
+import PixelField from './components/PixelField';
 import { results, validRuns } from './data/results';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -84,7 +85,8 @@ export default function App() {
           </section>
         )}
 
-        <section className="section" id="works-with" aria-labelledby="works-title">
+        <section className="section section--works" id="works-with" aria-labelledby="works-title">
+          <PixelField />
           <div className="wrap">
             <div className="head reveal">
               <p className="kicker">Works with</p>
@@ -93,9 +95,8 @@ export default function App() {
             <div className="targets">
               {targets.map(t => (
                 <SpotlightCard key={t.name} className="target reveal" spotlightColor="#3fb5c4" intensity={0.08} borderGlow={0.4} theme="dark">
+                  <svg className="target__logo" viewBox={t.logo.viewBox} aria-hidden="true" dangerouslySetInnerHTML={{ __html: t.logo.body }} />
                   <h3>{t.name}</h3>
-                  <p>{t.pooler}</p>
-                  <span className={`status status--${t.level}`}><i />{levelLabel[t.level]}</span>
                 </SpotlightCard>
               ))}
             </div>

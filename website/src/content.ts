@@ -1,21 +1,17 @@
+import { logos, type Logo } from './logos';
+
 // Public claims live here. Sources: docs/mvp-scope.md, docs/pool-sizing-results.md,
 // docs/provider-evidence.md, docs/release-gates.md and docs/recovery.md.
 
 export const repoUrl = 'https://github.com/jyshum/pooltune';
 
-export type Level = 'local' | 'testing' | 'readonly';
-
-export const levelLabel: Record<Level, string> = {
-  local: 'Verified locally',
-  testing: 'In testing',
-  readonly: 'Read-only for now',
-};
-
-export const targets: { name: string; pooler: string; level: Level }[] = [
-  { name: 'PgBouncer', pooler: 'Self-hosted, with PostgreSQL', level: 'local' },
-  { name: 'Azure', pooler: 'Database for PostgreSQL, built-in PgBouncer', level: 'testing' },
-  { name: 'Google Cloud', pooler: 'Cloud SQL, managed connection pooling', level: 'testing' },
-  { name: 'Supabase', pooler: 'Supavisor transaction pool', level: 'readonly' },
+// Order matters: hosted providers first, self-hosted PgBouncer last.
+// PgBouncer has no logo of its own, so it uses the PostgreSQL elephant.
+export const targets: { name: string; logo: Logo }[] = [
+  { name: 'Azure', logo: logos.azure },
+  { name: 'Google Cloud', logo: logos.googleCloud },
+  { name: 'Supabase', logo: logos.supabase },
+  { name: 'PgBouncer', logo: logos.postgresql },
 ];
 
 export const setup = [
