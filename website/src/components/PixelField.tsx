@@ -1,24 +1,26 @@
 import { useEffect, useRef } from 'react';
 
 // Background for the Works with section: a flat grid of pixels seen from above.
-// Swells travel across it like a wave viewed from overhead. Each swell fades from grey
-// at its edges to cyan at its crest, and crest pixels are drawn a little larger, so the
-// field reads as depth rather than a vertical wave.
+// Swells travel across it like a wave viewed from overhead. Between swells the field is
+// empty and dark. Inside a swell, pixels are grey toward its edges and fade to cyan at its
+// crest, and crest pixels are drawn a little larger, so the field reads as depth rather
+// than a vertical wave.
 
 const CELL = 11; // pixel pitch in CSS px
 const SIZES = [3, 3.5, 4, 4.5, 5]; // trough to crest
 const SHADES = 14;
+const GAP = 0.5; // surface height below which nothing is drawn, leaving dark space between swells
 const GREY = [150, 150, 150];
 const CYAN = [63, 181, 196]; // --brand
 
-// Colour and alpha for each shade. Troughs are clearly visible grey. Partway up the swell
-// the colour starts blending toward cyan, so each band is a grey to cyan gradient.
+// Colour and alpha across a swell, from its edge (0) to its crest (1). The outer part of each
+// swell is grey. Cyan blends in only over the inner part, so every swell is a grey to cyan gradient.
 const shadeStyle = Array.from({ length: SHADES }, (_, i) => {
   const f = i / (SHADES - 1);
-  const t = Math.min(1, Math.max(0, (f - 0.5) / 0.45));
+  const t = Math.min(1, Math.max(0, (f - 0.55) / 0.4));
   const mix = t * t * (3 - 2 * t);
   const [r, g, b] = GREY.map((c, k) => Math.round(c + (CYAN[k] - c) * mix));
-  const a = 0.16 + f * 0.42;
+  const a = 0.22 + f * 0.38;
   return `rgba(${r}, ${g}, ${b}, ${a.toFixed(3)})`;
 });
 
@@ -46,16 +48,12 @@ export default function PixelField() {
     };
 
     // Height of the water surface at a point, 0 (trough) to 1 (crest).
-    // Higher spatial frequencies than before give more, narrower swells.
     const swell = (x: number, y: number, t: number) => {
-      const a = Math.sin(x * 0.018 + y * 0.008 - t * 0.8);
-      const b = Math.sin(x * -0.007 + y * 0.021 - t * 0.55 + 1.3);
+      const a = Math.sin(x * 0.014 + y * 0.006 - t * 0.8);
+      const b = Math.sin(x * -0.005 + y * 0.017 - t * 0.55 + 1.3);
       const d = Math.hypot(x - w * 0.15, y + h * 0.6);
-      const c = Math.sin(d * 0.028 - t * 1.05);
-      const v = (a * 0.5 + b * 0.3 + c * 0.2 + 1) / 2;
-      // Mild contrast so the full grey to cyan range shows across each band.
-      const s = Math.min(1, Math.max(0, (v - 0.15) / 0.75));
-      return s * s * (3 - 2 * s);
+      const c = Math.sin(d * 0.022 - t * 1.05);
+      return (a * 0.5 + b * 0.3 + c * 0.2 + 1) / 2;
     };
 
     const draw = (time: number) => {
@@ -71,8 +69,11 @@ export default function PixelField() {
           const cx = col * CELL + CELL / 2;
           const cy = row * CELL + CELL / 2;
           const v = swell(cx, cy, t);
-          const si = Math.min(SIZES.length - 1, Math.floor(v * SIZES.length));
-          const shade = Math.min(SHADES - 1, Math.floor(v * SHADES));
+          if (v < GAP) continue;
+          // Position inside the swell, 0 at its edge and 1 at its crest.
+          const u = Math.min(1, (v - GAP) / (0.92 - GAP));
+          const si = Math.min(SIZES.length - 1, Math.floor(u * SIZES.length));
+          const shade = Math.min(SHADES - 1, Math.floor(u * SHADES));
           buckets[si][shade].push(cx, cy);
         }
       }
