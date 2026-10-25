@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import TunerOrb, { type OrbMood } from './TunerOrb';
+import Wordmark, { withBrand } from './Wordmark';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -110,8 +111,8 @@ export default function ScrollStory() {
               <li key={x.title} className={i === index ? 'is-active' : i < index ? 'is-done' : ''}>
                 <button type="button" onClick={() => jump(i)} aria-current={i === index ? 'step' : undefined}>
                   <span className="story__n">{String(i + 1).padStart(2, '0')}</span>
-                  <span className="story__title">{x.title}</span>
-                  <span className="story__line">{x.line}</span>
+                  <span className="story__title">{withBrand(x.title)}</span>
+                  <span className="story__line">{withBrand(x.line)}</span>
                 </button>
               </li>
             ))}
@@ -126,8 +127,8 @@ export default function ScrollStory() {
             <div className={`tuner${s.tuner ? ' is-on' : ''}`}>
               <TunerOrb mood={s.tuner ? s.mood : 'off'} />
               <div>
-                <strong>Pooltune</strong>
-                <span>{s.action}</span>
+                <strong><Wordmark /></strong>
+                <span className="tuner__action">{s.action}</span>
               </div>
             </div>
             <div className={`tuner__link${s.tuner ? ' is-on' : ''}`} />

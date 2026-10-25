@@ -7,6 +7,7 @@ import ScrollStory from './components/ScrollStory';
 import RecordedResults from './components/RecordedResults';
 import { limits, repoUrl, setup, targets } from './content';
 import PixelField from './components/PixelField';
+import Wordmark, { withBrand } from './components/Wordmark';
 import { results, validRuns } from './data/results';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -32,8 +33,7 @@ export default function App() {
       <header className="nav">
         <div className="wrap nav__inner">
           <a className="brand" href="#top" aria-label="Pooltune home">
-            <span className="brand__mark" aria-hidden="true"><i /><i /><i /></span>
-            <span className="brand__word">pooltune</span>
+            <Wordmark className="wordmark--nav" />
           </a>
           <nav aria-label="Sections">
             <a href="#how">How it works</a>
@@ -54,7 +54,7 @@ export default function App() {
               <span>Tune your pool automatically.</span>
             </h1>
             <p className="hero__sub">
-              Pooltune grows your PostgreSQL pooler when requests pile up and shrinks it when things go quiet. Save costs on database scaling and provisioning.
+              <Wordmark /> grows your PostgreSQL pooler when requests pile up and shrinks it when things go quiet. Save costs on database scaling and provisioning.
             </p>
             <div className="hero__cta">
               <a className="btn" href="#get-started">Start your project</a>
@@ -114,7 +114,7 @@ export default function App() {
                 <li key={s.title} className="setup__step reveal">
                   <span className="setup__n">{i + 1}</span>
                   <h3>{s.title}</h3>
-                  <p>{s.body}</p>
+                  <p>{withBrand(s.body)}</p>
                 </li>
               ))}
             </ol>
@@ -131,9 +131,9 @@ export default function App() {
 
       <footer className="footer">
         <div className="wrap">
-          <p className="footer__limits">{limits}</p>
+          <p className="footer__limits">{withBrand(limits)}</p>
           <div className="footer__row">
-            <a className="brand brand--small" href="#top"><span className="brand__mark" aria-hidden="true"><i /><i /><i /></span><span className="brand__word">pooltune</span></a>
+            <a className="brand" href="#top" aria-label="Pooltune home"><Wordmark className="wordmark--footer" /></a>
             <a href={repoUrl}>GitHub</a>
           </div>
         </div>

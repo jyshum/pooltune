@@ -45,14 +45,19 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--brand); outline
 /* Nav */
 .nav { position: sticky; top: 0; z-index: 20; background: rgba(18, 18, 18, 0.8); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
 .nav__inner { display: flex; align-items: center; gap: 24px; height: 64px; }
-.brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; text-decoration: none; letter-spacing: -0.01em; flex-shrink: 0; }
-.brand__mark { display: inline-flex; align-items: flex-end; gap: 2px; height: 16px; }
-.brand__mark i { width: 4px; background: var(--brand); border-radius: 2px; }
-/* Wordmark only. Nunito ExtraBold is bundled from @fontsource/nunito (OFL). */
-.brand__word { font-family: 'Nunito', var(--sans); font-weight: 800; font-size: 1.2rem; letter-spacing: -0.02em; line-height: 1; }
-.brand__mark i:nth-child(1) { height: 7px; }
-.brand__mark i:nth-child(2) { height: 11px; }
-.brand__mark i:nth-child(3) { height: 16px; }
+.brand { display: inline-flex; align-items: center; text-decoration: none; flex-shrink: 0; color: var(--text); }
+
+/* Logo. Sized in em so it scales with surrounding text. Nunito ExtraBold is bundled from @fontsource/nunito (OFL). */
+.wordmark { display: inline-flex; align-items: baseline; gap: 0.32em; white-space: nowrap; }
+.wordmark__mark { display: inline-flex; align-items: flex-end; gap: 0.13em; height: 0.82em; }
+.wordmark__mark i { width: 0.25em; border-radius: 0.13em; background: var(--brand); }
+.wordmark__mark i:nth-child(1) { height: 45%; }
+.wordmark__mark i:nth-child(2) { height: 70%; }
+.wordmark__mark i:nth-child(3) { height: 100%; }
+.wordmark__word { font-family: 'Nunito', var(--sans); font-weight: 800; letter-spacing: -0.02em; }
+.wordmark--nav { font-size: 1.2rem; }
+.wordmark--footer { font-size: 1.05rem; }
+
 .nav nav { display: flex; gap: 2px; flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; }
 .nav nav::-webkit-scrollbar { display: none; }
 .nav nav a { padding: 6px 10px; border-radius: 6px; color: var(--muted); font-size: 0.9rem; text-decoration: none; white-space: nowrap; }
@@ -107,7 +112,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--brand); outline
 .tuner { display: flex; align-items: center; gap: 12px; width: fit-content; margin: 0 auto; padding: 10px 16px 10px 12px; border: 1px dashed var(--border-strong); border-radius: 12px; background: var(--surface); opacity: 0.4; transition: opacity 0.4s, border-color 0.4s; }
 .tuner.is-on { opacity: 1; border-color: var(--brand-line); }
 .tuner strong { display: block; font-size: 0.92rem; font-weight: 500; }
-.tuner span { display: block; color: var(--muted); font: 0.78rem var(--mono); }
+.tuner__action { display: block; color: var(--muted); font: 0.78rem var(--mono); }
 .orb { display: grid; place-items: center; width: 44px; height: 44px; flex-shrink: 0; border-radius: 50%; background: radial-gradient(circle, rgba(63, 181, 196, 0.22), transparent 70%); transition: opacity 0.4s, background 0.4s; }
 /* thinking-orbs sets an inline 64px size; scale it into the 44px slot so it stays centered. */
 .orb canvas { width: 44px !important; height: 44px !important; }
@@ -201,5 +206,3 @@ tbody tr:last-child > * { border-bottom: 0; }
 .footer__row { display: flex; align-items: center; gap: 24px; margin-top: 24px; }
 .footer__row a { text-decoration: none; }
 .footer__row a:hover { color: var(--text); }
-.brand--small { color: var(--text); }
-.brand--small .brand__word { font-size: 1.05rem; }
