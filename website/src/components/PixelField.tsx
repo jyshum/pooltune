@@ -1,18 +1,24 @@
 import { useEffect, useRef } from 'react';
 
-// Background for the Works with section: a flat grid of grey pixels seen from above.
-// Swells travel across it like a wave viewed from overhead. Crests are brighter and drawn
-// a little larger, so the field reads as depth rather than a vertical wave.
-// Random cyan pixels flash on and off on top.
+// Background for the Works with section: a flat grid of pixels seen from above.
+// Swells travel across it like a wave viewed from overhead. Troughs are dim grey and
+// crests fade into cyan, drawn a little larger, so the field reads as depth rather
+// than a vertical wave.
 
 const CELL = 14; // pixel pitch in CSS px
 const SIZES = [2, 3, 4, 5]; // trough to crest
-const SHADES = 6;
-const SPARK = [95, 232, 245]; // neon cyan, brighter than --brand
-const SPARK_LIFE = 0.9; // seconds
-const SPARK_RATE = 0.005; // new sparks per cell per second
+const SHADES = 8;
+const GREY = [150, 150, 150];
+const CYAN = [63, 181, 196]; // --brand
 
-type Spark = { col: number; row: number; born: number };
+// Colour and alpha for each shade, from grey trough to cyan crest.
+const shadeStyle = Array.from({ length: SHADES }, (_, i) => {
+  const f = i / (SHADES - 1);
+  const mix = f * f; // stay grey through most of the swell, turn cyan near the crest
+  const [r, g, b] = GREY.map((c, k) => Math.round(c + (CYAN[k] - c) * mix));
+  const a = 0.06 + f * 0.5;
+  return `rgba(${r}, ${g}, ${b}, ${a.toFixed(3)})`;
+});
 
 export default function PixelField() {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -26,8 +32,6 @@ export default function PixelField() {
     let h = 0;
     let raf = 0;
     let visible = false;
-    let last = 0;
-    let sparks: Spark[] = [];
     const start = performance.now();
 
     const resize = () => {
@@ -53,8 +57,6 @@ export default function PixelField() {
 
     const draw = (time: number) => {
       const t = time / 1000;
-      const dt = last ? Math.min(0.1, t - last) : 0;
-      last = t;
       ctx.clearRect(0, 0, w, h);
       const cols = Math.ceil(w / CELL);
       const rows = Math.ceil(h / CELL);
@@ -76,60 +78,28 @@ export default function PixelField() {
         const size = SIZES[si];
         byShade.forEach((list, shade) => {
           if (!list.length) return;
-          const a = 0.05 + (shade / (SHADES - 1)) * 0.17;
-          ctx.fillStyle = `rgba(200, 200, 200, ${a.toFixed(3)})`;
+          ctx.fillStyle = shadeStyle[shade];
           ctx.beginPath();
           for (let i = 0; i < list.length; i += 2) ctx.rect(list[i] - size / 2, list[i + 1] - size / 2, size, size);
           ctx.fill();
         });
       });
-
-      // Sparks: spawn at random cells, fade in and out over their life.
-      const spawn = cols * rows * SPARK_RATE * dt;
-      for (let n = spawn + Math.random(); n >= 1; n--) {
-        sparks.push({ col: Math.floor(Math.random() * cols), row: Math.floor(Math.random() * rows), born: t });
-      }
-      sparks = sparks.filter(s => t - s.born < SPARK_LIFE);
-      const [r, g, b] = SPARK;
-      for (const s of sparks) {
-        const k = Math.sin((Math.PI * (t - s.born)) / SPARK_LIFE);
-        const cx = s.col * CELL + CELL / 2;
-        const cy = s.row * CELL + CELL / 2;
-        ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${(0.18 * k).toFixed(3)})`;
-        ctx.fillRect(cx - 7, cy - 7, 14, 14);
-        ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${k.toFixed(3)})`;
-        ctx.fillRect(cx - 3, cy - 3, 6, 6);
-      }
     };
 
     const loop = (now: number) => {
       if (visible && !document.hidden) draw(now - start);
-      else last = 0;
       raf = requestAnimationFrame(loop);
-    };
-
-    const still = () => {
-      // Reduced motion: one frame with a few fixed sparks.
-      draw(3000);
-      const cols = Math.ceil(w / CELL);
-      const rows = Math.ceil(h / CELL);
-      sparks = Array.from({ length: Math.round(cols * rows * 0.0025) }, () => ({
-        col: Math.floor(Math.random() * cols),
-        row: Math.floor(Math.random() * rows),
-        born: 3 - SPARK_LIFE / 2,
-      }));
-      draw(3000);
     };
 
     resize();
     const ro = new ResizeObserver(() => {
       resize();
-      if (reduce) still();
+      if (reduce) draw(3000);
     });
     ro.observe(canvas);
     const io = new IntersectionObserver(([e]) => (visible = e.isIntersecting));
     io.observe(canvas);
-    if (reduce) still();
+    if (reduce) draw(3000);
     else raf = requestAnimationFrame(loop);
 
     return () => {

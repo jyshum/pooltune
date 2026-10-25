@@ -54,7 +54,7 @@ export default function App() {
               <span>Tune your pool automatically.</span>
             </h1>
             <p className="hero__sub">
-              Pooltune grows your PostgreSQL pooler when work piles up and shrinks it when things go quiet. Save costs on database scaling and provisioning.
+              Pooltune grows your PostgreSQL pooler when requests pile up and shrinks it when things go quiet. Save costs on database scaling and provisioning.
             </p>
             <div className="hero__cta">
               <a className="btn" href="#get-started">Start your project</a>

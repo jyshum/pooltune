@@ -25,7 +25,7 @@ Output goes to `dist/`. Asset paths are relative, so the folder works on any sta
 1. Hero with the pixel wave (`src/components/PixelWave.tsx`, canvas, pauses offscreen, still frame on reduced motion).
 2. How it works: a sticky scroll story (`src/components/ScrollStory.tsx`). GSAP ScrollTrigger maps scroll to five hand-written states. The panel is tagged Illustrative. It is not measured data.
 3. Results: hidden until `recorded-results.json` has a valid run.
-4. Works with: logo cards for each target over `src/components/PixelField.tsx`, a grey pixel swell seen from above with random cyan flashes.
+4. Works with: logo cards for each target over `src/components/PixelField.tsx`, a pixel swell seen from above that fades from grey troughs to cyan crests.
 5. Get started: placeholder steps and terminal until the install path is ready.
 6. Footer: one line of known limits.
 
