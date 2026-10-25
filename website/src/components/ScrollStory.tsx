@@ -40,22 +40,22 @@ const scenes: Scene[] = [
     limit: [4, 4], busy: [4, 4], waiting: [2, 7], cpu: [34, 40], tuner: false,
   },
   {
-    title: 'Pooltune grows it.',
-    line: 'Small steps, only while the database is healthy.',
+    title: 'Pooltune opens admission.',
+    line: 'More work can run within the budget while safety checks pass.',
     mood: 'working',
     action: 'Growing the limit',
     limit: [4, 8], busy: [4, 8], waiting: [7, 1], cpu: [40, 58], tuner: true,
   },
   {
     title: 'It backs off under pressure.',
-    line: 'When CPU or memory runs hot, the limit comes down.',
+    line: 'Unsafe or expired health readings stop new admission.',
     mood: 'alert',
     action: 'Backing off',
     limit: [8, 6], busy: [8, 6], waiting: [1, 3], cpu: [88, 70], tuner: true,
   },
   {
-    title: 'It gives connections back.',
-    line: 'When things go quiet, the pool shrinks to your minimum.',
+    title: 'It lowers admission again.',
+    line: 'When things go quiet, fewer transactions run. The reserve stays warm.',
     mood: 'idle',
     action: 'Shrinking slowly',
     limit: [6, MIN], busy: [0, 0], waiting: [0, 0], cpu: [14, 10], tuner: true,
@@ -103,7 +103,7 @@ export default function ScrollStory() {
         {/* The heading is pinned with the story so it stays in view while scrolling through the steps. */}
         <div className="story__head">
           <p className="kicker">How it works</p>
-          <h2 id="how-title">Database connections that adjust to your requests.</h2>
+          <h2 id="how-title">Transaction capacity that adjusts to your requests.</h2>
         </div>
         <div className="story__body">
           <ol className="story__steps">
@@ -145,7 +145,7 @@ export default function ScrollStory() {
               <div className="wire" />
 
               <div className="node node--pool">
-                <span className="node__label">Pooler</span>
+                <span className="node__label">Admission</span>
                 <div className="slots">
                   {Array.from({ length: MAX }, (_, i) => (
                     <i key={i} className={i >= limit ? 'off' : i < busy ? 'busy' : 'open'} />

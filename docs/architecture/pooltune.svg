@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700" role="img" aria-labelledby="title desc">
+  <title id="title">Pooltune: managed gateway architecture</title>
+  <desc id="desc">A backend application sends PostgreSQL traffic over TLS through Pooltune's Go admission gateway and owned PgBouncer to Azure or Google PostgreSQL, or Supabase's session endpoint. Background safety checks gate admission using provider pressure and SQL inventory. SQLite stores local state. A private React dashboard shows scoped transaction metrics, with optional Tiger Data history. Docker packages the gateway, pooler and dashboard; deployment networking and persistent mounts remain to be verified.</desc>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#43bdc9"/></marker></defs>
+  <rect width="1200" height="700" rx="24" fill="#111617"/>
+  <g font-family="Arial, Helvetica, sans-serif" fill="#edf3f4">
+    <text x="48" y="57" font-size="30" font-weight="700">Pooltune: capacity ready for traffic spikes</text>
+    <text x="48" y="91" font-size="19" fill="#a9b9bd">PostgreSQL traffic in front. Safety checks and history in the background.</text>
+    <rect x="306" y="130" width="564" height="274" rx="20" fill="#14282b" stroke="#43bdc9" stroke-width="2"/>
+    <text x="332" y="166" font-size="16" letter-spacing="2" fill="#70d0d8">POOLTUNE · GO + PGBOUNCER</text>
+    <text x="332" y="198" font-size="18" fill="#c0d1d4">Native runtime / Docker package</text>
+    <rect x="40" y="228" width="212" height="134" rx="16" fill="#1c2325" stroke="#3b4c50"/>
+    <text x="62" y="267" font-size="23" font-weight="700">Your application</text>
+    <text x="62" y="299" font-size="18" fill="#a9b9bd">Backend SQL client</text>
+    <text x="62" y="328" font-size="18" fill="#a9b9bd">Gateway URL + TLS</text>
+    <path d="M252 293 H330" stroke="#43bdc9" stroke-width="3" marker-end="url(#arrow)"/>
+    <rect x="332" y="228" width="230" height="134" rx="14" fill="#111c1e" stroke="#3b686d"/>
+    <text x="352" y="264" font-size="22" font-weight="700">Go admission gate</text>
+    <text x="352" y="296" font-size="18" fill="#a9b9bd">Bounded concurrency</text>
+    <text x="352" y="326" font-size="18" fill="#a9b9bd">Transaction tracking</text>
+    <path d="M562 293 H608" stroke="#43bdc9" stroke-width="3" marker-end="url(#arrow)"/>
+    <rect x="610" y="228" width="234" height="134" rx="14" fill="#111c1e" stroke="#3b686d"/>
+    <text x="630" y="264" font-size="22" font-weight="700">Owned PgBouncer</text>
+    <text x="630" y="296" font-size="18" fill="#a9b9bd">Budgeted warm reserve</text>
+    <text x="630" y="326" font-size="18" fill="#a9b9bd">Verified SQL backends</text>
+    <path d="M844 293 H908" stroke="#43bdc9" stroke-width="3" marker-end="url(#arrow)"/>
+    <rect x="910" y="206" width="250" height="178" rx="16" fill="#1c2325" stroke="#3b4c50"/>
+    <text x="930" y="242" font-size="20" font-weight="700">Managed PostgreSQL</text>
+    <text x="930" y="275" font-size="18" fill="#c0d1d4">Azure / Google: direct</text>
+    <text x="930" y="306" font-size="18" fill="#c0d1d4">Supabase: Supavisor</text>
+    <text x="930" y="333" font-size="18" fill="#c0d1d4">session endpoint</text>
+    <text x="332" y="387" font-size="17" fill="#70d0d8">Hosted pool settings stay unchanged during a burst.</text>
+    <path d="M445 460 V406" stroke="#43bdc9" stroke-width="2" stroke-dasharray="7 6" marker-end="url(#arrow)"/>
+    <rect x="40" y="460" width="520" height="158" rx="16" fill="#19252c" stroke="#395260"/>
+    <text x="64" y="496" font-size="21" font-weight="700">Background safety + durable state</text>
+    <text x="64" y="531" font-size="18" fill="#b4c4ca">Provider CPU/memory + source freshness</text>
+    <text x="64" y="560" font-size="18" fill="#b4c4ca">SQL inventory + connection budget + backend identity</text>
+    <text x="64" y="589" font-size="18" fill="#b4c4ca">SQLite state · same-host ownership · no SQL replay</text>
+    <path d="M727 404 V458" stroke="#43bdc9" stroke-width="2" stroke-dasharray="7 6" marker-end="url(#arrow)"/>
+    <rect x="600" y="460" width="560" height="158" rx="16" fill="#19252c" stroke="#395260"/>
+    <text x="624" y="496" font-size="21" font-weight="700">Private dashboard + optional history</text>
+    <text x="624" y="531" font-size="18" fill="#b4c4ca">Scoped transaction counters → React dashboard</text>
+    <text x="624" y="560" font-size="18" fill="#b4c4ca">Independent export → Tiger Data / TimescaleDB</text>
+    <text x="624" y="589" font-size="18" fill="#b4c4ca">Authenticated, read-only managed dashboard</text>
+    <text x="48" y="657" font-size="17" fill="#a9b9bd">Docker: package verified on ARM64; network access, persistent mounts and container recovery remain open.</text>
+    <text x="48" y="683" font-size="17" fill="#a9b9bd">AI and priority scheduling deferred. Mana powers the separate demo, outside the request path.</text>
+  </g>
+</svg>

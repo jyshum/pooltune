@@ -12,6 +12,7 @@ import DashboardPreview from './components/DashboardPreview';
 import { results, validRuns } from './data/results';
 import tigerDataLogo from './assets/partners/tiger-data.svg';
 import manaLogo from './assets/partners/mana.png';
+import architecture from '../../docs/architecture/pooltune.svg';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -57,7 +58,7 @@ export default function App() {
               <span>Tune your pool automatically.</span>
             </h1>
             <p className="hero__sub">
-              <Wordmark /> grows your PostgreSQL pooler when requests pile up and shrinks it when things go quiet. Save costs on database scaling and provisioning.
+              <Wordmark /> adjusts how many PostgreSQL transactions can run when requests pile up, using a budgeted warm reserve and database health checks.
             </p>
             <div className="hero__cta">
               <a className="btn" href="#get-started">Start your project</a>
@@ -83,6 +84,21 @@ export default function App() {
         <section className="section section--story" id="how" aria-labelledby="how-title">
           <div className="wrap">
             <ScrollStory />
+          </div>
+        </section>
+
+        <section className="section" id="architecture" aria-labelledby="architecture-title">
+          <div className="wrap">
+            <div className="head reveal">
+              <p className="kicker">Under the hood</p>
+              <h2 id="architecture-title">One clear path to your database.</h2>
+            </div>
+            <figure className="architecture reveal">
+              <a href={architecture} aria-label="Open the full Pooltune architecture diagram">
+                <img src={architecture} width="1200" height="700" loading="lazy" alt="Application SQL over TLS flows through the Go admission gateway and owned PgBouncer to Azure, Google Cloud or Supabase. Background health and inventory checks gate admission; SQLite stores state, and the private dashboard can save history to Tiger Data." />
+              </a>
+              <figcaption><p><strong>Application → Go gateway → owned PgBouncer → managed PostgreSQL.</strong></p>Go + PgBouncer for the managed request path. SQLite for local state. React for the private dashboard. Tiger Data for optional history. Mana for the separate demo. <a href={architecture}>Open full diagram ↗</a></figcaption>
+            </figure>
           </div>
         </section>
 
@@ -136,6 +152,11 @@ export default function App() {
                 <div className="code reveal">
                   <div className="code__bar"><span className="dots"><i /><i /><i /></span><span>Terminal</span></div>
                   <pre><code><span className="code__dim">$</span> bin/pooltune-burst -config /absolute/private/profile.json -resume</code></pre>
+                </div>
+                <div className="deployment-note reveal">
+                  <p><strong>Docker learning preview</strong></p>
+                  <p>Build the Go gateway, PgBouncer and dashboard in one non-root image. ARM64 packaging and real SQL checks are verified; deployment networking and persistent mounts are still being completed.</p>
+                  <a className="guide__text-link" href="./setup.html#docker">Build &amp; verify with Docker ↗</a>
                 </div>
                 <div className="setup__cta reveal">
                   <a className="btn" href="./setup.html">Setup &amp; Download</a>

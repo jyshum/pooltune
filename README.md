@@ -6,6 +6,16 @@ Pooltune keeps a budgeted reserve of database connections warm, then adjusts how
 
 [Website](https://pooltune.vercel.app) · [Setup guide](https://pooltune.vercel.app/setup.html) · [Download for macOS](https://pooltune.vercel.app/downloads/pooltune-macos-arm64.tar.gz) · [Interactive demo](https://www.mana.space/a/pooltune)
 
+## Architecture
+
+![Pooltune managed gateway, background safety checks and Docker packaging](docs/architecture/pooltune.svg)
+
+Your backend application sends **PostgreSQL traffic over TLS** to the Go gateway. It admits transactions through an owned PgBouncer warm reserve. Provider health, source freshness and SQL inventory gate expansion. SQLite records local state; the private React dashboard reads scoped counters, and an independent worker optionally saves history to Tiger Data. Mana powers the separate interactive demo.
+
+**Docker packaging is now in this repository.** The Linux ARM64 runtime bundles the Go gateway, owner CLI, PgBouncer and dashboard assets as a non-root image. Its real SQL verification runs in a separate disposable container. Application/dashboard networking, persistent mounts and container crash/restart verification remain open, so this is a **Docker learning preview**, not yet a complete managed deployment. [Build and verify it](deploy/docker/README.md).
+
+The diagram describes the managed route. The separate local background tuner observes and adjusts an existing PgBouncer. It is included in the native archive, not in the current Docker runtime image.
+
 ![Pooltune private dashboard](website/media/dashboard-poster.png)
 
 *Dashboard preview with explicitly simulated traffic. Live provider test results are summarized below.*
@@ -60,7 +70,7 @@ The hard part is deciding when another transaction can safely run, while disting
 | Measuring actual traffic | Read the exact database's `SHOW STATS.total_xact_count` through separate, time-bounded connections. The counter measures pooled transactions, including rollbacks, rather than HTTP requests or individual SQL statements. |
 | Private operations | File-based secrets, verified TLS, an authenticated local dashboard and a same-host ownership lock. The managed dashboard is read-only; the CLI starts admission and drains on shutdown. |
 
-**Stack:** Go, PostgreSQL protocol handling, PgBouncer, SQLite for local durable state, React/TypeScript/Vite, Tiger Data/TimescaleDB, Mana and Vercel.
+**Stack:** Go, PostgreSQL protocol handling, PgBouncer, SQLite for local durable state, React/TypeScript/Vite, Tiger Data/TimescaleDB, Docker/Compose with Colima on macOS, Mana and Vercel.
 
 ## Provider coverage
 
@@ -88,6 +98,22 @@ Pooltune completed more work than the smaller fixed pools and performed comparab
 These are separate synthetic trials, not randomized estimates or production guarantees. Successful p95 excludes failed/rejected requests. See the [full workload, failures and comparison boundaries](https://pooltune.vercel.app/downloads/managed-mvp-results.md).
 
 ## Get started
+
+### Docker learning preview
+
+With Docker Engine, Buildx and Compose available:
+
+```sh
+git clone https://github.com/jyshum/pooltune.git
+cd pooltune
+docker build --target runtime -t pooltune:learning .
+docker compose -f compose.verify.yaml run --build --rm verify
+docker run --rm --network none pooltune:learning -help
+```
+
+These commands build the runtime, verify real SQL locally and show its interface. They do not launch a configured managed service. No credentials or cloud database are needed for verification. Linux ARM64 is verified; AMD64 is not yet verified. On macOS with Docker CLI + Colima, follow [the Colima setup](deploy/docker/README.md#docker-cli--colima-on-macos). No prebuilt registry image is published.
+
+### Native managed gateway
 
 The current native preview targets **macOS Apple Silicon** and requires PgBouncer 1.26.1 on `PATH`.
 

@@ -15,11 +15,11 @@ export const targets: { name: string; logo: Logo }[] = [
 ];
 
 export const setup = [
-  { title: 'Install next to your pooler', body: 'Pooltune runs beside it. Your app keeps its connection string.' },
+  { title: 'Install next to your pooler', body: 'Managed apps connect through Pooltune. The local tuner keeps your existing pooler URL.' },
   { title: 'Set your bounds', body: 'Pick a minimum, a maximum and the CPU and memory levels to back off at.' },
-  { title: 'Watch it in your dashboard', body: 'A private dashboard on your own server. Freeze it any time.' },
+  { title: 'Watch it in your dashboard', body: 'A private dashboard on your own server. Watch traffic and database health.' },
 ];
 
 // Kept short on purpose. Each item maps to an open gap in docs/release-gates.md and docs/recovery.md.
 export const limits =
-  'Known limits: no backup routing if the Pooltune proxy stops, hosted providers are still in testing, and no speed claims until they are measured.';
+  'Known limits: no automatic backup routing or SQL replay. Managed paths have short live spike tests; Docker is a packaging preview. AI and priority scheduling are deferred.';

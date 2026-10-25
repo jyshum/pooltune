@@ -7,25 +7,42 @@ The first Linux ARM64 package is built and locally verified. This is not yet a c
 - `pooltune:learning`: non-root Go gateway and owner CLI, PgBouncer 1.26.1, private dashboard assets and CA trust bundle. No test database or credentials.
 - Compose `verify` target: disposable PostgreSQL 17.11 plus an integration-test executable. It is a verification image, not the application runtime.
 
-## Run on this Mac
+## Docker CLI + Colima on macOS
 
-Docker CLI, Compose, Buildx and Colima are installed. The separate `pooltune` VM uses 2 CPUs, 3 GiB RAM and a 25 GiB data disk. It mounts only this source checkout, not the private cloud-credentials directory. The default Docker context was not changed.
+Install the CLI tools, then start a dedicated ARM64 VM. On Intel Macs the AMD64 image path remains unverified.
 
-From the repository root:
+```sh
+brew install docker docker-compose docker-buildx colima
+```
+
+Follow Homebrew's printed caveats to add its Docker plugin directory to `cliPluginsExtraDirs` in `~/.docker/config.json`. On Apple Silicon that directory is usually `/opt/homebrew/lib/docker/cli-plugins`. Merge this key into your existing configuration; do not overwrite saved authentication or other settings. Confirm both `docker compose version` and `docker buildx version` work.
+
+```sh
+colima start pooltune --runtime docker --vm-type vz --cpu 2 --memory 3 --disk 25 --activate=false
+export DOCKER_CONTEXT=colima-pooltune
+```
+
+This selects the dedicated engine for the current shell. The VM consumes local CPU, memory and disk. Review Colima's host mounts before making private files accessible to containers. The author's verification VM mounted only the source checkout; cloud credentials were not mounted.
+
+## Build and verify
+
+From the repository root, using your selected Docker engine:
 
 ```sh
 # Build the actual runtime image.
-docker --context colima-pooltune build --target runtime -t pooltune:learning .
+docker build --target runtime -t pooltune:learning .
 
 # Run real SQL integration in an isolated container with no network egress.
-docker --context colima-pooltune compose -f compose.verify.yaml run --build --rm verify
+docker compose -f compose.verify.yaml run --build --rm verify
 
 # Check the public command interface without credentials or a database.
-docker --context colima-pooltune run --rm --network none pooltune:learning -help
+docker run --rm --network none pooltune:learning -help
 
-# Check the actual Docker build-context filtering.
-DOCKER_CONTEXT=colima-pooltune python3 deploy/docker/check-context.py
+# Optional: check actual build-context filtering (requires Python 3).
+python3 deploy/docker/check-context.py
 ```
+
+Builds download base images and dependencies. The verification container itself has no network egress. It creates a disposable local PostgreSQL database, not an Azure, Google or Supabase database. It does not start a managed service or touch an existing native process.
 
 Stop/start the dedicated VM when needed:
 
@@ -34,7 +51,7 @@ colima stop pooltune
 colima start pooltune --activate=false
 ```
 
-Stopping Colima does not stop the separate native dashboard. On another Docker installation, omit `--context colima-pooltune` or use its own context.
+Stopping Colima does not stop a separate native dashboard. On another Docker installation, select its context instead. Do not stop the VM while an application depends on containers inside it.
 
 ## Verified October 25, 2026
 
@@ -43,9 +60,9 @@ Stopping Colima does not stop the separate native dashboard. On another Docker i
 - Test runner rejects missing dependencies, skipped tests, absent exact PASS output, failures and timeout. Pressure measurements in this test are controlled fixtures, not live cloud metrics.
 - Runtime runs as UID/GID 10001, has required libraries and UI, and fails safely without a profile.
 - Actual Docker context export excludes three synthetic secret sentinels and private/generated directories. Six final image layers were inspected for private runtime files, source payload and test sentinels; none found. This is a scoped packaging check, not a general vulnerability certification.
-- Native demo still returns HTTP200. No tuner logic, UI design or website changes. No cloud workloads started.
+- Native demo still returns HTTP200. No tuner logic or native demo process changed. No cloud workloads started.
 
-The runtime image is local only. No image registry publication or website download replacement occurred. Base tags and Debian package repositories remain mutable; this is not a bit-reproducible release. AMD64 is not yet verified.
+The Dockerfile and verification tools are published as source. Build the runtime locally; no prebuilt registry image is published. The native website download remains a separate artifact. Base tags and Debian package repositories remain mutable; this is not a bit-reproducible release. AMD64 is not yet verified.
 
 ## Remaining deployment work
 

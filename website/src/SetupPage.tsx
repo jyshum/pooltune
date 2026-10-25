@@ -14,6 +14,7 @@ const archive = './downloads/pooltune-macos-arm64.tar.gz';
 const launch = 'bin/pooltune-burst -config /absolute/private/profile.json -resume \\\n  -dashboard-listen 127.0.0.1:8081 -assets /absolute/pooltune/ui';
 
 const steps = [
+  { id: 'docker', label: 'Docker preview' },
   { id: 'install', label: 'Install' },
   { id: 'connect', label: 'Connect' },
   { id: 'launch', label: 'Launch' },
@@ -122,13 +123,23 @@ export default function SetupPage() {
             <p className="kicker">On this page</p>
             {steps.map((s, i) => (
               <a key={s.id} href={`#${s.id}`} className={active === s.id ? 'is-active' : ''} aria-current={active === s.id ? 'location' : undefined}>
-                <span>{String(i + 1).padStart(2, '0')}</span> · {s.label}
+                <span>{i === 0 ? '◇' : String(i).padStart(2, '0')}</span> · {s.label}
               </a>
             ))}
           </aside>
 
           <div className="guide__steps" ref={railRef}>
             <div className="guide__rail" aria-hidden="true"><div className="guide__rail-fill" /></div>
+
+            <section id="docker" className="guide__card deployment-note reveal" aria-labelledby="docker-title">
+              <p className="kicker">Docker learning preview</p>
+              <h2 id="docker-title">Build the container.</h2>
+              <p>The non-root runtime includes the Go gateway, PgBouncer 1.26.1 and dashboard assets. Linux ARM64 packaging and a real PostgreSQL check are verified. No prebuilt registry image is published yet.</p>
+              <p>Install Docker Engine, Buildx and Compose first. On a Mac, use <a href="https://github.com/jyshum/pooltune/blob/main/deploy/docker/README.md#docker-cli--colima-on-macos">Docker CLI + Colima</a>, then select that engine in your terminal.</p>
+              <Command text={'git clone https://github.com/jyshum/pooltune.git\ncd pooltune\ndocker build --target runtime -t pooltune:learning .\ndocker compose -f compose.verify.yaml run --build --rm verify\ndocker run --rm --network none pooltune:learning -help'} />
+              <p>This builds and checks the package without cloud credentials. It does not start a configured managed service. Application/dashboard networking, persistent state and container crash/restart verification are still open. The four steps below remain the native macOS setup.</p>
+              <a className="guide__text-link" href="https://github.com/jyshum/pooltune/blob/main/deploy/docker/README.md">Docker guide and current limits ↗</a>
+            </section>
 
             <Step n={1} id="install" title="Install the package.">
               <p>Download the archive into a new folder. Extract it, verify the included checksums, and install PgBouncer with Homebrew.</p>
