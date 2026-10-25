@@ -220,5 +220,71 @@ tbody tr:last-child > * { border-bottom: 0; }
 .footer__row a { text-decoration: none; }
 .footer__row a:hover { color: var(--text); }
 
-/* Delivery guide. Shares the landing page's type, surfaces and accents. */
-.guide{padding-top:76px;padding-bottom:96px}.guide__intro{max-width:780px;margin-bottom:72px}.guide__intro h1{font-size:clamp(44px,7vw,76px);margin:18px 0 24px;line-height:1.06}.guide__intro h1 span{color:var(--muted)}.guide__lead{font-size:19px;color:var(--muted);max-width:580px}.guide__actions{display:flex;flex-wrap:wrap;gap:12px;margin:28px 0 12px}.guide__meta{font-size:13px;color:var(--faint)}.guide__layout{display:grid;grid-template-columns:200px minmax(0,1fr);gap:64px}.guide__contents{position:sticky;top:96px;align-self:start;display:grid;gap:15px}.guide__contents a{font-size:14px;color:var(--muted);text-decoration:none}.guide__contents a:hover,.guide__text-link{color:var(--brand)}.guide__step{padding:0 0 52px;margin:0 0 48px;border-bottom:1px solid var(--border);scroll-margin-top:92px}.guide__step h2{font-size:30px;margin:18px 0}.guide__step p{color:var(--muted);margin-bottom:20px}.guide__step .code{margin:24px 0 16px}.guide__step code{font-family:var(--mono);font-size:.85em;color:var(--text);overflow-wrap:anywhere}.guide__step pre{white-space:pre-wrap;overflow-wrap:anywhere}.guide__copy{margin-left:auto;background:transparent;border:1px solid var(--border-strong);border-radius:5px;color:var(--muted);padding:3px 10px;font:inherit;cursor:pointer}.guide__providers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:24px 0}.guide__providers article{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px}.guide__providers h3{font-size:16px;margin:0 0 12px}.guide__providers p{font-size:13px;margin:0;line-height:1.65}.guide__preview{margin:28px 0}.guide__preview img{width:100%;display:block;border:1px solid var(--border-strong);border-radius:var(--radius)}.guide__preview figcaption{font-size:12px;color:var(--faint);margin:12px 0}.guide__resources{display:grid;gap:12px;padding:24px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)}.guide__resources h3{font-size:18px;margin-bottom:4px}.guide__resources a{font-size:14px;color:var(--muted)}.setup__cta{flex-wrap:wrap;row-gap:12px}@media(max-width:760px){.guide{padding-top:42px}.guide__intro{margin-bottom:44px}.guide__layout{grid-template-columns:1fr;gap:36px}.guide__contents{position:static;display:flex;flex-wrap:wrap;gap:12px 20px}.guide__contents .kicker{width:100%}.guide__providers{grid-template-columns:1fr}.guide__step h2{font-size:26px}.guide__lead{font-size:17px}.guide__step{padding-bottom:32px;margin-bottom:32px}}
+/* Get started buttons on the homepage wrap onto two rows on narrow screens. */
+.setup__cta { flex-wrap: wrap; row-gap: 12px; }
+
+/* Setup guide (setup.html). Same tokens, hero, cards and panels as the homepage. */
+.hero--guide { min-height: min(68vh, 640px); }
+.hero--guide .kicker { margin-bottom: 18px; }
+.guide__meta { margin-top: 16px; color: var(--faint); font-size: 0.82rem; }
+
+.guide { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 64px; padding-top: 96px; padding-bottom: 112px; }
+.guide__contents { position: sticky; top: 96px; align-self: start; display: grid; gap: 4px; }
+.guide__contents .kicker { margin-bottom: 8px; }
+.guide__contents a { display: block; padding: 8px 12px; border-radius: 8px; border: 1px solid transparent; color: var(--muted); font-size: 0.9rem; text-decoration: none; transition: color 0.2s, background 0.2s, border-color 0.2s; }
+.guide__contents a span { color: var(--faint); font-family: var(--mono); font-size: 0.8rem; padding-top: 1px; }
+.guide__contents a:hover { color: var(--text); }
+.guide__contents a.is-active { color: var(--text); background: var(--surface); border-color: var(--border); }
+.guide__contents a.is-active span { color: var(--brand); }
+
+/* Timeline: a grey rail with a cyan fill that follows scroll, and a numbered node per step. */
+.guide__steps { position: relative; padding-left: 56px; }
+.guide__rail { position: absolute; left: 15px; top: 16px; bottom: 120px; width: 2px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.guide__rail-fill { width: 100%; height: 100%; background: var(--brand); transform-origin: top; }
+.guide__step { position: relative; margin-bottom: 32px; scroll-margin-top: 96px; }
+.guide__node { position: absolute; left: -56px; top: 18px; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 10px; border: 1px solid var(--brand-line); background: var(--bg); color: var(--brand); font: 0.85rem var(--mono); }
+.guide__card { padding: 28px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); }
+.guide__card h2 { font-size: clamp(1.4rem, 2.6vw, 1.85rem); margin-bottom: 14px; }
+.guide__card > p { color: var(--muted); margin-bottom: 16px; }
+.guide__card > p:last-child { margin-bottom: 0; }
+.guide__card code { font-family: var(--mono); font-size: 0.85em; color: var(--text); background: var(--surface-2); border: 1px solid var(--border); border-radius: 5px; padding: 1px 6px; overflow-wrap: anywhere; }
+.guide__card pre code { padding: 0; border: 0; background: none; }
+.guide__card a { color: var(--brand); }
+.guide__card .code { margin: 20px 0 16px; }
+.guide__card pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+.guide__copy { margin-left: auto; padding: 3px 10px; border: 1px solid var(--border-strong); border-radius: 6px; background: transparent; color: var(--muted); font: inherit; cursor: pointer; }
+.guide__copy:hover { color: var(--text); border-color: #4a4a4a; }
+.guide__text-link { font-size: 0.9rem; text-decoration: none; }
+.guide__text-link:hover { text-decoration: underline; }
+
+.guide__providers { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 20px 0; }
+.guide__provider { padding: 20px; border-radius: var(--radius); }
+.guide__provider-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.guide__provider-logo { width: 32px; height: 32px; flex-shrink: 0; }
+.guide__provider h3 { font-size: 1.05rem; }
+.guide__provider p { margin: 0; color: var(--muted); font-size: 0.85rem; line-height: 1.6; }
+
+/* Dashboard preview in the same window frame as the How it works panel. */
+.guide__preview { margin: 24px 0; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; background: var(--bg-2); }
+.guide__preview-bar { display: flex; align-items: center; gap: 12px; height: 40px; padding: 0 14px; border-bottom: 1px solid var(--border); color: var(--faint); font: 0.78rem var(--mono); }
+.guide__preview img { display: block; width: 100%; }
+.guide__preview figcaption { padding: 10px 14px; border-top: 1px solid var(--border); color: var(--faint); font-size: 0.8rem; }
+
+.guide__resources { padding: 28px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); }
+.guide__resources h3 { font-size: 1.15rem; margin-bottom: 16px; }
+.guide__resource-list { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.guide__resource-list a { padding: 14px 16px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-2); color: var(--muted); font-size: 0.9rem; text-decoration: none; transition: color 0.2s, border-color 0.2s; }
+.guide__resource-list a:hover { color: var(--text); border-color: var(--brand-line); }
+
+@media (max-width: 860px) {
+  .guide { grid-template-columns: 1fr; gap: 32px; padding-top: 56px; padding-bottom: 72px; }
+  .guide__contents { position: static; display: flex; flex-wrap: wrap; gap: 6px; }
+  .guide__contents .kicker { width: 100%; margin-bottom: 2px; }
+  .guide__providers { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .guide__steps { padding-left: 0; }
+  .guide__rail { display: none; }
+  .guide__node { position: static; margin-bottom: 12px; }
+  .guide__card { padding: 20px; }
+}
