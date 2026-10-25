@@ -24,7 +24,7 @@ func (s *Store) Pending(target string) ([]Revision, error) {
 	if !identifier.MatchString(target) {
 		return nil, errors.New("store: invalid target")
 	}
-	rows, err := s.db.Query("SELECT r.target,r.id,r.predecessor,r.actor,r.state FROM revisions r JOIN operations o ON o.target=r.target AND o.revision=r.id WHERE r.target=? AND o.state IN ('pending','uncertain') ORDER BY r.rowid LIMIT 1001", target)
+	rows, err := s.db.Query("SELECT r.target,r.id,r.predecessor,r.actor,r.state FROM revisions r JOIN operations o ON o.target=r.target AND o.revision=r.id WHERE r.target=? AND o.state IN ('pending','uncertain') AND NOT EXISTS (SELECT 1 FROM activation_rejections a WHERE a.target=r.target AND a.revision=r.id) ORDER BY r.rowid LIMIT 1001", target)
 	if err != nil {
 		return nil, err
 	}

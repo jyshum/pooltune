@@ -1,0 +1,11 @@
+[
+  {
+    "Name": "burst",
+    "Complete": false,
+    "SetupError": "pool connections settling: login=0 tested=0 used=64",
+    "Outcomes": null,
+    "Points": null,
+    "WarmConnections": 0,
+    "Seconds": 0
+  }
+]

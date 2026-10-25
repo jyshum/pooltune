@@ -114,4 +114,29 @@ The archive includes `pooltune-burst`, the local tuner, private dashboard assets
 
 Use the [current preview release](https://github.com/jyshum/pooltune/releases/tag/managed-history-preview-2026-10-25) for the downloadable MVP. Its package, checksums and startup were verified separately from the cloud test runner.
 
-**The default branch does not yet contain the complete backend implementation used to build this preview.** The archive's `RELEASE.json` records its source HEAD and dirty development-build status. The release tag identifies the website snapshot, not a reproducible backend source release. Earlier scaffold commands and design documents in the repository may describe older stages.
+The current MVP backend, private dashboard and Tiger Data history implementation are now included on `main`. The existing downloadable archive was built before this source publication; its `RELEASE.json` correctly retains the original source HEAD and dirty development-build status. Its historical release tag identifies the website snapshot. Publishing the source does not retroactively change that artifact or its provenance. Older design documents describe earlier or deferred work; the current scope is summarized above and in [the managed MVP results](docs/managed-mvp-results.md).
+
+## Build from source
+
+Use Go 1.27.3 and a Node.js version supported by Vite 8. PgBouncer 1.26.1 is needed to run the managed gateway.
+
+```sh
+git clone https://github.com/jyshum/pooltune.git
+cd pooltune
+npm ci
+npm --prefix ui ci
+npm --prefix ui run build
+go build -o bin/pooltune-burst ./cmd/pooltune-burst
+go build -o bin/pooltune-tuner ./cmd/pooltune-tuner
+```
+
+Follow [the gateway guide](docs/burst-gateway.md) for a private provider profile, credentials and launch flags. Optional history setup is in [the Tiger Data guide](docs/traffic-history.md). To build the complete native archive, run `scripts/package-local.sh /absolute/path/to/new-package` with a destination that does not exist.
+
+Local checks, without starting paid cloud tests:
+
+```sh
+go test -race ./cmd/... ./internal/...
+go vet ./cmd/... ./internal/...
+npm run test:sdk
+npx vitest run ui/src/traffic.test.ts
+```

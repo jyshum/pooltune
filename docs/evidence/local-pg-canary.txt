@@ -1,0 +1,5 @@
+=== RUN   TestRealTrafficCanaryRetainsTransactionAndRollsBack
+    canary_integration_test.go:168: REAL PostgreSQL TLS/SCRAM traffic: 100 sessions; candidate=12 stable=88; nominal assignment=10%, isolated budgets=2/18; held transaction retained; rollback new revision=fallback-1-1792884532369687000; no model/provider call or benefit claim
+--- PASS: TestRealTrafficCanaryRetainsTransactionAndRollsBack (1.17s)
+PASS
+ok  	pooltune/internal/pgwire	2.267s

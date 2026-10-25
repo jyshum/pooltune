@@ -62,6 +62,7 @@ func (s *Scheduler) RollbackBatch(candidate, stable string, reclassify func(doma
 		if !e.finished {
 			original := e.classification
 			updated.Cohort = stable
+			updated.ActivationRevision = s.limits.Revision
 			validBlocked := false
 			if callbackErr == nil {
 				target = s.cohorts[stable]
@@ -94,6 +95,8 @@ func (s *Scheduler) RollbackBatch(candidate, stable string, reclassify func(doma
 				}
 				co.entries.Remove(e.cohortNode)
 				co.queued--
+				s.unbind(original)
+				s.bind(updated)
 				e.classification = updated
 				target.queued++
 				e.cohortNode = target.entries.PushBack(e)

@@ -4,6 +4,7 @@ import (
 	"container/heap"
 	"container/list"
 	"context"
+	"pooltune/internal/telemetry"
 	"time"
 
 	"pooltune/internal/domain"
@@ -40,6 +41,7 @@ func (s *Scheduler) enqueue(e *entry) {
 	co := s.cohorts[c.Cohort]
 	t := s.tenants[c.FairnessKey]
 	w := s.workloads[c.Workload]
+	s.bind(c)
 	s.queued++
 	s.queuedBytes += c.BufferedBytes
 	co.queued++
@@ -96,6 +98,14 @@ func (s *Scheduler) finish(e *entry, p *Permit, err error) {
 	co.queued--
 	t.queued--
 	w.queued--
+	if p == nil {
+		kind := telemetry.Rejected
+		if err == ErrExpired || err == context.DeadlineExceeded {
+			kind = telemetry.Timeout
+		}
+		s.capacityRecord(c.Workload, kind, 0, time.Since(e.enqueued))
+		s.unbind(c)
+	}
 	e.finished = true
 	e.permit = p
 	e.err = err

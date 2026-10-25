@@ -1,0 +1,61 @@
+=== RUN   TestPostgresSafetyStopResumeUsesRealIdleSessions
+    recovery_growth_integration_test.go:495: real host and pg_stat_activity evidence; two idle authenticated sessions; explicit owner resume; SQL preserved
+--- PASS: TestPostgresSafetyStopResumeUsesRealIdleSessions (6.77s)
+=== RUN   TestRESTAnchoredRecoveryPreservesHistoryAndRejectsOldWork
+--- PASS: TestRESTAnchoredRecoveryPreservesHistoryAndRejectsOldWork (1.24s)
+=== RUN   TestRESTSafetyStopResumeUsesRealHealthAndPostgREST
+    rest_recovery_integration_test.go:211: real host observations for five continuous seconds; owned PostgREST/backend checks; explicit owner resume to HTTP capacity 2; anonymous RLS preserved
+--- PASS: TestRESTSafetyStopResumeUsesRealHealthAndPostgREST (7.81s)
+=== RUN   TestRESTProcessKillFencesSurvivingChildThenRecovers
+    rest_recovery_integration_test.go:376: actual traffic process SIGKILL; surviving PostgREST fenced despite deleted socket; owned child termination; new child + independent SQLite confirmation + RLS
+--- PASS: TestRESTProcessKillFencesSurvivingChildThenRecovers (0.90s)
+=== RUN   TestRESTRecoveryRejectsDeadChild
+--- PASS: TestRESTRecoveryRejectsDeadChild (0.69s)
+PASS
+ok  	pooltune/internal/runtime	18.763s
+
+Review fix-pass focused regressions, with continued admission across later sampling:
+=== RUN   TestPostgresSafetyStopResumeUsesRealIdleSessions
+    recovery_growth_integration_test.go:496: real host and pg_stat_activity evidence; two idle authenticated sessions; explicit owner resume; SQL preserved
+--- PASS: TestPostgresSafetyStopResumeUsesRealIdleSessions (10.12s)
+=== RUN   TestRESTSafetyStopResumeUsesRealHealthAndPostgREST
+    rest_recovery_integration_test.go:212: real host observations for five continuous seconds; owned PostgREST/backend checks; explicit owner resume to HTTP capacity 2; anonymous RLS preserved
+--- PASS: TestRESTSafetyStopResumeUsesRealHealthAndPostgREST (10.38s)
+=== RUN   TestFailedHostSampleInvalidatesResumeImmediately
+=== RUN   TestFailedHostSampleInvalidatesResumeImmediately/postgres
+=== RUN   TestFailedHostSampleInvalidatesResumeImmediately/rest
+--- PASS: TestFailedHostSampleInvalidatesResumeImmediately (0.00s)
+    --- PASS: TestFailedHostSampleInvalidatesResumeImmediately/postgres (0.00s)
+    --- PASS: TestFailedHostSampleInvalidatesResumeImmediately/rest (0.00s)
+=== RUN   TestLocalPressureControllerNeverInventsGrowthEvidence
+--- PASS: TestLocalPressureControllerNeverInventsGrowthEvidence (0.00s)
+PASS
+ok  	pooltune/internal/runtime	21.891s
+
+Final complete ordinary-source race/integration suite after review fixes:
+Command: go test -race -tags=integration ./cmd/... ./internal/... -count=1
+ok  	pooltune/cmd/pooltune	1.426s
+ok  	pooltune/cmd/pooltune-admin	2.465s
+ok  	pooltune/cmd/pooltune-owner	16.980s
+ok  	pooltune/internal/admin	15.807s
+ok  	pooltune/internal/agent	2.644s
+ok  	pooltune/internal/config	3.846s
+ok  	pooltune/internal/control	7.115s
+ok  	pooltune/internal/controller	1.593s
+?   	pooltune/internal/domain	[no test files]
+ok  	pooltune/internal/durable	4.422s
+ok  	pooltune/internal/gateway	3.563s
+ok  	pooltune/internal/hostmetrics	4.016s
+ok  	pooltune/internal/httpingress	4.693s
+ok  	pooltune/internal/measurement	4.210s
+?   	pooltune/internal/observation	[no test files]
+ok  	pooltune/internal/pgwire	5.562s
+ok  	pooltune/internal/policy	3.390s
+ok  	pooltune/internal/provider	3.417s
+ok  	pooltune/internal/rollout	4.160s
+ok  	pooltune/internal/runtime	53.416s
+ok  	pooltune/internal/scheduler	3.150s
+ok  	pooltune/internal/secrets	2.317s
+ok  	pooltune/internal/store	3.155s
+ok  	pooltune/internal/telemetry	2.282s
+?   	pooltune/internal/testpg	[no test files]

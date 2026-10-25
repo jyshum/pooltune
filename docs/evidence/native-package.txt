@@ -1,0 +1,25 @@
+Native development package verification, October 24, 2026
+
+Command: go test -tags=deployment ./tests -run TestNativePackage -v -count=1
+The test builds binaries/UI/SDK from actual sources, checks the archive and
+SHA256 manifest, plants an untracked credential sentinel, and executes each
+packaged CLI mode. This is not a configured customer or container install.
+The source tree was dirty during this implementation test and RELEASE.json
+records that fact. No production secrets or state are packaged.
+
+=== RUN   TestNativePackageAllowlistManifestAndPrivateStartup
+    package_test.go:174: Native package 0de4dd1: complete SHA256 manifest, explicit payload allowlist, no untracked sentinel, packaged binaries run with private unconfigured startup and clean shutdown. Containers and configured traffic restart remain unverified.
+--- PASS: TestNativePackageAllowlistManifestAndPrivateStartup (12.18s)
+PASS
+ok  	pooltune/tests	12.655s
+
+Independent review regression: an untracked nested ui/public/private.key-style
+sentinel was initially copied by Vite and shipped. The regression failed before
+the fix. Public directory copying is now disabled; both extracted-directory and
+archive checks pass. No approved public-directory assets existed.
+
+=== RUN   TestNativePackageAllowlistManifestAndPrivateStartup
+    package_test.go:204: Native package 55d6863: complete SHA256 manifest, explicit payload allowlist, no untracked sentinel, packaged binaries run with private unconfigured startup and clean shutdown. Containers and configured traffic restart remain unverified.
+--- PASS: TestNativePackageAllowlistManifestAndPrivateStartup (7.52s)
+PASS
+ok  	pooltune/tests	7.793s

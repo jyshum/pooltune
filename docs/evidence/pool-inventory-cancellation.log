@@ -1,0 +1,5 @@
+=== RUN   TestSizingInventoryDuringRealCancellation
+    pool_sizing_performance_test.go:573: actual cancellation: raw SHOW SERVERS peak21, established backend peak20, pg_stat_activity peak20
+--- PASS: TestSizingInventoryDuringRealCancellation (3.68s)
+PASS
+ok  	pooltune/internal/runtime	4.040s

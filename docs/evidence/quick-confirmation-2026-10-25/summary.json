@@ -1,0 +1,126 @@
+{
+  "status": "partial, not all-provider acceptance",
+  "workload_seconds": 60,
+  "baselines": "prior separate fixed runs, not simultaneous or randomized",
+  "providers": {
+    "azure": {
+      "steady": {
+        "offered": 1000,
+        "completed": 1000,
+        "successful_p95_ms": 278.401,
+        "errors": {}
+      },
+      "first-spike": {
+        "offered": 3000,
+        "completed": 2459,
+        "successful_p95_ms": 694.057,
+        "errors": {
+          "generator_queue_full": 541
+        }
+      },
+      "sustained": {
+        "offered": 10500,
+        "completed": 7155,
+        "successful_p95_ms": 701.168,
+        "errors": {
+          "generator_queue_full": 1720,
+          "sqlstate:57014": 96,
+          "transport_or_deadline": 1529
+        }
+      },
+      "all": {
+        "offered": 14500,
+        "completed": 10614,
+        "successful_p95_ms": 698.838,
+        "errors": {
+          "generator_queue_full": 2261,
+          "sqlstate:57014": 96,
+          "transport_or_deadline": 1529
+        }
+      },
+      "first_reserve_observed_seconds": 10.140025,
+      "first_health_hold_seconds": 40.180023334
+    },
+    "google": {
+      "status": "setup_failed",
+      "error": "pool connections settling: login=0 tested=0 used=64",
+      "traffic_executed": false
+    }
+  },
+  "tested_binary_sha256": "dc46f622c09c0797d22bd85b0680b3d25784539bfb3e148af62d167b6f8f5b59",
+  "azure_cleanup": {
+    "started_unix": 1792920897.274431,
+    "rule": "pooltune-managed-1792920897",
+    "state": "complete",
+    "events": [
+      {
+        "seconds": 2,
+        "event": "Starting existing Azure instance, 12-minute maximum window"
+      },
+      {
+        "seconds": 90,
+        "event": "Original pool settings saved"
+      },
+      {
+        "seconds": 153,
+        "event": "Azure ready for bounded managed tests"
+      },
+      {
+        "seconds": 264,
+        "event": "Restoring settings, removing test firewall, then stopping"
+      },
+      {
+        "seconds": 331,
+        "event": "Cleanup readback recorded"
+      },
+      {
+        "seconds": 535,
+        "event": "Azure window complete"
+      }
+    ],
+    "ip": "12.199.166.67",
+    "original": {
+      "pgbouncer.default_pool_size": "5",
+      "pgbouncer.min_pool_size": "0"
+    },
+    "firewall_removed": true,
+    "settings_restored": true,
+    "stopped": true,
+    "elapsed_seconds": 535
+  },
+  "google_cleanup": {
+    "name": "pooltuner-burst-1792920897",
+    "project": "pooltuner-probe-20261023",
+    "started_unix": 1792920897.27443,
+    "deadline_unix": 1792921617.27443,
+    "state": "deleted",
+    "events": [
+      {
+        "seconds": 0,
+        "event": "Creating temporary N2 in us-west1; cleanup starts no later than minute9"
+      },
+      {
+        "seconds": 2,
+        "event": "Create request accepted"
+      },
+      {
+        "seconds": 145,
+        "event": "Temporary instance ready; verified TLS and traffic checks may begin"
+      },
+      {
+        "seconds": 239,
+        "event": "Deleting only approved temporary instance"
+      },
+      {
+        "seconds": 245,
+        "event": "Deletion verified"
+      }
+    ],
+    "operation": "88178545-c33d-4bad-bb7b-2cea00000033",
+    "elapsed_seconds": 245
+  },
+  "sha256": {
+    "azure-results.json": "8b131f3619348f7a823a54fef9298e8956d306dd184552f8673e8bcb0d1ee1de",
+    "google-results.json": "308b1a5cbd760839d2e90ebbbb1af611297c0f31c2b522855b228f43fe6790f3"
+  }
+}

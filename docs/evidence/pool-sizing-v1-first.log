@@ -1,0 +1,13 @@
+=== RUN   TestPoolSizingComparison
+=== RUN   TestPoolSizingComparison/automatic
+    pool_sizing_performance_test.go:464: mode automatic: phase summaries map[burst:{Offered:1920 Success:1920 Timeout:0 Rejected:0 Failed:0 DeadlineMisses:0 AllP50MS:51.987833 AllP95MS:52.624625 AllP99MS:52.941625 SuccessP95MS:52.624625 MaxStartLagMS:1.797917} rebound:{Offered:3000 Success:899 Timeout:178 Rejected:0 Failed:1923 DeadlineMisses:178 AllP50MS:70.921792 AllP95MS:1000.032583 AllP99MS:1000.216417 SuccessP95MS:951.7955 MaxStartLagMS:2.397292} saturation:{Offered:3600 Success:0 Timeout:210 Rejected:0 Failed:3390 DeadlineMisses:210 AllP50MS:1.484042 AllP95MS:1000.060167 AllP99MS:1000.695917 SuccessP95MS:0 MaxStartLagMS:1.822792} steady:{Offered:120 Success:120 Timeout:0 Rejected:0 Failed:0 DeadlineMisses:0 AllP50MS:52.927417 AllP95MS:53.324708 AllP99MS:53.446292 SuccessP95MS:53.324708 MaxStartLagMS:1.4165}]; observations 92
+=== RUN   TestPoolSizingComparison/fixed_warm
+    pool_sizing_performance_test.go:457: hard pool budget exceeded
+=== NAME  TestPoolSizingComparison
+    pool_sizing_performance_test.go:128: invalid trial; incomplete artifact
+--- FAIL: TestPoolSizingComparison (197.58s)
+    --- PASS: TestPoolSizingComparison/automatic (99.43s)
+    --- FAIL: TestPoolSizingComparison/fixed_warm (98.10s)
+FAIL
+FAIL	pooltune/internal/runtime	197.970s
+FAIL

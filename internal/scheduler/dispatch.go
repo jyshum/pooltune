@@ -30,9 +30,12 @@ func (s *Scheduler) dispatch(now time.Time) {
 		co := s.cohorts[c.Cohort]
 		t := s.tenants[c.FairnessKey]
 		w := s.workloads[c.Workload]
-		p := &Permit{owner: s, classification: c, limitRevision: s.limits.Revision, started: grantNow}
+		p := &Permit{owner: s, classification: c, limitRevision: s.limits.Revision, started: grantNow, queuedFor: grantNow.Sub(e.enqueued)}
 		p.self = p
 		s.active++
+		if s.capacity != nil {
+			s.capacity.SetInFlight(s.active)
+		}
 		co.active++
 		co.classActive[classIndex(c.Class)]++
 		t.active++

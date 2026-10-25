@@ -1,0 +1,2 @@
+import { defineConfig } from '@playwright/test';
+export default defineConfig({testDir:'tests/browser',workers:1,use:{browserName:'chromium',baseURL:'http://127.0.0.1:12160'},webServer:{command:`npm run build:sdk && npm --prefix ui run build && ${process.env.POOLTUNE_GO || 'go'} run -tags=integration ./tests/browser/fixture`,url:'http://127.0.0.1:12160/health',reuseExistingServer:false,timeout:60000}});

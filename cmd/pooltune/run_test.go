@@ -69,3 +69,17 @@ func TestRunRejectsInvalidModeAndConfig(t *testing.T) {
 		}
 	}
 }
+
+func TestExplicitRESTProfileAndModeIsolation(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	err := run(ctx, []string{"traffic", "-listen", "127.0.0.1:0", "-local-rest-runtime", "/does/not/exist"})
+	if err == nil || !strings.Contains(err.Error(), "invalid local") {
+		t.Fatalf("REST profile not wired: %v", err)
+	}
+	for _, args := range [][]string{{"control", "-local-rest-runtime", "x"}, {"traffic", "-local-rest-runtime", "x", "-local-pg-runtime", "y"}, {"traffic", "-local-rest-runtime", "x", "-config", "y"}} {
+		if err := run(ctx, args); err == nil || !strings.Contains(err.Error(), "own profile") {
+			t.Fatalf("profile isolation: %v", err)
+		}
+	}
+}

@@ -1,5 +1,6 @@
 // Package scheduler owns bounded admission for one target and ingress path.
-// Callers are trusted ingress adapters. This package does no authentication or I/O.
+// Callers are trusted ingress adapters. Durable activation uses an explicit
+// control-owned persistence callback; request accounting performs no I/O.
 package scheduler
 
 import (
@@ -13,10 +14,12 @@ import (
 
 	"pooltune/internal/domain"
 	"pooltune/internal/policy"
+	"pooltune/internal/telemetry"
 )
 
 var (
 	ErrInvalid       = errors.New("invalid scheduler input")
+	ErrUnsafe        = errors.New("unsafe scheduler activation")
 	ErrExpired       = errors.New("queue deadline expired")
 	ErrBlocked       = errors.New("workload blocked")
 	ErrQueueFull     = errors.New("queue full")
@@ -37,19 +40,23 @@ type Config struct {
 
 // Snapshot installs cohort policies and capacity together. Maps are copied.
 type Snapshot struct {
-	Limits   domain.LimitSnapshot
-	Policies map[string]*policy.CompiledPolicy
+	ClosedAdmissions map[string]bool
+	Limits           domain.LimitSnapshot
+	Policies         map[string]*policy.CompiledPolicy
 }
 type Outcome uint8
 
 const (
 	Finished Outcome = iota
 	Unknown
+	Failed
+	Overloaded
 )
 
 // Permit is an immutable public binding. Only the original pointer can release.
 // Unknown outcomes remain active until Reconcile confirms backend completion.
 type Permit struct {
+	queuedFor      time.Duration
 	limitRevision  domain.RevisionID
 	owner          *Scheduler
 	self           *Permit
@@ -81,6 +88,7 @@ type CohortStats struct {
 	Stopped                                    bool
 }
 type Stats struct {
+	LastQueuedAt                                  time.Time
 	Effective, CriticalReserve                    int
 	Active, Uncertain, Queued, Tenants, Workloads int
 	QueuedBytes                                   int64
@@ -100,6 +108,7 @@ type workloadState struct {
 	activeList, queueList     list.List
 }
 type cohort struct {
+	admissionsClosed                           bool
 	rollbackBusy                               bool
 	name                                       string
 	policy                                     *policy.CompiledPolicy
@@ -111,7 +120,19 @@ type cohort struct {
 	entries                                    list.List
 	stopped                                    bool
 }
+type binding struct {
+	cohort     string
+	revision   domain.RevisionID
+	activation domain.RevisionID
+}
+
 type Scheduler struct {
+	lastQueuedAt              time.Time
+	capacity                  *telemetry.Recorder
+	capacityNames             []string
+	capacityClock             func() time.Time
+	capacityMixed             bool
+	bindings                  map[binding]int
 	configurationGeneration   uint64
 	nextOrder                 uint64
 	mu                        sync.Mutex
@@ -135,7 +156,7 @@ func New(cfg Config, snap Snapshot) (*Scheduler, error) {
 	if cfg.MaxActive <= 0 || cfg.MaxQueued <= 0 || cfg.MaxQueued > 100000 || cfg.MaxTenants <= 0 || cfg.MaxTenants > 4096 || cfg.MaxWorkloads <= 0 || cfg.MaxWorkloads > 4096 || cfg.MaxTenantQueued <= 0 || cfg.MaxTenantActive <= 0 || cfg.MaxQueuedBytes <= 0 || cfg.RateBurst <= 0 || cfg.RateBurst > 1000000 || cfg.RatePerSecond <= 0 || math.IsNaN(cfg.RatePerSecond) || math.IsInf(cfg.RatePerSecond, 0) {
 		return nil, ErrInvalid
 	}
-	s := &Scheduler{cfg: cfg, cohorts: make(map[string]*cohort), tenants: make(map[string]*tenantState), workloads: make(map[string]*workloadState)}
+	s := &Scheduler{bindings: make(map[binding]int), cfg: cfg, cohorts: make(map[string]*cohort), tenants: make(map[string]*tenantState), workloads: make(map[string]*workloadState)}
 	if err := s.Install(snap); err != nil {
 		return nil, err
 	}
@@ -163,9 +184,16 @@ func (s *Scheduler) Acquire(ctx context.Context, c domain.Classification) (*Perm
 		s.mu.Unlock()
 		return nil, err
 	}
+	if len(s.bindings) >= 32 && s.bindings[binding{c.Cohort, c.Revision, c.ActivationRevision}] == 0 {
+		s.mu.Unlock()
+		return nil, ErrCardinality
+	}
 	tenant := s.tenants[c.FairnessKey]
 	work := s.workloads[c.Workload]
 	if s.queued >= s.cfg.MaxQueued || c.BufferedBytes > s.cfg.MaxQueuedBytes-s.queuedBytes || (tenant != nil && tenant.queued >= s.cfg.MaxTenantQueued) || (work != nil && work.queued >= c.QueueLimit) {
+		if s.capacity != nil {
+			s.capacity.Omit()
+		}
 		s.mu.Unlock()
 		return nil, ErrQueueFull
 	}
@@ -193,8 +221,12 @@ func (s *Scheduler) Acquire(ctx context.Context, c domain.Classification) (*Perm
 	}
 	s.nextOrder++
 	e := &entry{classification: c, ctx: ctx, enqueued: now, order: s.nextOrder, done: make(chan struct{}), heapIndex: -1, queueIndex: -1}
+	s.capacityRecord(c.Workload, telemetry.Arrival, 0, 0)
 	s.enqueue(e)
 	s.dispatch(now)
+	if !e.finished {
+		s.lastQueuedAt = now
+	}
 	s.mu.Unlock()
 	select {
 	case <-e.done:
@@ -221,10 +253,10 @@ func (s *Scheduler) validateClassification(c domain.Classification, fresh bool) 
 	if co == nil {
 		return ErrInvalid
 	}
-	if fresh && co.stopped {
+	if fresh && (co.stopped || co.admissionsClosed) {
 		return ErrCohortStopped
 	}
-	if fresh && c.Revision != co.policy.Revision() {
+	if fresh && (c.Revision != co.policy.Revision() || (c.ActivationRevision != "" && c.ActivationRevision != s.limits.Revision)) {
 		return ErrStale
 	}
 	return nil
@@ -250,13 +282,22 @@ func (s *Scheduler) Release(p *Permit, outcome Outcome) {
 	if p == nil || p.owner != s || p.self != p || p.state != 0 {
 		return
 	}
-	if outcome != Finished {
+	if outcome != Finished && outcome != Failed && outcome != Overloaded {
+		s.capacityRecord(p.classification.Workload, telemetry.Uncertain, 0, 0)
 		p.state = 1
 		s.uncertain++
 		s.cohorts[p.classification.Cohort].uncertain++
 		s.workloads[p.classification.Workload].uncertain++
 		return
 	}
+	kind := telemetry.Success
+	if outcome == Failed {
+		kind = telemetry.Failure
+	}
+	if outcome == Overloaded {
+		kind = telemetry.Overload
+	}
+	s.capacityRecord(p.classification.Workload, kind, time.Since(p.started), p.queuedFor)
 	s.free(p)
 	s.dispatch(time.Now())
 }
@@ -283,6 +324,10 @@ func (s *Scheduler) free(p *Permit) {
 	w := s.workloads[c.Workload]
 	p.state = 2
 	s.active--
+	if s.capacity != nil {
+		s.capacity.SetInFlight(s.active)
+	}
+	s.unbind(c)
 	co.active--
 	co.classActive[classIndex(c.Class)]--
 	t.active--
@@ -302,7 +347,7 @@ func (s *Scheduler) Stats() Stats {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	now := time.Now()
-	st := Stats{Effective: s.limits.Effective, CriticalReserve: s.limits.CriticalReserve, Active: s.active, Uncertain: s.uncertain, Queued: s.queued, QueuedBytes: s.queuedBytes, Tenants: len(s.tenants), Workloads: len(s.workloads), RateRejected: s.rateRejected, Cohorts: make(map[string]CohortStats, len(s.cohorts)), ByWorkload: make(map[string]WorkloadStats, len(s.workloads))}
+	st := Stats{LastQueuedAt: s.lastQueuedAt, Effective: s.limits.Effective, CriticalReserve: s.limits.CriticalReserve, Active: s.active, Uncertain: s.uncertain, Queued: s.queued, QueuedBytes: s.queuedBytes, Tenants: len(s.tenants), Workloads: len(s.workloads), RateRejected: s.rateRejected, Cohorts: make(map[string]CohortStats, len(s.cohorts)), ByWorkload: make(map[string]WorkloadStats, len(s.workloads))}
 	for key, c := range s.cohorts {
 		st.Cohorts[key] = CohortStats{Active: c.active, Uncertain: c.uncertain, Queued: c.queued, Budget: c.budget, Reserve: c.reserve, Stopped: c.stopped}
 	}
@@ -324,4 +369,43 @@ func (p *Permit) LimitRevision() domain.RevisionID {
 		return ""
 	}
 	return p.limitRevision
+}
+
+// Identity is immutable across installations and binds an ingress to its owner.
+func (s *Scheduler) Identity() (string, domain.PathKind) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.limits.Target, s.limits.Path
+}
+
+// Drained excludes old policy/cohort bindings and excess occupancy before a
+// rollout starts measuring. The index has at most 32 entries; no request scan.
+func (s *Scheduler) Drained() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.drainedLocked()
+}
+func (s *Scheduler) drainedLocked() bool {
+	for b, n := range s.bindings {
+		c := s.cohorts[b.cohort]
+		if n > 0 && (c == nil || c.stopped || c.policy.Revision() != b.revision || (b.activation != "" && b.activation != s.limits.Revision)) {
+			return false
+		}
+	}
+	for _, c := range s.cohorts {
+		if c.active > c.budget {
+			return false
+		}
+	}
+	return true
+}
+func (s *Scheduler) bind(c domain.Classification) {
+	s.bindings[binding{c.Cohort, c.Revision, c.ActivationRevision}]++
+}
+func (s *Scheduler) unbind(c domain.Classification) {
+	b := binding{c.Cohort, c.Revision, c.ActivationRevision}
+	s.bindings[b]--
+	if s.bindings[b] == 0 {
+		delete(s.bindings, b)
+	}
 }

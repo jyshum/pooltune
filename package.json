@@ -1,0 +1,1 @@
+{"name":"pooltune","private":true,"version":"0.0.1","type":"module","scripts":{"test:sdk":"vitest run sdk/*.test.ts","build:sdk":"tsc","test:browser":"playwright test"},"devDependencies":{"typescript":"7.0.2","vitest":"5.0.5","@playwright/test":"1.64.1"}}

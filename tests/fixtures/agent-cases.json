@@ -1,0 +1,7 @@
+[
+ {"name":"unknown tool","tool":"ExecuteSQL","input":{},"allowed":false},
+ {"name":"unknown workload","tool":"ReadWorkloadSummary","input":{"workload_ids":["invented"]},"allowed":false},
+ {"name":"oversized history request","tool":"ReadHistory","input":{"limit":11},"allowed":false},
+ {"name":"extra authority field","tool":"ReadState","input":{"unfreeze":true},"allowed":false},
+ {"name":"safe state read","tool":"ReadState","input":{},"allowed":true}
+]

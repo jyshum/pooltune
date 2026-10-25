@@ -1,0 +1,283 @@
+{
+  "recorded_at": "2026-10-25",
+  "synthetic": true,
+  "production_certified": false,
+  "all_three_have_successful_adaptive_spike": true,
+  "baseline_comparison": "Azure/Google baselines are prior separate trials, not randomized matched reruns. Supabase reuses its accepted three-mode comparison.",
+  "runner_sha256": "827617eb701573d9a611a414bcea0aac89f163dbe61dd420869a00fa7d3bc0a6",
+  "providers": {
+    "azure": [
+      {
+        "mode": "fixed-base",
+        "offered": 14500,
+        "completed": 9516,
+        "errors": {
+          "generator_queue_full": 4984
+        },
+        "warm_connections": 50,
+        "phases": {
+          "steady": {
+            "offered": 1000,
+            "completed": 1000,
+            "successful_p95_ms": 277.477
+          },
+          "first-spike": {
+            "offered": 3000,
+            "completed": 1956,
+            "successful_p95_ms": 894.81
+          },
+          "sustained": {
+            "offered": 10500,
+            "completed": 6560,
+            "successful_p95_ms": 903.494
+          }
+        },
+        "reserve_observed_seconds": null,
+        "health_hold_samples": 313
+      },
+      {
+        "mode": "burst",
+        "offered": 14500,
+        "completed": 11874,
+        "errors": {
+          "generator_queue_full": 2626
+        },
+        "warm_connections": 64,
+        "phases": {
+          "steady": {
+            "offered": 1000,
+            "completed": 1000,
+            "successful_p95_ms": 274.693
+          },
+          "first-spike": {
+            "offered": 3000,
+            "completed": 2476,
+            "successful_p95_ms": 694.561
+          },
+          "sustained": {
+            "offered": 10500,
+            "completed": 8398,
+            "successful_p95_ms": 697.249
+          }
+        },
+        "reserve_observed_seconds": 10.160079834,
+        "health_hold_samples": 0
+      },
+      {
+        "mode": "fixed-ceiling",
+        "offered": 14500,
+        "completed": 11825,
+        "errors": {
+          "generator_queue_full": 2675
+        },
+        "warm_connections": 64,
+        "phases": {
+          "steady": {
+            "offered": 1000,
+            "completed": 1000,
+            "successful_p95_ms": 277.208
+          },
+          "first-spike": {
+            "offered": 3000,
+            "completed": 2469,
+            "successful_p95_ms": 691.199
+          },
+          "sustained": {
+            "offered": 10500,
+            "completed": 8356,
+            "successful_p95_ms": 702.098
+          }
+        },
+        "reserve_observed_seconds": null,
+        "health_hold_samples": 658
+      }
+    ],
+    "google": [
+      {
+        "mode": "fixed-base",
+        "offered": 14500,
+        "completed": 10951,
+        "errors": {
+          "generator_queue_full": 3549
+        },
+        "warm_connections": 50,
+        "phases": {
+          "steady": {
+            "offered": 1000,
+            "completed": 1000,
+            "successful_p95_ms": 234.51
+          },
+          "first-spike": {
+            "offered": 3000,
+            "completed": 2284,
+            "successful_p95_ms": 766.44
+          },
+          "sustained": {
+            "offered": 10500,
+            "completed": 7667,
+            "successful_p95_ms": 778.368
+          }
+        },
+        "reserve_observed_seconds": null,
+        "health_hold_samples": 1527
+      },
+      {
+        "mode": "burst",
+        "offered": 14500,
+        "completed": 13621,
+        "errors": {
+          "generator_queue_full": 879
+        },
+        "warm_connections": 64,
+        "phases": {
+          "steady": {
+            "offered": 1000,
+            "completed": 1000,
+            "successful_p95_ms": 236.37
+          },
+          "first-spike": {
+            "offered": 3000,
+            "completed": 2853,
+            "successful_p95_ms": 582.992
+          },
+          "sustained": {
+            "offered": 10500,
+            "completed": 9768,
+            "successful_p95_ms": 583.573
+          }
+        },
+        "reserve_observed_seconds": 10.180050208,
+        "health_hold_samples": 0
+      },
+      {
+        "mode": "fixed-ceiling",
+        "offered": 14500,
+        "completed": 13624,
+        "errors": {
+          "generator_queue_full": 876
+        },
+        "warm_connections": 64,
+        "phases": {
+          "steady": {
+            "offered": 1000,
+            "completed": 1000,
+            "successful_p95_ms": 233.8
+          },
+          "first-spike": {
+            "offered": 3000,
+            "completed": 2863,
+            "successful_p95_ms": 579.955
+          },
+          "sustained": {
+            "offered": 10500,
+            "completed": 9761,
+            "successful_p95_ms": 583.507
+          }
+        },
+        "reserve_observed_seconds": null,
+        "health_hold_samples": 1510
+      }
+    ],
+    "supabase": [
+      {
+        "mode": "fixed-base",
+        "offered": 1430,
+        "completed": 288,
+        "errors": {
+          "generator_queue_full": 22,
+          "transport_or_deadline": 1120
+        },
+        "warm_connections": 5,
+        "phases": {
+          "steady": {
+            "offered": 80,
+            "completed": 80,
+            "successful_p95_ms": 241.484
+          },
+          "first-spike": {
+            "offered": 300,
+            "completed": 208,
+            "successful_p95_ms": 2865.992
+          },
+          "sustained": {
+            "offered": 1050,
+            "completed": 0,
+            "successful_p95_ms": null
+          }
+        },
+        "reserve_observed_seconds": null,
+        "health_hold_samples": 2138
+      },
+      {
+        "mode": "burst",
+        "offered": 1430,
+        "completed": 1430,
+        "errors": {},
+        "warm_connections": 8,
+        "phases": {
+          "steady": {
+            "offered": 80,
+            "completed": 80,
+            "successful_p95_ms": 245.782
+          },
+          "first-spike": {
+            "offered": 300,
+            "completed": 300,
+            "successful_p95_ms": 246.445
+          },
+          "sustained": {
+            "offered": 1050,
+            "completed": 1050,
+            "successful_p95_ms": 242.197
+          }
+        },
+        "reserve_observed_seconds": 10.220002917,
+        "health_hold_samples": 0
+      },
+      {
+        "mode": "fixed-ceiling",
+        "offered": 1430,
+        "completed": 1430,
+        "errors": {},
+        "warm_connections": 8,
+        "phases": {
+          "steady": {
+            "offered": 80,
+            "completed": 80,
+            "successful_p95_ms": 243.767
+          },
+          "first-spike": {
+            "offered": 300,
+            "completed": 300,
+            "successful_p95_ms": 253.738
+          },
+          "sustained": {
+            "offered": 1050,
+            "completed": 1050,
+            "successful_p95_ms": 239.869
+          }
+        },
+        "reserve_observed_seconds": null,
+        "health_hold_samples": 0
+      }
+    ]
+  },
+  "sha256": {
+    "azure-results.json": "7f6b4743a9571eb8fb51344967d3e885533f737e58c9b1c93af425bddc7628ed",
+    "google-results.json": "27bdfbd6700c455e9b2bd9cace30e404363e3c65361378fc7a351077ea2dcbfc",
+    "supabase-results.json": "de16e26711cf9f6b5d5115db16ae5a0424caca548ae62052178ede811c41e47f"
+  },
+  "cleanup": {
+    "azure": {
+      "state": "complete",
+      "elapsed_seconds": 555,
+      "stopped": true,
+      "settings_restored": true,
+      "firewall_removed": true
+    },
+    "google": {
+      "state": "deleted",
+      "elapsed_seconds": 300
+    }
+  }
+}

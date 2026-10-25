@@ -1,0 +1,72 @@
+Local capacity and independent recovery checkpoint, 2026-10-24
+
+Command: go test -race -tags=integration ./cmd/... ./internal/... -count=1
+All ordinary Go source roots (cmd/internal) covered. tests/ has only deployment-tagged tests and is run separately.
+ok  	pooltune/cmd/pooltune	1.357s
+ok  	pooltune/cmd/pooltune-admin	1.551s
+ok  	pooltune/cmd/pooltune-owner	15.997s
+ok  	pooltune/internal/admin	14.079s
+ok  	pooltune/internal/agent	2.114s
+ok  	pooltune/internal/config	1.840s
+ok  	pooltune/internal/control	5.472s
+ok  	pooltune/internal/controller	2.631s
+?   	pooltune/internal/domain	[no test files]
+ok  	pooltune/internal/durable	2.253s
+ok  	pooltune/internal/gateway	3.183s
+ok  	pooltune/internal/hostmetrics	3.093s
+ok  	pooltune/internal/httpingress	3.059s
+ok  	pooltune/internal/measurement	3.220s
+?   	pooltune/internal/observation	[no test files]
+ok  	pooltune/internal/pgwire	6.629s
+ok  	pooltune/internal/policy	3.479s
+ok  	pooltune/internal/provider	2.466s
+ok  	pooltune/internal/rollout	3.090s
+ok  	pooltune/internal/runtime	27.460s
+ok  	pooltune/internal/scheduler	2.608s
+ok  	pooltune/internal/secrets	2.288s
+ok  	pooltune/internal/store	2.744s
+ok  	pooltune/internal/telemetry	1.766s
+?   	pooltune/internal/testpg	[no test files]
+
+Focused real evidence: 100 same-path TLS proxy baseline samples; observed mean 0.021585 seconds in focused run; real host readings and three authenticated PG sessions; admission grew 1 -> 2.
+SIGKILL -> fresh OS traffic process -> separately reopened control SQLite -> Unix recovery -> epoch 2 passed.
+Live old transaction blocks recovery; closing it allows recovery; repeat recovery from imported observed history passes.
+
+go vet ./cmd/... ./internal/... passed. go mod verify: all modules verified.
+
+Initial broad ./... invocation stalled in package directory traversal. Explicit source roots avoid scanning dependency directories. First explicit command included deployment-only tests/ without its tag; cmd/internal packages passed but command failed on excluded tests. The clean command above passed.
+No production calibration, performance improvement, external fencing, REST restart recovery, power-loss fault or container evidence claimed. No paid model calls.
+
+Final reviewed code verification:
+Command: go test -race -tags=integration ./cmd/... ./internal/... -count=1
+ok  	pooltune/cmd/pooltune	1.593s
+ok  	pooltune/cmd/pooltune-admin	1.260s
+ok  	pooltune/cmd/pooltune-owner	16.003s
+ok  	pooltune/internal/admin	13.978s
+ok  	pooltune/internal/agent	3.778s
+ok  	pooltune/internal/config	3.273s
+ok  	pooltune/internal/control	6.673s
+ok  	pooltune/internal/controller	1.348s
+?   	pooltune/internal/domain	[no test files]
+ok  	pooltune/internal/durable	2.193s
+ok  	pooltune/internal/gateway	2.774s
+ok  	pooltune/internal/hostmetrics	1.867s
+ok  	pooltune/internal/httpingress	2.411s
+ok  	pooltune/internal/measurement	2.717s
+?   	pooltune/internal/observation	[no test files]
+ok  	pooltune/internal/pgwire	7.095s
+ok  	pooltune/internal/policy	3.558s
+ok  	pooltune/internal/provider	2.554s
+ok  	pooltune/internal/rollout	3.381s
+ok  	pooltune/internal/runtime	30.837s
+ok  	pooltune/internal/scheduler	2.769s
+ok  	pooltune/internal/secrets	2.294s
+ok  	pooltune/internal/store	3.050s
+ok  	pooltune/internal/telemetry	2.093s
+?   	pooltune/internal/testpg	[no test files]
+
+Actual package: go test -tags=deployment ./tests -run TestNativePackage -count=1
+ok  	pooltune/tests	7.862s
+
+Final live growth case: 100 measured 50 ms TLS proxy workload samples; focused race mean 0.051827 seconds; admission 20 -> 25, 28 authenticated sessions. The earlier capacity-1 case was latency-sensitive under the unchanged integer congestion rule. No fixtures substituted for live observations.
+Two Important review findings reproduced RED then fixed GREEN: latched safety ceiling and pending growth ACK/confirmation reconciliation. Actual anchored restart preserves the reduced ceiling. Vet and diff check passed after fixes.

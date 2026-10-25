@@ -48,3 +48,36 @@ func fairKey(target string, path domain.PathKind, principal, tenant string) stri
 	// Length prefixes prevent distinct components from sharing a key.
 	return strconv.Itoa(len(target)) + ":" + target + strconv.Itoa(len(path)) + ":" + string(path) + strconv.Itoa(len(principal)) + ":" + principal + strconv.Itoa(len(tenant)) + ":" + tenant
 }
+
+// Reclassify retains trusted workload/fairness identity while applying the stable
+// policy's current settings. It is used only for queued rollback, never active work.
+func (c *CompiledPolicy) Reclassify(old domain.Classification) (domain.Classification, error) {
+	if c == nil {
+		return domain.Classification{}, ErrBoundary
+	}
+	out := old
+	out.Revision = c.revision
+	if w, ok := c.byID[old.Workload]; ok {
+		out.Class = w.class
+		out.RuleID = w.ruleID
+		out.ConcurrencyCap = w.concurrencyCap
+		out.QueueLimit = w.queueLimit
+		out.Blocked = w.blocked
+		if deadline := time.Now().Add(w.queueWait); deadline.Before(out.QueueDeadline) {
+			out.QueueDeadline = deadline
+		}
+		return out, nil
+	}
+	if old.Workload != "overflow" {
+		return domain.Classification{}, ErrBoundary
+	}
+	out.Class = domain.ClassNormal
+	out.RuleID = ""
+	out.ConcurrencyCap = c.fallback.ConcurrencyCap
+	out.QueueLimit = c.fallback.QueueLimit
+	out.Blocked = false
+	if deadline := time.Now().Add(c.fallback.QueueWait); deadline.Before(out.QueueDeadline) {
+		out.QueueDeadline = deadline
+	}
+	return out, nil
+}

@@ -1,0 +1,5 @@
+=== RUN   TestLocalRuntimeRealSocketTrafficReadinessAndRestartQuarantine
+    postgres_integration_test.go:171: Actual runtime assembly: private secret files, verified TLS/SCRAM, SQL forwarding, readiness, Unix canary activation/rollback, clean shutdown, restart quarantine. No cloud/model calls.
+--- PASS: TestLocalRuntimeRealSocketTrafficReadinessAndRestartQuarantine (0.51s)
+PASS
+ok  	pooltune/internal/runtime	1.844s

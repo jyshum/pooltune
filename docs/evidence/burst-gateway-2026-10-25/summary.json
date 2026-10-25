@@ -1,0 +1,280 @@
+{
+  "date": "2026-10-25",
+  "evidence_type": "real managed databases, synthetic read-only workload",
+  "production_validation": false,
+  "all_three_adaptive_success": false,
+  "providers": {
+    "supabase": [
+      {
+        "mode": "fixed-base",
+        "scheduled": 1430,
+        "completed": 288,
+        "errors": {
+          "generator_queue_full": 22,
+          "transport_or_deadline": 1120
+        },
+        "physical_warm_connections": 5,
+        "phases": {
+          "steady": {
+            "scheduled": 80,
+            "completed": 80,
+            "successful_p95_ms": 241.484
+          },
+          "first-spike": {
+            "scheduled": 300,
+            "completed": 208,
+            "successful_p95_ms": 2865.992
+          },
+          "sustained": {
+            "scheduled": 1050,
+            "completed": 0,
+            "successful_p95_ms": null
+          }
+        },
+        "first_warm_reserve_observed_seconds": null,
+        "first_health_hold_seconds": 20.060023083
+      },
+      {
+        "mode": "burst",
+        "scheduled": 1430,
+        "completed": 1430,
+        "errors": {},
+        "physical_warm_connections": 8,
+        "phases": {
+          "steady": {
+            "scheduled": 80,
+            "completed": 80,
+            "successful_p95_ms": 245.782
+          },
+          "first-spike": {
+            "scheduled": 300,
+            "completed": 300,
+            "successful_p95_ms": 246.445
+          },
+          "sustained": {
+            "scheduled": 1050,
+            "completed": 1050,
+            "successful_p95_ms": 242.197
+          }
+        },
+        "first_warm_reserve_observed_seconds": 10.220002917,
+        "first_health_hold_seconds": null
+      },
+      {
+        "mode": "fixed-ceiling",
+        "scheduled": 1430,
+        "completed": 1430,
+        "errors": {},
+        "physical_warm_connections": 8,
+        "phases": {
+          "steady": {
+            "scheduled": 80,
+            "completed": 80,
+            "successful_p95_ms": 243.767
+          },
+          "first-spike": {
+            "scheduled": 300,
+            "completed": 300,
+            "successful_p95_ms": 253.738
+          },
+          "sustained": {
+            "scheduled": 1050,
+            "completed": 1050,
+            "successful_p95_ms": 239.869
+          }
+        },
+        "first_warm_reserve_observed_seconds": null,
+        "first_health_hold_seconds": null
+      }
+    ],
+    "azure": [
+      {
+        "mode": "fixed-base",
+        "scheduled": 14500,
+        "completed": 9516,
+        "errors": {
+          "generator_queue_full": 4984
+        },
+        "physical_warm_connections": 50,
+        "phases": {
+          "steady": {
+            "scheduled": 1000,
+            "completed": 1000,
+            "successful_p95_ms": 277.477
+          },
+          "first-spike": {
+            "scheduled": 3000,
+            "completed": 1956,
+            "successful_p95_ms": 894.81
+          },
+          "sustained": {
+            "scheduled": 10500,
+            "completed": 6560,
+            "successful_p95_ms": 903.494
+          }
+        },
+        "first_warm_reserve_observed_seconds": null,
+        "first_health_hold_seconds": 54.620030208
+      },
+      {
+        "mode": "burst",
+        "scheduled": 14500,
+        "completed": 10122,
+        "errors": {
+          "sqlstate:57014": 96,
+          "transport_or_deadline": 1956,
+          "generator_queue_full": 2326
+        },
+        "physical_warm_connections": 64,
+        "phases": {
+          "steady": {
+            "scheduled": 1000,
+            "completed": 529,
+            "successful_p95_ms": 293.446
+          },
+          "first-spike": {
+            "scheduled": 3000,
+            "completed": 1219,
+            "successful_p95_ms": 690.919
+          },
+          "sustained": {
+            "scheduled": 10500,
+            "completed": 8374,
+            "successful_p95_ms": 700.331
+          }
+        },
+        "first_warm_reserve_observed_seconds": 15.480020083,
+        "first_health_hold_seconds": 5.340037792
+      },
+      {
+        "mode": "fixed-ceiling",
+        "scheduled": 14500,
+        "completed": 11825,
+        "errors": {
+          "generator_queue_full": 2675
+        },
+        "physical_warm_connections": 64,
+        "phases": {
+          "steady": {
+            "scheduled": 1000,
+            "completed": 1000,
+            "successful_p95_ms": 277.208
+          },
+          "first-spike": {
+            "scheduled": 3000,
+            "completed": 2469,
+            "successful_p95_ms": 691.199
+          },
+          "sustained": {
+            "scheduled": 10500,
+            "completed": 8356,
+            "successful_p95_ms": 702.098
+          }
+        },
+        "first_warm_reserve_observed_seconds": null,
+        "first_health_hold_seconds": 17.360007333
+      }
+    ],
+    "google": [
+      {
+        "mode": "fixed-base",
+        "scheduled": 14500,
+        "completed": 10951,
+        "errors": {
+          "generator_queue_full": 3549
+        },
+        "physical_warm_connections": 50,
+        "phases": {
+          "steady": {
+            "scheduled": 1000,
+            "completed": 1000,
+            "successful_p95_ms": 234.51
+          },
+          "first-spike": {
+            "scheduled": 3000,
+            "completed": 2284,
+            "successful_p95_ms": 766.44
+          },
+          "sustained": {
+            "scheduled": 10500,
+            "completed": 7667,
+            "successful_p95_ms": 778.368
+          }
+        },
+        "first_warm_reserve_observed_seconds": null,
+        "first_health_hold_seconds": 29.880035499
+      },
+      {
+        "mode": "burst",
+        "scheduled": 14500,
+        "completed": 733,
+        "errors": {
+          "sqlstate:57014": 96,
+          "transport_or_deadline": 13671
+        },
+        "physical_warm_connections": 64,
+        "phases": {
+          "steady": {
+            "scheduled": 1000,
+            "completed": 733,
+            "successful_p95_ms": 234.07
+          },
+          "first-spike": {
+            "scheduled": 3000,
+            "completed": 0,
+            "successful_p95_ms": null
+          },
+          "sustained": {
+            "scheduled": 10500,
+            "completed": 0,
+            "successful_p95_ms": null
+          }
+        },
+        "first_warm_reserve_observed_seconds": null,
+        "first_health_hold_seconds": 7.380035625
+      },
+      {
+        "mode": "fixed-ceiling",
+        "scheduled": 14500,
+        "completed": 13624,
+        "errors": {
+          "generator_queue_full": 876
+        },
+        "physical_warm_connections": 64,
+        "phases": {
+          "steady": {
+            "scheduled": 1000,
+            "completed": 1000,
+            "successful_p95_ms": 233.8
+          },
+          "first-spike": {
+            "scheduled": 3000,
+            "completed": 2863,
+            "successful_p95_ms": 579.955
+          },
+          "sustained": {
+            "scheduled": 10500,
+            "completed": 9761,
+            "successful_p95_ms": 583.507
+          }
+        },
+        "first_warm_reserve_observed_seconds": null,
+        "first_health_hold_seconds": 30.220044917
+      }
+    ]
+  },
+  "source_files": {
+    "supabase-results.json": "398e8183b0b8abd790c8fc2718cff3b7cbae75bfd66f5ee593da517c9b122b8a",
+    "azure-results.json": "80087b173dcd61a19df12fe89356432bbcd13292ddbb3e13a751c34f63face71",
+    "google-results.json": "aca3a4f3a48ec02319d7e66714aaba2142f9a22684096db387a3d7ae6fc276bf"
+  },
+  "percentile_method": "Sorted successful latencies at min(n-1,floor(0.95*n)); failures excluded.",
+  "limitations": [
+    "Single sequential trials, not randomized or production query traces.",
+    "Fixed modes use plain owned PgBouncer; adaptive adds Pooltune ingress.",
+    "Fixed-mode scheduler counts are not actual pool occupancy.",
+    "transport_or_deadline is a mixed failure category, not an exact timeout count.",
+    "Health trace records unverified_health without all causal subfields.",
+    "Source changed during the session. These measurements predate some safety fixes and the Google freshness correction; no immutable tested-binary provenance is asserted."
+  ]
+}

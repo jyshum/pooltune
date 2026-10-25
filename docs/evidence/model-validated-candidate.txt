@@ -1,0 +1,13 @@
+=== RUN   TestRealPolicyRun
+    real_policy_test.go:134: model tool=ReadState
+    real_policy_test.go:134: model tool=ReadState
+    real_policy_test.go:134: model tool=ReadWorkloadSummary
+    real_policy_test.go:134: model tool=ReadHistory
+    real_policy_test.go:134: model tool=SubmitCandidate
+    real_policy_test.go:142: candidate metadata matches=true weights={Critical:1 Normal:1 Background:8} reserve=0.1 rule_count=0 settings=2
+    real_policy_test.go:134: model tool=ReadState
+    real_policy_test.go:146: model done=true usage_known=true error=<nil>
+    real_policy_test.go:121: Real configured-model candidate validated against synthetic approved context. No traffic activation.
+--- PASS: TestRealPolicyRun (27.31s)
+PASS
+ok  	pooltune/tests	27.593s

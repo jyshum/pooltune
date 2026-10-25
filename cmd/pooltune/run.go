@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"pooltune/internal/config"
+	"pooltune/internal/runtime"
 )
 
 func run(ctx context.Context, args []string) error {
@@ -22,12 +23,24 @@ func run(ctx context.Context, args []string) error {
 	flags := flag.NewFlagSet(args[0], flag.ContinueOnError)
 	flags.SetOutput(io.Discard)
 	addr := flags.String("listen", "127.0.0.1:8080", "local health address")
+	controlPath := flags.String("local-control-runtime", "", "local continuous control profile")
+	restPath := flags.String("local-rest-runtime", "", "isolated local PostgREST runtime profile")
+	runtimePath := flags.String("local-pg-runtime", "", "isolated local PostgreSQL runtime profile")
 	path := flags.String("config", "", "configuration JSON file")
 	if err := flags.Parse(args[1:]); err != nil {
 		return errors.New("invalid command flags")
 	}
 	if flags.NArg() != 0 {
 		return errors.New("unexpected command arguments")
+	}
+	if *controlPath != "" && (args[0] != "control" || *path != "" || *runtimePath != "" || *restPath != "") {
+		return errors.New("local control requires control mode and its own profile")
+	}
+	if *restPath != "" && (args[0] != "traffic" || *path != "" || *runtimePath != "" || *controlPath != "") {
+		return errors.New("local REST requires traffic mode and its own profile")
+	}
+	if *runtimePath != "" && (args[0] != "traffic" || *path != "") {
+		return errors.New("local runtime requires traffic mode and its own profile")
 	}
 	if *path != "" {
 		f, err := os.Open(*path)
@@ -46,6 +59,16 @@ func run(ctx context.Context, args []string) error {
 	ln, err := listenLocal(*addr)
 	if err != nil {
 		return err
+	}
+	defer ln.Close()
+	if *controlPath != "" {
+		return runtime.RunControlFile(ctx, *controlPath, ln)
+	}
+	if *restPath != "" {
+		return runtime.RunRESTFile(ctx, *restPath, ln)
+	}
+	if *runtimePath != "" {
+		return runtime.RunFile(ctx, *runtimePath, ln)
 	}
 	return serve(ctx, ln, args[0])
 }

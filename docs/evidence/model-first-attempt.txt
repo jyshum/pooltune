@@ -1,0 +1,6 @@
+=== RUN   TestRealPolicyRun
+    real_policy_test.go:119: real tool loop did not produce a validated candidate; stable policy unchanged
+--- FAIL: TestRealPolicyRun (13.84s)
+FAIL
+FAIL	pooltune/tests	14.119s
+FAIL

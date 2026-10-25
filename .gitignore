@@ -5,3 +5,7 @@ coverage.out
 .env
 /secrets/
 .DS_Store
+node_modules/
+dist/
+playwright-report/
+test-results/

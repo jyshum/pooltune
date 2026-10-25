@@ -10,9 +10,10 @@ import (
 )
 
 type preparedCohort struct {
-	policy          *policy.CompiledPolicy
-	sequence        []int
-	budget, reserve int
+	admissionsClosed bool
+	policy           *policy.CompiledPolicy
+	sequence         []int
+	budget, reserve  int
 }
 
 func (s *Scheduler) prepare(snap Snapshot) (map[string]preparedCohort, error) {
@@ -36,7 +37,7 @@ func (s *Scheduler) prepare(snap Snapshot) (map[string]preparedCohort, error) {
 		reserved += reserve
 		weights := p.ClassWeights()
 		sequence := interleaved([3]int{weights.Critical, weights.Normal, weights.Background})
-		prepared[name] = preparedCohort{policy: p, sequence: sequence, budget: budget, reserve: reserve}
+		prepared[name] = preparedCohort{admissionsClosed: snap.ClosedAdmissions[name], policy: p, sequence: sequence, budget: budget, reserve: reserve}
 	}
 	if l.CriticalReserve != reserved {
 		return nil, ErrInvalid
@@ -74,7 +75,7 @@ func (s *Scheduler) Install(snap Snapshot) error {
 	defer s.mu.Unlock()
 	return s.installLocked(snap.Limits, prepared)
 }
-func (s *Scheduler) installLocked(l domain.LimitSnapshot, prepared map[string]preparedCohort) error {
+func (s *Scheduler) validateInstallLocked(l domain.LimitSnapshot, prepared map[string]preparedCohort) error {
 	if s.limits.Target != "" && (l.Target != s.limits.Target || l.Path != s.limits.Path || l.GuardrailVersion != s.limits.GuardrailVersion || l.Epoch != s.limits.Epoch) {
 		return ErrStale
 	}
@@ -82,6 +83,13 @@ func (s *Scheduler) installLocked(l domain.LimitSnapshot, prepared map[string]pr
 		if _, ok := prepared[name]; !ok && (c.active > 0 || c.queued > 0) {
 			return ErrInvalid
 		}
+	}
+	return nil
+}
+
+func (s *Scheduler) installLocked(l domain.LimitSnapshot, prepared map[string]preparedCohort) error {
+	if err := s.validateInstallLocked(l, prepared); err != nil {
+		return err
 	}
 	next := make(map[string]*cohort, len(prepared))
 	order := make([]string, 0, len(prepared))
@@ -91,6 +99,7 @@ func (s *Scheduler) installLocked(l domain.LimitSnapshot, prepared map[string]pr
 			c = &cohort{name: name}
 		}
 		c.policy = p.policy
+		c.admissionsClosed = p.admissionsClosed
 		c.sequence = p.sequence
 		c.position %= len(p.sequence)
 		c.budget = p.budget
@@ -108,8 +117,37 @@ func (s *Scheduler) installLocked(l domain.LimitSnapshot, prepared map[string]pr
 	}
 	s.limits = l
 	s.configurationGeneration++
+	_ = s.resetCapacity()
 	s.dispatch(time.Now())
 	return nil
+}
+
+// InstallDurably serializes a safety-sensitive activation with admission and
+// outcome accounting. It checks quiescence/uncertainty under the same lock used
+// through persistence and installation, so a successful check cannot go stale.
+// Existing permits and queues are retained. The callback must only perform the
+// local durable write: it must not call the scheduler or wait for request work.
+// Local storage stalls also delay accounting; this cost belongs in calibration.
+func (s *Scheduler) InstallDurably(snap Snapshot, requireIdle bool, persist func() error) error {
+	if persist == nil {
+		return ErrInvalid
+	}
+	prepared, err := s.prepare(snap)
+	if err != nil {
+		return err
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if err := s.validateInstallLocked(snap.Limits, prepared); err != nil {
+		return err
+	}
+	if s.uncertain != 0 || (requireIdle && s.active != 0) {
+		return ErrUnsafe
+	}
+	if err := persist(); err != nil {
+		return err
+	}
+	return s.installLocked(snap.Limits, prepared)
 }
 
 // InstallLimits preserves current policies, bindings, and rollback stops. Policy
@@ -119,11 +157,13 @@ func (s *Scheduler) InstallLimits(l domain.LimitSnapshot) error {
 	s.mu.Lock()
 	generation := s.configurationGeneration
 	policies := make(map[string]*policy.CompiledPolicy, len(s.cohorts))
+	closed := make(map[string]bool, len(s.cohorts))
 	for name, c := range s.cohorts {
 		policies[name] = c.policy
+		closed[name] = c.admissionsClosed
 	}
 	s.mu.Unlock()
-	prepared, err := s.prepare(Snapshot{Limits: l, Policies: policies})
+	prepared, err := s.prepare(Snapshot{Limits: l, Policies: policies, ClosedAdmissions: closed})
 	if err != nil {
 		return err
 	}
@@ -133,4 +173,49 @@ func (s *Scheduler) InstallLimits(l domain.LimitSnapshot) error {
 		return ErrStale
 	}
 	return s.installLocked(l, prepared)
+}
+
+// ValidateDefinition checks limits/policies and immutable owner identity without
+// requiring old cohorts to have drained. Install still enforces drain safety.
+func (s *Scheduler) ValidateDefinition(snap Snapshot) error {
+	if _, err := s.prepare(snap); err != nil {
+		return err
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	l := snap.Limits
+	if s.limits.Target != "" && (l.Target != s.limits.Target || l.Path != s.limits.Path || l.GuardrailVersion != s.limits.GuardrailVersion || l.Epoch != s.limits.Epoch) {
+		return ErrStale
+	}
+	return nil
+}
+
+// Validate additionally checks whether the current cohort occupancy permits installation.
+func (s *Scheduler) Validate(snap Snapshot) error {
+	if err := s.ValidateDefinition(snap); err != nil {
+		return err
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for name, c := range s.cohorts {
+		if _, ok := snap.Policies[name]; !ok && (c.active > 0 || c.queued > 0) {
+			return ErrInvalid
+		}
+	}
+	return nil
+}
+
+// Quarantine closes process admission while retaining every active/uncertain
+// binding. No release, replay, or durable configuration change is implied.
+func (s *Scheduler) Quarantine() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.limits.Effective = 0
+	s.limits.CriticalReserve = 0
+	for name, c := range s.cohorts {
+		c.budget = 0
+		c.reserve = 0
+		s.limits.CohortBudgets[name] = 0
+	}
+	s.configurationGeneration++
 }

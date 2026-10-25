@@ -1,0 +1,24 @@
+import {test,expect} from '@playwright/test';
+test('managed gateway dashboard shows private live state and expires stale responses',async({page})=>{
+ await page.goto('http://127.0.0.1:12165');
+ await page.getByLabel('One-time setup token').fill('m'.repeat(43));
+ await page.getByLabel('Administrator password').fill('private-managed-browser-password');
+ await page.getByRole('button',{name:'Claim installation'}).click();
+ await expect(page.getByRole('heading',{name:'controlled-managed-fixture'})).toBeVisible();
+ await expect(page.getByText('Accepting traffic',{exact:true})).toBeVisible();
+ await expect(page.getByText('Established connections',{exact:true})).toBeVisible();
+ await expect(page.getByText('20.0%',{exact:true})).toBeVisible();
+ await expect(page.getByRole('button',{name:'Resume automation'})).toHaveCount(0);
+ await expect(page.getByRole('region',{name:'Transaction throughput'})).toBeVisible();
+ await expect(page.getByText('Simulated traffic',{exact:true})).toBeVisible();
+ await expect(page.getByTestId('transaction-rate')).not.toHaveText('Unavailable',{timeout:6000});
+ await page.screenshot({path:'test-results/managed-dashboard.png',fullPage:true});
+ await page.setViewportSize({width:390,height:844});
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ await page.screenshot({path:'test-results/managed-dashboard-mobile.png',fullPage:true});
+ await page.route('**/api/state',()=>{});
+ await expect(page.getByText('Connection lost',{exact:true})).toBeVisible({timeout:8000});
+ await expect(page.getByText('20.0%',{exact:true})).toHaveCount(0);
+ await expect(page.getByTestId('transaction-rate')).toHaveText('Unavailable');
+ await expect(page.getByTestId('traffic-status')).toHaveText('Data unavailable');
+});

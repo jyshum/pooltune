@@ -1,0 +1,72 @@
+=== RUN   TestRuntimeConfigRejectsAmbiguousOrUnsafeDeployment
+--- PASS: TestRuntimeConfigRejectsAmbiguousOrUnsafeDeployment (0.00s)
+=== RUN   TestLocalRuntimeRealSocketTrafficReadinessAndRestartQuarantine
+    postgres_integration_test.go:198: Actual local-host pressure: CPU 0.0744, memory 0.7310; includes all local host processes, not managed database telemetry
+    postgres_integration_test.go:199: Measured private socket window: 11 arrivals, 10 successes, 1 SQL failure, no pending; success-only histograms and bounded aggregate payload.
+    postgres_integration_test.go:208: Real rollout driver: SQLite intent/confirmation, Unix activation, measured outcome window and local-host pressure, scoped rollback/history reconciliation.
+    postgres_integration_test.go:231: Actual runtime assembly: private secret files, verified TLS/SCRAM, SQL forwarding, readiness, Unix canary activation/rollback, clean shutdown, restart quarantine. No cloud/model calls.
+--- PASS: TestLocalRuntimeRealSocketTrafficReadinessAndRestartQuarantine (1.53s)
+PASS
+ok  	pooltune/internal/runtime	3.459s
+=== RUN   TestManagerRunsBaselineAllStagesAndFinalObservation
+--- PASS: TestManagerRunsBaselineAllStagesAndFinalObservation (0.05s)
+=== RUN   TestLostACKNeverResendsAndRestartAborts
+--- PASS: TestLostACKNeverResendsAndRestartAborts (0.03s)
+=== RUN   TestHistoryOutageCannotBlockSafetyAbort
+--- PASS: TestHistoryOutageCannotBlockSafetyAbort (0.02s)
+=== RUN   TestRepeatedWindowDoesNotCountTwice
+--- PASS: TestRepeatedWindowDoesNotCountTwice (0.00s)
+=== RUN   TestProfileCannotOmitAffectedWorkload
+--- PASS: TestProfileCannotOmitAffectedWorkload (0.02s)
+=== RUN   TestHumanPolicyEditAbortsExperiment
+--- PASS: TestHumanPolicyEditAbortsExperiment (0.03s)
+=== RUN   TestRejectedCandidateCannotBeRetriedWithNewKey
+--- PASS: TestRejectedCandidateCannotBeRetriedWithNewKey (0.03s)
+=== RUN   TestInitialCommandUsesActivationPredecessor
+--- PASS: TestInitialCommandUsesActivationPredecessor (0.02s)
+=== RUN   TestSamePolicyHumanActivationFencesExperiment
+--- PASS: TestSamePolicyHumanActivationFencesExperiment (0.03s)
+=== RUN   TestRestartResolvesCommittedAcceptanceInsteadOfRevertingIt
+--- PASS: TestRestartResolvesCommittedAcceptanceInsteadOfRevertingIt (0.03s)
+=== RUN   TestPendingAcceptanceRecognizesNewStablePolicy
+--- PASS: TestPendingAcceptanceRecognizesNewStablePolicy (0.03s)
+=== RUN   TestTickUsesClockAfterReadingLiveMetrics
+--- PASS: TestTickUsesClockAfterReadingLiveMetrics (0.03s)
+=== RUN   TestBeneficialComparableWindowAdvances
+--- PASS: TestBeneficialComparableWindowAdvances (0.00s)
+=== RUN   TestBadEvidenceCannotPromote
+=== RUN   TestBadEvidenceCannotPromote/skew
+=== RUN   TestBadEvidenceCannotPromote/missing
+=== RUN   TestBadEvidenceCannotPromote/delayed
+=== RUN   TestBadEvidenceCannotPromote/mixed
+=== RUN   TestBadEvidenceCannotPromote/samples
+=== RUN   TestBadEvidenceCannotPromote/unvalidated
+=== RUN   TestBadEvidenceCannotPromote/futureprofile
+--- PASS: TestBadEvidenceCannotPromote (0.00s)
+    --- PASS: TestBadEvidenceCannotPromote/skew (0.00s)
+    --- PASS: TestBadEvidenceCannotPromote/missing (0.00s)
+    --- PASS: TestBadEvidenceCannotPromote/delayed (0.00s)
+    --- PASS: TestBadEvidenceCannotPromote/mixed (0.00s)
+    --- PASS: TestBadEvidenceCannotPromote/samples (0.00s)
+    --- PASS: TestBadEvidenceCannotPromote/unvalidated (0.00s)
+    --- PASS: TestBadEvidenceCannotPromote/futureprofile (0.00s)
+=== RUN   TestRejectingTrafficCannotFakeLatencyBenefit
+--- PASS: TestRejectingTrafficCannotFakeLatencyBenefit (0.00s)
+=== RUN   TestStarvationAndSafetyBypassSamples
+=== RUN   TestStarvationAndSafetyBypassSamples/oldest
+=== RUN   TestStarvationAndSafetyBypassSamples/pressure
+=== RUN   TestStarvationAndSafetyBypassSamples/freeze
+=== RUN   TestStarvationAndSafetyBypassSamples/lease
+--- PASS: TestStarvationAndSafetyBypassSamples (0.00s)
+    --- PASS: TestStarvationAndSafetyBypassSamples/oldest (0.00s)
+    --- PASS: TestStarvationAndSafetyBypassSamples/pressure (0.00s)
+    --- PASS: TestStarvationAndSafetyBypassSamples/freeze (0.00s)
+    --- PASS: TestStarvationAndSafetyBypassSamples/lease (0.00s)
+=== RUN   TestTimeoutRestoresStableAndFullStageDisclosesNoControl
+--- PASS: TestTimeoutRestoresStableAndFullStageDisclosesNoControl (0.00s)
+=== RUN   TestRoundedCanaryMustExpressChange
+--- PASS: TestRoundedCanaryMustExpressChange (0.00s)
+=== RUN   TestOldWorkOutsideMeasurementWindowStillTriggersSafety
+--- PASS: TestOldWorkOutsideMeasurementWindowStillTriggersSafety (0.00s)
+PASS
+ok  	pooltune/internal/rollout	1.645s

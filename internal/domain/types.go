@@ -30,6 +30,7 @@ type RequestContext struct {
 }
 
 type Classification struct {
+	ActivationRevision RevisionID
 	// Cohort and BufferedBytes are assigned by the trusted ingress adapter.
 	Cohort                        string
 	BufferedBytes                 int64
@@ -43,6 +44,7 @@ type Classification struct {
 }
 
 type LimitSnapshot struct {
+	CapacityRevision           string `json:",omitempty"`
 	Target                     string
 	Path                       PathKind
 	Revision                   RevisionID
@@ -53,6 +55,7 @@ type LimitSnapshot struct {
 }
 
 type ActivationEnvelope struct {
+	CandidateFraction                         float64 `json:",omitempty"`
 	Revision, ExpectedPredecessor             RevisionID
 	Epoch                                     uint64
 	SchemaVersion, GuardrailVersion, Checksum string
@@ -68,3 +71,11 @@ const (
 	DecisionAdvance Decision = "ADVANCE"
 	DecisionRevert  Decision = "REVERT"
 )
+
+// Resources carries freshness and source so an unavailable sample cannot be
+// mistaken for zero pressure or a local reading for a managed database metric.
+type Resources struct {
+	At          time.Time
+	CPU, Memory float64
+	Source      string
+}

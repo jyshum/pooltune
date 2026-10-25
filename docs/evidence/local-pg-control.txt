@@ -1,0 +1,6 @@
+=== RUN   TestContinuousControlRealPostgresAdminAndControlRestart
+    control_integration_test.go:215: Actual PostgreSQL outcomes and local-host measurements reached continuous control and authenticated admin API; no synthetic runtime backend.
+    control_integration_test.go:275: Actual admin claim/session, freeze, control restart with persisted session/freeze, restore-as-new revision, SQL continuity and clean shutdown. Traffic restart remains gated; no model calls.
+--- PASS: TestContinuousControlRealPostgresAdminAndControlRestart (3.30s)
+PASS
+ok  	pooltune/internal/runtime	5.392s

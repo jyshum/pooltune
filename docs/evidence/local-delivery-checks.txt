@@ -1,0 +1,49 @@
+Final local checkpoint verification, October 24, 2026
+
+After the independent review's one fix pass:
+go test -race -tags=integration ./... -count=1
+ok  	pooltune/cmd/pooltune	1.320s
+ok  	pooltune/cmd/pooltune-admin	1.784s
+ok  	pooltune/cmd/pooltune-owner	15.462s
+ok  	pooltune/internal/admin	14.316s
+ok  	pooltune/internal/agent	2.392s
+ok  	pooltune/internal/config	1.601s
+ok  	pooltune/internal/control	5.267s
+ok  	pooltune/internal/controller	2.229s
+?   	pooltune/internal/domain	[no test files]
+ok  	pooltune/internal/durable	2.986s
+ok  	pooltune/internal/gateway	2.971s
+ok  	pooltune/internal/hostmetrics	2.744s
+ok  	pooltune/internal/httpingress	3.205s
+ok  	pooltune/internal/measurement	2.859s
+?   	pooltune/internal/observation	[no test files]
+ok  	pooltune/internal/pgwire	6.572s
+ok  	pooltune/internal/policy	3.384s
+ok  	pooltune/internal/provider	2.305s
+ok  	pooltune/internal/rollout	2.867s
+ok  	pooltune/internal/runtime	17.707s
+ok  	pooltune/internal/scheduler	2.191s
+ok  	pooltune/internal/secrets	1.882s
+ok  	pooltune/internal/store	2.333s
+ok  	pooltune/internal/telemetry	1.692s
+?   	pooltune/internal/testpg	[no test files]
+?   	pooltune/tests/browser/fixture	[no test files]
+
+go vet ./...: PASS (sequential after Playwright completed)
+git diff --check: PASS
+go mod verify: all modules verified (dependencies unchanged by the fix pass)
+SDK vitest: 9/9 PASS
+Chromium fixtures: 2/2 PASS. Controlled-provider browser fixtures are not hosted
+Supabase evidence; actual SQL/RLS is separately verified by the PostgREST test.
+
+Native package nested-public-sentinel regression and smoke verification:
+=== RUN   TestNativePackageAllowlistManifestAndPrivateStartup
+    package_test.go:204: Native package 55d6863: complete SHA256 manifest, explicit payload allowlist, no untracked sentinel, packaged binaries run with private unconfigured startup and clean shutdown. Containers and configured traffic restart remain unverified.
+--- PASS: TestNativePackageAllowlistManifestAndPrivateStartup (7.52s)
+PASS
+ok  	pooltune/tests	7.793s
+
+No container build or deployment was run. No additional paid model calls.
+Independent traffic recovery, calibrated promotion and the other documented
+release gates remain open. A clean native artifact identifies its exact commit
+and tool versions in RELEASE.json.

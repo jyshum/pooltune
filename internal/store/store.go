@@ -23,15 +23,29 @@ type Store struct {
 	mu sync.Mutex // One writer, including rebuild and backup.
 }
 
-func OpenStore(path string) (*Store, error) {
+func OpenStore(path string) (*Store, error) { return openStore(path, true) }
+
+// OpenExistingControlStore performs no schema initialization or migration. Offline
+// recovery must never turn an unrelated SQLite file into a control installation.
+func OpenExistingControlStore(path string) (*Store, error) { return openStore(path, false) }
+func openStore(path string, initialize bool) (*Store, error) {
 	if !filepath.IsAbs(path) {
 		return nil, errors.New("store: database path must be absolute")
+	}
+	if !initialize {
+		info, e := os.Lstat(path)
+		if e != nil || !info.Mode().IsRegular() {
+			return nil, errors.New("store: existing control database required")
+		}
 	}
 	if err := secureDatabasePath(path); err != nil {
 		return nil, err
 	}
 	u := url.URL{Scheme: "file", Path: path}
 	q := u.Query()
+	if !initialize {
+		q.Set("mode", "rw")
+	}
 	for _, p := range []string{"journal_mode(WAL)", "foreign_keys(1)", "synchronous(FULL)", "busy_timeout(5000)"} {
 		q.Add("_pragma", p)
 	}
@@ -46,14 +60,16 @@ func OpenStore(path string) (*Store, error) {
 		db.Close()
 		return nil, err
 	}
-	data, err := schema.ReadFile("schema.sql")
-	if err != nil {
-		db.Close()
-		return nil, err
-	}
-	if _, err := db.Exec(string(data)); err != nil {
-		db.Close()
-		return nil, err
+	if initialize {
+		data, err := schema.ReadFile("schema.sql")
+		if err != nil {
+			db.Close()
+			return nil, err
+		}
+		if _, err := db.Exec(string(data)); err != nil {
+			db.Close()
+			return nil, err
+		}
 	}
 	var version int
 	if err := db.QueryRow("SELECT version FROM schema_version WHERE id=1").Scan(&version); err != nil {
@@ -63,6 +79,13 @@ func OpenStore(path string) (*Store, error) {
 	if version != 1 {
 		db.Close()
 		return nil, fmt.Errorf("store: unsupported schema version %d", version)
+	}
+	if !initialize {
+		var owners int
+		if e := db.QueryRow("SELECT count(*) FROM admin_owner WHERE id=1").Scan(&owners); e != nil || owners != 1 {
+			db.Close()
+			return nil, errors.New("store: initialized owner required")
+		}
 	}
 	return &Store{db: db}, nil
 }
@@ -115,6 +138,13 @@ func (s *Store) Append(e Event) error {
 		}
 		if !errors.Is(err, sql.ErrNoRows) {
 			return err
+		}
+		var rejected int
+		if err := conn.QueryRowContext(context.Background(), "SELECT COUNT(*) FROM activation_rejections WHERE target=? AND revision=?", e.Target, e.Revision).Scan(&rejected); err != nil {
+			return err
+		}
+		if rejected != 0 {
+			return ErrConflict
 		}
 		if _, err := conn.ExecContext(context.Background(), "INSERT INTO events(id,idempotency_key,target,actor,kind,revision,predecessor,recorded_at) VALUES(?,?,?,?,?,?,?,?)", e.ID, e.IdempotencyKey, e.Target, e.Actor, e.Kind, e.Revision, e.Predecessor, time.Now().UTC().Format(time.RFC3339Nano)); err != nil {
 			return err

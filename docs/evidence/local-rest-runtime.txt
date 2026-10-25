@@ -1,0 +1,41 @@
+Local REST runtime verification, October 24, 2026
+
+PostgREST 16.4 official macOS arm64 archive:
+https://github.com/PostgREST/postgrest/releases/tag/v16.4
+SHA256 5720fbde4a19ade9fb189791615c84beb9f0e58201b1b6d17fe3b698faf60776
+Archive verified before extraction. Local wrapper loads the installed PostgreSQL 17
+libpq via DYLD_LIBRARY_PATH; upstream binary is unmodified. This wrapper is local
+test setup, not bundled customer packaging.
+PostgreSQL fixture uses the installed PostgreSQL 17 binaries, TLS and SCRAM.
+All keys, roles, schemas and data are generated in a disposable local cluster.
+No existing user database, model provider or hosted Supabase was contacted.
+
+Command: go test -race -tags=integration ./internal/runtime -run TestREST -v -count=1
+PATH included the explicit Go, PostgreSQL and PostgREST toolchains.
+
+=== RUN   TestRESTLocalPostgRESTRealRLSControlAndRestartQuarantine
+    rest_integration_test.go:256: Actual PostgreSQL RLS: subject-scoped reads, denied cross-owner insert, accepted own insert, invalid JWT rejection. REST window: stable 3 successes; candidate 3 successes and 1 SQL authorization failure.
+    rest_integration_test.go:289: Injected local-host pressure stops new REST admissions; this is a fault test, not measured pressure or calibrated benefit.
+    rest_integration_test.go:333: Actual PostgREST process kill shuts down the frontend and sets effective admission to zero.
+    rest_integration_test.go:334: Local REST runtime: TLS frontend, private managed PostgREST process, verified database role ceiling 4 separate from HTTP concurrency 20, continuous-control assembly, Unix canary and rollback, measured outcomes, clean shutdown, independent restart remains quarantined. No cloud or model calls.
+--- PASS: TestRESTLocalPostgRESTRealRLSControlAndRestartQuarantine (3.37s)
+=== RUN   TestRESTConfigRejectsAmbiguousProfiles
+--- PASS: TestRESTConfigRejectsAmbiguousProfiles (0.00s)
+PASS
+ok  	pooltune/internal/runtime	4.817s
+
+Scope: real local SQL/RLS and lifecycle correctness. Injected pressure is fault
+coverage. This is not calibration, a browser/provider compatibility result,
+independent restart recovery, container evidence, or MVP completion.
+
+Independent-review REST regression excerpt (the REST test passed; a separate
+ownership permission fixture was subsequently corrected and verified in the full
+suite). This adds actual full-stage anonymous and expired-scheduling-key coverage:
+
+=== RUN   TestRESTLocalPostgRESTRealRLSControlAndRestartQuarantine
+    rest_integration_test.go:266: Actual PostgreSQL RLS: subject-scoped reads, denied cross-owner insert, accepted own insert, invalid JWT rejection. REST window: stable 3 successes; candidate 3 successes and 1 SQL authorization failure.
+    rest_integration_test.go:357: Real anonymous RLS and valid upstream JWTs with expired scheduling keys survive full-stage drain, observation and acceptance; fallback retains normal-class bounds.
+    rest_integration_test.go:367: Injected local-host pressure stops new REST admissions; this is a fault test, not measured pressure or calibrated benefit.
+    rest_integration_test.go:413: Actual PostgREST process kill shuts down the frontend and sets effective admission to zero.
+    rest_integration_test.go:414: Local REST runtime: TLS frontend, private managed PostgREST process, verified database role ceiling 4 separate from HTTP concurrency 20, continuous-control assembly, Unix canary and rollback, measured outcomes, clean shutdown, independent restart remains quarantined. No cloud or model calls.
+--- PASS: TestRESTLocalPostgRESTRealRLSControlAndRestartQuarantine (9.84s)
