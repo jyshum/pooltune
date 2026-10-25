@@ -47,7 +47,9 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--brand); outline
 .nav__inner { display: flex; align-items: center; gap: 24px; height: 64px; }
 .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; text-decoration: none; letter-spacing: -0.01em; flex-shrink: 0; }
 .brand__mark { display: inline-flex; align-items: flex-end; gap: 2px; height: 16px; }
-.brand__mark i { width: 4px; background: var(--brand); border-radius: 1px; }
+.brand__mark i { width: 4px; background: var(--brand); border-radius: 2px; }
+/* Wordmark only. Nunito ExtraBold is bundled from @fontsource/nunito (OFL). */
+.brand__word { font-family: 'Nunito', var(--sans); font-weight: 800; font-size: 1.2rem; letter-spacing: -0.02em; line-height: 1; }
 .brand__mark i:nth-child(1) { height: 7px; }
 .brand__mark i:nth-child(2) { height: 11px; }
 .brand__mark i:nth-child(3) { height: 16px; }
@@ -199,4 +201,5 @@ tbody tr:last-child > * { border-bottom: 0; }
 .footer__row { display: flex; align-items: center; gap: 24px; margin-top: 24px; }
 .footer__row a { text-decoration: none; }
 .footer__row a:hover { color: var(--text); }
-.brand--small { color: var(--text); font-size: 0.95rem; }
+.brand--small { color: var(--text); }
+.brand--small .brand__word { font-size: 1.05rem; }

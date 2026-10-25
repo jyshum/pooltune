@@ -73,6 +73,7 @@ Only real runs from `src/data/recorded-results.json` are shown. It ships empty. 
 - React 19.3.1 and Vite 8.3.5, pinned to match `ui/`.
 - GSAP 3.15.0 with ScrollTrigger: scroll story and reveals. Both respect reduced motion.
 - thinking-orbs 0.3.2 (MIT, Jakub Antalik): the status orb on the Pooltune box in the scroll story. Mood to state mapping is in `src/components/TunerOrb.tsx`.
+- @fontsource/nunito 5.3.0 (OFL-1.1): Nunito ExtraBold, latin subset only, for the lowercase `pooltune` wordmark. Bundled locally.
 - Logos in `src/logos.ts`: four SVGs copied from the Iconify logos set (CC0). PgBouncer has no logo, so it uses the PostgreSQL elephant. Logos are trademarks of their owners.
 - React Bits `SpotlightCard`, vendored in `src/reactbits/`. Unchanged except for removing the `use client` line. License: MIT plus Commons Clause, copyright David Haz. Commons Clause does not allow selling the components themselves.
 

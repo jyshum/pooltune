@@ -33,7 +33,7 @@ export default function App() {
         <div className="wrap nav__inner">
           <a className="brand" href="#top" aria-label="Pooltune home">
             <span className="brand__mark" aria-hidden="true"><i /><i /><i /></span>
-            Pooltune
+            <span className="brand__word">pooltune</span>
           </a>
           <nav aria-label="Sections">
             <a href="#how">How it works</a>
@@ -133,7 +133,7 @@ export default function App() {
         <div className="wrap">
           <p className="footer__limits">{limits}</p>
           <div className="footer__row">
-            <a className="brand brand--small" href="#top"><span className="brand__mark" aria-hidden="true"><i /><i /><i /></span>Pooltune</a>
+            <a className="brand brand--small" href="#top"><span className="brand__mark" aria-hidden="true"><i /><i /><i /></span><span className="brand__word">pooltune</span></a>
             <a href={repoUrl}>GitHub</a>
           </div>
         </div>
