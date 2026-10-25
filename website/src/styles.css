@@ -298,16 +298,18 @@ tbody tr:last-child > * { border-bottom: 0; }
   .guide__card { padding: 20px; }
 }
 
-/* Docker preview and architecture reuse the existing dark/cyan theme. */
-.architecture { margin: 0; border: 1px solid #2d3436; border-radius: 20px; overflow: hidden; background: #111617; }
-.architecture img { display: block; width: 100%; height: auto; }
-.architecture figcaption { padding: 20px 24px; color: #a9b9bd; font-size: 15px; line-height: 1.7; }
-.architecture a, .deployment-note a { color: #54bfca; }
+/* Docker preview reuses the existing dark/cyan theme. */
+.deployment-note a { color: #54bfca; }
 .deployment-note { padding: 24px; border: 1px solid #30393c; border-radius: 16px; background: #191d1e; }
 .deployment-note p { margin: 0 0 12px; line-height: 1.65; color: #b6c0c3; }
 .deployment-note strong { color: #ecf1f2; }
 .deployment-note h2 { margin-bottom: 16px; }
 #docker { scroll-margin-top: 96px; margin-bottom: 40px; }
 @media (max-width: 600px) {
-  .architecture figcaption, .deployment-note { padding: 18px; }
+  .deployment-note { padding: 18px; }
 }
+
+.hero__stack { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 22px; margin-top: 12px; color: var(--muted); font-size: .75rem; }
+.hero__stack a { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; text-decoration: none; }
+.hero__stack a:hover, .hero__stack a:focus-visible { color: var(--text); }
+.hero__stack img, .hero__stack svg { display: block; object-fit: contain; flex-shrink: 0; }

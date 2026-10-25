@@ -12,7 +12,9 @@ import DashboardPreview from './components/DashboardPreview';
 import { results, validRuns } from './data/results';
 import tigerDataLogo from './assets/partners/tiger-data.svg';
 import manaLogo from './assets/partners/mana.png';
-import architecture from '../../docs/architecture/pooltune.svg';
+import goLogo from './assets/partners/go.svg';
+import dockerLogo from './assets/partners/docker.svg';
+import { logos } from './logos';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -78,27 +80,25 @@ export default function App() {
                 <span className="hero__mana-name">Mana</span>
               </a>
             </div>
+            <div className="hero__stack" aria-label="Built with Go, Docker and PostgreSQL">
+              <a href="https://go.dev" aria-label="Go" title="Go">
+                <img src={goLogo} width="45" height="24" alt="Go" />
+              </a>
+              <a href="https://www.docker.com" title="Docker">
+                <img src={dockerLogo} width="34" height="24" alt="" />
+                <span>Docker</span>
+              </a>
+              <a href="https://www.postgresql.org" title="PostgreSQL">
+                <svg width="24" height="24" viewBox={logos.postgresql.viewBox} aria-hidden="true" dangerouslySetInnerHTML={{ __html: logos.postgresql.body }} />
+                <span>PostgreSQL</span>
+              </a>
+            </div>
           </div>
         </section>
 
         <section className="section section--story" id="how" aria-labelledby="how-title">
           <div className="wrap">
             <ScrollStory />
-          </div>
-        </section>
-
-        <section className="section" id="architecture" aria-labelledby="architecture-title">
-          <div className="wrap">
-            <div className="head reveal">
-              <p className="kicker">Under the hood</p>
-              <h2 id="architecture-title">One clear path to your database.</h2>
-            </div>
-            <figure className="architecture reveal">
-              <a href={architecture} aria-label="Open the full Pooltune architecture diagram">
-                <img src={architecture} width="1200" height="700" loading="lazy" alt="Application SQL over TLS flows through the Go admission gateway and owned PgBouncer to Azure, Google Cloud or Supabase. Background health and inventory checks gate admission; SQLite stores state, and the private dashboard can save history to Tiger Data." />
-              </a>
-              <figcaption><p><strong>Application → Go gateway → owned PgBouncer → managed PostgreSQL.</strong></p>Go + PgBouncer for the managed request path. SQLite for local state. React for the private dashboard. Tiger Data for optional history. Mana for the separate demo. <a href={architecture}>Open full diagram ↗</a></figcaption>
-            </figure>
           </div>
         </section>
 

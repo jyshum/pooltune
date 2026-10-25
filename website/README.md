@@ -2,7 +2,7 @@
 
 Static site for the deterministic pool-tuning MVP. AI and business-priority scheduling are deferred and not shown.
 
-Self-contained. It has its own `package.json` and lockfile and imports no runtime code from `ui/`, Go code or the root package. It shares the static architecture SVG in `docs/architecture/` with the main README.
+Self-contained. It has its own `package.json` and lockfile and imports nothing from `ui/`, Go code or the root package. The architecture image stays in the repository README.
 
 ## Build
 
@@ -22,17 +22,16 @@ Output goes to `dist/`. Asset paths are relative, so the folder works on any sta
 
 ## Page
 
-1. Hero with the pixel wave (`src/components/PixelWave.tsx`, canvas, pauses offscreen, still frame on reduced motion).
+1. Hero with Tiger Data and Mana credits, a smaller Go/Docker/PostgreSQL row, and the pixel wave (`src/components/PixelWave.tsx`, canvas, pauses offscreen, still frame on reduced motion).
 2. How it works: a sticky scroll story (`src/components/ScrollStory.tsx`). GSAP ScrollTrigger maps scroll to five hand-written states. The panel is tagged Illustrative. It is not measured data.
-3. Current managed architecture and Docker packaging boundaries, using the shared SVG.
-4. Results: hidden until `recorded-results.json` has a valid run.
-5. Works with: logo cards for each target over `src/components/PixelField.tsx`, a pixel swell seen from above that fades from grey troughs to cyan crests.
-6. Get started: native setup, current dashboard recording and a link to the Docker learning preview.
-7. Footer: one line of known limits.
+3. Results: hidden until `recorded-results.json` has a valid run.
+4. Works with: logo cards for each target over `src/components/PixelField.tsx`, a pixel swell seen from above that fades from grey troughs to cyan crests.
+5. Get started: native setup, current dashboard recording and a link to the Docker learning preview.
+6. Footer: one line of known limits.
 
 ## Where claims live
 
-Public copy is in `src/content.ts`, `App.tsx`, `SetupPage.tsx`, the scroll story and shared architecture diagram:
+Public copy is in `src/content.ts`, `App.tsx`, `SetupPage.tsx`, the scroll story:
 
 - `targets`: the Works with cards, in display order. Per-target support status is not shown on this section; the footer's limits line covers it.
 - `setup`: Get started copy. Native launch is shown in `App.tsx`; setup distinguishes native deployment from Docker build/verification.
