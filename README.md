@@ -1,4 +1,4 @@
-# Pooltune
+# Pooltune | CalHacks 13.0
 
 **Automatic transaction admission for PostgreSQL traffic spikes.**
 
