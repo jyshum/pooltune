@@ -1,10 +1,31 @@
-# Pooltune | CalHacks 13.0
+<p align="center">
+  <img src="docs/banner.png" alt="Pooltune" width="480">
+</p>
 
-**Automatic transaction admission for PostgreSQL traffic spikes.**
+<p align="center">
+  <b>Automatic transaction admission for PostgreSQL traffic spikes.</b><br>
+  CalHacks 13.0
+</p>
+
+<p align="center">
+  <a href="https://www.mana.space/a/pooltune"><b>▶ Interactive demo (Mana)</b></a>
+  &nbsp;·&nbsp;
+  <a href="https://pooltune.vercel.app"><b>Visit website</b></a>
+</p>
+
+<p align="center">
+  <a href="#architecture">Architecture</a> ·
+  <a href="#provider-coverage">Provider coverage</a> ·
+  <a href="#recorded-spike-results">Results</a> ·
+  <a href="#current-boundaries">Trade-offs</a> ·
+  <a href="#get-started">Run it</a>
+</p>
+
+---
+
+## What it is
 
 Pooltune keeps a budgeted reserve of database connections warm, then adjusts how many transactions can run as demand changes. It checks database health and connection inventory before admitting more work, and shows the result in a private dashboard.
-
-[Website](https://pooltune.vercel.app) · [Setup guide](https://pooltune.vercel.app/setup.html) · [Download for macOS](https://pooltune.vercel.app/downloads/pooltune-macos-arm64.tar.gz) · [Interactive demo](https://www.mana.space/a/pooltune)
 
 ## Architecture
 
