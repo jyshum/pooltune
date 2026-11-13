@@ -1,0 +1,871 @@
+{
+  "schemaVersion": 1,
+  "id": "pooltune-hosted-agent",
+  "title": "Maintain Supabase query performance",
+  "workType": "New hosted architecture",
+  "summary": "Agreed boundaries and open decisions for a Go backend and one LangGraph investigator. Design only; no running agent.",
+  "sourceRevision": {
+    "commit": "7edaf4946ad9e6ad355866690a687d089969540b",
+    "dirty": true
+  },
+  "components": [
+    {
+      "id": "owner",
+      "label": "Startup team",
+      "type": "actor",
+      "purpose": "Configures grants and checks outcomes; no open browser is required for background operation.",
+      "decisionIds": [],
+      "sources": [
+        {
+          "path": "docs/product/query-performance-v1.md",
+          "revision": "2026-11-12 accepted decisions and open design",
+          "kind": "intended"
+        }
+      ],
+      "changeStatus": "unchanged",
+      "changeSummary": "Configures grants and checks outcomes; no open browser is required for background operation.",
+      "ownership": "external"
+    },
+    {
+      "id": "dashboard",
+      "label": "Customer dashboard",
+      "type": "interface",
+      "purpose": "Add project setup, evidence, action history, and stop controls; frontend integration remains open.",
+      "decisionIds": [
+        "d-hosting",
+        "d-onboarding"
+      ],
+      "sources": [
+        {
+          "path": "docs/product/query-performance-v1.md",
+          "revision": "2026-11-12 accepted decisions and open design",
+          "kind": "intended"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Add project setup, evidence, action history, and stop controls; frontend integration remains open.",
+      "after": "Add project setup, evidence, action history, and stop controls; frontend integration remains open."
+    },
+    {
+      "id": "backend",
+      "label": "Hosted API",
+      "type": "service",
+      "purpose": "Authenticate project access and expose configuration and results; auth and credential design remain open.",
+      "decisionIds": [
+        "d-language",
+        "d-hosting",
+        "d-identity",
+        "d-onboarding"
+      ],
+      "sources": [
+        {
+          "path": "docs/product/query-performance-v1.md",
+          "revision": "2026-11-12 accepted decisions and open design",
+          "kind": "intended"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Authenticate project access and expose configuration and results; auth and credential design remain open.",
+      "stack": [
+        "Go"
+      ],
+      "after": "Authenticate project access and expose configuration and results; auth and credential design remain open."
+    },
+    {
+      "id": "collector",
+      "label": "Collector and detector",
+      "type": "service",
+      "purpose": "Collect bounded telemetry, reuse valid evidence, and identify worthwhile investigations; cadence and thresholds remain open.",
+      "decisionIds": [
+        "d-language",
+        "d-hosting",
+        "d-reuse"
+      ],
+      "sources": [
+        {
+          "path": "docs/product/query-performance-v1.md",
+          "revision": "2026-11-12 accepted decisions and open design",
+          "kind": "intended"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Collect bounded telemetry, reuse valid evidence, and identify worthwhile investigations; cadence and thresholds remain open.",
+      "stack": [
+        "Go"
+      ],
+      "after": "Collect bounded telemetry, reuse valid evidence, and identify worthwhile investigations; cadence and thresholds remain open."
+    },
+    {
+      "id": "scheduler",
+      "label": "Durable scheduling",
+      "type": "queue",
+      "purpose": "Coordinate work, budgets and project concurrency; queue implementation and recovery protocol remain open.",
+      "decisionIds": [
+        "d-language",
+        "d-hosting",
+        "d-durability"
+      ],
+      "sources": [
+        {
+          "path": "docs/product/query-performance-v1.md",
+          "revision": "2026-11-12 accepted decisions and open design",
+          "kind": "intended"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Coordinate work, budgets and project concurrency; queue implementation and recovery protocol remain open.",
+      "stack": [
+        "Go",
+        "PostgreSQL state; queue library undecided"
+      ],
+      "after": "Coordinate work, budgets and project concurrency; queue implementation and recovery protocol remain open."
+    },
+    {
+      "id": "investigator",
+      "label": "Investigator graph",
+      "type": "service",
+      "purpose": "One investigator chooses structured evidence requests and proposes qualified repairs; graph nodes remain proposed.",
+      "decisionIds": [
+        "d-workflow"
+      ],
+      "sources": [
+        {
+          "path": "docs/product/query-performance-v1.md",
+          "revision": "2026-11-12 accepted decisions and open design",
+          "kind": "intended"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "One investigator chooses structured evidence requests and proposes qualified repairs; graph nodes remain proposed.",
+      "stack": [
+        "TypeScript",
+        "LangGraph"
+      ],
+      "after": "One investigator chooses structured evidence requests and proposes qualified repairs; graph nodes remain proposed."
+    },
+    {
+      "id": "tools",
+      "label": "Controlled database tools",
+      "type": "service",
+      "purpose": "Check authority and current conditions before inspection, experiments, repairs, or recovery.",
+      "decisionIds": [
+        "d-language"
+      ],
+      "sources": [
+        {
+          "path": "docs/product/query-performance-v1.md",
+          "revision": "2026-11-12 accepted decisions and open design",
+          "kind": "intended"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Check authority and current conditions before inspection, experiments, repairs, or recovery.",
+      "stack": [
+        "Go"
+      ],
+      "expandWhy": "What can the agent inspect or change, and what evidence and recovery does each repair require?",
+      "after": "Check authority and current conditions before inspection, experiments, repairs, or recovery."
+    },
+    {
+      "id": "state",
+      "label": "Pooltune state",
+      "type": "data-store",
+      "purpose": "Store selected telemetry, grants, jobs, checkpoints and action records; not a replica of customer tables.",
+      "decisionIds": [
+        "d-workflow",
+        "d-hosting",
+        "d-durability"
+      ],
+      "sources": [
+        {
+          "path": "docs/product/query-performance-v1.md",
+          "revision": "2026-11-12 accepted decisions and open design",
+          "kind": "intended"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Store selected telemetry, grants, jobs, checkpoints and action records; not a replica of customer tables.",
+      "stack": [
+        "PostgreSQL"
+      ],
+      "after": "Store selected telemetry, grants, jobs, checkpoints and action records; not a replica of customer tables."
+    },
+    {
+      "id": "customer-db",
+      "label": "Customer database",
+      "type": "data-store",
+      "purpose": "Execute customer queries and permitted Pooltune operations; trials consume resources here.",
+      "decisionIds": [],
+      "sources": [
+        {
+          "path": "docs/product/query-performance-v1.md",
+          "revision": "2026-11-12 accepted decisions and open design",
+          "kind": "intended"
+        }
+      ],
+      "changeStatus": "unchanged",
+      "changeSummary": "Execute customer queries and permitted Pooltune operations; trials consume resources here.",
+      "stack": [
+        "Supabase",
+        "PostgreSQL"
+      ],
+      "ownership": "external"
+    },
+    {
+      "id": "model",
+      "label": "Model provider",
+      "type": "external-system",
+      "purpose": "Perform inference using Pooltune-supplied credentials; model and usage budgets remain open.",
+      "decisionIds": [],
+      "sources": [
+        {
+          "path": "docs/product/query-performance-v1.md",
+          "revision": "2026-11-12 accepted decisions and open design",
+          "kind": "intended"
+        }
+      ],
+      "changeStatus": "unchanged",
+      "changeSummary": "Perform inference using Pooltune-supplied credentials; model and usage budgets remain open.",
+      "stack": [
+        "Anthropic"
+      ],
+      "ownership": "external"
+    },
+    {
+      "id": "studio",
+      "label": "Developer graph viewer",
+      "type": "interface",
+      "purpose": "Proposed LangSmith Studio setup to inspect graph runs; account, tracing and export settings remain open.",
+      "decisionIds": [
+        "d-studio"
+      ],
+      "sources": [
+        {
+          "path": "docs/product/query-performance-v1.md",
+          "revision": "2026-11-12 accepted decisions and open design",
+          "kind": "intended"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Proposed LangSmith Studio setup to inspect graph runs; account, tracing and export settings remain open.",
+      "stack": [
+        "LangSmith Studio (proposed)"
+      ],
+      "after": "Proposed LangSmith Studio setup to inspect graph runs; account, tracing and export settings remain open."
+    },
+    {
+      "id": "inspection",
+      "label": "Inspect existing evidence",
+      "type": "service",
+      "purpose": "Reuse valid query windows, catalogs, plans and resource context. Missing data is unknown; freshness rules and schemas remain open.",
+      "decisionIds": [
+        "d-reuse",
+        "d-identity"
+      ],
+      "sources": [
+        {
+          "path": "docs/product/query-performance-v1.md",
+          "revision": "2026-11-12 accepted decisions and open design",
+          "kind": "intended"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Reuse valid query windows, catalogs, plans and resource context. Missing data is unknown; freshness rules and schemas remain open.",
+      "stack": [
+        "Go"
+      ],
+      "parent": "tools",
+      "after": "Reuse valid query windows, catalogs, plans and resource context. Missing data is unknown; freshness rules and schemas remain open."
+    },
+    {
+      "id": "experiments",
+      "label": "Run a justified experiment",
+      "type": "service",
+      "purpose": "Require an enrolled query and approved role/context; request only evidence missing from a decision. Live-trial budgets and limits remain open.",
+      "decisionIds": [
+        "d-reuse",
+        "d-trials",
+        "d-identity"
+      ],
+      "sources": [
+        {
+          "path": "docs/product/query-performance-v1.md",
+          "revision": "2026-11-12 accepted decisions and open design",
+          "kind": "intended"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Require an enrolled query and approved role/context; request only evidence missing from a decision. Live-trial budgets and limits remain open.",
+      "stack": [
+        "Go"
+      ],
+      "parent": "tools",
+      "after": "Require an enrolled query and approved role/context; request only evidence missing from a decision. Live-trial budgets and limits remain open."
+    },
+    {
+      "id": "index",
+      "label": "Add a nonunique index",
+      "type": "service",
+      "purpose": "Inspect access work and existing indexes; evaluate bounded candidates and measure actual effects. Recover only eligible Pooltune-created artifacts; build resources cannot be undone.",
+      "decisionIds": [
+        "d-trials"
+      ],
+      "sources": [
+        {
+          "path": "docs/product/query-performance-v1.md",
+          "revision": "2026-11-12 accepted decisions and open design",
+          "kind": "intended"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Inspect access work and existing indexes; evaluate bounded candidates and measure actual effects. Recover only eligible Pooltune-created artifacts; build resources cannot be undone.",
+      "stack": [
+        "Go"
+      ],
+      "parent": "tools",
+      "after": "Inspect access work and existing indexes; evaluate bounded candidates and measure actual effects. Recover only eligible Pooltune-created artifacts; build resources cannot be undone."
+    },
+    {
+      "id": "refresh",
+      "label": "Refresh statistics",
+      "type": "service",
+      "purpose": "Use change history and estimate errors to qualify targeted ANALYZE. Verify useful execution outcomes; exact undo of gathered statistics is unavailable.",
+      "decisionIds": [],
+      "sources": [
+        {
+          "path": "docs/product/query-performance-v1.md",
+          "revision": "2026-11-12 accepted decisions and open design",
+          "kind": "intended"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Use change history and estimate errors to qualify targeted ANALYZE. Verify useful execution outcomes; exact undo of gathered statistics is unavailable.",
+      "stack": [
+        "Go"
+      ],
+      "parent": "tools",
+      "after": "Use change history and estimate errors to qualify targeted ANALYZE. Verify useful execution outcomes; exact undo of gathered statistics is unavailable."
+    },
+    {
+      "id": "richer",
+      "label": "Improve statistics detail",
+      "type": "service",
+      "purpose": "Use persistent estimate errors after refresh to qualify extended statistics or a bounded column target. Preserve prior definitions/settings; exact sampled statistics cannot be restored by resetting a target.",
+      "decisionIds": [],
+      "sources": [
+        {
+          "path": "docs/product/query-performance-v1.md",
+          "revision": "2026-11-12 accepted decisions and open design",
+          "kind": "intended"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Use persistent estimate errors after refresh to qualify extended statistics or a bounded column target. Preserve prior definitions/settings; exact sampled statistics cannot be restored by resetting a target.",
+      "stack": [
+        "Go"
+      ],
+      "parent": "tools",
+      "after": "Use persistent estimate errors after refresh to qualify extended statistics or a bounded column target. Preserve prior definitions/settings; exact sampled statistics cannot be restored by resetting a target."
+    },
+    {
+      "id": "cleanup",
+      "label": "Perform targeted cleanup",
+      "type": "service",
+      "purpose": "Use cleanup and access evidence for bounded plain VACUUM or permitted threshold adjustments. Pinned versions may prevent cleanup; completed cleanup has no exact undo.",
+      "decisionIds": [],
+      "sources": [
+        {
+          "path": "docs/product/query-performance-v1.md",
+          "revision": "2026-11-12 accepted decisions and open design",
+          "kind": "intended"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Use cleanup and access evidence for bounded plain VACUUM or permitted threshold adjustments. Pinned versions may prevent cleanup; completed cleanup has no exact undo.",
+      "stack": [
+        "Go"
+      ],
+      "parent": "tools",
+      "after": "Use cleanup and access evidence for bounded plain VACUUM or permitted threshold adjustments. Pinned versions may prevent cleanup; completed cleanup has no exact undo."
+    },
+    {
+      "id": "memory",
+      "label": "Tune an enrolled function",
+      "type": "service",
+      "purpose": "Require internal spill evidence and a concurrency-aware memory budget before function-scoped work_mem tuning. Restore the previous setting when recovery is qualified.",
+      "decisionIds": [],
+      "sources": [
+        {
+          "path": "docs/product/query-performance-v1.md",
+          "revision": "2026-11-12 accepted decisions and open design",
+          "kind": "intended"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Require internal spill evidence and a concurrency-aware memory budget before function-scoped work_mem tuning. Restore the previous setting when recovery is qualified.",
+      "stack": [
+        "Go"
+      ],
+      "parent": "tools",
+      "after": "Require internal spill evidence and a concurrency-aware memory budget before function-scoped work_mem tuning. Restore the previous setting when recovery is qualified."
+    },
+    {
+      "id": "cron",
+      "label": "Move an enrolled job",
+      "type": "service",
+      "purpose": "Require repeated interference evidence and owner-approved windows/deadlines. Change future schedules only; never cancel running customer jobs.",
+      "decisionIds": [],
+      "sources": [
+        {
+          "path": "docs/product/query-performance-v1.md",
+          "revision": "2026-11-12 accepted decisions and open design",
+          "kind": "intended"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Require repeated interference evidence and owner-approved windows/deadlines. Change future schedules only; never cancel running customer jobs.",
+      "stack": [
+        "Go"
+      ],
+      "parent": "tools",
+      "after": "Require repeated interference evidence and owner-approved windows/deadlines. Change future schedules only; never cancel running customer jobs."
+    },
+    {
+      "id": "recovery",
+      "label": "Verify and reconcile",
+      "type": "service",
+      "purpose": "Compare valid before/after observations; reconcile uncertain actions before retrying. Preserve improved, regressed, inconclusive and failed outcomes; recovery rules remain to be specified.",
+      "decisionIds": [
+        "d-reuse",
+        "d-durability"
+      ],
+      "sources": [
+        {
+          "path": "docs/product/query-performance-v1.md",
+          "revision": "2026-11-12 accepted decisions and open design",
+          "kind": "intended"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Compare valid before/after observations; reconcile uncertain actions before retrying. Preserve improved, regressed, inconclusive and failed outcomes; recovery rules remain to be specified.",
+      "stack": [
+        "Go"
+      ],
+      "parent": "tools",
+      "after": "Compare valid before/after observations; reconcile uncertain actions before retrying. Preserve improved, regressed, inconclusive and failed outcomes; recovery rules remain to be specified."
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-owner",
+      "from": "owner",
+      "to": "dashboard",
+      "label": "configures and reviews"
+    },
+    {
+      "id": "e-api",
+      "from": "dashboard",
+      "to": "backend",
+      "label": "requests authenticated project operations"
+    },
+    {
+      "id": "e-config",
+      "from": "backend",
+      "to": "state",
+      "label": "persists configuration and grants"
+    },
+    {
+      "id": "e-read",
+      "from": "collector",
+      "to": "customer-db",
+      "label": "requests bounded observations"
+    },
+    {
+      "id": "e-measure",
+      "from": "collector",
+      "to": "state",
+      "label": "stores selected measurements"
+    },
+    {
+      "id": "e-trigger",
+      "from": "collector",
+      "to": "scheduler",
+      "label": "submits a justified investigation"
+    },
+    {
+      "id": "e-dispatch",
+      "from": "scheduler",
+      "to": "investigator",
+      "label": "dispatches admitted work"
+    },
+    {
+      "id": "e-infer",
+      "from": "investigator",
+      "to": "model",
+      "label": "requests a bounded model response"
+    },
+    {
+      "id": "e-tools",
+      "from": "investigator",
+      "to": "tools",
+      "label": "requests structured operations"
+    },
+    {
+      "id": "e-execute",
+      "from": "tools",
+      "to": "customer-db",
+      "label": "performs permitted database work"
+    },
+    {
+      "id": "e-action",
+      "from": "tools",
+      "to": "state",
+      "label": "records evidence and action state"
+    },
+    {
+      "id": "e-checkpoint",
+      "from": "investigator",
+      "to": "state",
+      "label": "persists investigation checkpoints"
+    },
+    {
+      "id": "e-results",
+      "from": "backend",
+      "to": "state",
+      "label": "reads authorized history"
+    },
+    {
+      "id": "e-view",
+      "from": "studio",
+      "to": "investigator",
+      "label": "inspects development runs; setup proposed"
+    },
+    {
+      "id": "e-context",
+      "from": "inspection",
+      "to": "experiments",
+      "label": "provides evidence gaps and context"
+    },
+    {
+      "id": "e-screen",
+      "from": "experiments",
+      "to": "index",
+      "label": "supplies qualified candidate evidence"
+    },
+    {
+      "id": "e-index-outcome",
+      "from": "index",
+      "to": "recovery",
+      "label": "supplies action and outcome observations"
+    },
+    {
+      "id": "e-refresh-verify",
+      "from": "refresh",
+      "to": "recovery",
+      "label": "supplies repair state for verification"
+    },
+    {
+      "id": "e-richer-verify",
+      "from": "richer",
+      "to": "recovery",
+      "label": "supplies repair state for verification"
+    },
+    {
+      "id": "e-cleanup-verify",
+      "from": "cleanup",
+      "to": "recovery",
+      "label": "supplies repair state for verification"
+    },
+    {
+      "id": "e-memory-verify",
+      "from": "memory",
+      "to": "recovery",
+      "label": "supplies repair state for verification"
+    },
+    {
+      "id": "e-cron-verify",
+      "from": "cron",
+      "to": "recovery",
+      "label": "supplies repair state for verification"
+    }
+  ],
+  "decisions": [
+    {
+      "id": "d-language",
+      "revision": 1,
+      "title": "Backend language",
+      "componentIds": [
+        "backend",
+        "collector",
+        "scheduler",
+        "tools"
+      ],
+      "chosen": "Use Rust for the hosted backend and workers.",
+      "rationale": "Earlier preference for compile-time ownership checks and memory control.",
+      "strongestAlternative": "Go for simpler development.",
+      "tradeoffs": [
+        "Additional Rust learning and async complexity."
+      ],
+      "status": "superseded"
+    },
+    {
+      "id": "d-language",
+      "revision": 2,
+      "title": "Backend language",
+      "componentIds": [
+        "backend",
+        "collector",
+        "scheduler",
+        "tools"
+      ],
+      "chosen": "Use Go for the hosted backend and controlled database tools.",
+      "rationale": "Remote database operations and model inference dominate expected waiting; simpler development fits the near-term deadline. No comparative benchmark exists.",
+      "strongestAlternative": "Keep Rust with the same TypeScript investigator.",
+      "tradeoffs": [
+        "Accept garbage collection and explicit shared-state discipline.",
+        "Gain simpler expected development; no measured capacity guarantee."
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "d-workflow",
+      "revision": 1,
+      "title": "Investigator workflow",
+      "componentIds": [
+        "investigator",
+        "state"
+      ],
+      "chosen": "Keep one TypeScript/LangGraph investigator with PostgreSQL-backed operational state and checkpoints.",
+      "rationale": "Retain structured loops, branches and visual debugging while Go enforces tool authority.",
+      "strongestAlternative": "Implement the investigator directly in the backend language.",
+      "tradeoffs": [
+        "A second runtime and internal API boundary.",
+        "LangGraph does not supply diagnosis logic or exactly-once database effects."
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "d-hosting",
+      "revision": 1,
+      "title": "Fully hosted operation",
+      "componentIds": [
+        "backend",
+        "collector",
+        "scheduler",
+        "state",
+        "dashboard"
+      ],
+      "chosen": "Pooltune operates its services; customers connect existing Supabase projects.",
+      "rationale": "Operation must continue without an open laptop or browser; customers should not rent another server.",
+      "strongestAlternative": "Customer-hosted or hybrid collector.",
+      "tradeoffs": [
+        "Pooltune must operate workers, credentials and selected diagnostic storage.",
+        "Customer records stay in their DB, but diagnostic evidence may leave it."
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "d-reuse",
+      "revision": 1,
+      "title": "Reuse existing evidence",
+      "componentIds": [
+        "collector",
+        "inspection",
+        "experiments",
+        "recovery"
+      ],
+      "chosen": "Reuse sufficient current evidence; add experiments only for decision-relevant gaps.",
+      "rationale": "Avoid redundant load on customer databases while preserving outcome verification.",
+      "strongestAlternative": "Repeat a fixed benchmark suite for every investigation.",
+      "tradeoffs": [
+        "Freshness and comparable context must be checked.",
+        "Insufficient evidence can require waiting or an inconclusive result."
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "d-trials",
+      "revision": 1,
+      "title": "Live-trial policy remains open",
+      "componentIds": [
+        "experiments",
+        "index"
+      ],
+      "chosen": "Propose owner-enabled live trials after evidence screening, with one candidate at a time and explicit resource conditions.",
+      "rationale": "Actual index performance needs a physical index and comparable measurements. Jared expressed support; exact limits and recovery are not approved.",
+      "strongestAlternative": "Require a representative isolated test environment before production changes.",
+      "tradeoffs": [
+        "Live trials consume customer DB resources before benefit is proven.",
+        "A test environment adds setup and can differ from production.",
+        "Timeouts and worker limits are not hard CPU or total-storage reservations."
+      ],
+      "status": "proposed"
+    },
+    {
+      "id": "d-identity",
+      "revision": 1,
+      "title": "Representative test authority",
+      "componentIds": [
+        "backend",
+        "inspection",
+        "experiments"
+      ],
+      "chosen": "Propose scoped monitoring, enrolled representative requests and separate repair authority.",
+      "rationale": "Aggregate telemetry cannot reconstruct all parameters and application-role context.",
+      "strongestAlternative": "Require application-side request sampling.",
+      "tradeoffs": [
+        "Enrollment adds setup; an SDK could automate examples but increases integration and privacy work.",
+        "Grant mechanics, identity lifecycle and redaction still need a live-project probe."
+      ],
+      "status": "proposed"
+    },
+    {
+      "id": "d-durability",
+      "revision": 1,
+      "title": "Durable job coordination",
+      "componentIds": [
+        "scheduler",
+        "state",
+        "recovery"
+      ],
+      "chosen": "Require persisted jobs and action intent; choose the queue and reconciliation protocol next.",
+      "rationale": "A restart must not lose work or blindly repeat a database mutation.",
+      "strongestAlternative": "A dedicated external queue plus PostgreSQL action records.",
+      "tradeoffs": [
+        "A PostgreSQL-backed queue could reduce services but requires leases and recovery design.",
+        "Neither queue choice guarantees exactly-once external effects."
+      ],
+      "status": "proposed"
+    },
+    {
+      "id": "d-studio",
+      "revision": 1,
+      "title": "Visual development tooling",
+      "componentIds": [
+        "studio"
+      ],
+      "chosen": "Propose LangSmith Studio connected to a development LangGraph server.",
+      "rationale": "Jared wants to see nodes, tool calls and intermediate state.",
+      "strongestAlternative": "Use static graph visualization and custom local logs initially.",
+      "tradeoffs": [
+        "Studio account and tracing/export choices remain open.",
+        "The design map is not a running agent or customer dashboard."
+      ],
+      "status": "proposed"
+    },
+    {
+      "id": "d-onboarding",
+      "revision": 1,
+      "title": "Connect Supabase onboarding",
+      "componentIds": [
+        "dashboard",
+        "backend"
+      ],
+      "chosen": "Use Connect Supabase as the customer onboarding entry point. Database provisioning method remains open.",
+      "rationale": "Jared selected provider-based connection for the hosted service; authentication and database authority still need separate design.",
+      "strongestAlternative": "Manual connection details as the primary customer onboarding flow.",
+      "tradeoffs": [
+        "OAuth adds integration and token-lifecycle work.",
+        "A connection button does not itself establish every database repair permission.",
+        "Other providers need separate adapters; V1 remains Supabase only."
+      ],
+      "status": "approved"
+    }
+  ],
+  "flows": [
+    {
+      "id": "configure",
+      "title": "Connect and configure",
+      "kind": "main",
+      "edgeIds": [
+        "e-owner",
+        "e-api",
+        "e-config"
+      ]
+    },
+    {
+      "id": "observe",
+      "title": "Observe customer workload",
+      "kind": "background",
+      "trigger": "A bounded collection interval is due",
+      "edgeIds": [
+        "e-read"
+      ]
+    },
+    {
+      "id": "record-measurements",
+      "title": "Keep selected measurements",
+      "kind": "background",
+      "trigger": "A valid observation is available",
+      "edgeIds": [
+        "e-measure"
+      ]
+    },
+    {
+      "id": "investigate",
+      "title": "Investigate a detected problem",
+      "kind": "background",
+      "trigger": "Detection identifies a worthwhile investigation",
+      "edgeIds": [
+        "e-trigger",
+        "e-dispatch",
+        "e-infer"
+      ]
+    },
+    {
+      "id": "act",
+      "title": "Request permitted database work",
+      "kind": "background",
+      "trigger": "The investigator needs an inspection, experiment or repair",
+      "edgeIds": [
+        "e-tools",
+        "e-execute"
+      ]
+    },
+    {
+      "id": "record-actions",
+      "title": "Preserve action evidence",
+      "kind": "background",
+      "trigger": "An operation is planned or its observed state changes",
+      "edgeIds": [
+        "e-action"
+      ]
+    },
+    {
+      "id": "checkpoint",
+      "title": "Save investigation progress",
+      "kind": "background",
+      "trigger": "An investigation reaches a checkpoint",
+      "edgeIds": [
+        "e-checkpoint"
+      ]
+    },
+    {
+      "id": "review-history",
+      "title": "Review results",
+      "kind": "main",
+      "edgeIds": [
+        "e-api",
+        "e-results"
+      ]
+    },
+    {
+      "id": "debug-graph",
+      "title": "Inspect the agent graph",
+      "kind": "secondary",
+      "edgeIds": [
+        "e-view"
+      ]
+    },
+    {
+      "id": "index-path",
+      "title": "Evaluate and verify an index",
+      "kind": "secondary",
+      "edgeIds": [
+        "e-context",
+        "e-screen",
+        "e-index-outcome"
+      ]
+    }
+  ]
+}

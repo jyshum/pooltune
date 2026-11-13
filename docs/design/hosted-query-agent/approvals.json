@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "records": [
+    {
+      "recordId": "d-language-r1",
+      "subject": {
+        "kind": "decision",
+        "id": "d-language",
+        "revision": 1,
+        "digest": "41df1cd3017284e2fcdae06e313e022c48d85ccf8a4b319f37316b348ab9ec1e"
+      },
+      "userStatement": "lets go rust, docuemnt this in the overral plan like the last section and lets move on",
+      "timestamp": "2026-11-13T03:03:51+00:00",
+      "supersedes": null,
+      "sessionReference": "Imported from this Pooltune conversation; timestamp is record creation, not the original utterance time. Canonical product notes preserve context."
+    },
+    {
+      "recordId": "d-language-r2",
+      "subject": {
+        "kind": "decision",
+        "id": "d-language",
+        "revision": 2,
+        "digest": "2a9183db8d81dbb6991fb5e38fcfee091012ac839aefd2e3dc487455913c3df4"
+      },
+      "userStatement": "okay change it to go, and document everything, this is good progress towards implementation",
+      "timestamp": "2026-11-13T03:03:51+00:00",
+      "supersedes": "d-language-r1",
+      "sessionReference": "Imported from this Pooltune conversation; timestamp is record creation, not the original utterance time. Canonical product notes preserve context."
+    },
+    {
+      "recordId": "d-workflow-r1",
+      "subject": {
+        "kind": "decision",
+        "id": "d-workflow",
+        "revision": 1,
+        "digest": "1c648cc0624fd95f81ab24715cbb47e9d065531136be4b8be2a8a693caa0f8b8"
+      },
+      "userStatement": "okay make sure, were sticking true to the tools we defined in the product plan for the agent, whats next in brainstorming. make sure to save this",
+      "timestamp": "2026-11-13T03:03:51+00:00",
+      "supersedes": null,
+      "sessionReference": "Imported from this Pooltune conversation; timestamp is record creation, not the original utterance time. Canonical product notes preserve context."
+    },
+    {
+      "recordId": "d-hosting-r1",
+      "subject": {
+        "kind": "decision",
+        "id": "d-hosting",
+        "revision": 1,
+        "digest": "110f891676d7cf8d9228f30425ffe2ea2c95eb581037a6c6d414be6d233e4140"
+      },
+      "userStatement": "okay nail this down as the deployment. before we move into the speicfic product can we discuss more of the stack for our own infra? how do we keep it stable and scalable if multiple users want to use our agent? etc, what data do we hae to ingest? everyhting abt their db can be client sided right? idk, research this, and get back to me",
+      "timestamp": "2026-11-13T03:03:51+00:00",
+      "supersedes": null,
+      "sessionReference": "Imported from this Pooltune conversation; timestamp is record creation, not the original utterance time. Canonical product notes preserve context."
+    },
+    {
+      "recordId": "d-reuse-r1",
+      "subject": {
+        "kind": "decision",
+        "id": "d-reuse",
+        "revision": 1,
+        "digest": "55cea3de4a0cec5e8c97a424d645abc45f9242da4c1dc09756339c94cc32de6e"
+      },
+      "userStatement": "makes sense, if we have exisitng evidence, dont create extra tests that would take up memory.",
+      "timestamp": "2026-11-13T03:03:51+00:00",
+      "supersedes": null,
+      "sessionReference": "Imported from this Pooltune conversation; timestamp is record creation, not the original utterance time. Canonical product notes preserve context."
+    },
+    {
+      "recordId": "d-onboarding-r1",
+      "subject": {
+        "kind": "decision",
+        "id": "d-onboarding",
+        "revision": 1,
+        "digest": "8ea527f70eb4b33248515de33698b5f8be64435fc8dd05b23229c87ef9fd0ae8"
+      },
+      "userStatement": "for the supabase connecting, yes connect supabase is right here",
+      "timestamp": "2026-11-13T05:42:55+00:00",
+      "supersedes": null,
+      "sessionReference": "This conversation; timestamp records documentation, not the original utterance time. SQL setup was asked about, not approved."
+    }
+  ]
+}
