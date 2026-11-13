@@ -13,7 +13,7 @@ func TestMeasureCounterDelta(t *testing.T) {
 	after.Calls, after.ExecutionMS, after.Blocks = 14, 33, 120
 
 	observed, err := Measure(before, after, 4)
-	if err != nil || observed != (Observation{Calls: 4, MeanMS: 2, BlocksPerCall: 5}) {
+	if err != nil || observed.Calls != 4 || observed.MeanMS != 2 || observed.BlocksPerCall != 5 {
 		t.Fatalf("observation = %+v, error = %v", observed, err)
 	}
 
@@ -55,7 +55,7 @@ func TestDetectObjective(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			var observed []Observation
 			for _, mean := range test.means {
-				observed = append(observed, Observation{Calls: 4, MeanMS: mean})
+				observed = append(observed, Observation{Calls: 4, MeanMS: mean, context: observationContext{query: 7}})
 			}
 			got, err := DetectObjective(observed, 1)
 			if err != nil || got != test.want {
@@ -65,5 +65,33 @@ func TestDetectObjective(t *testing.T) {
 	}
 	if _, err := DetectObjective(make([]Observation, 5), 1); err == nil {
 		t.Fatal("accepted observations with no measured calls")
+	}
+}
+
+func TestDetectObjectiveRejectsMixedContexts(t *testing.T) {
+	epoch := time.Unix(100, 0)
+	before := Counter{Database: 1, Role: 2, Query: -3, Boot: epoch, Reset: epoch, Entry: epoch}
+	after := before
+	after.Calls, after.ExecutionMS = 4, 8
+	one, err := Measure(before, after, 4)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, change := range []func(*Counter){
+		func(c *Counter) { c.Query-- },
+		func(c *Counter) { c.Role++ },
+		func(c *Counter) { c.Reset = c.Reset.Add(time.Second) },
+	} {
+		start, end := before, after
+		change(&start)
+		change(&end)
+		other, err := Measure(start, end, 4)
+		if err != nil {
+			t.Fatal(err)
+		}
+		decision, err := DetectObjective([]Observation{one, one, one, other, other}, 1)
+		if decision != InsufficientEvidence || err == nil {
+			t.Fatalf("mixed context returned %q, %v", decision, err)
+		}
 	}
 }

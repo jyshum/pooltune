@@ -71,20 +71,21 @@ func RunLab(ctx context.Context, target *pgx.Conn) (report Report, err error) {
 	}
 
 	report = Report{StartedAt: time.Now().UTC(), RowsPerTable: fixtureRows, ObjectiveMS: objectiveMS}
-	var acquired, exists, standby, lockWait bool
+	var acquired, exists, standby, lockWait, visibleActivity bool
 	var active int
 	if err := tx.QueryRow(ctx, `
 		SELECT pg_try_advisory_xact_lock(761994345001),
 		       to_regnamespace('pooltune_m1') IS NOT NULL, pg_is_in_recovery(),
 		       EXISTS (SELECT FROM pg_locks WHERE NOT granted),
+		       pg_has_role(current_user, 'pg_read_all_stats', 'USAGE'),
 		       (SELECT count(*) FROM pg_stat_activity
 		        WHERE backend_type = 'client backend' AND state = 'active' AND pid <> pg_backend_pid()),
 		       current_setting('server_version')
-	`).Scan(&acquired, &exists, &standby, &lockWait, &active, &report.ServerVersion); err != nil {
+	`).Scan(&acquired, &exists, &standby, &lockWait, &visibleActivity, &active, &report.ServerVersion); err != nil {
 		return Report{}, fmt.Errorf("check fixture preflight: %w", err)
 	}
-	if !acquired || standby || lockWait || active > 2 {
-		return Report{}, errors.New("fixture deferred: another run, standby, lock wait, or active load")
+	if !acquired || standby || lockWait || !visibleActivity || active > 2 {
+		return Report{}, errors.New("fixture deferred: another run, standby, lock wait, or unavailable capacity")
 	}
 	if exists {
 		return Report{}, errors.New("fixture schema already exists")

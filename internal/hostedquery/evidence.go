@@ -20,6 +20,18 @@ type Observation struct {
 	Calls         int64   `json:"calls"`
 	MeanMS        float64 `json:"mean_execution_ms"`
 	BlocksPerCall float64 `json:"shared_blocks_per_call"`
+	context       observationContext
+}
+
+type observationContext struct {
+	database, role     uint32
+	query              int64
+	boot, reset, entry time.Time
+}
+
+func (c observationContext) same(other observationContext) bool {
+	return c.database == other.database && c.role == other.role && c.query == other.query &&
+		c.boot.Equal(other.boot) && c.reset.Equal(other.reset) && c.entry.Equal(other.entry)
 }
 
 type Decision string
@@ -47,11 +59,14 @@ func Measure(before, after Counter, expectedCalls int64) (Observation, error) {
 		return Observation{}, errors.New("incomplete or invalid counter interval")
 	}
 	calls := float64(expectedCalls)
-	return Observation{expectedCalls, (after.ExecutionMS - before.ExecutionMS) / calls,
-		float64(after.Blocks-before.Blocks) / calls}, nil
+	return Observation{
+		Calls: expectedCalls, MeanMS: (after.ExecutionMS - before.ExecutionMS) / calls,
+		BlocksPerCall: float64(after.Blocks-before.Blocks) / calls,
+		context:       observationContext{before.Database, before.Role, before.Query, before.Boot, before.Reset, before.Entry},
+	}, nil
 }
 
-// DetectObjective accepts observations from one comparable query context.
+// DetectObjective requires the latest five measurements from the same counter context.
 func DetectObjective(observations []Observation, objectiveMS float64) (Decision, error) {
 	if !nonnegativeFinite(objectiveMS) || objectiveMS == 0 {
 		return InsufficientEvidence, errors.New("invalid mean latency objective")
@@ -59,8 +74,13 @@ func DetectObjective(observations []Observation, objectiveMS float64) (Decision,
 	if len(observations) < 5 {
 		return InsufficientEvidence, nil
 	}
+	latest := observations[len(observations)-5:]
+	context := latest[0].context
 	breaches := 0
-	for _, observation := range observations[len(observations)-5:] {
+	for _, observation := range latest {
+		if context.query == 0 || !context.same(observation.context) {
+			return InsufficientEvidence, errors.New("measurements lack a common statement and counter epoch")
+		}
 		if observation.Calls <= 0 || !nonnegativeFinite(observation.MeanMS) {
 			return InsufficientEvidence, errors.New("invalid latency observation")
 		}

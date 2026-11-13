@@ -3,9 +3,12 @@ package hostedquery
 import (
 	"context"
 	"encoding/json"
+	"errors"
 
 	"github.com/jackc/pgx/v5"
 )
+
+const insertReport = "INSERT INTO pooltune_lab_state.runs (report) VALUES ($1::jsonb) RETURNING id"
 
 // PrepareState initializes the lab schema in Pooltune's separate local database.
 func PrepareState(ctx context.Context, state *pgx.Conn) error {
@@ -20,7 +23,17 @@ func PrepareState(ctx context.Context, state *pgx.Conn) error {
 				report jsonb NOT NULL
 			)
 		`)
-		return err
+		if err != nil {
+			return err
+		}
+		// Exercise the real insert in a savepoint, then discard the probe row.
+		probe, err := tx.Begin(ctx)
+		if err != nil {
+			return err
+		}
+		var id int64
+		writeErr := probe.QueryRow(ctx, insertReport, "{}").Scan(&id)
+		return errors.Join(writeErr, probe.Rollback(ctx))
 	})
 }
 
@@ -30,6 +43,6 @@ func RecordReport(ctx context.Context, state *pgx.Conn, report Report) (int64, e
 		return 0, err
 	}
 	var id int64
-	err = state.QueryRow(ctx, "INSERT INTO pooltune_lab_state.runs (report) VALUES ($1::jsonb) RETURNING id", string(payload)).Scan(&id)
+	err = state.QueryRow(ctx, insertReport, string(payload)).Scan(&id)
 	return id, err
 }
