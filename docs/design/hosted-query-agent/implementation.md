@@ -1,26 +1,97 @@
-# Implementation planning status
+# Hosted Query Agent Implementation Plan
 
-Not yet an executable implementation plan. Product scope and language responsibilities are accepted; tool contracts, connection authority, trial budgets and recovery protocols remain open in design.md.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use crocking:executing-plans for the authorized inline M1 work. Steps use checkbox syntax for tracking.
 
-## Implementation handoff authority
+**Goal:** Measure a healthy query and a query worth investigating on an isolated Rookery fixture, then qualify the first index repair after M1 acceptance.
 
-Read [HANDOFF.md](HANDOFF.md) first. On November 13, 2026 Jared explicitly requested a new chat for implementation. Before code work, expand this file into the executable plan under Jared's writing-plans skill; do not pretend the work below is already implemented.
+**Architecture:** The Go entry point collects PostgreSQL counters and measured plan evidence and applies a deterministic detector. Pooltune-owned PostgreSQL stores its results. After M1, a single TypeScript/LangGraph investigator uses Anthropic and Go-controlled tools; Go owns admission, action state, verification and reconciliation.
 
-Workflow settings are selected: design conflict mode **ask** (“Ask me first”); human review mode **milestones** (“Pause at agreed milestones”). M1 is the working isolated test setup with healthy comparison and real measurements, reviewed before enabling automatic index changes. No M1 acceptance exists. Do not re-ask these settings. Honor the cancelled worktree request. Product implementation has not begun.
+**Tech stack:** Go 1.27.3 or newer, the repository's pgx v5, PostgreSQL 17 for the test rig, TypeScript/LangGraph and Anthropic after M1.
+
+**Spec:** [Product](../../product/query-performance-v1.md), [backend decision](../../product/backend-language-decision.md), [v0 detection and verification proposal](detection-verification-v0.md), [handoff](HANDOFF.md).
+
+**Canonical records:** [Design](design.md), [graph](graph.json), [approvals](approvals.json), [plan](implementation.md), [progress](progress.md).
+
+**Decision references:** d-language r2, d-workflow r1, d-hosting r1, d-reuse r1 and d-onboarding r1 match the corresponding approval records. d-identity, d-trials, d-durability and d-studio r1 remain proposals.
+
+## Workflow settings
+
+- Design conflict mode **ask**. Jared selected “Ask me first” in the November 13 interactive reply.
+- Human review mode **milestones**. Jared selected “Pause at agreed milestones” in the same reply. [Handoff](HANDOFF.md).
+- Authorized scope is M1 in the existing checkout, on a local branch, with isolated synthetic work in authorized Rookery. Routine internal interfaces and lab parameters are delegated. Approved architecture and customer-facing boundaries require a ruling if they conflict with evidence.
+- M1 acceptance is pending. The canceled worktree request stays canceled. No push, merge, publication or customer deployment.
+
+## Human milestones
+
+- [ ] **M1 acceptance.** Review Tasks 1–3, including the isolated local and Rookery setup, healthy/no-change and investigate decisions, actual measurements, state readback, cleanup, source and limitations. Obtain explicit acceptance before enabling agent-driven index changes.
+- [ ] **Index slice review.** After M1, demonstrate investigation through verified outcome and recovery, including refusal of unsupported actions. Record actual live model evidence and explicit review before any later integration decision.
 
 ## Global constraints
 
-Preserve the six repair scopes, owner grants, customer data boundary, evidence-reuse policy and Go/TypeScript/LangGraph/PostgreSQL split. Do not treat a design-map approval as deployment permission. Restore the selected workflow settings and milestone boundary before code work.
+- Exactly six V1 repairs. The first slice qualifies nonunique indexes, including compound indexes. The other V1 operations remain targeted ANALYZE, extended/column statistics, bounded plain VACUUM and qualified cleanup settings, enrolled function-scoped work_mem, and enrolled future Cron scheduling.
+- Preserve exclusions for pool and WAL/checkpoint tuning, index rebuilds and customer-index deletion, arbitrary SQL and application/RLS rewrites, killing customer work, compute purchases, replicas and migrations. Restrict operations to authorized projects and enrolled objects.
+- Preserve upfront capability grants, relevant evidence access, encrypted production transport/storage, account isolation, retention, and evidence reuse. Avoid redundant experiments and copying application tables. Adapt scheduling to current capacity and optional owner windows; missing guards defer heavy work.
+- Keep detection, benefit and protection baselines distinct. Measurements, planner estimates and client timings have different meanings. No resets of shared counters. Missing observations cannot pass a guard. v0 numerical defaults are calibration candidates.
+- M1 fixture DDL is developer test setup, with one existing primary key on each synthetic table. The harness has no candidate index execution path. No app-table or role changes on Rookery. Existing native admin credentials are for the fixture only; they establish neither OAuth nor least privilege.
+- The old local gateway, SQLite state and dashboard remain outside the hosted implementation. Reuse pgx and the repository's local PostgreSQL test helper.
 
-Proposed first slice: the selected Rookery test project and one enrolled query, with observation, evidence inspection, a qualified index trial, verification and uncertain-action recovery. Rookery is online and a read-only SQL check through Supabase MCP succeeded. Select the representative query, concrete interfaces and evaluation criteria before writing tasks. Pooltune's own OAuth/native connection setup is not yet verified.
+## Review focus
 
-Carry forward the five accepted comparison lessons in the product plan: separate observation and authority; separate estimates and measured outcomes; accept justified inaction; reconcile interrupted actions before retry; diagnose broadly while keeping repair authority within the six scopes. Use design.md's handoff-readiness table to settle missing boundaries. Routine package and internal naming choices belong to implementation planning and do not reopen the product scope.
+- Missing, evicted or reset statement counters cannot appear as fast observations (Task 1).
+- Equal latencies at a strict objective boundary and mixed contexts cannot manufacture an investigation (Task 1).
+- A name collision, competing run or failed statement must preserve pre-existing objects (Task 2).
+- A provider connection misrouted to another project or lacking server verification must fail before running the fixture (Task 3).
+- A successful DDL command or improved aggregate cannot outrun action recovery or missing guard coverage (Tasks 4–5).
 
-Scheduling direction selected under Jared's preference for performance and minimal customer effort: adaptive execution with tested defaults and optional maintenance-window overrides. Concrete operation budgets, pressure thresholds, deferral escalation and cancellation/reconciliation rules must be specified and qualified. Do not require customers to configure low-level database limits during ordinary onboarding. Preserve job-specific business deadlines and all existing scope grants.
+### Task 1: Statement evidence and deterministic objective detection
 
-Numerical detection and verification proposal: [detection-verification-v0.md](detection-verification-v0.md). It defines initial triggers, benefit routes, minimum evidence, per-repair mechanism tests, regression thresholds and Rookery calibration cases. It is a test candidate, not an approved production policy. The builder must distinguish historical detection baseline from current pre-repair benefit baseline; permit exactly the intended repair as a comparison difference; preserve fast intervention independently of longer outcome windows; and treat missing required guard coverage as inconclusive. No load tests or database repairs were performed to produce the proposal.
+**Files:** `internal/hostedquery/evidence.go`, `internal/hostedquery/evidence_test.go`.
 
-## Candidate test application inspection
+**Decisions:** d-language r2 and d-reuse r1. No M1 dependency on model access.
+
+**Interfaces:** `Measure(before, after Counter, expectedCalls int64) (Observation, error)` computes calls, mean execution milliseconds and shared blocks per call. Counter carries statement identity (DB, role, query ID, top-level by collector filter), server boot, global stats reset, entry birth, calls, total execution time and combined block count. `DetectObjective(observations []Observation, objectiveMS float64) (Decision, error)` returns investigate, no change or insufficient evidence.
+
+- [ ] Write and run tests for counter deltas, wrong identity/reset/rebirth/restart, missing values and no calls, strict objective comparisons, and fewer than five observations.
+- [ ] Implement deltas and the v0 objective rule of at least 3 breaches among the latest 5 comparable observations. This is the mean-objective route only. M1 uses fixed lab batches with matching data, role and input sequence; no five-minute cadence or historical baseline claim.
+- [ ] Run `go test ./internal/hostedquery` and commit the verified evidence/detector change locally.
+
+### Task 2: Run a bounded PostgreSQL fixture
+
+**Files:** `internal/hostedquery/lab.go`, `internal/hostedquery/lab_integration_test.go`.
+
+**Decisions:** d-language r2 and d-reuse r1. d-identity and d-trials are tested only within the lab contract.
+
+**Interfaces:** `RunLab(ctx context.Context, target *pgx.Conn) (Report, error)` uses a dedicated native connection. Report records server version, lab policy, case observations/decisions and measured scan evidence. It carries no DSN or application data.
+
+- [ ] Write and run an integration test using the existing TLS helper. Load pg_stat_statements in the disposable server. Assert the lab completes, both queries return identical results, the measured plans distinguish scans, and no fixture remains. Verify rollback on a failed run and that an existing fixture name is untouched.
+- [ ] Implement a single transaction with explicit rollback on every path. Take a transaction advisory lock, verify no prior fixture at `pooltune_m1`, and create only objects under that schema. Reject a standby or observed lock wait and heavy activity at preflight. One connection, a 35-second run deadline, 250 ms lock timeout, 5-second setup statement timeout, and 750 ms per measured statement. No project setting or extension changes on Rookery.
+- [ ] Seed two ordinary tables with identical 100,000 deterministic synthetic rows and primary keys. Read the same small set of distinct IDs using parameterized equality. The healthy query uses its primary key; the candidate queries an equally selective unindexed lookup column. Analyze fixture tables once before sampling. Never remove a useful index.
+- [ ] Obtain query IDs from JSON EXPLAIN VERBOSE. Read pg_stat_statements for the current database, role and exact top-level query IDs. Use a single warmup per case, then interleave five batches of four executions per case with identical inputs and a preset 1 ms database mean objective. Verify returned data and exact observed call deltas. Capture one measured EXPLAIN plan per case for scan type, examined and returned rows, and logical shared blocks. Collect no project-wide query text.
+- [ ] Run `go test -tags=integration ./internal/hostedquery -v` with PostgreSQL 17 binaries in PATH. Require the integration cases to execute, then commit locally.
+
+### Task 3: Persist and demonstrate M1
+
+**Files:** `cmd/pooltune-query-lab/main.go`, `cmd/pooltune-query-lab/main_test.go`, `internal/hostedquery/store.go`, [progress](progress.md).
+
+**Decisions:** d-language r2, d-workflow r1 and d-onboarding r1. Local PostgreSQL models the Pooltune-owned state boundary.
+
+**Interfaces:** CLI consumes `POOLTUNE_LAB_TARGET_DSN` and `POOLTUNE_LAB_STATE_DSN` from private process configuration, plus explicit `-target rookery` for the live route. `RecordReport(ctx context.Context, state *pgx.Conn, report Report) (int64, error)` appends an observation and returns its durable ID.
+
+- [ ] Write and run tests rejecting another project/port, TLS downgrade, alternate/fallback hosts, and a nonlocal state destination. Extend integration verification to persist and read back the report over a separate state connection.
+- [ ] Implement the CLI with strict local-loopback or exact Rookery session-pooler routes, bounded connections, checked rollback, and sanitized errors. Rookery requires `verify-full` and its CA certificate. Keep bootstrap credentials out of command arguments, output and source. Confirm the state connection is usable before running the target. Store report JSON in a dedicated local PostgreSQL table. No model or repair endpoints in this milestone.
+- [ ] Verify with `go test ./...`, `go test -tags=integration ./internal/hostedquery -v`, `go vet ./cmd/pooltune-query-lab ./internal/hostedquery`, and `git diff --check`. Document actual limitations of the old gateway suite if any. Run the CLI on Rookery once, independently verify state readback and absence of the fixture and changes to existing app indexes, and preserve measured results in progress. If native access is unavailable, demonstrate the local implementation and report any separately measured Rookery evidence as such.
+- [ ] Obtain a fresh review, address material findings and commit verified work locally. Present M1 with evidence and request explicit acceptance.
+
+### Task 4: Investigate and qualify a nonunique index (after M1)
+
+Consume an enrolled query identity, comparable observation IDs, catalog identities and evidence freshness from Go. The investigator has checkpointed LangGraph state and structured evidence/recommendation tools. A candidate carries project and enrollment IDs, table OID, ordered column numbers, intended mechanism and evidence IDs. Go resolves/quotes catalog identifiers and rejects stale, unenrolled, duplicate or unsupported targets. The first contract is an ordinary nonpartitioned table and B-tree over up to three approved plain columns; no raw SQL, unique/partial/expression indexes, or model-provided identifiers. Implement one per-project mutation lease and a durable action ID before execution. Before any implementation here, pin the exact grants, credential lifecycle, pressure/lock/storage limits, timeout, evidence freshness, queue, model budgets, and secure Anthropic configuration. Qualify Go denial independently of model output.
+
+### Task 5: Execute, verify and recover (after M1 and Task 4)
+
+Go admits only a fresh qualified candidate and executes a bounded concurrent build. Record intent, expected catalog definition and backend identity before execution. On uncertain completion, reconcile identity, validity/readiness and ownership before retry or cleanup; collisions and ambiguous ownership require a stop. Cancel only identified Pooltune work. Observe normal traffic first, use a gap-driven experiment only under grant and compare benefit and protection separately. Cover noisy input-mix shifts, reset/missing guards, interrupted action, existing valid/invalid indexes and repeated delivery. Record outcome, measured benefit, write/error/storage guards and recovery behavior. Complete concrete contracts and tests before enabling mutation.
+
+## Candidate test application inspection (historical)
+
 
 Read-only Supabase inspection on November 12, 2026 listed five projects: vv-dashboard (ACTIVE_HEALTHY), rookery (INACTIVE), reach (INACTIVE), hoppedIn (INACTIVE), and the older account-named project (INACTIVE). Listing vv-dashboard tables failed with `Transport closed`; a smaller catalog query returned `Failed to run sql query: Connection terminated due to connection timeout`. No live table contents or query behavior were verified.
 
