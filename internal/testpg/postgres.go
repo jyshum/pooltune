@@ -22,7 +22,7 @@ import (
 	"time"
 )
 
-func Start(t *testing.T) (context.Context, *pgx.ConnConfig, tls.Certificate) {
+func Start(t *testing.T, serverOptions ...string) (context.Context, *pgx.ConnConfig, tls.Certificate) {
 	t.Helper()
 	initdb, e := exec.LookPath("initdb")
 	if e != nil {
@@ -78,7 +78,8 @@ func Start(t *testing.T) (context.Context, *pgx.ConnConfig, tls.Certificate) {
 		t.Fatal(e)
 	}
 	t.Cleanup(func() { log.Close() })
-	pg := exec.Command(postgres, "-D", data, "-h", "127.0.0.1", "-p", port, "-k", "", "-c", "ssl=on", "-c", "max_connections=60")
+	args := []string{"-D", data, "-h", "127.0.0.1", "-p", port, "-k", "", "-c", "ssl=on", "-c", "max_connections=60"}
+	pg := exec.Command(postgres, append(args, serverOptions...)...)
 	pg.Stdout = log
 	pg.Stderr = log
 	if e = pg.Start(); e != nil {
