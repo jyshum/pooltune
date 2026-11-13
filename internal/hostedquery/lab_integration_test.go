@@ -3,6 +3,7 @@
 package hostedquery
 
 import (
+	"encoding/json"
 	"strings"
 	"testing"
 
@@ -68,4 +69,36 @@ func TestLabFixture(t *testing.T) {
 		t.Fatalf("expected existing-schema refusal, got %v", err)
 	}
 	assertSchema(true)
+}
+
+func TestReportSurvivesStateReconnect(t *testing.T) {
+	ctx, config, _ := testpg.Start(t)
+	state, err := pgx.ConnectConfig(ctx, config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := PrepareState(ctx, state); err != nil {
+		t.Fatal(err)
+	}
+	report := Report{ServerVersion: "17", Healthy: CaseResult{Decision: NoChange}}
+	id, err := RecordReport(ctx, state, report)
+	if err != nil || id < 1 {
+		t.Fatalf("record ID = %d, error = %v", id, err)
+	}
+	if err := state.Close(ctx); err != nil {
+		t.Fatal(err)
+	}
+	state, err = pgx.ConnectConfig(ctx, config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer state.Close(ctx)
+	var payload []byte
+	var restored Report
+	if err := state.QueryRow(ctx, "SELECT report FROM pooltune_lab_state.runs WHERE id = $1", id).Scan(&payload); err != nil {
+		t.Fatal(err)
+	}
+	if err := json.Unmarshal(payload, &restored); err != nil || restored.Healthy.Decision != NoChange {
+		t.Fatalf("restored report = %+v, error = %v", restored, err)
+	}
 }
