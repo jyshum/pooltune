@@ -1,6 +1,41 @@
 # Design progress
 
-## Current handoff state, November 13, 2026
+## M1 implementation and review, November 13, 2026
+
+M1 evidence is available. Explicit human acceptance is pending. Design conflict mode remains **ask** (“Ask me first”). Human review mode remains **milestones** (“Pause at agreed milestones”). Both were selected by Jared on November 13. Authorized work includes the bounded synthetic fixture on Rookery and local feature-branch implementation. Automatic index changes require acceptance of M1. Tasks 4–5 remain gated. [Authority and scope](HANDOFF.md).
+
+Branch: `feat/hosted-query-agent` in the existing checkout. Base: `c978614`. Task 1 evidence/detector: `d9f921e`. Task 2 fixture: `5633c8d`. Task 3 CLI/state: `3c6c5ba`. Review fixes: `69eea06`. The design-map source, approval records and HTML are byte-for-byte identical to the handoff commit. Schema validation passed. A fresh export matched after normalizing renderer-generated timestamps and the temporary directory name. The prior Explore/Back caveat remains open.
+
+### Reproduce locally
+
+Use Go 1.27.3 or newer and put the PostgreSQL 17 binaries on PATH. Run `go test -tags=integration ./cmd/pooltune-query-lab ./internal/hostedquery -count=1 -v` from the repo. The integration test starts disposable TLS-enabled PostgreSQL instances and runs real queries without Rookery credentials.
+
+For the CLI, provision two disposable loopback databases. Enable `shared_preload_libraries=pg_stat_statements` on the fixture server and run `CREATE EXTENSION pg_stat_statements` in the fixture database. Supply `POOLTUNE_LAB_TARGET_DSN` and `POOLTUNE_LAB_STATE_DSN` privately as PostgreSQL URLs with the user, password, explicit port and `sslmode=disable` for loopback. Then run `go run ./cmd/pooltune-query-lab -target local`. A successful run prints its report ID and JSON. Read the same JSON from `pooltune_lab_state.runs` in the state database. For authorized Rookery use, choose `-target rookery` and supply the verified session-pooler URL with `sslmode=verify-full` and the downloaded Supabase CA path in `POOLTUNE_LAB_ROOKERY_CA_FILE`.
+
+### Observations
+
+The harness checked actual query results and sampled PostgreSQL execution counters. It sent 20 measured statements per case, in five batches of four. Each case had one warmup and one measured plan. Both tables held 100,000 synthetic rows and had primary keys. The queries returned identical IDs. The healthy case looked up the primary key. The candidate used a selective, unindexed lookup column. All case results were stored in a separate local PostgreSQL database and read back on a fresh connection. The local store is stopped and its data directory is retained at `/Users/jshum/.local/share/pooltune-toolchains/m1-state.TAikPcTP/db`.
+
+| Target, state record | Healthy mean | Candidate mean | Decisions |
+| --- | ---: | ---: | --- |
+| Local PostgreSQL 17.11, 1 | 0.001827 ms | 1.828963 ms | `no_change` / `investigate` |
+| Rookery PostgreSQL 17.6, 2 | 0.027148 ms | 11.920425 ms | `no_change` / `investigate` |
+
+The Rookery run was at 00:23 PST, before the review fixes. A separate local run of the reviewed binary repeated both decisions and was read back as state record 4. Rookery activity visibility was confirmed by a read-only query. No additional Rookery fixture was needed. Healthy batch means were 0.024568, 0.025300, 0.040973, 0.022373 and 0.022528 ms. Candidate batch means were 13.153772, 13.075325, 11.880604, 10.985500 and 10.506924 ms. Healthy used an index-only scan with 1 row examined and 3 logical shared-block accesses per call. Candidate used a sequential scan with 100,000 rows examined and 1,334 logical shared-block accesses per call. Both plans returned 1 row. Rookery's fixture schema was absent after rollback. A separate MCP query matched all 12 public index definitions by count and fingerprint before/after (`f429d87200ade1a2faa649fa438e8cbe`). No candidate repair ran. Rookery is online.
+
+These are database execution times under a synthetic fixture and a preset 1 ms lab objective. The five batches are short, and the threshold is specific to this demonstration. No production latency, write overhead, repaired outcome, customer onboarding, production scheduling or workload guard is qualified. The run used Rookery's existing admin login with hostname and certificate validation through the session pooler. No new project roles or settings were created. OAuth provisioning and a restricted native login remain unverified.
+
+### Verification and choices
+
+- Independent review found mixed-context aggregation, hidden-activity preflight, and an incomplete state write check. The bounded fix pass reproduced and covered each defect. State preflight now appends and rolls back a probe row before target work. The probe can consume an identity value. The reviewer also found gaps in route and rollback tests and a machine-speed assumption. Tests now use a valid test CA, force missing counters after fixture setup, and derive the expected integration decision from the actual batch means. Review used the saved Rookery report and local tests. Independent database checks of the live fixture and public indexes were performed by the implementer.
+- `go test -count=1 ./...`, `go test -tags=integration ./cmd/pooltune-query-lab ./internal/hostedquery -count=1`, `go vet ./cmd/pooltune-query-lab ./internal/hostedquery`, and `git diff --check` passed. Local PostgreSQL integration covers fixture rollback, missing telemetry, schema collision, exact counter deltas, both decisions, and report readback after reconnect. Existing gateway and tuner integration checks passed with `go test -tags=integration ./internal/pgwire ./cmd/pooltune-tuner -count=1` after the PostgreSQL test helper change.
+- PostgreSQL transaction rollback removes synthetic objects even if a run fails. A committed fixture or the Rookery app load script would support longer observations and app traffic but would require durable cleanup, more exposure to workload changes and a different measurement contract. The lab uses one target session with statement, lock, transaction and idle limits. It leaves shared PostgreSQL statistics intact, including accounting for synthetic statements.
+- The M1 detector uses the objective path from the v0 proposal. The fixture fixes the input cohort and checks statement identity and counter epochs both within each batch and across the latest five batches. Remaining v0 triggers are outside this lab.
+- Native verification initially failed with the system trust store. The CA served by Supabase's download bucket enabled verification with both psql and the Go harness. No credential was printed or checked in. Local state is disposable development storage on loopback. Production authentication and encrypted storage remain design work.
+- Model access remains open for Task 4. There was no `ANTHROPIC_API_KEY` in the environment, and M1 needed no model calls. Before a live investigation, provision Pooltune's key via the operator's secret store and inject it into the investigator process. A customer key is not required.
+- M1 needs human acceptance. No push, merge or publication is part of this checkpoint.
+
+## Planning handoff state, November 13, 2026 (historical)
 
 Current task: save/commit the complete planning and research record and start a new implementation chat, per Jared's request “no if that covers eveyrhting, save evryrhting, and start a new chat for implementation.” Start with HANDOFF.md. Product scope is settled; implementation.md still needs concrete tasks/interfaces before code work. This chat performs no product implementation.
 

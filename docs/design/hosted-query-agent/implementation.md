@@ -51,9 +51,9 @@
 
 **Interfaces:** `Measure(before, after Counter, expectedCalls int64) (Observation, error)` computes calls, mean execution milliseconds and shared blocks per call. Counter carries statement identity (DB, role, query ID, top-level by collector filter), server boot, global stats reset, entry birth, calls, total execution time and combined block count. `DetectObjective(observations []Observation, objectiveMS float64) (Decision, error)` returns investigate, no change or insufficient evidence.
 
-- [ ] Write and run tests for counter deltas, wrong identity/reset/rebirth/restart, missing values and no calls, strict objective comparisons, and fewer than five observations.
-- [ ] Implement deltas and the v0 objective rule of at least 3 breaches among the latest 5 comparable observations. This is the mean-objective route only. M1 uses fixed lab batches with matching data, role and input sequence; no five-minute cadence or historical baseline claim.
-- [ ] Run `go test ./internal/hostedquery` and commit the verified evidence/detector change locally.
+- [x] Write and run tests for counter deltas, wrong identity/reset/rebirth/restart, missing values and no calls, strict objective comparisons, and fewer than five observations.
+- [x] Implement deltas and the v0 objective rule of at least 3 breaches among the latest 5 comparable observations. This is the mean-objective route only. M1 uses fixed lab batches with matching data, role and input sequence; no five-minute cadence or historical baseline claim.
+- [x] Run `go test ./internal/hostedquery` and commit the verified evidence/detector change locally.
 
 ### Task 2: Run a bounded PostgreSQL fixture
 
@@ -63,11 +63,11 @@
 
 **Interfaces:** `RunLab(ctx context.Context, target *pgx.Conn) (Report, error)` uses a dedicated native connection. Report records server version, lab policy, case observations/decisions and measured scan evidence. It carries no DSN or application data.
 
-- [ ] Write and run an integration test using the existing TLS helper. Load pg_stat_statements in the disposable server. Assert the lab completes, both queries return identical results, the measured plans distinguish scans, and no fixture remains. Verify rollback on a failed run and that an existing fixture name is untouched.
-- [ ] Implement a single transaction with explicit rollback on every path. Take a transaction advisory lock, verify no prior fixture at `pooltune_m1`, and create only objects under that schema. Reject a standby or observed lock wait and heavy activity at preflight. One connection, a 35-second run deadline, 250 ms lock timeout, 5-second setup statement timeout, and 750 ms per measured statement. No project setting or extension changes on Rookery.
-- [ ] Seed two ordinary tables with identical 100,000 deterministic synthetic rows and primary keys. Read the same small set of distinct IDs using parameterized equality. The healthy query uses its primary key; the candidate queries an equally selective unindexed lookup column. Analyze fixture tables once before sampling. Never remove a useful index.
-- [ ] Obtain query IDs from JSON EXPLAIN VERBOSE. Read pg_stat_statements for the current database, role and exact top-level query IDs. Use a single warmup per case, then interleave five batches of four executions per case with identical inputs and a preset 1 ms database mean objective. Verify returned data and exact observed call deltas. Capture one measured EXPLAIN plan per case for scan type, examined and returned rows, and logical shared blocks. Collect no project-wide query text.
-- [ ] Run `go test -tags=integration ./internal/hostedquery -v` with PostgreSQL 17 binaries in PATH. Require the integration cases to execute, then commit locally.
+- [x] Write and run an integration test using the existing TLS helper. Load pg_stat_statements in the disposable server. Assert the lab completes, both queries return identical results, the measured plans distinguish scans, and no fixture remains. Verify rollback on a failed run and that an existing fixture name is untouched.
+- [x] Implement a single transaction with explicit rollback on every path. Take a transaction advisory lock, verify no prior fixture at `pooltune_m1`, and create only objects under that schema. Reject a standby or observed lock wait and heavy activity at preflight. One connection, a 35-second run deadline, 250 ms lock timeout, 5-second setup statement timeout, and 750 ms per measured statement. Enforce 30 seconds server-side per transaction and 8 seconds idle in transaction. Defer if activity statistics are unavailable. No project setting or extension changes on Rookery.
+- [x] Seed two ordinary tables with identical 100,000 deterministic synthetic rows and primary keys. Read the same small set of distinct IDs using parameterized equality. The healthy query uses its primary key; the candidate queries an equally selective unindexed lookup column. Analyze fixture tables once before sampling. Never remove a useful index.
+- [x] Obtain query IDs from JSON EXPLAIN VERBOSE. Read pg_stat_statements for the current database, role and exact top-level query IDs. Use a single warmup per case, then interleave five batches of four executions per case with identical inputs and a preset 1 ms database mean objective. Verify returned data and exact observed call deltas. Capture one measured EXPLAIN plan per case for scan type, examined and returned rows, and logical shared blocks. Collect no project-wide query text.
+- [x] Run `go test -tags=integration ./internal/hostedquery -v` with PostgreSQL 17 binaries in PATH. Require the integration cases to execute, then commit locally.
 
 ### Task 3: Persist and demonstrate M1
 
@@ -77,10 +77,10 @@
 
 **Interfaces:** CLI consumes `POOLTUNE_LAB_TARGET_DSN` and `POOLTUNE_LAB_STATE_DSN` from private process configuration, plus explicit `-target rookery` for the live route. `RecordReport(ctx context.Context, state *pgx.Conn, report Report) (int64, error)` appends an observation and returns its durable ID.
 
-- [ ] Write and run tests rejecting another project/port, TLS downgrade, alternate/fallback hosts, and a nonlocal state destination. Extend integration verification to persist and read back the report over a separate state connection.
-- [ ] Implement the CLI with strict local-loopback or exact Rookery session-pooler routes, bounded connections, checked rollback, and sanitized errors. Rookery requires `verify-full` and its CA certificate. Keep bootstrap credentials out of command arguments, output and source. Confirm the state connection is usable before running the target. Store report JSON in a dedicated local PostgreSQL table. No model or repair endpoints in this milestone.
-- [ ] Verify with `go test ./...`, `go test -tags=integration ./internal/hostedquery -v`, `go vet ./cmd/pooltune-query-lab ./internal/hostedquery`, and `git diff --check`. Document actual limitations of the old gateway suite if any. Run the CLI on Rookery once, independently verify state readback and absence of the fixture and changes to existing app indexes, and preserve measured results in progress. If native access is unavailable, demonstrate the local implementation and report any separately measured Rookery evidence as such.
-- [ ] Obtain a fresh review, address material findings and commit verified work locally. Present M1 with evidence and request explicit acceptance.
+- [x] Write and run tests rejecting another project/port, TLS downgrade, alternate/fallback hosts, and a nonlocal state destination. Extend integration verification to persist and read back the report over a separate state connection.
+- [x] Implement the CLI with strict local-loopback or exact Rookery session-pooler routes, bounded connections, checked rollback, and sanitized errors. Rookery requires `verify-full` and its CA certificate. Keep bootstrap credentials out of command arguments, output and source. Confirm the state connection is usable before running the target. Store report JSON in a dedicated local PostgreSQL table. No model or repair endpoints in this milestone.
+- [x] Verify with `go test ./...`, `go test -tags=integration ./internal/hostedquery -v`, `go vet ./cmd/pooltune-query-lab ./internal/hostedquery`, and `git diff --check`. Document actual limitations of the old gateway suite if any. Run the CLI on Rookery once, independently verify state readback and absence of the fixture and changes to existing app indexes, and preserve measured results in progress. If native access is unavailable, demonstrate the local implementation and report any separately measured Rookery evidence as such.
+- [x] Obtain a fresh review, address material findings and commit verified work locally. See the M1 evidence in progress.md. Human acceptance is tracked separately above.
 
 ### Task 4: Investigate and qualify a nonunique index (after M1)
 
