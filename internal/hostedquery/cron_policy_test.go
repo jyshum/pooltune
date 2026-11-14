@@ -1,9 +1,53 @@
 package hostedquery
 
 import (
+	"encoding/json"
 	"testing"
 	"time"
 )
+
+func TestCronWitnessGenerationUsesExactInstantsAcrossRepresentations(t *testing.T) {
+	boundary := time.Date(2026, 11, 14, 12, 1, 0, 0, time.UTC)
+	live := CronGeneration{PID: 41, Started: boundary.Add(-time.Hour), Postmaster: boundary.Add(-2 * time.Hour)}
+	runs := []CronRun{
+		{ID: 1, JobID: 7, Start: boundary.Add(2 * time.Second), End: boundary.Add(3 * time.Second), Status: "succeeded"},
+		{ID: 2, JobID: 7, Start: boundary.Add(4 * time.Second), End: boundary.Add(5 * time.Second), Status: "succeeded"},
+	}
+	for _, zone := range []*time.Location{time.FixedZone("database UTC", 0), time.FixedZone("database offset", -8*3600)} {
+		t.Run(zone.String(), func(t *testing.T) {
+			current := live
+			current.Started = current.Started.In(zone)
+			current.Postmaster = current.Postmaster.In(zone)
+			data, err := json.Marshal(live)
+			if err != nil {
+				t.Fatal(err)
+			}
+			var saved CronGeneration
+			if err := json.Unmarshal(data, &saved); err != nil {
+				t.Fatal(err)
+			}
+			if err := validateCronWitness(7, runs, boundary, boundary.Add(45*time.Second), boundary.Add(8*time.Second), saved, current); err != nil {
+				t.Fatalf("same scheduler instant rejected after JSON round trip: %v", err)
+			}
+			for _, changed := range []string{"pid", "started", "postmaster"} {
+				t.Run(changed, func(t *testing.T) {
+					other := current
+					switch changed {
+					case "pid":
+						other.PID++
+					case "started":
+						other.Started = other.Started.Add(time.Nanosecond)
+					case "postmaster":
+						other.Postmaster = other.Postmaster.Add(time.Nanosecond)
+					}
+					if err := validateCronWitness(7, runs, boundary, boundary.Add(45*time.Second), boundary.Add(8*time.Second), saved, other); err == nil {
+						t.Fatal("actual scheduler generation change admitted")
+					}
+				})
+			}
+		})
+	}
+}
 
 func TestCronWitnessRequiresTwoLaterStartsAndStableGeneration(t *testing.T) {
 	boundary := time.Date(2026, 11, 14, 12, 1, 0, 0, time.UTC)

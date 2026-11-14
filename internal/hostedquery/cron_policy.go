@@ -16,6 +16,13 @@ type CronGeneration struct {
 	Started    time.Time `json:"started"`
 	Postmaster time.Time `json:"postmaster"`
 }
+
+// Persistence and PostgreSQL decoding can use different locations for the same
+// instant. Scheduler identity depends on exact timestamps, not their locations.
+func (g CronGeneration) same(other CronGeneration) bool {
+	return g.PID == other.PID && g.Started.Equal(other.Started) && g.Postmaster.Equal(other.Postmaster)
+}
+
 type CronRun struct {
 	ID     int64     `json:"id"`
 	JobID  int64     `json:"job_id"`
@@ -26,7 +33,7 @@ type CronRun struct {
 }
 
 func validateCronWitness(job int64, runs []CronRun, after, deadline, now time.Time, expected, current CronGeneration) error {
-	if job <= 0 || expected.PID <= 0 || expected.Started.IsZero() || expected.Postmaster.IsZero() || expected != current || !now.After(after) || !now.Before(deadline) {
+	if job <= 0 || expected.PID <= 0 || expected.Started.IsZero() || expected.Postmaster.IsZero() || !expected.same(current) || !now.After(after) || !now.Before(deadline) {
 		return errors.New("ambiguous scheduler generation, clock or expired handoff margin")
 	}
 	ids := map[int64]bool{}

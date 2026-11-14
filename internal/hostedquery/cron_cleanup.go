@@ -70,7 +70,7 @@ func cleanCronJobs(ctx context.Context, target, state *pgx.Conn, id string) erro
 		}
 	}
 	if targetJob.Active {
-		if g != f.Generation || now.Before(due.Add(25*time.Second)) || !now.Before(next.Add(-15*time.Second)) {
+		if !g.same(f.Generation) || now.Before(due.Add(25*time.Second)) || !now.Before(next.Add(-15*time.Second)) {
 			return errors.New("target cleanup waits for terminal execution and boundary margin")
 		}
 		ws, err := readCronRuns(ctx, target, witness.ID)
@@ -123,7 +123,7 @@ func cleanCronJobs(ctx context.Context, target, state *pgx.Conn, id string) erro
 		if err != nil {
 			return err
 		}
-		if targetJob.Active && (currentGeneration != g || !currentNow.Before(next.Add(-15*time.Second))) {
+		if targetJob.Active && (!currentGeneration.same(g) || !currentNow.Before(next.Add(-15*time.Second))) {
 			return errors.New("cleanup boundary changed")
 		}
 		for _, j := range []CronJob{targetJob, witness} {

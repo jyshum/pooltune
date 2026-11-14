@@ -289,6 +289,11 @@ func TestCronActivationExcludesStalledLauncherCatchup(t *testing.T) {
 	f.ActivationStarted = time.Time{}
 	f.Activated = time.Time{}
 	f.FirstCycle = time.Time{}
+	// Persist the exact scheduler instants with a different location representation.
+	// The live PostgreSQL clock can decode in Local even when its offset is UTC.
+	storedZone := time.FixedZone("persisted offset", -8*3600)
+	f.Generation.Started = f.Generation.Started.In(storedZone)
+	f.Generation.Postmaster = f.Generation.Postmaster.In(storedZone)
 	if err = writeCronFixture(ctx, state, fixture.ID, f); err != nil {
 		t.Fatal(err)
 	}

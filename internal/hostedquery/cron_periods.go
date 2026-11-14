@@ -291,7 +291,7 @@ func RecordCronPeriod(ctx context.Context, target, state *pgx.Conn, route, id st
 	if err != nil {
 		return err
 	}
-	if g != f.Generation || p.Cycle.Before(f.FirstCycle) || now.Before(p.Quiet.End) || now.Sub(p.Quiet.End) > 15*time.Second {
+	if !g.same(f.Generation) || p.Cycle.Before(f.FirstCycle) || now.Before(p.Quiet.End) || now.Sub(p.Quiet.End) > 15*time.Second {
 		return errors.New("period is stale, future, or scheduler changed")
 	}
 	if err = validateCronPeriod(p, false); err != nil {

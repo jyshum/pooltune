@@ -290,7 +290,7 @@ func ActivateCronFixture(ctx context.Context, target, state *pgx.Conn, route, id
 		return f, err
 	}
 	cycle := cronCycle(now)
-	if now.Before(cycle.Add(65*time.Second)) || !now.Before(cycle.Add(100*time.Second)) || g != f.Generation {
+	if now.Before(cycle.Add(65*time.Second)) || !now.Before(cycle.Add(100*time.Second)) || !g.same(f.Generation) {
 		return f, errors.New("activation requires stable scheduler and odd minute seconds 5 through 39")
 	}
 	if err = validateCronFixture(ctx, target, state, id, f, cronOriginal); err != nil {
@@ -364,7 +364,7 @@ func ActivateCronFixture(ctx context.Context, target, state *pgx.Conn, route, id
 	if err != nil {
 		return f, err
 	}
-	if g != f.Generation || f.Activated.Before(f.ActivationStarted) || !f.Activated.Before(f.FirstCycle.Add(-15*time.Second)) {
+	if !g.same(f.Generation) || f.Activated.Before(f.ActivationStarted) || !f.Activated.Before(f.FirstCycle.Add(-15*time.Second)) {
 		return f, errors.New("ambiguous activation acknowledgement; recovery required")
 	}
 	err = writeCronFixture(ctx, state, id, f)

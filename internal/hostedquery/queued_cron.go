@@ -128,7 +128,7 @@ func DispatchFixtureCron(ctx context.Context, state *pgx.Conn, config *pgx.ConnC
 			cronSave(result, &r)
 			return nil
 		}
-		if f.Activated.IsZero() || g != f.Generation || !now.Before(f.Expires) {
+		if f.Activated.IsZero() || !g.same(f.Generation) || !now.Before(f.Expires) {
 			return final("inconclusive", "missing activation, changed scheduler generation, or expired fixture")
 		}
 		current, err := readCronJob(ctx, target, f.Target.Name)
@@ -300,7 +300,7 @@ func DispatchFixtureCron(ctx context.Context, state *pgx.Conn, config *pgx.ConnC
 		if err != nil {
 			return err
 		}
-		if g != f.Generation || r.CommitAt.Before(r.IntentAt) || !r.CommitAt.Before(deadline) {
+		if !g.same(f.Generation) || r.CommitAt.Before(r.IntentAt) || !r.CommitAt.Before(deadline) {
 			return errors.New("ambiguous Cron commit acknowledgement")
 		}
 		if err = writeCronReport(ctx, state, "cron_pending", &r); err != nil {
@@ -323,7 +323,7 @@ func DispatchFixtureCron(ctx context.Context, state *pgx.Conn, config *pgx.ConnC
 			if validateCronWitness(f.Witness.ID, r.PostWitness, r.CommitAt, deadline, now, f.Generation, g) == nil {
 				break
 			}
-			if g != f.Generation || !now.Before(deadline) || now.Sub(r.CommitAt) > 8*time.Second {
+			if !g.same(f.Generation) || !now.Before(deadline) || now.Sub(r.CommitAt) > 8*time.Second {
 				return errors.New("post-commit scheduler progress unavailable; reconciliation required")
 			}
 			select {
