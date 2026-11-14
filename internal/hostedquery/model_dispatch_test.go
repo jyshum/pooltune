@@ -7,10 +7,13 @@ import (
 )
 
 func TestModelProposalMustMatchTheAdmittedRepair(t *testing.T) {
-	for _, repair := range []string{"", "analyze", "statistics", "vacuum"} {
+	for _, repair := range []string{"", "analyze", "statistics", "vacuum", "memory"} {
 		for _, outcome := range []string{"valid", "wrong repair", "wrong table", "wrong column", "wrong run", "decline", "provider failure"} {
 			t.Run(repair+"/"+outcome, func(t *testing.T) {
 				e := IndexEvidence{At: time.Now(), Decision: Investigate, TableOID: 42, Column: 2, Label: "lookup", Plan: PlanEvidence{Node: "Seq Scan"}}
+				if repair == "memory" {
+					e.Memory = &MemoryEvidence{}
+				}
 				if repair == "vacuum" {
 					e.Vacuum = &VacuumEvidence{HeapFetches: 100000, ScanRows: 100000, ConditionsClear: true}
 				}
@@ -55,5 +58,17 @@ func TestModelProposalMustMatchTheAdmittedRepair(t *testing.T) {
 				}
 			})
 		}
+	}
+}
+
+func TestModelRejectsMixedMemoryCauseBeforeCallingProvider(t *testing.T) {
+	e := IndexEvidence{At: time.Now(), Decision: Investigate, TableOID: 42, Column: 2, Label: "lookup", Plan: PlanEvidence{Node: "Sort"}, Memory: &MemoryEvidence{}, Vacuum: &VacuumEvidence{}}
+	result := &DispatchResult{}
+	err := runIndexInvestigator(context.Background(), investigationClaim{}, result, e, func(context.Context, IndexEvidence) (IndexProposal, error) {
+		t.Fatal("mixed evidence reached provider")
+		return IndexProposal{}, nil
+	})
+	if err == nil && result.Outcome != "insufficient_evidence" {
+		t.Fatal("mixed evidence admitted")
 	}
 }

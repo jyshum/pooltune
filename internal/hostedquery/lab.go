@@ -262,6 +262,9 @@ type explain struct {
 
 type explainNode struct {
 	Plans       []explainNode `json:"Plans"`
+	TempWritten int64         `json:"Temp Written Blocks"`
+	SortMethod  string        `json:"Sort Method"`
+	SortSpace   string        `json:"Sort Space Type"`
 	HeapFetches *int64        `json:"Heap Fetches"`
 	Type        string        `json:"Node Type"`
 	Schema      string        `json:"Schema"`

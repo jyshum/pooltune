@@ -30,6 +30,7 @@ func prepareJournal(ctx context.Context, state *pgx.Conn) error {
 	}
 	_, err = state.Exec(ctx, `ALTER TABLE `+journalTable+`
 		ADD COLUMN IF NOT EXISTS objects jsonb,
+        ADD COLUMN IF NOT EXISTS memory_function jsonb,
 		ADD COLUMN IF NOT EXISTS index_name text,
 		ADD COLUMN IF NOT EXISTS index_definition text`)
 	return err
@@ -99,7 +100,7 @@ func journalTargetConfig(config *pgx.ConnConfig, identity string) string {
 }
 
 func reconcileTrials(ctx context.Context, target, state *pgx.Conn, identity string) error {
-	return reconcileTrialStatuses(ctx, target, state, identity, []string{"setup", "building", "verified", "declined", "vacuum_preparing"})
+	return reconcileTrialStatuses(ctx, target, state, identity, []string{"setup", "building", "verified", "declined", "vacuum_preparing", "memory_preparing"})
 }
 
 func reconcileTrialStatuses(ctx context.Context, target, state *pgx.Conn, identity string, statuses []string) error {
@@ -248,6 +249,11 @@ func cleanTrial(ctx context.Context, target, state *pgx.Conn, id string) (string
 			}
 			_, err = tx.Exec(ctx, "DROP SCHEMA "+pgx.Identifier{schema}.Sanitize()+" RESTRICT")
 			return err
+		}
+		if strings.HasPrefix(status, "memory_") {
+			if err := cleanMemoryFunction(ctx, tx, state, id, status); err != nil {
+				return err
+			}
 		}
 		index, err := inspectTrialIndex(ctx, tx, schema)
 		if err != nil {

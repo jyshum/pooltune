@@ -158,3 +158,14 @@ test("ambiguous VACUUM and statistics causes do not reach the model", async () =
  const input = { ...evidence, vacuum:{heap_fetches:1000,scan_rows:1000,conditions_clear:true},analyze:{estimated_rows:100000,actual_rows:1} };
  await assert.rejects(buildGraph(async()=>{ throw new Error("ambiguous evidence reached model"); }).invoke({evidence:input}),/one repair cause/);
 });
+
+test("memory screening requires attributed spill and bounded calls", async () => {
+ const input = { ...evidence, plan:{node:"Sort",examined_rows:100000,returned_rows:100000,shared_blocks:2000},memory:{function_oid:43,temp_bytes:14688256,internal_temp_bytes:14688256,sort_nodes:1,max_concurrent_calls:3,candidate_bytes:33554432,aggregate_bytes:100663296,current_work_mem:"4MB",candidate_work_mem:"32MB",identity_verified:true} };
+ const result=await buildGraph(scriptedInvestigator).invoke({evidence:input});
+ assert.equal(result.proposal?.repair,"memory");
+ for(const change of [{temp_bytes:0},{internal_temp_bytes:0},{sort_nodes:2},{max_concurrent_calls:4},{aggregate_bytes:33554432},{identity_verified:false},{current_work_mem:"32MB"}]) {
+  const r=await buildGraph(async()=>{throw new Error("unsafe memory reached investigator")}).invoke({evidence:{...input,memory:{...input.memory,...change}}});
+  assert.equal(r.proposal?.outcome,"no_change");
+ }
+ await assert.rejects(()=>buildGraph(scriptedInvestigator).invoke({evidence:{...input,vacuum:{heap_fetches:1000,scan_rows:1000,conditions_clear:true}}}));
+});

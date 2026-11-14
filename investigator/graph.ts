@@ -18,20 +18,21 @@ export const evidenceSchema = z.strictObject({
   lookup_column: z.literal("lookup"),
   covering_index: z.boolean(),
   plan: planSchema,
+  memory: z.strictObject({function_oid:z.number().int().positive(),temp_bytes:z.number().nonnegative(),internal_temp_bytes:z.number().nonnegative(),sort_nodes:z.number().int().positive(),max_concurrent_calls:z.number().int().positive(),candidate_bytes:z.number().int().positive(),aggregate_bytes:z.number().int().positive(),current_work_mem:z.string(),candidate_work_mem:z.string(),identity_verified:z.boolean()}).optional(),
   vacuum: z.strictObject({ heap_fetches: z.number().nonnegative(), scan_rows: z.number().int().positive(), conditions_clear: z.boolean() }).optional(),
   statistics: z.strictObject({
     correlated_columns: z.boolean(),
     cases: z.array(z.strictObject({ estimated_rows: z.number().int().positive(), actual_rows: z.number().int().positive() })).length(2),
   }).optional(),
   analyze: z.strictObject({ estimated_rows: z.number().int().positive(), actual_rows: z.number().int().positive(), sampled_lookup_fraction: z.number().min(0).max(1).optional() }).optional(),
-}).refine(e => [e.analyze,e.statistics,e.vacuum].filter(Boolean).length <= 1, "Evidence must contain at most one repair cause.");
+}).refine(e => [e.analyze,e.statistics,e.vacuum,e.memory].filter(Boolean).length <= 1, "Evidence must contain at most one repair cause.");
 
 export const proposalSchema = z.strictObject({
   outcome: z.enum(["propose", "no_change"]),
   run_id: z.string().min(1).max(64),
   table_oid: z.number().int().positive().max(4294967295),
   column_number: z.number().int().positive().max(32767),
-  repair: z.enum(["analyze", "statistics", "vacuum"]).optional(),
+  repair: z.enum(["analyze", "statistics", "vacuum", "memory"]).optional(),
   reason: z.string().min(1).max(1000),
   model_call: z.strictObject({
     model: z.string().min(1), duration_ms: z.number().nonnegative(), requests: z.literal(1),
@@ -57,6 +58,11 @@ function identity(evidence: Evidence) {
 export function buildGraph(investigate: Investigator, checkpointer?: BaseCheckpointSaver) {
   return new StateGraph(state)
     .addNode("screen_evidence", ({ evidence }) => {
+      if (evidence.memory) {
+        const m=evidence.memory;
+        if (evidence.decision === "investigate" && evidence.plan.node === "Sort" && evidence.plan.examined_rows === 100000 && evidence.plan.returned_rows === 100000 && m.identity_verified && m.temp_bytes >= 8388608 && m.internal_temp_bytes >= 8388608 && m.sort_nodes === 1 && m.max_concurrent_calls === 3 && m.candidate_bytes === 33554432 && m.aggregate_bytes === 100663296 && m.current_work_mem === "4MB" && m.candidate_work_mem === "32MB") return {};
+        return {proposal:{...identity(evidence),outcome:"no_change" as const,reason:"Attributed spill or bounded function-memory evidence is insufficient."}};
+      }
       if (evidence.vacuum) {
         const v = evidence.vacuum;
         if (evidence.decision === "investigate" && evidence.covering_index && evidence.plan.node === "Index Only Scan" &&

@@ -19,13 +19,14 @@ export function summarizeTraffic(samples: RequestSample[], offered: number, seco
 }
 
 export function trafficCase(repair: string, candidate: string) {
-  assert(["index", "analyze", "statistics", "vacuum"].includes(repair));
+  assert(["index", "analyze", "statistics", "vacuum", "memory"].includes(repair));
   return {
-    sql: repair === "vacuum" ? `SELECT sum(lookup) FROM ONLY ${candidate} WHERE lookup >= $1 AND lookup <= $2`
+    sql: repair === "memory" ? `SELECT ${candidate.replace(/\."candidate"$/,'."pooltune_memory_sum"')}() AS sum` : repair === "vacuum" ? `SELECT sum(lookup) FROM ONLY ${candidate} WHERE lookup >= $1 AND lookup <= $2`
       : `SELECT id FROM ${repair === "index" ? "" : "ONLY "}${candidate} WHERE lookup=$1` + (repair === "statistics" ? " AND padding=$2" : ""),
-    input: (tick: number) => repair === "vacuum" ? [1,50000] : repair === "statistics" ? [1 + tick % 2, tick % 2 ? "a" : "b"] : [43],
+    input: (tick: number) => repair === "memory" ? [] : repair === "vacuum" ? [1,50000] : repair === "statistics" ? [1 + tick % 2, tick % 2 ? "a" : "b"] : [43],
     check: (rows: any[], tick: number) => {
-      if (repair === "vacuum") { assert.equal(rows.length,1); assert.equal(String(rows[0]?.sum),"1250025000"); }
+      if (repair === "memory") { assert.equal(rows.length,1); assert.equal(String(rows[0]?.sum),"5000050000"); }
+      else if (repair === "vacuum") { assert.equal(rows.length,1); assert.equal(String(rows[0]?.sum),"1250025000"); }
       else if (repair === "statistics") {
         const first = tick % 2 ? 101 : 1; const length = tick % 2 ? 300 : 100;
         const ids = rows.map(r => r.id).sort((a,b) => a-b);
@@ -38,6 +39,24 @@ export function vacuumObjective(measured: number[]) {
   assert.equal(measured.length,10);
   assert(measured.every(v => Number.isFinite(v) && v > 0));
   return Math.max(3,1.5 * measured.reduce((n,v) => n+v,0)/measured.length);
+}
+
+export function memoryObjective(measured:number[]) {
+  assert.equal(measured.length,10);
+  assert(measured.every(v=>Number.isFinite(v) && v>0));
+  return Math.max(3,1.25*measured.reduce((n,v)=>n+v,0)/measured.length);
+}
+export function trafficCadence(repair:string,lane:number) {
+  return repair === "memory" && lane < 2 ? 2000 : lane === 3 ? 500 : 250;
+}
+
+// Only the Go diagnostic vocabulary enters reports. Configuration/parser errors
+// and arbitrary child stderr can contain private connection details and are omitted.
+export function recordWorkerDiagnostic(lines: string[], binary: string, raw: string) {
+  if (lines.length >= 40 || !["pooltune-worker", "pooltune-consumer"].includes(binary)) return;
+  const line = raw.trim();
+  if (line.length > 160 || !/^(consumer attempt|connect worker target|verify dedicated detector identity|connect worker state|configure worker|prepare worker state|poll worker) (failed(?: \(SQLSTATE [A-Z0-9]{5}\))?|timed out)$/.test(line)) return;
+  lines.push(`${binary}: ${line}`.slice(0, 200));
 }
 
 async function command(args: string[]) {
@@ -53,7 +72,7 @@ async function command(args: string[]) {
 
 async function main() {
   const repair = process.argv[2];
-  assert(["index", "analyze", "statistics", "vacuum"].includes(repair), "choose a supported fixture repair");
+  assert(["index", "analyze", "statistics", "vacuum", "memory"].includes(repair), "choose a supported fixture repair");
   assert.equal(process.env.POOLTUNE_STAGING_PRIVATE_STATE, "1");
   assert(process.env.ANTHROPIC_API_KEY && process.env.POOLTUNE_ANTHROPIC_MODEL);
   const config = new URL(process.env.POOLTUNE_LAB_TARGET_DSN!);
@@ -72,6 +91,7 @@ async function main() {
   let children: ChildProcess[] = [];
   const childResults: any[] = [];
   const childFailures: number[] = [];
+  const workerDiagnostics: string[] = [];
   const clients: pg.Client[] = [];
   const phases: any[] = [];
   const output: any = { repair, phases };
@@ -97,7 +117,16 @@ async function main() {
         if (line.startsWith("{")) childResults.push(JSON.parse(line));
       }
     });
-    child.stderr.resume();
+    let diagnosticBuffer = "";
+    child.stderr.on("data", chunk => {
+      diagnosticBuffer = (diagnosticBuffer + chunk.toString()).slice(-4096);
+      let newline;
+      while ((newline = diagnosticBuffer.indexOf("\n")) >= 0) {
+        recordWorkerDiagnostic(workerDiagnostics, binary, diagnosticBuffer.slice(0, newline));
+        diagnosticBuffer = diagnosticBuffer.slice(newline + 1);
+      }
+    });
+    child.on("exit", () => recordWorkerDiagnostic(workerDiagnostics, binary, diagnosticBuffer));
     child.on("error", () => { childFailures.push(-1); });
     child.on("exit", code => { if (code) childFailures.push(code); });
     children.push(child);
@@ -126,7 +155,7 @@ async function main() {
     const queryIDs = fixture.enrollment.queries.map((q: any) => q.query_id);
     const extension = (await admin.query("SELECT n.nspname FROM pg_extension e JOIN pg_namespace n ON n.oid=e.extnamespace WHERE e.extname='pg_stat_statements'")).rows[0].nspname;
     assert.match(extension, /^[a-z_]+$/);
-    const counterSQL = `SELECT queryid::text,calls::float8,total_exec_time,shared_blks_hit::float8+shared_blks_read::float8 AS blocks FROM "${extension}".pg_stat_statements WHERE dbid=(SELECT oid FROM pg_database WHERE datname=current_database()) AND userid=current_user::regrole::oid AND toplevel AND (queryid=ANY($1::bigint[]) OR query LIKE $2 OR query LIKE '%JOIN unnest($2::oid[], $3::bigint[]) AS enrolled%')`;
+    const counterSQL = `SELECT queryid::text,calls::float8,total_exec_time,temp_blks_written::float8 AS temp_blocks,shared_blks_hit::float8+shared_blks_read::float8 AS blocks FROM "${extension}".pg_stat_statements WHERE dbid=(SELECT oid FROM pg_database WHERE datname=current_database()) AND userid=current_user::regrole::oid AND toplevel AND (queryid=ANY($1::bigint[]) OR query LIKE $2 OR query LIKE '%JOIN unnest($2::oid[], $3::bigint[]) AS enrolled%')`;
     const snapshot = async () => (await admin.query(counterSQL, [queryIDs, `%${schema}%`])).rows;
     const jobs = async () => (await state.query("SELECT id,created_at,finished_at,result,attempts FROM pooltune_worker.investigations WHERE project_id=$1 ORDER BY id", [fixture.enrollment.project])).rows;
     function startWorkers() {
@@ -134,13 +163,13 @@ async function main() {
       const flag = repair === "index" ? "repair" : repair;
       launch("pooltune-consumer", ["-target", "rookery", "-project", fixture.enrollment.project, "-fixture", fixture.id, "-mode", "anthropic", `-${flag}-staging-fixture`]);
     }
-    // Four independent sessions offer eight target reads, four healthy reads and two value-changing writes per second.
+    // Two target sessions share the declared rate; healthy reads stay at four/s and writes at two/s.
     const kinds = ["target", "target", "healthy", "write"];
     for (let i = 0; i < kinds.length; i++) {
       const client = new pg.Client(targetOptions); client.on("error", () => {});
       await client.connect(); clients.push(client);
       await client.query(`SET lock_timeout='250ms'; SET statement_timeout='1500ms'; SET max_parallel_workers_per_gather=0; SET random_page_cost=${repair === "vacuum" ? 1 : 5}`);
-      if (repair !== "vacuum") await client.query("SET enable_bitmapscan=off");
+      if (repair !== "vacuum" && repair !== "memory") await client.query("SET enable_bitmapscan=off");
     }
     await admin.query("SET lock_timeout='250ms'; SET statement_timeout='5s'");
     async function createBaselineIndex() {
@@ -154,6 +183,8 @@ async function main() {
           await admin.query(`DROP INDEX "${schema}".pooltune_lookup_idx RESTRICT`);
           baselineIndexOID = null;
         } else await createBaselineIndex();
+      } else if (repair === "memory") {
+        await admin.query(`ALTER FUNCTION "${schema}"."pooltune_memory_sum"() SET work_mem='${slow ? "4MB" : "32MB"}'`);
       } else if (repair === "vacuum") {
         if (slow) await admin.query(`UPDATE ONLY ${candidate} SET padding=CASE padding WHEN repeat('p',64) THEN repeat('q',64) ELSE repeat('p',64) END`);
         else {
@@ -165,21 +196,28 @@ async function main() {
         await Promise.all(clients.slice(0, 2).map(c => c.query(`SET enable_seqscan=${slow ? "on" : "off"}`)));
       }
     }
-    if (repair === "analyze" || repair === "statistics") await setSlow(false);
-    if (repair === "vacuum") {
+    if (repair === "analyze" || repair === "statistics" || repair === "memory") await setSlow(false);
+    if (repair === "vacuum" || repair === "memory") {
       const baseline: number[] = [];
       const warm = await clients[0].query(targetSQL,workload.input(0)); workload.check(warm.rows,0);
       for (let i=0;i<10;i++) {
         const result = await clients[0].query("EXPLAIN (ANALYZE,BUFFERS,FORMAT JSON,TIMING OFF) " + targetSQL,workload.input(0));
         const plan = result.rows[0]["QUERY PLAN"][0];
-        assert.equal(plan.Plan.Plans[0]["Node Type"],"Index Only Scan");
-        assert.equal(plan.Plan.Plans[0]["Heap Fetches"],0);
+        if (repair === "memory") {
+          assert.equal(plan.Plan["Node Type"],"Result");
+          assert.equal(plan.Plan["Temp Written Blocks"],0);
+        } else {
+          assert.equal(plan.Plan.Plans[0]["Node Type"],"Index Only Scan");
+          assert.equal(plan.Plan.Plans[0]["Heap Fetches"],0);
+        }
         baseline.push(plan["Execution Time"]);
       }
-      objective = vacuumObjective(baseline);
+      objective = repair === "memory" ? memoryObjective(baseline) : vacuumObjective(baseline);
       output.healthy_calibration_ms = baseline;
-      output.benefit_gates = { minimum_ms:5, minimum_fraction:.2, noise_multiple:3, minimum_heap_reduction:.5 };
+      output.benefit_gates = { minimum_ms:5, minimum_fraction:.2, noise_multiple:3, ...(repair === "memory" ? {minimum_temp_write_reduction:.5} : {minimum_heap_reduction:.5}) };
+      if (repair === "memory") output.memory_budget={per_sort_bytes:33554432,sort_nodes:1,max_concurrent_calls:3,aggregate_bytes:100663296,production_headroom:"unknown"};
     }
+    output.target_calls_per_second=repair === "memory" ? 1 : 8;
     output.objective_ms = objective;
     for (const [i,q] of fixture.enrollment.queries.entries()) q.mean_execution_ms = i === 1 ? objective : 3;
     writeFileSync(enrollment, JSON.stringify(fixture.enrollment), { mode: 0o600 });
@@ -190,8 +228,8 @@ async function main() {
       const start = performance.now();
       const at = new Date().toISOString();
       await Promise.all(clients.map(async (client, lane) => {
-        const cadence = lane === 3 ? 500 : 250;
-        const offset = lane * 35;
+        const cadence = trafficCadence(repair,lane);
+        const offset = repair === "memory" && lane < 2 ? lane * 1000 : lane * 35;
         for (let tick = 0; offset + tick * cadence < seconds * 1000; tick++) {
           offered[lane]++;
           const scheduled = start + offset + tick * cadence;
@@ -216,7 +254,7 @@ async function main() {
       const after = await snapshot();
       const delta = after.map(row => {
         const old = before.find(b => b.queryid === row.queryid);
-        return { query_id: row.queryid, calls: row.calls-(old?.calls ?? 0), execution_ms: row.total_exec_time-(old?.total_exec_time ?? 0), blocks: row.blocks-(old?.blocks ?? 0) };
+        return { query_id: row.queryid, calls: row.calls-(old?.calls ?? 0), execution_ms: row.total_exec_time-(old?.total_exec_time ?? 0), blocks: row.blocks-(old?.blocks ?? 0), temp_bytes:8192*(row.temp_blocks-(old?.temp_blocks ?? 0)) };
       }).filter(row => row.calls > 0);
       const summary: any = { name, start: at, seconds: wall, counters: delta, requests: {} };
       for (const kind of new Set(kinds)) {
@@ -261,6 +299,7 @@ async function main() {
     output.after_database_mean_ms = meanFor(afterRepair);
     assert(output.after_database_mean_ms < objective && output.after_database_mean_ms < output.before_database_mean_ms, "ongoing target traffic did not recover below its objective");
     output.worker_failures = childFailures;
+    output.worker_diagnostics = workerDiagnostics;
     output.detector_windows = childResults.flatMap(r => r.windows ?? []);
     output.process_results = childResults.filter(r => r.job_id);
     assert.equal(output.jobs.length, 1, "expected one sustained-slowdown job");
@@ -279,6 +318,7 @@ async function main() {
   } finally {
     await stopWorkers();
     output.worker_failures = childFailures;
+    output.worker_diagnostics = workerDiagnostics;
     output.detector_windows = childResults.flatMap(r => r.windows ?? []);
     output.process_results = childResults.filter(r => r.job_id);
     output.traffic_errors = phases.reduce((sum, phase) => sum + Object.values(phase.requests).reduce((n: number, r: any) => n + r.errors, 0), 0);

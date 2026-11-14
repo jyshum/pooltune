@@ -24,6 +24,7 @@ func main() {
 	recoverOnly := flag.Bool("recover-index-trials", false, "reconcile interrupted fixture runs")
 	trafficTrial := flag.Bool("worker-traffic", false, "observe a bounded read-only traffic stream from another session")
 	investigation := flag.String("worker-investigation", "", "investigate the queued traffic job: anthropic or scripted")
+	memoryFixture := flag.Bool("memory-fixture", false, "seed a private function with bounded sort memory")
 	vacuumFixture := flag.Bool("vacuum-fixture", false, "seed an indexed visibility fixture for bounded plain VACUUM")
 	statisticsFixture := flag.Bool("statistics-fixture", false, "seed correlated lookup columns for a staging fixture")
 	analyzeFixture := flag.Bool("analyze-fixture", false, "seed stale lookup statistics when creating a staging fixture")
@@ -42,7 +43,7 @@ func main() {
 		fmt.Fprintln(os.Stderr, "choose scripted or anthropic worker investigation with -worker-traffic")
 		os.Exit(2)
 	}
-	if (*analyzeFixture || *statisticsFixture || *vacuumFixture) && (!*createConsumer || *route != "rookery" || os.Getenv("POOLTUNE_STAGING_PRIVATE_STATE") != "1" || (*analyzeFixture && *statisticsFixture) || (*vacuumFixture && (*analyzeFixture || *statisticsFixture))) {
+	if (*analyzeFixture || *statisticsFixture || *vacuumFixture || *memoryFixture) && (!*createConsumer || *route != "rookery" || os.Getenv("POOLTUNE_STAGING_PRIVATE_STATE") != "1" || (*analyzeFixture && *statisticsFixture) || (*vacuumFixture && (*analyzeFixture || *statisticsFixture)) || (*memoryFixture && (*analyzeFixture || *statisticsFixture || *vacuumFixture))) {
 		fmt.Fprintln(os.Stderr, "statistics fixtures require Rookery, Railway private state, and one selected fixture")
 		os.Exit(2)
 	}
@@ -59,7 +60,7 @@ func main() {
 		os.Exit(2)
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 65*time.Second)
-	err := run(ctx, *route, *trial, *recoverOnly, *trafficTrial, *investigation, *createConsumer, *removeConsumer, *pauseAfterBuild, *analyzeFixture, *statisticsFixture, *vacuumFixture)
+	err := run(ctx, *route, *trial, *recoverOnly, *trafficTrial, *investigation, *createConsumer, *removeConsumer, *pauseAfterBuild, *analyzeFixture, *statisticsFixture, *vacuumFixture, *memoryFixture)
 	cancel()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -67,7 +68,7 @@ func main() {
 	}
 }
 
-func run(ctx context.Context, route string, trial string, recoverOnly, trafficTrial bool, investigation string, createConsumer bool, removeConsumer string, pauseAfterBuild, analyzeFixture, statisticsFixture, vacuumFixture bool) error {
+func run(ctx context.Context, route string, trial string, recoverOnly, trafficTrial bool, investigation string, createConsumer bool, removeConsumer string, pauseAfterBuild, analyzeFixture, statisticsFixture, vacuumFixture, memoryFixture bool) error {
 	stateConfig, err := labdb.StateConfig(os.Getenv("POOLTUNE_LAB_STATE_DSN"))
 	if err != nil {
 		return fmt.Errorf("state configuration: %w", err)
@@ -104,7 +105,9 @@ func run(ctx context.Context, route string, trial string, recoverOnly, trafficTr
 	identity := route
 	if createConsumer {
 		create := hostedquery.CreateConsumerFixture
-		if vacuumFixture {
+		if memoryFixture {
+			create = hostedquery.CreateMemoryFixture
+		} else if vacuumFixture {
 			create = hostedquery.CreateVacuumFixture
 		} else if analyzeFixture {
 			create = hostedquery.CreateAnalyzeFixture

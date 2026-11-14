@@ -36,6 +36,7 @@ type DispatchResult struct {
 	ElapsedMS        float64                  `json:"elapsed_ms"`
 	TargetPlanMS     float64                  `json:"target_plan_ms,omitempty"`
 	RecoveredIndex   string                   `json:"recovered_index,omitempty"`
+	Memory           *MemoryReport            `json:"memory,omitempty"`
 	Vacuum           *VacuumReport            `json:"vacuum,omitempty"`
 	Statistics       *StatisticsReport        `json:"statistics,omitempty"`
 	Analyze          *AnalyzeReport           `json:"analyze,omitempty"`
@@ -126,7 +127,13 @@ func DispatchInvestigation(ctx context.Context, state *pgx.Conn, project string,
 
 func runIndexInvestigator(ctx context.Context, claim investigationClaim, result *DispatchResult, evidence IndexEvidence, investigate IndexInvestigator) error {
 	now := time.Now()
-	if evidence.Decision != Investigate || evidence.At.IsZero() || evidence.At.After(now) ||
+	causes := 0
+	for _, present := range []bool{evidence.Memory != nil, evidence.Vacuum != nil, evidence.Statistics != nil, evidence.Analyze != nil} {
+		if present {
+			causes++
+		}
+	}
+	if causes > 1 || evidence.Decision != Investigate || evidence.At.IsZero() || evidence.At.After(now) ||
 		now.Sub(evidence.At) > 30*time.Second || evidence.TableOID == 0 || evidence.Column <= 0 ||
 		evidence.Label != "lookup" || evidence.Plan.Node == "" {
 		result.Outcome = "insufficient_evidence"
@@ -152,6 +159,9 @@ func runIndexInvestigator(ctx context.Context, claim investigationClaim, result 
 }
 
 func expectedRepair(evidence IndexEvidence) string {
+	if evidence.Memory != nil {
+		return "memory"
+	}
 	if evidence.Vacuum != nil {
 		return "vacuum"
 	}

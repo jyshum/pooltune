@@ -89,7 +89,9 @@ func createConsumerFixture(ctx context.Context, target, state *pgx.Conn, route, 
 		if err := writeTrialStatus(ctx, state, report.ID, repair+"_preparing", nil, nil); err != nil {
 			return report, err
 		}
-		if repair == "vacuum" {
+		if repair == "memory" {
+			err = seedMemoryFixture(ctx, target, state, report.ID)
+		} else if repair == "vacuum" {
 			err = seedVacuumFixture(ctx, target, report.Schema)
 		} else if repair == "statistics" {
 			report.OrdinaryAnalyzeMS, err = seedCorrelatedFixture(ctx, target, report.Schema)
@@ -109,7 +111,9 @@ func createConsumerFixture(ctx context.Context, target, state *pgx.Conn, route, 
 			sql := "SELECT id FROM " + source + qualified(report.Schema, lookup.table) + " WHERE " + lookup.column + "=$1"
 			var plan explain
 			var err error
-			if repair == "vacuum" && lookup.table == "candidate" {
+			if repair == "memory" && lookup.table == "candidate" {
+				plan, err = readLookupPlan(ctx, tx, "EXPLAIN (FORMAT JSON, VERBOSE) "+memoryQuery(report.Schema))
+			} else if repair == "vacuum" && lookup.table == "candidate" {
 				plan, err = readLookupPlan(ctx, tx, "EXPLAIN (FORMAT JSON, VERBOSE) "+vacuumQuery(report.Schema), int32(1), int32(50000))
 			} else if repair == "statistics" && lookup.table == "candidate" {
 				plan, err = readStatisticsPlan(ctx, tx, report.Schema, statisticsCases[0])
@@ -129,7 +133,13 @@ func createConsumerFixture(ctx context.Context, target, state *pgx.Conn, route, 
 		return nil
 	})
 	if err == nil {
-		if repair == "vacuum" {
+		if repair == "memory" {
+			fn, e := expectedMemoryFunction(ctx, state, report.ID)
+			err = e
+			if err == nil {
+				err = writeMemoryStatus(ctx, state, status, &MemoryReport{Fixture: report.ID, Function: fn, OriginalWorkMem: memoryOriginal, AppliedWorkMem: memoryCandidate})
+			}
+		} else if repair == "vacuum" {
 			var oid uint32
 			err = target.QueryRow(ctx, "SELECT to_regclass($1)::oid", qualified(report.Schema, trialIndex)).Scan(&oid)
 			if err == nil {
