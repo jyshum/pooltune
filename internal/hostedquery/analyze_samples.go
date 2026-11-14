@@ -16,8 +16,9 @@ const (
 )
 
 type AnalyzeEvidence struct {
-	EstimatedRows int64 `json:"estimated_rows"`
-	ActualRows    int64 `json:"actual_rows"`
+	SampledValueFraction *float64 `json:"sampled_lookup_fraction,omitempty"`
+	EstimatedRows        int64    `json:"estimated_rows"`
+	ActualRows           int64    `json:"actual_rows"`
 }
 
 type AnalyzeSample struct {

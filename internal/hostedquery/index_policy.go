@@ -21,13 +21,22 @@ type IndexEvidence struct {
 }
 
 // IndexProposal refers to evidence by identity. Only Go resolves identifiers.
+type ModelCall struct {
+	Model        string  `json:"model"`
+	DurationMS   float64 `json:"duration_ms"`
+	Requests     int     `json:"requests"`
+	InputTokens  *int    `json:"input_tokens,omitempty"`
+	OutputTokens *int    `json:"output_tokens,omitempty"`
+}
+
 type IndexProposal struct {
-	Repair   string `json:"repair,omitempty"`
-	Outcome  string `json:"outcome"`
-	RunID    string `json:"run_id"`
-	TableOID uint32 `json:"table_oid"`
-	Column   int16  `json:"column_number"`
-	Reason   string `json:"reason"`
+	ModelCall *ModelCall `json:"model_call,omitempty"`
+	Repair    string     `json:"repair,omitempty"`
+	Outcome   string     `json:"outcome"`
+	RunID     string     `json:"run_id"`
+	TableOID  uint32     `json:"table_oid"`
+	Column    int16      `json:"column_number"`
+	Reason    string     `json:"reason"`
 }
 
 func qualifyIndex(e IndexEvidence, p IndexProposal, now time.Time) error {

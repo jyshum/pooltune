@@ -28,6 +28,7 @@
 
 ## Global constraints
 
+- Live Claude qualification is required for every repair capability. Jared explicitly requested this on November 14 after Task 21. Tool tests and scripted runs remain useful checks. Each capability also needs a real model decision through the shared investigator, healthy and unsupported controls, the authorized Go action and verification, and separately reported model and total timings. Record a missing live check as incomplete.
 - Exactly six V1 repairs. The first slice qualifies a nonunique index for a single-column equality lookup on synthetic data. Compound indexes remain in V1 scope and need separate qualification. The other V1 operations remain targeted ANALYZE, extended/column statistics, bounded plain VACUUM and qualified cleanup settings, enrolled function-scoped work_mem, and enrolled future Cron scheduling.
 - Preserve exclusions for pool and WAL/checkpoint tuning, index rebuilds and customer-index deletion, arbitrary SQL and application/RLS rewrites, killing customer work, compute purchases, replicas and migrations. Restrict operations to authorized projects and enrolled objects.
 - Preserve upfront capability grants, relevant evidence access, encrypted production transport/storage, account isolation, retention, and evidence reuse. Avoid redundant experiments and copying application tables. Adapt scheduling to current capacity and optional owner windows; missing guards defer heavy work.
@@ -230,10 +231,12 @@ Depends on Task 20. Follows d-workflow r1, d-reuse r1, and repair 3 of the V1 de
 
 Next milestone, ahead of another repair type. Jared identified the missing live decision test after Task 21. Tasks 17–21 verified scripted workflows and database operations. Tasks 20–21 return their recommendations in graph screening before invoking the investigator. Their timings establish no Claude decision latency or diagnosis quality.
 
-- [ ] Extend the live investigator evidence and structured response to cover the implemented index, targeted ANALYZE and richer-statistics operations. Give it the measured cause evidence and eligible choices. Keep Go responsible for admission, current permissions, bounded execution and verification. Document the prompt, evidence available to the model and which decisions remain deterministic.
-- [ ] Evaluate live decisions on supported examples, ambiguous causes, misleading evidence and healthy controls. Record which controls screening closes, which cases reach Claude, the actual request count and whether each answer matches the evidence. Verify failure, timeout and unsupported recommendations stop mutation.
-- [ ] Exercise the hosted path with live Claude on authorized Rookery fixtures. Measure evidence collection, model request, graph overhead, action, verification and total elapsed time. Save model identity and token usage when returned. Verify the proposed action and measured outcome through the same Go executor, then clean up.
-- [ ] Update the repair reports with the live results and remaining limitations before continuing to bounded VACUUM. A scripted graph run alone does not complete this milestone.
+- [x] Extend the live investigator evidence and structured response to cover the implemented index, targeted ANALYZE and richer-statistics operations. Give it the measured cause evidence and eligible choices. Keep Go responsible for admission, current permissions, bounded execution and verification. Document the prompt, evidence available to the model and which decisions remain deterministic.
+- [x] Evaluate live decisions on supported examples, ambiguous causes, misleading evidence and healthy controls. Record which controls screening closes, which cases reach Claude, the actual request count and whether each answer matches the evidence. Verify failure, timeout and unsupported recommendations stop mutation.
+- [x] Exercise the hosted path with live Claude on authorized Rookery fixtures. Measure evidence collection, model request, graph overhead, action, verification and total elapsed time. Save model identity and token usage when returned. Verify the proposed action and measured outcome through the same Go executor, then clean up.
+- [x] Update the repair reports with the live results and remaining limitations before continuing to bounded VACUUM. A scripted graph run alone does not complete this milestone.
+
+Results and trade-offs are recorded in [Live Claude repairs](live-repairs.md). Live diagnosis remains bounded by the fixture evidence and Go admission checks.
 
 ## Candidate test application inspection (historical)
 

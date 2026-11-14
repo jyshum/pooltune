@@ -1,5 +1,13 @@
 # Design progress
 
+## Live Claude repair integration, November 14, 2026
+
+Jared authorized connecting Claude to all three implemented repairs, testing the full Rookery/Railway flow, documenting results and committing on the revamp branch. He also required live Claude tests for the remaining repair tools. The shared prompt now describes all three implemented operations and their evidence requirements. Qualified statistics cases proceed to the investigator, which may propose a typed operation or decline. Go validates identity and repair eligibility before execution. Model timing and token counts come from the adapter and provider response.
+
+Railway jobs 41, 52 and 48 selected index, targeted ANALYZE and joint statistics respectively, with one real Claude request each. Model requests took 2.075, 2.671 and 2.384 seconds. Go applied and verified each operation. The first ANALYZE decision declined because its evidence was insufficient. Adding the exact stored value frequency let Claude justify the refresh. Five final-prompt live controls declined. Local PostgreSQL and graph tests cover routing, invalid proposals, declines and provider failure. Independent review found the added rejection-test gap and verified its resolution. [Live results and limitations](live-repairs.md)
+
+This slice reuses the existing fixture adapters. Go still collects evidence for a prequalified cause and rejects a proposed operation that does not match that evidence. Broader diagnosis and model-requested evidence collection across competing causes remain future work. The live model request uses the existing single-call approach and timeout, while the bounded Go tools retain execution and recovery responsibility.
+
 ## Live investigator coverage correction, November 14, 2026
 
 Jared asked why the new repairs had no Claude call and whether the tests measured the agent's decision speed. Inspection confirmed that the original index slice and early worker investigations used live Anthropic. Subsequent hosted repair runs used scripted decisions. The ANALYZE and richer-statistics branches return a deterministic proposal from `screen_evidence`, bypassing the investigator even when the graph is constructed with the Anthropic adapter. Its prompt and model response currently support only the index recommendation.

@@ -14,11 +14,17 @@ import (
 )
 
 func TestQueuedAnalyzeRefreshesOnlyTheEnrolledColumn(t *testing.T) {
-	t.Run("qualifying stale statistics", func(t *testing.T) { exerciseQueuedAnalyze(t, false) })
-	t.Run("already refreshed", func(t *testing.T) { exerciseQueuedAnalyze(t, true) })
+	t.Run("qualifying stale statistics", func(t *testing.T) { exerciseQueuedAnalyze(t, false, "") })
+	t.Run("already refreshed", func(t *testing.T) { exerciseQueuedAnalyze(t, true, "") })
 }
 
-func exerciseQueuedAnalyze(t *testing.T, refreshWhileInvestigating bool) {
+func TestQueuedAnalyzeRejectsUnsafeModelOutcomes(t *testing.T) {
+	for _, outcome := range []string{"wrong repair", "wrong identity", "decline", "timeout"} {
+		t.Run(outcome, func(t *testing.T) { exerciseQueuedAnalyze(t, false, outcome) })
+	}
+}
+
+func exerciseQueuedAnalyze(t *testing.T, refreshWhileInvestigating bool, modelOutcome string) {
 	ctx, config, _ := testpg.Start(t, "-c", "shared_preload_libraries=pg_stat_statements")
 	target, err := pgx.ConnectConfig(ctx, config)
 	if err != nil {
@@ -75,8 +81,13 @@ func exerciseQueuedAnalyze(t *testing.T, refreshWhileInvestigating bool) {
 			t.Fatal(err)
 		}
 	}
+	var analysesBefore int64
+	countAnalyses := "SELECT coalesce(sum(calls),0) FROM pg_stat_statements WHERE query LIKE 'ANALYZE %' AND query LIKE $1"
+	if err := target.QueryRow(ctx, countAnalyses, "%"+fixture.Schema+"%").Scan(&analysesBefore); err != nil {
+		t.Fatal(err)
+	}
 	result, err := DispatchFixtureAnalyze(ctx, state, config, "local", fixture, func(_ context.Context, e IndexEvidence) (IndexProposal, error) {
-		if e.Analyze == nil || e.Analyze.EstimatedRows < 10 || e.Analyze.ActualRows != 1 || !e.Existing {
+		if e.Analyze == nil || e.Analyze.SampledValueFraction == nil || *e.Analyze.SampledValueFraction != 1 || e.Analyze.EstimatedRows < 10 || e.Analyze.ActualRows != 1 || !e.Existing {
 			return IndexProposal{}, fmt.Errorf("wrong or unmeasured analyze evidence: %+v", e)
 		}
 		if refreshWhileInvestigating {
@@ -84,8 +95,33 @@ func exerciseQueuedAnalyze(t *testing.T, refreshWhileInvestigating bool) {
 				return IndexProposal{}, err
 			}
 		}
-		return IndexProposal{Outcome: "propose", Repair: "analyze", RunID: e.RunID, TableOID: e.TableOID, Column: e.Column, Reason: "stale lookup statistics"}, nil
+		p := IndexProposal{Outcome: "propose", Repair: "analyze", RunID: e.RunID, TableOID: e.TableOID, Column: e.Column, Reason: "stale lookup statistics"}
+		switch modelOutcome {
+		case "wrong repair":
+			p.Repair = "statistics"
+		case "wrong identity":
+			p.TableOID++
+		case "decline":
+			p.Outcome, p.Repair = "no_change", ""
+		case "timeout":
+			return IndexProposal{}, context.DeadlineExceeded
+		}
+		return p, nil
 	})
+	if modelOutcome != "" {
+		if modelOutcome == "decline" {
+			if err != nil || result == nil || result.Outcome != "no_change" || result.Analyze.AnalyzeMS != 0 {
+				t.Fatalf("decline: %+v %v", result, err)
+			}
+		} else if err == nil || result != nil {
+			t.Fatalf("invalid model answer accepted: %+v %v", result, err)
+		}
+		var analysesAfter int64
+		if err := target.QueryRow(ctx, countAnalyses, "%"+fixture.Schema+"%").Scan(&analysesAfter); err != nil || analysesAfter != analysesBefore {
+			t.Fatalf("unexpected database action: %d -> %d, %v", analysesBefore, analysesAfter, err)
+		}
+		return
+	}
 	if err != nil || result == nil || result.Analyze == nil {
 		t.Fatalf("queued analyze: %+v, %v", result, err)
 	}

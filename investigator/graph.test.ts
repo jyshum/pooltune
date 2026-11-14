@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { buildGraph, type Evidence } from "./graph.ts";
-import { buildSingleCallInvestigator, anthropicInvestigator } from "./model.ts";
+import { buildSingleCallInvestigator, anthropicInvestigator, scriptedInvestigator } from "./model.ts";
 
 const evidence: Evidence = {
   run_id: "fixture", observed_at: "2026-11-13T07:00:00Z", decision: "investigate",
@@ -74,7 +74,7 @@ test("the default graph makes one request containing both pieces of evidence", a
     requests.push(String(init?.body));
     const body = JSON.parse(requests.at(-1)!);
     const toolName = body.tools[0].name;
-    assert.equal(toolName, "index_recommendation");
+    assert.equal(toolName, "repair_recommendation");
     return Response.json({
       id: "msg_fixture", type: "message", role: "assistant", model: "claude-haiku-5-5",
       content: [{ type: "tool_use", id: "toolu_fixture", name: toolName,
@@ -86,6 +86,11 @@ test("the default graph makes one request containing both pieces of evidence", a
   const result = await buildGraph(anthropicInvestigator).invoke({ evidence });
   assert.equal(result.proposal?.outcome, "propose");
   assert.equal(requests.length, 1);
+  assert.equal(result.proposal?.model_call?.requests, 1);
+  assert.equal(result.proposal?.model_call?.model, "claude-haiku-5-5");
+  assert.equal(result.proposal?.model_call?.input_tokens, 1);
+  assert.equal(result.proposal?.model_call?.output_tokens, 1);
+  assert.ok(result.proposal!.model_call!.duration_ms >= 0);
   const request = JSON.parse(requests[0]);
   const content = request.messages[0].content;
   const payload = JSON.parse(typeof content === "string" ? content : content[0].text);
@@ -93,22 +98,41 @@ test("the default graph makes one request containing both pieces of evidence", a
   assert.deepEqual(payload.indexes, { covering_index: false });
 });
 
-test("the shared graph recommends targeted ANALYZE only for a material row estimate error", async () => {
-  const graph = buildGraph(async () => { throw new Error("index model should not be called"); });
+test("eligible ANALYZE evidence reaches the investigator and weak evidence closes early", async () => {
+  let calls = 0;
+  const graph = buildGraph(async (read, input) => { calls++; return scriptedInvestigator(read, input); });
   const stale = { ...evidence, covering_index: true, analyze: { estimated_rows: 100000, actual_rows: 1 } };
   const proposed = await graph.invoke({ evidence: stale });
   assert.equal(proposed.proposal?.outcome, "propose");
   assert.equal(proposed.proposal?.repair, "analyze");
   assert.equal(proposed.proposal?.table_oid, 42);
+  assert.equal(calls, 1);
   const current = await graph.invoke({ evidence: { ...stale, analyze: { estimated_rows: 2, actual_rows: 1 } } });
   assert.equal(current.proposal?.outcome, "no_change");
 });
 
-test("the shared graph requires two measured errors and a correlation clue for richer statistics", async () => {
-  const graph = buildGraph(async () => { throw new Error("index model should not be called"); });
+test("eligible joint statistics reaches the investigator and unsupported evidence closes early", async () => {
+  let calls = 0;
+  const graph = buildGraph(async (read, input) => { calls++; return scriptedInvestigator(read, input); });
   const statistics = { correlated_columns: true, cases: [{ estimated_rows: 25000, actual_rows: 1 }, { estimated_rows: 24999, actual_rows: 1 }] };
   const result = await graph.invoke({ evidence: { ...evidence, statistics } });
   assert.equal(result.proposal?.repair, "statistics");
+  assert.equal(calls, 1);
   const unsupported = await graph.invoke({ evidence: { ...evidence, statistics: { ...statistics, correlated_columns: false } } });
   assert.equal(unsupported.proposal?.outcome, "no_change");
+});
+
+test("the model can decline either statistics repair and errors propagate without a proposal", async () => {
+  for (const details of [
+    { analyze: { estimated_rows: 100000, actual_rows: 1 } },
+    { statistics: { correlated_columns: true, cases: [{ estimated_rows: 25000, actual_rows: 100 }, { estimated_rows: 25000, actual_rows: 300 }] } },
+  ]) {
+    const input = { ...evidence, covering_index: true, ...details };
+    const graph = buildGraph(async (read) => {
+      read("plan"); read("indexes");
+      return { outcome: "no_change", run_id: "fixture", table_oid: 42, column_number: 2, reason: "Insufficient causal evidence" };
+    });
+    assert.equal((await graph.invoke({ evidence: input })).proposal?.outcome, "no_change");
+    await assert.rejects(buildGraph(async () => { throw new Error("provider timeout"); }).invoke({ evidence: input }), /provider timeout/);
+  }
 });

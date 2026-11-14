@@ -1,5 +1,7 @@
 # One queue-driven index repair
 
+A later hosted run exercised this repair with a real Claude decision. Its timings, controls and results are recorded in [Live Claude repairs](live-repairs.md).
+
 The earlier work established two separate paths. The Railway detector and consumer could save an index recommendation. The one-shot lab command could build and verify an index from Railway and recover an interrupted build on a separate fixture. This slice connects those pieces so one job follows one physical Rookery fixture through detection, recommendation, build, and verification. [Hosted recommendation](measured-lookup-staging.md) · [Hosted repair and interruption drill](hosted-index-repair.md)
 
 The detector reads normal statement counters. For the slow lookup, the consumer uses the same matched read and write baseline to make the recommendation and verify the repair. Go checks the recommendation against the journaled fixture and builds the index. The queue result stores the graph thread, the action report, and the outcome together. The healthy indexed lookup acts as a control. Recovery uses the same ownership checks and inspects only the interrupted queued fixture. A retry can reuse the journaled result if the repair already finished.

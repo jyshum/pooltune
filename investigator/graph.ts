@@ -22,7 +22,7 @@ export const evidenceSchema = z.strictObject({
     correlated_columns: z.boolean(),
     cases: z.array(z.strictObject({ estimated_rows: z.number().int().positive(), actual_rows: z.number().int().positive() })).length(2),
   }).optional(),
-  analyze: z.strictObject({ estimated_rows: z.number().int().positive(), actual_rows: z.number().int().positive() }).optional(),
+  analyze: z.strictObject({ estimated_rows: z.number().int().positive(), actual_rows: z.number().int().positive(), sampled_lookup_fraction: z.number().min(0).max(1).optional() }).optional(),
 });
 
 export const proposalSchema = z.strictObject({
@@ -32,6 +32,10 @@ export const proposalSchema = z.strictObject({
   column_number: z.number().int().positive().max(32767),
   repair: z.enum(["analyze", "statistics"]).optional(),
   reason: z.string().min(1).max(1000),
+  model_call: z.strictObject({
+    model: z.string().min(1), duration_ms: z.number().nonnegative(), requests: z.literal(1),
+    input_tokens: z.number().int().nonnegative().optional(), output_tokens: z.number().int().nonnegative().optional(),
+  }).optional(),
 });
 
 export type Evidence = z.infer<typeof evidenceSchema>;
@@ -56,20 +60,14 @@ export function buildGraph(investigate: Investigator, checkpointer?: BaseCheckpo
         const { correlated_columns, cases } = evidence.statistics;
         const strong = evidence.decision === "investigate" && correlated_columns &&
           cases.every(({ estimated_rows, actual_rows }) => Math.max(estimated_rows, actual_rows) >= 10 * Math.min(estimated_rows, actual_rows));
-        return {
-          proposal: strong
-            ? { ...identity(evidence), outcome: "propose" as const, repair: "statistics" as const, reason: "Both measured inputs show estimation errors for the correlated columns." }
-            : { ...identity(evidence), outcome: "no_change" as const, reason: "Measured evidence does not support joint column statistics." },
-        };
+        if (strong) return {};
+        return { proposal: { ...identity(evidence), outcome: "no_change" as const, reason: "Measured evidence does not support joint column statistics." } };
       }
       if (evidence.analyze) {
         const { estimated_rows, actual_rows } = evidence.analyze;
         const strong = evidence.decision === "investigate" && evidence.covering_index && Math.max(estimated_rows, actual_rows) >= 10 * Math.min(estimated_rows, actual_rows);
-        return {
-          proposal: strong
-            ? { ...identity(evidence), outcome: "propose" as const, repair: "analyze" as const, reason: "The measured row estimate is off by at least tenfold on the enrolled column." }
-            : { ...identity(evidence), outcome: "no_change" as const, reason: "The measured row estimate does not warrant a statistics refresh." },
-        };
+        if (strong) return {};
+        return { proposal: { ...identity(evidence), outcome: "no_change" as const, reason: "The measured row estimate does not warrant a statistics refresh." } };
       }
       const { plan } = evidence;
       if (evidence.decision === "investigate" && !evidence.covering_index &&

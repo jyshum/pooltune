@@ -1,5 +1,7 @@
 # Targeted ANALYZE in the hosted repair queue
 
+A later hosted run exercised this repair with a real Claude decision. Its timings, controls and results are recorded in [Live Claude repairs](live-repairs.md).
+
 PostgreSQL uses summaries of its data to choose how to run a query. In this test an index already existed, but the summary said the lookup value was in nearly every row. A table scan made sense for that old distribution. The current data contained just one match. Pooltune detected the slow query, measured the planner's mistake, and refreshed the statistics for the affected column.
 
 ## Design trade-offs

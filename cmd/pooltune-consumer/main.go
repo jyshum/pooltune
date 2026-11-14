@@ -70,8 +70,8 @@ func run(ctx context.Context, route, project, fixture, mode, enrolledPath string
 	}
 	stateConfig.RuntimeParams["application_name"] = "pooltune-consumer-state"
 	stateConfig.RuntimeParams["statement_timeout"] = "3s"
-	if (repair || analyze || statistics) && (route != "rookery" || mode != "scripted" || os.Getenv("POOLTUNE_STAGING_PRIVATE_STATE") != "1" || measure || (repair && analyze) || (statistics && (repair || analyze))) {
-		return errors.New("repair requires the scripted Rookery fixture and Railway private state")
+	if (repair || analyze || statistics) && (route != "rookery" || (mode != "scripted" && mode != "anthropic") || os.Getenv("POOLTUNE_STAGING_PRIVATE_STATE") != "1" || measure || (repair && analyze) || (statistics && (repair || analyze))) {
+		return errors.New("repair requires the enrolled Rookery fixture and Railway private state")
 	}
 	if measure && (route != "rookery-enrolled" || mode != "scripted") {
 		return errors.New("measurement requires the dedicated Rookery staging route and scripted investigator")

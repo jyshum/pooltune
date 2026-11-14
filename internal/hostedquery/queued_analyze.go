@@ -99,6 +99,15 @@ func DispatchFixtureAnalyze(ctx context.Context, state *pgx.Conn, config *pgx.Co
 		report.Evidence.At = time.Now().UTC()
 		report.Evidence.Decision = Investigate
 		report.Evidence.Analyze = &AnalyzeEvidence{EstimatedRows: report.Before.EstimatedRows, ActualRows: report.Before.PlanReturned}
+		// The singleton MCV entry refers to the exact enrolled synthetic lookup value.
+		// Compare its recorded frequency with the measured plan instead of inferring staleness from latency.
+		err = target.QueryRow(ctx, `SELECT (SELECT most_common_freqs[1]::float8 FROM pg_catalog.pg_stats
+    WHERE schemaname=$1 AND tablename='candidate' AND attname='lookup' AND NOT inherited
+      AND array_length(most_common_freqs,1)=1 AND most_common_vals::text=$2)`,
+			trialSchema(fixture.ID), fmt.Sprintf("{%d}", analyzeInput)).Scan(&report.Evidence.Analyze.SampledValueFraction)
+		if err != nil {
+			return err
+		}
 		report.Evidence.Plan = PlanEvidence{Node: report.Before.Plan, ExaminedRows: report.Before.PlanExamined, ReturnedRows: report.Before.PlanReturned, SharedBlocks: int64(report.Before.Blocks)}
 		if err := runIndexInvestigator(ctx, claim, result, report.Evidence, investigate); err != nil {
 			return err

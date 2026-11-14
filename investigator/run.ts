@@ -14,7 +14,7 @@ async function run() {
     ? url.hostname === "postgres.railway.internal" && url.port === "5432" && url.pathname === "/railway" && url.search === ""
     : url.hostname === "127.0.0.1" && !!url.port && /^\/[^/]+$/.test(url.pathname) && url.search === "?sslmode=disable";
   if (!["postgres:", "postgresql:"].includes(url.protocol) || !url.username || !url.password ||
-      url.hash || !expectedRoute || (staging && mode !== "scripted")) {
+      url.hash || !expectedRoute) {
     throw new Error("Expected Pooltune's configured PostgreSQL state.");
   }
   const pool = new pg.Pool({ connectionString: url.href, max: 1, connectionTimeoutMillis: 2500, statement_timeout: 3000 });

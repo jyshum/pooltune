@@ -1,5 +1,7 @@
 # Richer planner statistics in the hosted repair queue
 
+A later hosted run exercised this repair with a real Claude decision. Its timings, controls and results are recorded in [Live Claude repairs](live-repairs.md).
+
 Ordinary `ANALYZE` tells PostgreSQL how common values are in each column. A query that filters on two related columns can still get a bad estimate. In this fixture, each filter value is common on its own, while the two selected pairs are rare. Pooltune checks both pairs after a recent ordinary analysis, then creates one most-common-values (MCV) statistics object to describe those combinations. [PostgreSQL CREATE STATISTICS](https://www.postgresql.org/docs/17/sql-createstatistics.html)
 
 ## Design choices and trade-offs
