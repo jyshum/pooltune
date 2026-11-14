@@ -213,8 +213,11 @@ func TestCronFinalReportCannotReplayForAnotherQuery(t *testing.T) {
 
 func TestCronCreationAcknowledgementLossDiscoversOnlyOwnedJobs(t *testing.T) {
 	ctx, _, target, state, f, cf := cronCatalogAdapter(t)
-	// An isolated catalog adapter implements only job deletion. No scheduler exists.
-	if _, err := target.Exec(ctx, `CREATE FUNCTION cron.unschedule(bigint) RETURNS boolean LANGUAGE sql AS $$WITH gone AS (DELETE FROM cron.job WHERE jobid=$1 RETURNING jobid) SELECT EXISTS(SELECT FROM gone)$$; UPDATE cron.job SET active=false; INSERT INTO cron.job VALUES(3,'foreign','other','other','SELECT 9','* * * * *',true)`); err != nil {
+	// Both real pg_cron overload shapes matter: an untyped parameter resolves to
+	// text (job name), even when Go supplies an int64. No scheduler exists here.
+	if _, err := target.Exec(ctx, `CREATE FUNCTION cron.unschedule(bigint) RETURNS boolean LANGUAGE sql AS $$WITH gone AS (DELETE FROM cron.job WHERE jobid=$1 RETURNING jobid) SELECT EXISTS(SELECT FROM gone)$$;
+	CREATE FUNCTION cron.unschedule(text) RETURNS boolean LANGUAGE sql AS $$WITH gone AS (DELETE FROM cron.job WHERE jobname=$1 RETURNING jobid) SELECT EXISTS(SELECT FROM gone)$$;
+	UPDATE cron.job SET active=false; INSERT INTO cron.job VALUES(3,'1','other','other','SELECT 9','* * * * *',true)`); err != nil {
 		t.Fatal(err)
 	}
 	cf.Target.ID = 0

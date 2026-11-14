@@ -2,6 +2,8 @@
 package hostedquery
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"math"
 	"time"
@@ -14,6 +16,39 @@ type Counter struct {
 	Boot, Reset, Entry time.Time
 	Calls, Blocks      int64
 	ExecutionMS        float64
+}
+
+// Historical worker state used JSON numbers. Accept both representations without
+// a float conversion; the field tag still writes strings for JavaScript readers.
+func (c *Counter) UnmarshalJSON(data []byte) error {
+	type counterJSON Counter
+	next := counterJSON(*c)
+	var wire struct {
+		*counterJSON
+		Query json.RawMessage
+	}
+	wire.counterJSON = &next
+	if err := json.Unmarshal(data, &wire); err != nil {
+		return err
+	}
+	if len(wire.Query) != 0 {
+		number := wire.Query
+		if number[0] == '"' {
+			var digits string
+			if err := json.Unmarshal(number, &digits); err != nil {
+				return err
+			}
+			number = []byte(digits)
+		}
+		if len(number) == 0 || bytes.Equal(number, []byte("null")) || !bytes.Equal(number, bytes.TrimSpace(number)) {
+			return errors.New("invalid counter query integer")
+		}
+		if err := json.Unmarshal(number, &next.Query); err != nil {
+			return err
+		}
+	}
+	*c = Counter(next)
+	return nil
 }
 
 type Observation struct {

@@ -3,11 +3,60 @@
 package hostedquery
 
 import (
+	"errors"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"pooltune/internal/testpg"
 	"testing"
 	"time"
 )
+
+func TestCronPrerequisitesRefuseMissingRowLockPrivilegeBeforeFixtureCreation(t *testing.T) {
+	ctx, cfg, _ := testpg.Start(t)
+	admin, err := pgx.ConnectConfig(ctx, cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer admin.Close(ctx)
+	// Only extension/settings discovery is adapted. PostgreSQL performs actual
+	// privilege checks for a non-superuser against the real cron.job table.
+	if _, err = admin.Exec(ctx, `CREATE SCHEMA cron; CREATE TABLE cron.job(jobid bigint PRIMARY KEY); INSERT INTO cron.job VALUES(7);
+	 CREATE SCHEMA cron_adapter; CREATE VIEW cron_adapter.pg_extension AS SELECT 'pg_cron'::name AS extname,'1.6.4'::text AS extversion;
+	 GRANT USAGE ON SCHEMA cron,cron_adapter TO fixture_app; GRANT SELECT ON cron.job,cron_adapter.pg_extension TO fixture_app`); err != nil {
+		t.Fatal(err)
+	}
+	restricted := cfg.Copy()
+	restricted.User = "fixture_app"
+	restricted.RuntimeParams["search_path"] = "cron_adapter,pg_catalog"
+	for key, value := range map[string]string{"cron.timezone": "UTC", "cron.log_run": "on", "cron.use_background_workers": "off", "cron.database_name": cfg.Database} {
+		restricted.RuntimeParams[key] = value
+	}
+	target, err := pgx.ConnectConfig(ctx, restricted)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer target.Close(ctx)
+	if err := cronPrerequisites(ctx, target); err == nil {
+		t.Fatal("SELECT-only Cron role admitted without the required row-lock privilege")
+	}
+	f, err := CreateCronFixture(ctx, target, admin, "local")
+	var denied *pgconn.PgError
+	if err == nil || !errors.As(err, &denied) || denied.Code != "42501" || f.ID != "" {
+		t.Fatalf("fixture must refuse on row-lock privilege before creation: fixture=%+v err=%v", f, err)
+	}
+	var untouched bool
+	if err := admin.QueryRow(ctx, `SELECT to_regnamespace('pooltune_lab_state') IS NULL AND NOT EXISTS(SELECT FROM pg_namespace WHERE nspname LIKE 'pooltune_trial_%') AND (SELECT count(*)=1 AND min(jobid)=7 FROM cron.job)`).Scan(&untouched); err != nil || !untouched {
+		t.Fatalf("preflight refusal changed fixture or journal state: %v %v", untouched, err)
+	}
+	// A column-level UPDATE grant is sufficient for SELECT FOR UPDATE. Requiring
+	// blanket table UPDATE would incorrectly reject this narrower authority.
+	if _, err := admin.Exec(ctx, `GRANT UPDATE(jobid) ON cron.job TO fixture_app`); err != nil {
+		t.Fatal(err)
+	}
+	if err := cronPrerequisites(ctx, target); err != nil {
+		t.Fatalf("minimal row-lock privilege rejected: %v", err)
+	}
+}
 
 // This exercises real PostgreSQL transaction control and executor timing.
 // It does not emulate or qualify the pg_cron scheduler.

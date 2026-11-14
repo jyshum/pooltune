@@ -82,3 +82,106 @@ test('cleanup deadline after removal cannot credit incomplete preservation readb
   assert.equal(report.recovery_fixture_id,'owned-fixture');assert.equal(report.cleanup_attempts,1);assert.match(report.cleanup_last_error,/unrelated job readback unavailable/);assert(report.cleanup_last_error.length<=400);
  }finally{rmSync(dir,{recursive:true,force:true})}
 });
+
+test('a latched client failure vetoes success even after verified cleanup',()=>{
+ const dir=mkdtempSync(join(tmpdir(),'cron-late-failure-'));
+ try{
+  const script=`
+   import {saveCronTrafficReport} from ${JSON.stringify(new URL('./cron-traffic.ts',import.meta.url).href)};
+   saveCronTrafficReport({passed:true,cleanup_verified:true,client_failures:[{client:'state',code:'ECONNRESET'}]},${JSON.stringify(join(dir,'report.json'))},true);
+  `;
+  const child=spawnSync(process.execPath,['--unhandled-rejections=strict','--input-type=module','-e',script],{encoding:'utf8',timeout:10000});
+  assert.equal(child.status,1,child.stderr);
+  const report=JSON.parse(readFileSync(join(dir,'report.json'),'utf8'));
+  assert.equal(report.passed,false);assert.equal(report.cleanup_verified,true);
+ }finally{rmSync(dir,{recursive:true,force:true})}
+});
+
+// Exercise the complete driver with only external DB/command transport replaced.
+// Real pg Client error dispatch, phase settlement, cleanup and report code remain.
+for(const role of ['admin','observer','fault','state','traffic_0']){
+ test(`idle ${role} client failure saves a sanitized failed run after settled cleanup`,()=>{
+  const dir=mkdtempSync(join(tmpdir(),'cron-idle-'));
+  try{
+   const driverURL=new URL('./cron-traffic.ts',import.meta.url).href;
+   const trafficURL=new URL('./traffic.ts',import.meta.url).href;
+   const script=`
+    import pg from 'pg';
+    import {registerHooks} from 'node:module';
+    import {writeFileSync} from 'node:fs';
+    import {setTimeout as sleep} from 'node:timers/promises';
+    import * as shared from ${JSON.stringify(trafficURL)};
+    const dir=${JSON.stringify(dir)}, failedRole=${JSON.stringify(role)};
+    const id='0123456789abcdef01234567',schema='pooltune_trial_'+id;
+    const roles=['admin','observer','fault','state','traffic_0','traffic_1','traffic_2','traffic_3'];
+    const clients=[],connected=[],closed=[];let armed=false,active=0,calls=0,cleaned=false,clockOffset=0;
+    const realNow=performance.now.bind(performance);performance.now=()=>realNow()+clockOffset;
+    const fixture={id,schema,enrollment:{project:'idle-error',queries:[{database_oid:1,role_oid:2,query_id:'11'},{database_oid:1,role_oid:2,query_id:'12'}]}};
+    class Client extends pg.Client {
+     constructor(options){super(options);this.role=roles[clients.length];clients.push(this)}
+     async connect(){connected.push({role:this.role,listeners:this.listenerCount('error')})}
+     async end(){if(active)writeFileSync(dir+'/cleanup-raced-traffic','yes');closed.push(this.role)}
+     async query(sql,params=[]){
+      if(!this._queryable){if(cleaned&&this.role==='admin')clockOffset=180001;throw Error('client is not queryable')}
+      if(sql.includes('extract(epoch'))return {rows:[{ms:118800}]};
+      if(sql.includes('string_agg(indexdef'))return {rows:[{count:0,hash:'unchanged'}]};
+      if(sql.includes('FROM cron.job ORDER BY'))return {rows:[]};
+      if(sql.includes('FROM pg_extension'))return {rows:[{nspname:'public'}]};
+      if(sql.includes('pg_stat_statements s'))return {rows:[['11','SELECT healthy'],['12','SELECT target'],['13','UPDATE ONLY "'+schema+'"."healthy"']].map(([queryid,query])=>({queryid,query,dbid:1,userid:2,boot:'2026-11-14T12:00:00Z',reset:'2026-11-14T12:00:00Z',entry:'2026-11-14T12:00:00Z',calls:queryid==='12'?calls:10,total_exec_time:queryid==='12'?calls:10,blocks:0,temp_blocks:0}))};
+      if(sql.includes('pooltune_worker.investigations'))return {rows:[]};
+      if(sql.includes('to_regnamespace'))return {rows:[{gone:true}]};
+      if(sql.includes('FROM cron.job WHERE'))return {rows:[{n:0}]};
+      if(sql.startsWith('SET '))return {rows:[]};
+      if(sql.includes('pooltune_cron_read'))calls++;
+      if(armed){active++;try{await sleep(90)}finally{active--;writeFileSync(dir+'/traffic-settled','yes')}}
+      return {rows:[{id:params[0]??43}]};
+     }
+    }
+    const command=async args=>{
+     if(args.includes('-create-consumer-fixture'))return JSON.stringify(fixture);
+     if(args.includes('inspect'))return JSON.stringify({target:{id:1}});
+     if(args.includes('witness')){
+      armed=true;setTimeout(()=>{
+       const client=clients.find(c=>c.role===failedRole);
+       for(let i=0;i<50;i++)client._handleErrorEvent(Object.assign(new Error('secret postgresql://user:password@host/private '+ 'x'.repeat(1000)),{code:'ECONNRESET'}));
+      },20);return '{}';
+     }
+     if(args.includes('-remove-consumer-fixture')){if(active)throw Error('cleanup raced traffic');cleaned=true;writeFileSync(dir+'/cleanup-attempted','yes');return '{}'}
+     throw Error('unexpected command after disconnect');
+    };
+    globalThis.boundary={pg:{Client},shared:{...shared,command}};
+    registerHooks({resolve(specifier,context,next){
+     if(context.parentURL===${JSON.stringify(driverURL)}&&specifier==='pg')return {url:'test:pg',shortCircuit:true};
+     if(context.parentURL===${JSON.stringify(driverURL)}&&specifier==='./traffic.ts')return {url:'test:traffic',shortCircuit:true};
+     return next(specifier,context);
+    },load(url,context,next){
+     if(url==='test:pg')return {format:'module',source:'export default globalThis.boundary.pg',shortCircuit:true};
+     if(url==='test:traffic')return {format:'module',source:'export const {command,counterDeltas,populateJobTimings,recordWorkerDiagnostic,summarizeTraffic,trafficRequest,vacuumObjective}=globalThis.boundary.shared',shortCircuit:true};
+     return next(url,context);
+    }});
+    writeFileSync(dir+'/ca.pem','test boundary certificate');
+    Object.assign(process.env,{POOLTUNE_STAGING_PRIVATE_STATE:'1',ANTHROPIC_API_KEY:'unused-test',POOLTUNE_ANTHROPIC_MODEL:'unused-test',POOLTUNE_LAB_TARGET_DSN:'postgresql://unused:unused@aws-0-us-west-2.pooler.supabase.com:5432/postgres',POOLTUNE_LAB_STATE_DSN:'postgresql://unused:unused@localhost:5432/test',POOLTUNE_LAB_ROOKERY_CA_FILE:dir+'/ca.pem',POOLTUNE_CRON_REPORT_PATH:dir+'/report.json'});
+    const {runCronTraffic}=await import(${JSON.stringify(driverURL)});
+    await runCronTraffic();
+    writeFileSync(dir+'/lifecycle.json',JSON.stringify({connected,closed,cleaned}));
+   `;
+   const child=spawnSync(process.execPath,['--unhandled-rejections=strict','--input-type=module','-e',script],{encoding:'utf8',timeout:10000,cwd:new URL('.',import.meta.url)});
+   assert.equal(child.status,1,child.stderr);
+   assert(existsSync(join(dir,'report.json')),`failure report missing: ${child.stderr}`);
+   const raw=readFileSync(join(dir,'report.json'),'utf8'),report=JSON.parse(raw);
+   assert.equal(report.passed,false);assert.match(report.error,/client.*failed/);
+   assert.deepEqual(report.client_failures,[{client:role,code:'ECONNRESET'}]);
+   assert(!raw.includes('password')&&!raw.includes('secret postgresql'));
+   assert.equal(report.fixture.id,'0123456789abcdef01234567');
+   if(role==='admin'){
+    assert.equal(report.cleanup_verified,false);assert.equal(report.cleanup_failed,true);
+    assert.equal(report.recovery_fixture_id,'0123456789abcdef01234567');
+   }else assert.equal(report.cleanup_verified,true);
+   if(role==='state')assert.equal(report.job_readback_failed,true);
+   assert(existsSync(join(dir,'cleanup-attempted')));assert(existsSync(join(dir,'traffic-settled')));
+   assert(!existsSync(join(dir,'cleanup-raced-traffic')));
+   const lifecycle=JSON.parse(readFileSync(join(dir,'lifecycle.json'),'utf8'));
+   assert.equal(lifecycle.connected.length,8);assert(lifecycle.connected.every((c:any)=>c.listeners>0));assert.equal(lifecycle.closed.length,8);
+  }finally{rmSync(dir,{recursive:true,force:true})}
+ });
+}

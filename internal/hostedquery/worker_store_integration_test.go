@@ -4,6 +4,8 @@ package hostedquery
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"sync"
 	"testing"
 	"time"
@@ -12,6 +14,52 @@ import (
 
 	"github.com/jackc/pgx/v5"
 )
+
+func TestRecordPollUpgradesHistoricalNumericCounter(t *testing.T) {
+	ctx, config, _ := testpg.Start(t)
+	state, err := pgx.ConnectConfig(ctx, config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer state.Close(context.Background())
+	if err := PrepareWorkerState(ctx, state); err != nil {
+		t.Fatal(err)
+	}
+	const query int64 = -1234567890123456789
+	at := time.Date(2026, 11, 14, 12, 0, 0, 0, time.UTC)
+	policy := SamplingPolicy{Interval: time.Second, Window: time.Second}
+	enrollment := Enrollment{Project: "upgrade", Queries: []QueryObjective{{Database: 1, Role: 2, Query: query, MeanMS: 1}}}
+	// Historical persisted JSON, deliberately not serialized by today's Counter.
+	raw := `{"Policy":{"Interval":1000000000,"Window":1000000000},"States":[{"Objective":{"database_oid":1,"role_oid":2,"query_id":"-1234567890123456789","mean_execution_ms":1},"Window":{"LastAt":"2026-11-14T12:00:00Z","Start":"2026-11-14T12:00:00Z","Last":{"Database":1,"Role":2,"Query":-1234567890123456789,"Boot":"2026-11-14T12:00:00Z","Reset":"2026-11-14T12:00:00Z","Entry":"2026-11-14T12:00:00Z","Calls":10,"Blocks":20,"ExecutionMS":40},"Recent":[{"Calls":2,"Blocks":4,"ExecutionMS":8},{"Calls":2,"Blocks":4,"ExecutionMS":8},{"Calls":2,"Blocks":4,"ExecutionMS":8},{"Calls":2,"Blocks":4,"ExecutionMS":8}]}}]}`
+	if _, err := state.Exec(ctx, `INSERT INTO pooltune_worker.projects(project_id,last_poll,evidence) VALUES($1,$2,$3::jsonb)`, enrollment.Project, at, raw); err != nil {
+		t.Fatal(err)
+	}
+	collected := false
+	sample := Counter{Database: 1, Role: 2, Query: query, Boot: at, Reset: at, Entry: at, Calls: 12, Blocks: 24, ExecutionMS: 48}
+	result, err := recordPoll(ctx, state, enrollment, policy, at.Add(time.Second), func(context.Context) (map[queryKey]Counter, error) {
+		collected = true
+		return map[queryKey]Counter{sample.key(): sample}, nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !collected || result.Skipped || len(result.Windows) != 1 || result.Windows[0].Calls != 2 || result.Windows[0].MeanMS != 4 || result.Windows[0].Decision != Investigate || len(result.Jobs) != 1 || result.Jobs[0].Query != query {
+		t.Fatalf("historical state did not advance into an investigation: %+v, collected=%v", result, collected)
+	}
+	var saved []byte
+	var last time.Time
+	var kind, identity string
+	if err := state.QueryRow(ctx, `SELECT last_poll,evidence,jsonb_typeof(evidence#>'{States,0,Window,Last,Query}'),evidence#>>'{States,0,Window,Last,Query}' FROM pooltune_worker.projects WHERE project_id=$1`, enrollment.Project).Scan(&last, &saved, &kind, &identity); err != nil {
+		t.Fatal(err)
+	}
+	var poll savedPoll
+	if err := json.Unmarshal(saved, &poll); err != nil {
+		t.Fatal(err)
+	}
+	if !last.Equal(at.Add(time.Second)) || kind != "string" || identity != fmt.Sprint(query) || len(poll.States) != 1 || poll.States[0].Window.Last == nil || *poll.States[0].Window.Last != sample || len(poll.States[0].Window.Recent) != 5 {
+		t.Fatalf("upgraded state not persisted exactly: last=%s kind=%s identity=%s poll=%+v", last, kind, identity, poll)
+	}
+}
 
 func TestWorkerQueueSurvivesRestartAndConcurrentPolls(t *testing.T) {
 	ctx, config, _ := testpg.Start(t)

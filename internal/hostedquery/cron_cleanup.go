@@ -149,7 +149,7 @@ func cleanCronJobs(ctx context.Context, target, state *pgx.Conn, id string) erro
 		}
 		for _, j := range []CronJob{targetJob, witness} {
 			var removed bool
-			if err := tx.QueryRow(ctx, "SELECT cron.unschedule($1)", j.ID).Scan(&removed); err != nil {
+			if err := tx.QueryRow(ctx, "SELECT cron.unschedule($1::bigint)", j.ID).Scan(&removed); err != nil {
 				return err
 			}
 			if !removed {

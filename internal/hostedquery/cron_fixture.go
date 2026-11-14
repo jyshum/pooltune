@@ -117,6 +117,13 @@ func cronPrerequisites(ctx context.Context, db trialReader) error {
 	if !ok {
 		return errors.New("private Cron prerequisites unavailable")
 	}
+	// This empty query checks the exact privileges our activation/action locks
+	// require, including a sufficient column-level UPDATE grant. It neither
+	// reads nor locks any job and must pass before creating a fixture or jobs.
+	var unused int64
+	if err := db.QueryRow(ctx, "SELECT jobid FROM cron.job WHERE false FOR UPDATE").Scan(&unused); !errors.Is(err, pgx.ErrNoRows) {
+		return fmt.Errorf("Cron job row-lock prerequisite failed: %w", err)
+	}
 	return nil
 }
 func writeCronFixture(ctx context.Context, state *pgx.Conn, id string, f CronFixture) error {
