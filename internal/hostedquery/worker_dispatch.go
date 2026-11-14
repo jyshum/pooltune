@@ -35,6 +35,8 @@ type DispatchResult struct {
 	Proposal         *IndexProposal           `json:"proposal,omitempty"`
 	ElapsedMS        float64                  `json:"elapsed_ms"`
 	TargetPlanMS     float64                  `json:"target_plan_ms,omitempty"`
+	RecoveredIndex   string                   `json:"recovered_index,omitempty"`
+	Repair           *IndexTrialReport        `json:"repair,omitempty"`
 	GraphMS          float64                  `json:"graph_ms,omitempty"`
 }
 

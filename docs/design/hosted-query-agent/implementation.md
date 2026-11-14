@@ -205,6 +205,13 @@ Depends on Task 17 and reuses the isolated fixture, index guard, and action jour
 - [x] From Railway's staging network, run the existing index trial against a new private Rookery fixture. Record matched target reads, healthy reads, and value-changing updates before and after, index validity and size, timings, and fixture cleanup.
 - [x] Use a separate fixture for a real process-stop drill after the concurrent DDL returns and before verification. Run recovery with fresh connections, verify catalog and journal state, run recovery again, and verify cleanup. See [Hosted index repair](hosted-index-repair.md).
 
+### Task 19: Run the queued index repair as one staged workflow
+
+Depends on Tasks 17–18. Reuses one isolated, journaled fixture and the existing investigation and repair contracts.
+
+- [x] Run detector, durable queue, graph, and guarded repair on the same fixture and queued job. Save the result and timings together. Keep a separate staging switch for authorized fixture mutations.
+- [x] Verify a healthy control, matched before/after reads and writes, and no duplicate build. Record one traffic-to-result timeline and fixture cleanup in [Queued index repair](queued-index-repair.md).
+
 ## Candidate test application inspection (historical)
 
 

@@ -1,5 +1,9 @@
 # Design progress
 
+## One queue-driven index repair in Railway, November 14, 2026
+
+Task 19 connected the prior recommendation path to the guarded index builder on the same synthetic Rookery fixture. Job 23 saved the verified result 35.385 seconds after paired traffic began. The indexed control issued no job. The [combined report](queued-index-repair.md) gives the stage timings, read and write results, and the bounded recovery contract. Disposable PostgreSQL tests exercise verified-result replay and fixture-scoped interruption cleanup.
+
 ## Guarded index repair and recovery from Railway, November 14, 2026
 
 Task 18 ran the existing guarded repair from Railway staging against a private Rookery fixture. Target reads went from 10.330 ms to 0.030 ms, the value-changing updates stayed within the test guard, and the action journal recorded completion. In the recovery drill the repair process was killed after the build. A fresh process found the valid index, recorded recovery, and cleaned up the fixture. A second pass had no work. The [results](hosted-index-repair.md) distinguish the one-shot hosted lab from the queue-driven recommendation path.

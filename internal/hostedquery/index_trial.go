@@ -20,6 +20,7 @@ const (
 type IndexInvestigator func(context.Context, IndexEvidence) (IndexProposal, error)
 
 type IndexTrialReport struct {
+	JobID        int64         `json:"job_id,omitempty"`
 	RunID        string        `json:"run_id"`
 	Outcome      string        `json:"outcome"`
 	Reason       string        `json:"reason"`
@@ -121,12 +122,15 @@ func runIndexTrial(ctx context.Context, target, state *pgx.Conn, investigate Ind
 	if _, err := state.Exec(ctx, "INSERT INTO "+journalTable+" (id,target,status) VALUES($1,$2,'setup')", report.RunID, identity); err != nil {
 		return report, fmt.Errorf("record fixture intent: %w", err)
 	}
-	schema := trialSchema(report.RunID)
 	if err := createTrial(ctx, target, state, report.RunID); err != nil {
 		return report, err
 	}
+	expected, err := expectedFixture(ctx, state, report.RunID)
+	if err != nil {
+		return report, err
+	}
 	detectStart := time.Now()
-	report.Before, err = sampleTrial(ctx, target, schema)
+	report.Before, err = sampleTrial(ctx, target, report.RunID, expected)
 	if err != nil {
 		return report, fmt.Errorf("record before evidence: %w", err)
 	}
@@ -146,9 +150,18 @@ func runIndexTrial(ctx context.Context, target, state *pgx.Conn, investigate Ind
 			return report, fmt.Errorf("investigate fixture: %w", err)
 		}
 	}
+	report, err = applyIndexTrial(ctx, target, state, report, afterBuild)
+	if err != nil {
+		return report, err
+	}
+	return finishTrial(ctx, target, state, report, started)
+}
+
+func applyIndexTrial(ctx context.Context, target, state *pgx.Conn, report IndexTrialReport, afterBuild func() error) (IndexTrialReport, error) {
+	schema := trialSchema(report.RunID)
 	if reason := qualifyIndex(report.Evidence, report.Proposal, time.Now()); reason != nil {
 		report.Outcome, report.Reason = "no_change", reason.Error()
-		return finishTrial(ctx, target, state, report, started)
+		return report, nil
 	}
 	if err := trialCapacity(ctx, target); err != nil {
 		return report, err
@@ -157,24 +170,28 @@ func runIndexTrial(ctx context.Context, target, state *pgx.Conn, investigate Ind
 	if err != nil {
 		return report, err
 	}
-	latest.At = report.Evidence.At
+	latest.At, latest.RunID = report.Evidence.At, report.Evidence.RunID
 	if err := qualifyIndex(latest, report.Proposal, time.Now()); err != nil {
 		report.Outcome, report.Reason = "no_change", err.Error()
-		return finishTrial(ctx, target, state, report, started)
+		return report, nil
 	}
 	expected, err := expectedFixture(ctx, state, report.RunID)
 	if err != nil {
 		return report, err
 	}
-	actual, err := loadFixture(ctx, target, report.RunID)
-	if err != nil || actual != expected || actual.Candidate != report.Proposal.TableOID {
+	err = validateSampleFixture(ctx, target, report.RunID, expected)
+	if err != nil || expected.Candidate != report.Proposal.TableOID {
 		return report, errors.Join(errors.New("enrolled fixture changed before build"), err)
 	}
 	existing, err := inspectTrialIndex(ctx, target, schema)
 	if err != nil || existing.Exists {
 		return report, errors.Join(errors.New("reserved trial index name is occupied"), err)
 	}
-	if err := writeTrialStatus(ctx, state, report.RunID, "building", nil, &report); err != nil {
+	building := "building"
+	if report.JobID != 0 {
+		building = "queued_building"
+	}
+	if err := writeTrialStatus(ctx, state, report.RunID, building, nil, &report); err != nil {
 		return report, err
 	}
 	buildStart := time.Now()
@@ -196,11 +213,11 @@ func runIndexTrial(ctx context.Context, target, state *pgx.Conn, investigate Ind
 	}
 	report.IndexValid, report.IndexBytes = true, index.Bytes
 	verifyStart := time.Now()
-	report.After, err = sampleTrial(ctx, target, schema)
+	report.After, err = sampleTrial(ctx, target, report.RunID, expected)
 	if err != nil {
 		report.Outcome, report.Reason = "failed", "verification could not complete the measured fixture workload"
 		return report, errors.Join(fmt.Errorf("verify outcome: %w", err),
-			writeTrialStatus(ctx, state, report.RunID, "building", nil, &report))
+			writeTrialStatus(ctx, state, report.RunID, building, nil, &report))
 	}
 	if err := target.QueryRow(ctx, "SELECT count(*)<>1 FROM pg_index WHERE indrelid=$1", expected.Healthy).Scan(&report.HealthyBuilt); err != nil {
 		return report, err
@@ -210,7 +227,7 @@ func runIndexTrial(ctx context.Context, target, state *pgx.Conn, investigate Ind
 	}
 	report.VerifyWallMS = elapsedMS(verifyStart)
 	report.Outcome, report.Reason = compareTrial(report.Before, report.After)
-	return finishTrial(ctx, target, state, report, started)
+	return report, nil
 }
 
 func finishTrial(ctx context.Context, target, state *pgx.Conn, report IndexTrialReport, started time.Time) (IndexTrialReport, error) {

@@ -11,7 +11,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func sampleTrial(ctx context.Context, target *pgx.Conn, schema string) (sample TrialSample, err error) {
+func sampleTrial(ctx context.Context, target *pgx.Conn, id string, expected fixtureObjects) (sample TrialSample, err error) {
 	tx, err := target.Begin(ctx)
 	if err != nil {
 		return sample, err
@@ -33,12 +33,20 @@ func sampleTrial(ctx context.Context, target *pgx.Conn, schema string) (sample T
 				return err
 			}
 		}
+		schema := trialSchema(id)
 		candidate := qualified(schema, "candidate")
-		reads := "SELECT id FROM " + candidate + " WHERE lookup=$1"
-		healthy := "SELECT id FROM " + qualified(schema, "healthy") + " WHERE id=$1"
+		healthyTable := qualified(schema, "healthy")
+		if _, err := tx.Exec(ctx, "LOCK TABLE ONLY "+candidate+", ONLY "+healthyTable+" IN SHARE ROW EXCLUSIVE MODE NOWAIT"); err != nil {
+			return err
+		}
+		if err := validateSampleFixture(ctx, tx, id, expected); err != nil {
+			return err
+		}
+		reads := "SELECT id FROM ONLY " + candidate + " WHERE lookup=$1"
+		healthy := "SELECT id FROM ONLY " + healthyTable + " WHERE id=$1"
 		// Use distinct write keys that never overlap the verification reads. Changing the
 		// indexed value exercises index maintenance even when PostgreSQL could use HOT.
-		writes := "UPDATE " + candidate + " SET lookup=-lookup WHERE id=$1 RETURNING id"
+		writes := "UPDATE ONLY " + candidate + " SET lookup=-lookup WHERE id=$1 RETURNING id"
 		// A single roundtrip per iteration. Each phase uses the same known inputs and order.
 		var beforeRead, beforeHealthy, beforeWrite []float64
 		var cohort [len(inputIDs)][3][]float64
@@ -125,6 +133,36 @@ func sampleTrial(ctx context.Context, target *pgx.Conn, schema string) (sample T
 		return nil
 	}()
 	return sample, err
+}
+
+func validateSampleFixture(ctx context.Context, tx trialReader, id string, expected fixtureObjects) error {
+	actual, err := loadFixture(ctx, tx, id)
+	if err != nil || actual != expected {
+		return errors.Join(errors.New("sample fixture identity changed"), err)
+	}
+	var supported bool
+	err = tx.QueryRow(ctx, `
+		SELECT (SELECT count(*)=2 AND bool_and(NOT relrowsecurity AND NOT relhassubclass AND NOT relhasrules
+			 AND NOT relhastriggers AND relam=(SELECT oid FROM pg_am WHERE amname='heap')
+			 AND pg_relation_size(oid)<=25165824) FROM pg_class WHERE oid=ANY($1))
+		  AND (SELECT count(*)=6 AND bool_and(NOT atthasdef AND attgenerated='' AND attidentity=''
+			 AND CASE attnum WHEN 1 THEN attname='id' AND atttypid='int4'::regtype
+			 WHEN 2 THEN attname='lookup' AND atttypid='int4'::regtype
+			 WHEN 3 THEN attname='padding' AND atttypid='text'::regtype ELSE false END)
+		     FROM pg_attribute WHERE attrelid=ANY($1) AND attnum>0 AND NOT attisdropped)
+		  AND NOT EXISTS(SELECT FROM pg_constraint WHERE conrelid=ANY($1) AND contype NOT IN ('p','n'))
+		  AND NOT EXISTS(SELECT FROM pg_index WHERE indrelid=ANY($1)
+		    AND (indexprs IS NOT NULL OR indpred IS NOT NULL OR NOT indisvalid OR NOT indisready
+			 OR (indexrelid<>ALL($2) AND (indexrelid IS DISTINCT FROM to_regclass($3) OR indrelid<>$4))))
+	`, []uint32{actual.Candidate, actual.Healthy}, []uint32{actual.CandidatePK, actual.HealthyPK},
+		qualified(trialSchema(id), trialIndex), actual.Candidate).Scan(&supported)
+	if err != nil {
+		return err
+	}
+	if !supported {
+		return errors.New("sample fixture contains unsupported tables")
+	}
+	return nil
 }
 
 type trialPlan struct {

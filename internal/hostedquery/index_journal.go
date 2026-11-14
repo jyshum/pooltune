@@ -195,8 +195,8 @@ func cleanTrial(ctx context.Context, target, state *pgx.Conn, id string) (string
 		if _, err := tx.Exec(ctx, "SET LOCAL statement_timeout='2s'"); err != nil {
 			return err
 		}
-		tables := qualified(schema, "candidate") + ", " + qualified(schema, "healthy")
-		if _, err := tx.Exec(ctx, "LOCK TABLE "+tables+" IN ACCESS EXCLUSIVE MODE"); err != nil {
+		candidate, healthy := qualified(schema, "candidate"), qualified(schema, "healthy")
+		if _, err := tx.Exec(ctx, "LOCK TABLE ONLY "+candidate+", ONLY "+healthy+" IN ACCESS EXCLUSIVE MODE"); err != nil {
 			return err
 		}
 		actual, err := loadFixture(ctx, tx, id)
@@ -209,6 +209,7 @@ func cleanTrial(ctx context.Context, target, state *pgx.Conn, id string) (string
 			   OR EXISTS (SELECT FROM pg_index WHERE indrelid=ANY($4) AND indexrelid<>ALL($5)
 			              AND indexrelid IS DISTINCT FROM to_regclass($6))
 			   OR EXISTS (SELECT FROM pg_trigger WHERE tgrelid=ANY($4) AND NOT tgisinternal)
+			   OR EXISTS (SELECT FROM pg_inherits WHERE inhparent=ANY($4) OR inhrelid=ANY($4))
 		`, actual.Schema, []uint32{actual.Candidate, actual.Healthy, actual.CandidatePK, actual.HealthyPK}, trialIndex,
 			[]uint32{actual.Candidate, actual.Healthy}, []uint32{actual.CandidatePK, actual.HealthyPK}, qualified(schema, trialIndex)).Scan(&unexpected); err != nil {
 			return err
@@ -222,7 +223,7 @@ func cleanTrial(ctx context.Context, target, state *pgx.Conn, id string) (string
 		}
 		observed = "absent"
 		if index.Exists {
-			if status == "setup" || status == "declined" {
+			if status == "setup" || status == "declined" || status == "consumer_ready" || status == "queued_declined" {
 				return errors.New("index exists before a build was authorized")
 			}
 			if !index.Matches {
@@ -233,7 +234,7 @@ func cleanTrial(ctx context.Context, target, state *pgx.Conn, id string) (string
 				observed = "valid"
 			}
 		}
-		if _, err := tx.Exec(ctx, "DROP TABLE "+tables+" RESTRICT"); err != nil {
+		if _, err := tx.Exec(ctx, "DROP TABLE "+candidate+", "+healthy+" RESTRICT"); err != nil {
 			return err
 		}
 		_, err = tx.Exec(ctx, "DROP SCHEMA "+pgx.Identifier{schema}.Sanitize()+" RESTRICT")
