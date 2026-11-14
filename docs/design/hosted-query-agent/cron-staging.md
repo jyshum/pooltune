@@ -24,6 +24,16 @@ Source `a350470`, deployment `960be266-a46c-470b-afd0-a89b1a672fd0`, fixture `12
 
 All **2,393 offered requests** completed with zero errors/misses. Automatic cleanup verified the owned jobs and fixture absent and unrelated jobs/public indexes preserved. Total attempt time was **400.352 seconds**. The earlier 30-hold spike was only marginally above the objective at 3.137 ms. The next bounded calibration must strengthen the manual fault without lowering the objective, changing scheduled 200-hold work, or removing the brief-spike rejection test. [Preserved failed calibration](evidence/mixed-traffic/cron-spike-calibration-failed.json).
 
+## Complete original periods: consumer checked before the final save
+
+Source `3e199eb`, deployment `6286b26f-cc9d-4cb5-a717-d9be4d63d4f6`, fixture `a6bb5fa743a67d4334127334`. The 60-hold brief spike averaged **9.825 ms**, crossed the fixed **3 ms** objective and created no investigation. All three scheduled original executions succeeded. Their measured busy/control query means were **38.097/0.076 ms**, **32.586/0.075 ms**, and **33.650/0.073 ms**, with real attributed blocking and all measurement windows within bounds.
+
+Job **103** detected the repeated workload after **19.830 seconds** and deferred evidence collection. Its child **105** checked at the earliest scheduled time, loaded only two saved periods and finalized `inconclusive` at **21:59:24.290 UTC**. The third period finished saving at **21:59:24.300717 UTC**, just afterward. The report and an independent read of persisted recording times establish this readiness race. There were **zero Claude calls and zero schedule repairs**. The report's 304.460-second `repair_seconds` is a failed evidence-wait outcome, not successful repair time.
+
+The fix must treat the timer as the earliest check, then defer incomplete evidence using the existing durable queue within the unchanged model-admission deadline. It must still require all three valid periods and refuse expired or invalid evidence. A larger blind delay is not evidence of readiness.
+
+Traffic reported zero errors/missed slots, and owned cleanup plus unrelated-job/public-index preservation passed. Total run time was **834.454 seconds**. [Preserved result and recording times](evidence/mixed-traffic/cron-evidence-readiness-failed.json).
+
 ## Problems found
 
 A follow-up check also reproduced an activation failure under `TZ=UTC`, matching Railway, while the local default timezone passed. The scheduler-generation comparison used `time.Time` values whose location representation changed after JSON persistence. Commit `7b88d99` compares actual instants while preserving exact process/start identity. UTC regression and race tests passed; final narrow review is recorded in progress. The original driver saved a generic command failure, so its report alone does not identify which activation guard refused first.
