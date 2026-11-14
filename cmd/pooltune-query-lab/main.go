@@ -160,7 +160,12 @@ func processInvestigator(mode string) (hostedquery.IndexInvestigator, error) {
 			return hostedquery.IndexProposal{}, errors.New("oversized investigator response")
 		}
 		var proposal hostedquery.IndexProposal
-		return proposal, json.Unmarshal(response, &proposal)
+		decoder := json.NewDecoder(bytes.NewReader(response))
+		decoder.DisallowUnknownFields()
+		if err := decoder.Decode(&proposal); err != nil || !json.Valid(response) {
+			return hostedquery.IndexProposal{}, errors.New("invalid investigator response")
+		}
+		return proposal, nil
 	}, nil
 }
 
