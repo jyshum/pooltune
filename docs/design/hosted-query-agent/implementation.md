@@ -198,6 +198,13 @@ Depends on Task 16 and follows d-workflow r1, d-reuse r1, and the isolated quali
 - [x] Keep the existing estimate-only mode available. Add an explicit staging mode for at most one bounded measured read per job, using the exact authorized synthetic lookup, only when fresh traffic, the current plan estimate and the index check support it. An interrupted attempt must not replay the measurement on retry.
 - [x] Pass the measured plan and index check to the existing LangGraph investigator. Save the recommendation and timings without applying an index. Verify healthy, stale, already-indexed, and out-of-scope cases skip new work. Record the [staging result and trade-offs](measured-lookup-staging.md).
 
+### Task 18: Qualify the guarded index repair and recovery from Railway
+
+Depends on Task 17 and reuses the isolated fixture, index guard, and action journal from Tasks 4–5.
+
+- [x] From Railway's staging network, run the existing index trial against a new private Rookery fixture. Record matched target reads, healthy reads, and value-changing updates before and after, index validity and size, timings, and fixture cleanup.
+- [x] Use a separate fixture for a real process-stop drill after the concurrent DDL returns and before verification. Run recovery with fresh connections, verify catalog and journal state, run recovery again, and verify cleanup. See [Hosted index repair](hosted-index-repair.md).
+
 ## Candidate test application inspection (historical)
 
 

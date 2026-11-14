@@ -20,6 +20,7 @@ import (
 func main() {
 	route := flag.String("target", "local", "fixture route: local, rookery or staging")
 	trial := flag.String("index-trial", "", "automatic index fixture: anthropic or scripted")
+	pauseAfterBuild := flag.Bool("pause-after-index-build", false, "pause after a synthetic index build for the Railway recovery drill")
 	recoverOnly := flag.Bool("recover-index-trials", false, "reconcile interrupted fixture runs")
 	trafficTrial := flag.Bool("worker-traffic", false, "observe a bounded read-only traffic stream from another session")
 	investigation := flag.String("worker-investigation", "", "investigate the queued traffic job: anthropic or scripted")
@@ -38,6 +39,10 @@ func main() {
 		fmt.Fprintln(os.Stderr, "choose scripted or anthropic worker investigation with -worker-traffic")
 		os.Exit(2)
 	}
+	if *pauseAfterBuild && (*route != "rookery" || *trial != "scripted" || os.Getenv("POOLTUNE_STAGING_PRIVATE_STATE") != "1") {
+		fmt.Fprintln(os.Stderr, "recovery drill requires the scripted Rookery trial and Railway private state")
+		os.Exit(2)
+	}
 	if *route == "staging" && !*createConsumer && *removeConsumer == "" {
 		fmt.Fprintln(os.Stderr, "staging supports synthetic fixture setup and cleanup")
 		os.Exit(2)
@@ -47,7 +52,7 @@ func main() {
 		os.Exit(2)
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 65*time.Second)
-	err := run(ctx, *route, *trial, *recoverOnly, *trafficTrial, *investigation, *createConsumer, *removeConsumer)
+	err := run(ctx, *route, *trial, *recoverOnly, *trafficTrial, *investigation, *createConsumer, *removeConsumer, *pauseAfterBuild)
 	cancel()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -55,7 +60,7 @@ func main() {
 	}
 }
 
-func run(ctx context.Context, route string, trial string, recoverOnly, trafficTrial bool, investigation string, createConsumer bool, removeConsumer string) error {
+func run(ctx context.Context, route string, trial string, recoverOnly, trafficTrial bool, investigation string, createConsumer bool, removeConsumer string, pauseAfterBuild bool) error {
 	stateConfig, err := labdb.StateConfig(os.Getenv("POOLTUNE_LAB_STATE_DSN"))
 	if err != nil {
 		return fmt.Errorf("state configuration: %w", err)
@@ -129,7 +134,14 @@ func run(ctx context.Context, route string, trial string, recoverOnly, trafficTr
 		return json.NewEncoder(os.Stdout).Encode(map[string]string{"status": "reconciled"})
 	}
 	if trial != "" {
-		report, err := hostedquery.RunIndexTrial(ctx, target, state, investigator, identity)
+		var report hostedquery.IndexTrialReport
+		if pauseAfterBuild {
+			report, err = hostedquery.DrillIndexTrialRecovery(ctx, target, state, investigator, identity, func() {
+				fmt.Fprintln(os.Stderr, "Recovery drill: index build returned; waiting for process stop.")
+			})
+		} else {
+			report, err = hostedquery.RunIndexTrial(ctx, target, state, investigator, identity)
+		}
 		if err != nil {
 			if report.RunID != "" {
 				fmt.Fprintf(os.Stderr, "Index trial %s has a journal record. Use -recover-index-trials on the same target if pending.\n", report.RunID)

@@ -1,5 +1,9 @@
 # Design progress
 
+## Guarded index repair and recovery from Railway, November 14, 2026
+
+Task 18 ran the existing guarded repair from Railway staging against a private Rookery fixture. Target reads went from 10.330 ms to 0.030 ms, the value-changing updates stayed within the test guard, and the action journal recorded completion. In the recovery drill the repair process was killed after the build. A fresh process found the valid index, recorded recovery, and cleaned up the fixture. A second pass had no work. The [results](hosted-index-repair.md) distinguish the one-shot hosted lab from the queue-driven recommendation path.
+
 ## Measured lookup through the hosted investigator, November 14, 2026
 
 Task 17 took enrolled Rookery traffic through a one-read measured plan into the scripted LangGraph index investigator. Job 18 scanned 100,000 rows to return one and saved a recommendation and four checkpoints. Queue to saved recommendation was 3.829 seconds. The healthy lookup opened no job. The [staging record](measured-lookup-staging.md) covers the one-read limit, the review fix that pins execution to one table, and the remaining work to qualify hosted repair.

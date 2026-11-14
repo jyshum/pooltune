@@ -71,6 +71,22 @@ func RunIndexTrial(ctx context.Context, target, state *pgx.Conn, investigate Ind
 	return runIndexTrial(ctx, target, state, investigate, identity, nil)
 }
 
+// DrillIndexTrialRecovery leaves the synthetic fixture pending after a successful
+// build so a fresh process can inspect it. A timeout leaves the same pending state.
+func DrillIndexTrialRecovery(ctx context.Context, target, state *pgx.Conn, investigate IndexInvestigator, identity string, ready func()) (IndexTrialReport, error) {
+	return runIndexTrial(ctx, target, state, investigate, identity, func() error {
+		ready()
+		wait := time.NewTimer(20 * time.Second)
+		defer wait.Stop()
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-wait.C:
+			return errors.New("recovery drill pause expired; fixture is pending")
+		}
+	})
+}
+
 // ScriptedInvestigator provides a deterministic recommendation for fixture qualification without a model credential.
 func ScriptedInvestigator(_ context.Context, e IndexEvidence) (IndexProposal, error) {
 	return IndexProposal{Outcome: "propose", RunID: e.RunID, TableOID: e.TableOID, Column: e.Column, Reason: "Selective sequential scan on the enrolled synthetic lookup."}, nil
