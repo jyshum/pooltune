@@ -7,10 +7,14 @@ import (
 )
 
 func TestModelProposalMustMatchTheAdmittedRepair(t *testing.T) {
-	for _, repair := range []string{"", "analyze", "statistics", "vacuum", "memory"} {
+	for _, repair := range []string{"", "analyze", "statistics", "vacuum", "memory", "cron"} {
 		for _, outcome := range []string{"valid", "wrong repair", "wrong table", "wrong column", "wrong run", "decline", "provider failure"} {
 			t.Run(repair+"/"+outcome, func(t *testing.T) {
 				e := IndexEvidence{At: time.Now(), Decision: Investigate, TableOID: 42, Column: 2, Label: "lookup", Plan: PlanEvidence{Node: "Seq Scan"}}
+				if repair == "cron" {
+					e.Cron = &CronEvidence{}
+					e.Plan.Node = "Result"
+				}
 				if repair == "memory" {
 					e.Memory = &MemoryEvidence{}
 				}

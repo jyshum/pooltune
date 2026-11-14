@@ -10,7 +10,7 @@ import (
 // Counter describes one top-level pg_stat_statements entry.
 type Counter struct {
 	Database, Role     uint32
-	Query              int64
+	Query              int64 `json:"Query,string"`
 	Boot, Reset, Entry time.Time
 	Calls, Blocks      int64
 	ExecutionMS        float64

@@ -24,6 +24,7 @@ import (
 func main() {
 	route := flag.String("target", "local", "development target: local, rookery or staging")
 	project := flag.String("project", "", "enrolled project identity")
+	cron := flag.Bool("cron-staging-fixture", false, "qualify enrolled future Cron schedule")
 	memory := flag.Bool("memory-staging-fixture", false, "qualify enrolled function memory from the staging queue")
 	vacuum := flag.Bool("vacuum-staging-fixture", false, "qualify bounded plain VACUUM from the staging queue")
 	statistics := flag.Bool("statistics-staging-fixture", false, "qualify richer planner statistics from the staging queue")
@@ -47,13 +48,14 @@ func main() {
 		fmt.Fprintln(os.Stderr, "staging uses the scripted investigator")
 		os.Exit(2)
 	}
-	if err := run(ctx, *route, *project, *fixture, *mode, *enrolledPath, *measure, *repair, *analyze, *statistics, *vacuum, *memory, *poll); err != nil {
+	if err := run(ctx, *route, *project, *fixture, *mode, *enrolledPath, *measure, *repair, *analyze, *statistics, *vacuum, *memory, *poll, *cron); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 }
 
-func run(ctx context.Context, route, project, fixture, mode, enrolledPath string, measure, repair, analyze, statistics, vacuum, memory bool, poll time.Duration) error {
+func run(ctx context.Context, route, project, fixture, mode, enrolledPath string, measure, repair, analyze, statistics, vacuum, memory bool, poll time.Duration, cronOption ...bool) error {
+	cron := len(cronOption) > 0 && cronOption[0]
 	target, err := labdb.TargetConfig(os.Getenv("POOLTUNE_WORKER_TARGET_DSN"), route)
 	if err != nil {
 		return fmt.Errorf("consumer target: %w", err)
@@ -67,12 +69,12 @@ func run(ctx context.Context, route, project, fixture, mode, enrolledPath string
 		return errors.New("consumer target and state must use separate databases")
 	}
 	target.RuntimeParams["application_name"] = "pooltune-consumer"
-	if !repair && !analyze && !statistics && !vacuum && !memory {
+	if !repair && !analyze && !statistics && !vacuum && !memory && !cron {
 		target.RuntimeParams["default_transaction_read_only"] = "on"
 	}
 	stateConfig.RuntimeParams["application_name"] = "pooltune-consumer-state"
 	stateConfig.RuntimeParams["statement_timeout"] = "3s"
-	if (repair || analyze || statistics || vacuum || memory) && (route != "rookery" || (mode != "scripted" && mode != "anthropic") || os.Getenv("POOLTUNE_STAGING_PRIVATE_STATE") != "1" || measure || (repair && analyze) || (statistics && (repair || analyze)) || (vacuum && (repair || analyze || statistics)) || (memory && (repair || analyze || statistics || vacuum))) {
+	if (repair || analyze || statistics || vacuum || memory || cron) && (route != "rookery" || (mode != "scripted" && mode != "anthropic") || os.Getenv("POOLTUNE_STAGING_PRIVATE_STATE") != "1" || measure || (repair && analyze) || (statistics && (repair || analyze)) || (vacuum && (repair || analyze || statistics)) || (memory && (repair || analyze || statistics || vacuum)) || (cron && (repair || analyze || statistics || vacuum || memory))) {
 		return errors.New("repair requires the enrolled Rookery fixture and Railway private state")
 	}
 	if measure && (route != "rookery-enrolled" || mode != "scripted") {
@@ -131,10 +133,12 @@ func run(ctx context.Context, route, project, fixture, mode, enrolledPath string
 		if err == nil {
 			var result *hostedquery.DispatchResult
 			var workErr error
-			if repair || analyze || statistics || vacuum || memory {
+			if repair || analyze || statistics || vacuum || memory || cron {
 				binding := hostedquery.ConsumerFixture{ID: fixture, Enrollment: hostedquery.Enrollment{Project: project}}
 				dispatch := hostedquery.DispatchFixtureRepair
-				if memory {
+				if cron {
+					dispatch = hostedquery.DispatchFixtureCron
+				} else if memory {
 					dispatch = hostedquery.DispatchFixtureMemory
 				} else if vacuum {
 					dispatch = hostedquery.DispatchFixtureVacuum

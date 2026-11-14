@@ -108,7 +108,9 @@ func PrepareWorkerState(ctx context.Context, state *pgx.Conn) error {
 			ALTER TABLE pooltune_worker.investigations
 				ADD COLUMN IF NOT EXISTS attempts integer NOT NULL DEFAULT 0,
 				ADD COLUMN IF NOT EXISTS lease_until timestamptz,
-				ADD COLUMN IF NOT EXISTS result jsonb;
+				ADD COLUMN IF NOT EXISTS result jsonb,
+                ADD COLUMN IF NOT EXISTS not_before timestamptz NOT NULL DEFAULT now(),
+                ADD COLUMN IF NOT EXISTS parent_id bigint UNIQUE REFERENCES pooltune_worker.investigations(id);
 			CREATE INDEX IF NOT EXISTS open_investigations_by_project
 				ON pooltune_worker.investigations (project_id,id) WHERE finished_at IS NULL;
 			CREATE UNIQUE INDEX IF NOT EXISTS one_open_investigation

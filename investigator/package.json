@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test graph.test.ts traffic.test.ts",
+    "test": "node --test graph.test.ts traffic.test.ts cron.test.ts",
     "typecheck": "tsc --noEmit",
     "studio": "langgraphjs dev"
   },

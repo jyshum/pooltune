@@ -18,6 +18,7 @@ var errClaimLost = errors.New("investigation claim expired or was replaced")
 
 type investigationClaim struct {
 	InvestigationJob
+	ParentID      int64
 	Attempt       int
 	Project       string
 	queueEvidence []byte
@@ -36,12 +37,14 @@ type DispatchResult struct {
 	ElapsedMS        float64                  `json:"elapsed_ms"`
 	TargetPlanMS     float64                  `json:"target_plan_ms,omitempty"`
 	RecoveredIndex   string                   `json:"recovered_index,omitempty"`
+	Cron             *CronReport              `json:"cron,omitempty"`
 	Memory           *MemoryReport            `json:"memory,omitempty"`
 	Vacuum           *VacuumReport            `json:"vacuum,omitempty"`
 	Statistics       *StatisticsReport        `json:"statistics,omitempty"`
 	Analyze          *AnalyzeReport           `json:"analyze,omitempty"`
 	Repair           *IndexTrialReport        `json:"repair,omitempty"`
-	GraphMS          float64                  `json:"graph_ms,omitempty"`
+	continuationAt   *time.Time
+	GraphMS          float64 `json:"graph_ms,omitempty"`
 }
 
 // InvestigationEvidence supplies fresh evidence for this exact enrolled job.
@@ -65,6 +68,7 @@ func claimInvestigation(ctx context.Context, state *pgx.Conn, project string) (*
 			), available AS (
 				SELECT id FROM pooltune_worker.investigations
 				WHERE project_id=$1 AND finished_at IS NULL AND attempts < $2
+				  AND not_before <= statement_timestamp()
 				  AND (lease_until IS NULL OR lease_until <= statement_timestamp())
 				  AND NOT EXISTS (
 					SELECT FROM pooltune_worker.investigations
@@ -76,9 +80,9 @@ func claimInvestigation(ctx context.Context, state *pgx.Conn, project string) (*
 			SET attempts=jobs.attempts+1, lease_until=clock_timestamp()+make_interval(secs=>$3)
 			FROM available WHERE jobs.id=available.id
 			RETURNING jobs.id,jobs.database_oid,jobs.role_oid,jobs.query_id,jobs.attempts,
-			          jobs.evidence->'counter_generation',jobs.evidence
+			          jobs.evidence->'counter_generation',jobs.evidence,COALESCE(jobs.parent_id,0)
 		`, project, maxInvestigationAttempts, investigationLease.Seconds()).
-			Scan(&claim.ID, &claim.Database, &claim.Role, &claim.Query, &claim.Attempt, &claim.Generation, &claim.queueEvidence)
+			Scan(&claim.ID, &claim.Database, &claim.Role, &claim.Query, &claim.Attempt, &claim.Generation, &claim.queueEvidence, &claim.ParentID)
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil
 		}
@@ -128,7 +132,7 @@ func DispatchInvestigation(ctx context.Context, state *pgx.Conn, project string,
 func runIndexInvestigator(ctx context.Context, claim investigationClaim, result *DispatchResult, evidence IndexEvidence, investigate IndexInvestigator) error {
 	now := time.Now()
 	causes := 0
-	for _, present := range []bool{evidence.Memory != nil, evidence.Vacuum != nil, evidence.Statistics != nil, evidence.Analyze != nil} {
+	for _, present := range []bool{evidence.Cron != nil, evidence.Memory != nil, evidence.Vacuum != nil, evidence.Statistics != nil, evidence.Analyze != nil} {
 		if present {
 			causes++
 		}
@@ -159,6 +163,9 @@ func runIndexInvestigator(ctx context.Context, claim investigationClaim, result 
 }
 
 func expectedRepair(evidence IndexEvidence) string {
+	if evidence.Cron != nil {
+		return "cron"
+	}
 	if evidence.Memory != nil {
 		return "memory"
 	}
@@ -248,7 +255,12 @@ func dispatchInvestigation(ctx context.Context, state *pgx.Conn, project string,
 		return nil, err
 	}
 	result.ElapsedMS = elapsedMS(started)
-	if err := finishInvestigation(ctx, state, *claim, result); err != nil {
+	if result.continuationAt != nil {
+		_, err = continueInvestigation(ctx, state, *claim, result, *result.continuationAt)
+	} else {
+		err = finishInvestigation(ctx, state, *claim, result)
+	}
+	if err != nil {
 		return nil, err
 	}
 	result.ElapsedMS = elapsedMS(started)

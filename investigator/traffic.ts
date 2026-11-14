@@ -7,7 +7,7 @@ import { setTimeout as sleep } from "node:timers/promises";
 import assert from "node:assert/strict";
 import pg from "pg";
 
-type RequestSample = { kind: string; duration_ms: number; ok: boolean; code?: string };
+export type RequestSample = { kind: string; duration_ms: number; ok: boolean; code?: string };
 export function summarizeTraffic(samples: RequestSample[], offered: number, seconds: number) {
   const times = samples.map(s => s.duration_ms).sort((a, b) => a - b);
   const percentile = (p: number) => times.length ? times[Math.ceil(p * times.length) - 1] : null;
@@ -59,19 +59,21 @@ export function recordWorkerDiagnostic(lines: string[], binary: string, raw: str
   lines.push(`${binary}: ${line}`.slice(0, 200));
 }
 
-async function command(args: string[]) {
+export async function command(args: string[], timeoutMS = 65000) {
   return new Promise<string>((resolve, reject) => {
     const child = spawn("pooltune-query-lab", ["-target", "rookery", ...args]);
+    const timeout=setTimeout(()=>child.kill("SIGKILL"),timeoutMS);
     let result = "";
     child.stdout.on("data", b => { result += b; });
     child.stderr.resume();
-    child.on("error", reject);
-    child.on("exit", code => code === 0 ? resolve(result) : reject(new Error(`fixture command exited ${code}`)));
+    child.on("error", error=>{clearTimeout(timeout);reject(error)});
+    child.on("exit", code => {clearTimeout(timeout);code === 0 ? resolve(result) : reject(new Error(`fixture command exited ${code}`))});
   });
 }
 
 async function main() {
   const repair = process.argv[2];
+  if(repair === "cron") {const {runCronTraffic}=await import("./cron-traffic.ts");await runCronTraffic();return;}
   assert(["index", "analyze", "statistics", "vacuum", "memory"].includes(repair), "choose a supported fixture repair");
   assert.equal(process.env.POOLTUNE_STAGING_PRIVATE_STATE, "1");
   assert(process.env.ANTHROPIC_API_KEY && process.env.POOLTUNE_ANTHROPIC_MODEL);
@@ -237,25 +239,17 @@ async function main() {
           if (wait > 0) await sleep(wait);
           if (performance.now() - scheduled > cadence) continue;
           const kind = kinds[lane];
-          let ok = true, code: string | undefined;
-          try {
-            const input = workload.input(tick);
-            const result = await client.query(kind === "target" ? targetSQL : kind === "healthy" ? healthySQL : writeSQL,
-              kind === "target" ? input : [kind === "healthy" ? 43 : 90001 + tick % 10]);
-            if (kind === "target") workload.check(result.rows,tick);
-            else assert.equal(result.rows[0]?.id, kind === "write" ? 90001 + tick % 10 : 43);
-          } catch (error: any) { ok = false; code = typeof error.code === "string" ? error.code : "client_or_result_error"; }
-          samples.push({ kind, duration_ms: performance.now() - scheduled, ok, code });
+          const input=workload.input(tick);
+          samples.push(await trafficRequest(client,kind === "target" ? targetSQL : kind === "healthy" ? healthySQL : writeSQL,
+            kind === "target" ? input : [kind === "healthy" ? 43 : 90001 + tick % 10],
+            rows=>{if(kind === "target")workload.check(rows,tick);else assert.equal(rows[0]?.id,kind === "write" ? 90001 + tick % 10 : 43)},kind,scheduled));
         }
       }));
       const remaining = seconds * 1000 - (performance.now() - start);
       if (remaining > 0) await sleep(remaining);
       const wall = (performance.now() - start) / 1000;
       const after = await snapshot();
-      const delta = after.map(row => {
-        const old = before.find(b => b.queryid === row.queryid);
-        return { query_id: row.queryid, calls: row.calls-(old?.calls ?? 0), execution_ms: row.total_exec_time-(old?.total_exec_time ?? 0), blocks: row.blocks-(old?.blocks ?? 0), temp_bytes:8192*(row.temp_blocks-(old?.temp_blocks ?? 0)) };
-      }).filter(row => row.calls > 0);
+      const delta = counterDeltas(before,after);
       const summary: any = { name, start: at, seconds: wall, counters: delta, requests: {} };
       for (const kind of new Set(kinds)) {
         const count = offered.reduce((n,value,lane) => n + (kinds[lane] === kind ? value : 0), 0);
@@ -290,6 +284,7 @@ async function main() {
       if (queued.some(j => j.finished_at)) break;
     }
     output.jobs = await jobs();
+    populateJobTimings(output);
     const afterRepair = await phase("after_repair", 12);
     const meanFor = (phase: any) => {
       const rows = phase.counters.filter((c: any) => c.query_id === output.target_query_id);
@@ -324,6 +319,7 @@ async function main() {
     output.traffic_errors = phases.reduce((sum, phase) => sum + Object.values(phase.requests).reduce((n: number, r: any) => n + r.errors, 0), 0);
     output.missed_requests = phases.reduce((sum, phase) => sum + Object.values(phase.requests).reduce((n: number, r: any) => n + r.missed, 0), 0);
     if (fixture) { try { output.jobs = (await state.query("SELECT id,created_at,finished_at,result,attempts FROM pooltune_worker.investigations WHERE project_id=$1 ORDER BY id", [fixture.enrollment.project])).rows; } catch { output.job_readback_failed = true; } }
+    populateJobTimings(output);
     await Promise.all(clients.map(c => c.end().catch(() => {})));
     if (fixture) {
       try {
@@ -348,4 +344,24 @@ async function main() {
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main().catch(() => { console.error("Traffic run could not start"); process.exitCode = 1; });
+}
+
+export function populateJobTimings(output:any) {
+ const jobs=output.jobs??[];if(!jobs.length)return;
+ const first=jobs[0];const last=jobs.filter((j:any)=>j.finished_at).at(-1);
+ if(first.finished_at&&Number.isFinite(first.result?.elapsed_ms))output.initial_queue_delay_seconds=(new Date(first.finished_at).getTime()-new Date(first.created_at).getTime()-first.result.elapsed_ms)/1000;
+ const model=jobs.find((j:any)=>j.result?.proposal?.model_call)?.result.proposal.model_call;if(model)output.model_seconds=model.duration_ms/1000;
+ const action=jobs.find((j:any)=>j.result?.cron?.action_wall_ms>0)?.result.cron;if(action)output.action_seconds=action.action_wall_ms/1000;
+ const cycle=jobs.findLast((j:any)=>j.result?.cron?.cycle_wait_ms>0)?.result.cron;if(cycle)output.future_cycle_wait_seconds=cycle.cycle_wait_ms/1000;
+ const periods=jobs.find((j:any)=>j.result?.cron?.before?.length===3)?.result.cron.before;if(periods)output.evidence_accumulation_seconds=(Date.parse(periods[2].quiet.end)-Date.parse(periods[0].cycle))/1000;
+ if(output.slowdown_at)output.detection_seconds=(new Date(first.created_at).getTime()-Date.parse(output.slowdown_at))/1000;
+ if(last){output.repair_seconds=(new Date(last.finished_at).getTime()-new Date(first.created_at).getTime())/1000;output.final_outcome=last.result?.outcome;}
+}
+export function counterDeltas(before:any[],after:any[]){
+ return after.map(row=>{const old=before.find(b=>b.queryid===row.queryid);return {query_id:row.queryid,calls:row.calls-(old?.calls??0),execution_ms:row.total_exec_time-(old?.total_exec_time??0),blocks:row.blocks-(old?.blocks??0),temp_bytes:8192*(row.temp_blocks-(old?.temp_blocks??0))}}).filter(row=>row.calls>0);
+}
+export async function trafficRequest(client:pg.Client,sql:string,params:any[],check:(rows:any[])=>void,kind:string,scheduled:number):Promise<RequestSample>{
+ let ok=true,code:string|undefined;
+ try{const r=await client.query(sql,params);check(r.rows)}catch(e:any){ok=false;code=typeof e.code==='string'?e.code:'client_or_result_error'}
+ return {kind,duration_ms:performance.now()-scheduled,ok,code};
 }

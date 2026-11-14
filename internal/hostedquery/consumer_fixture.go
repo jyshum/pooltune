@@ -89,7 +89,9 @@ func createConsumerFixture(ctx context.Context, target, state *pgx.Conn, route, 
 		if err := writeTrialStatus(ctx, state, report.ID, repair+"_preparing", nil, nil); err != nil {
 			return report, err
 		}
-		if repair == "memory" {
+		if repair == "cron" {
+			err = seedCronFixture(ctx, target, state, report.ID)
+		} else if repair == "memory" {
 			err = seedMemoryFixture(ctx, target, state, report.ID)
 		} else if repair == "vacuum" {
 			err = seedVacuumFixture(ctx, target, report.Schema)
@@ -111,7 +113,9 @@ func createConsumerFixture(ctx context.Context, target, state *pgx.Conn, route, 
 			sql := "SELECT id FROM " + source + qualified(report.Schema, lookup.table) + " WHERE " + lookup.column + "=$1"
 			var plan explain
 			var err error
-			if repair == "memory" && lookup.table == "candidate" {
+			if repair == "cron" && lookup.table == "candidate" {
+				plan, err = readLookupPlan(ctx, tx, "EXPLAIN (FORMAT JSON, VERBOSE) "+cronQuery(report.Schema))
+			} else if repair == "memory" && lookup.table == "candidate" {
 				plan, err = readLookupPlan(ctx, tx, "EXPLAIN (FORMAT JSON, VERBOSE) "+memoryQuery(report.Schema))
 			} else if repair == "vacuum" && lookup.table == "candidate" {
 				plan, err = readLookupPlan(ctx, tx, "EXPLAIN (FORMAT JSON, VERBOSE) "+vacuumQuery(report.Schema), int32(1), int32(50000))
@@ -165,6 +169,15 @@ func RemoveConsumerFixture(ctx context.Context, target, state *pgx.Conn, route, 
 			return err
 		}
 		return errors.New("fixture does not belong to this target")
+	}
+	var existingStatus string
+	if err := state.QueryRow(ctx, "SELECT status FROM "+journalTable+" WHERE id=$1", id).Scan(&existingStatus); err != nil {
+		return err
+	}
+	if isCronStatus(existingStatus) {
+		if err := cleanCronJobs(ctx, target, state, id); err != nil {
+			return err
+		}
 	}
 	status, err := cleanTrial(ctx, target, state, id)
 	if err != nil {

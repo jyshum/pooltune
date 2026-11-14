@@ -1,0 +1,91 @@
+import {spawn,type ChildProcess} from 'node:child_process';
+import {readFileSync,writeFileSync,mkdtempSync,rmSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {setTimeout as sleep} from 'node:timers/promises';
+import assert from 'node:assert/strict';
+import pg from 'pg';
+import {command,counterDeltas,populateJobTimings,recordWorkerDiagnostic,summarizeTraffic,trafficRequest,vacuumObjective,type RequestSample} from './traffic.ts';
+
+export function cronTargetDue(epochMS:number){const s=(epochMS/1000)%120;return s<20||(s>=30&&s<50)}
+const iso=(n:number)=>new Date(n).toISOString();
+const sqlISO=(value:string)=>`to_char(${value} AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"')`;
+
+export async function runCronTraffic(){
+ assert.equal(process.env.POOLTUNE_STAGING_PRIVATE_STATE,'1');
+ assert(process.env.ANTHROPIC_API_KEY&&process.env.POOLTUNE_ANTHROPIC_MODEL);
+ const config=new URL(process.env.POOLTUNE_LAB_TARGET_DSN!);assert.equal(config.hostname,'aws-0-us-west-2.pooler.supabase.com');assert.equal(config.port,'5432');assert.equal(config.pathname,'/postgres');config.search='';
+ const options={connectionString:config.href,ssl:{ca:readFileSync(process.env.POOLTUNE_LAB_ROOKERY_CA_FILE!,'utf8'),rejectUnauthorized:true},connectionTimeoutMillis:5000,application_name:'pooltune-cron-traffic',statement_timeout:1500,query_timeout:2500};
+ const admin=new pg.Client(options),observer=new pg.Client(options),fault=new pg.Client({...options,statement_timeout:22000,query_timeout:24000});
+ const state=new pg.Client({connectionString:process.env.POOLTUNE_LAB_STATE_DSN,connectionTimeoutMillis:5000,statement_timeout:3000});
+ const clients:pg.Client[]=[];const directory=mkdtempSync(join(tmpdir(),'pooltune-cron-'));const enrollment=join(directory,'enrollment.json');
+ const phases:any[]=[];const output:any={repair:'cron',phases,limits:{procedure_holds:200,hold_ms:80,elapsed_guard_seconds:19,per_lock_timeout_ms:150,cycle_seconds:120,guard_margin_seconds:15,wall_budget_seconds:1200},target_calls_per_second:2,quiet_target_calls_per_second:0};
+ let fixture:any,owned:any,worker:ChildProcess|undefined,consumer:ChildProcess|undefined;const allChildren:ChildProcess[]=[];const childResults:any[]=[],failures:number[]=[],diagnostics:string[]=[];
+ const start=performance.now();const reportPath=process.env.POOLTUNE_CRON_REPORT_PATH??join(tmpdir(),`pooltune-cron-${Date.now()}.json`);output.report_path=reportPath;
+ const progress=(s:string)=>console.error(`Cron: ${s}`);
+ function launch(binary:string,args:string[]){const c=spawn(binary,args,{env:process.env});allChildren.push(c);let out='',err='';c.stdout.on('data',b=>{out+=b;let i;while((i=out.indexOf('\n'))>=0){const line=out.slice(0,i);out=out.slice(i+1);if(line.startsWith('{')){try{childResults.push(JSON.parse(line))}catch{failures.push(-2)}}}});c.stderr.on('data',b=>{err=(err+b).slice(-4096);let i;while((i=err.indexOf('\n'))>=0){recordWorkerDiagnostic(diagnostics,binary,err.slice(0,i));err=err.slice(i+1)}});c.on('error',()=>failures.push(-1));c.on('exit',code=>{if(code)failures.push(code);recordWorkerDiagnostic(diagnostics,binary,err)});return c}
+ async function stop(c:ChildProcess|undefined){if(!c||c.exitCode!==null||c.signalCode!==null)return;await new Promise<void>(resolve=>{const kill=setTimeout(()=>c.kill('SIGKILL'),4000);c.once('exit',()=>{clearTimeout(kill);resolve()});c.kill('SIGTERM')})}
+ const jobs=async()=>fixture?(await state.query('SELECT id,created_at,finished_at,result,attempts,not_before,parent_id FROM pooltune_worker.investigations WHERE project_id=$1 ORDER BY id',[fixture.enrollment.project])).rows:[];
+ let dbNow=async()=>Number((await admin.query('SELECT extract(epoch FROM clock_timestamp())*1000 AS ms')).rows[0].ms);
+ let slice:((name:string,seconds:number,targetOn:boolean,cycle?:number)=>Promise<any>)|undefined;
+ async function waitUntil(at:number){for(;;){const remaining=(at-await dbNow())/1000;if(remaining<=.04)return;if(performance.now()-start>1200000)throw Error('Cron wall-clock budget expired');await slice!('healthy_between_periods',Math.min(remaining,10),false)}}
+ function startWorkers(){if(!worker||worker.exitCode!==null||worker.signalCode!==null)worker=launch('pooltune-worker',['-target','rookery','-enrollment',enrollment,'-interval','2s','-window','4s']);if(!consumer||consumer.exitCode!==null||consumer.signalCode!==null)consumer=launch('pooltune-consumer',['-target','rookery','-project',fixture.enrollment.project,'-fixture',fixture.id,'-mode','anthropic','-cron-staging-fixture'])}
+ try{
+  await state.connect();await admin.connect();await observer.connect();await fault.connect();
+  const fingerprint=`SELECT count(*)::int AS count,md5(coalesce(string_agg(indexdef,E'\n' ORDER BY indexdef),'')) AS hash FROM pg_indexes WHERE schemaname='public'`;
+  output.public_indexes_before=(await admin.query(fingerprint)).rows[0];output.unrelated_jobs_before=(await admin.query('SELECT jobid,jobname,username,database,command,schedule,active FROM cron.job ORDER BY jobid')).rows;
+  fixture=JSON.parse(await command(['-create-consumer-fixture','-cron-fixture']));assert.match(fixture.id,/^[a-f0-9]{24}$/);assert.equal(fixture.schema,`pooltune_trial_${fixture.id}`);output.fixture=fixture;
+  owned=JSON.parse(await command(['-cron-action','inspect','-cron-id',fixture.id]));output.enrollment=owned;
+  const schema=fixture.schema;const targetSQL=`SELECT "${schema}"."pooltune_cron_read"() AS id`;const healthySQL=`SELECT id FROM ONLY "${schema}"."healthy" WHERE id=$1`;const writeSQL=`UPDATE ONLY "${schema}"."healthy" SET padding=CASE padding WHEN 'a' THEN 'b' ELSE 'a' END WHERE id=$1 RETURNING id`;
+  for(let i=0;i<4;i++){const c=new pg.Client(options);c.on('error',()=>{});await c.connect();await c.query("SET lock_timeout='250ms'");clients.push(c)}
+  await clients[0].query(targetSQL);await clients[2].query(healthySQL,[43]);await clients[3].query(writeSQL,[90001]);
+  const ext=(await admin.query("SELECT n.nspname FROM pg_extension e JOIN pg_namespace n ON n.oid=e.extnamespace WHERE e.extname='pg_stat_statements'")).rows[0].nspname;assert.match(ext,/^[a-z_]+$/);
+  const snapshot=async()=>{const time=await dbNow();const rows=(await admin.query(`SELECT s.queryid::text AS queryid,s.dbid,s.userid,${sqlISO('pg_postmaster_start_time()')} AS boot,${sqlISO('i.stats_reset')} AS reset,${sqlISO('s.stats_since')} AS entry,s.calls::float8 AS calls,s.total_exec_time,s.shared_blks_hit::float8+s.shared_blks_read::float8 AS blocks,s.temp_blks_written::float8 AS temp_blocks,s.query FROM "${ext}".pg_stat_statements s CROSS JOIN "${ext}".pg_stat_statements_info i WHERE s.dbid=(SELECT oid FROM pg_database WHERE datname=current_database()) AND s.userid=current_user::regrole::oid AND s.toplevel AND (s.query LIKE $1 OR s.query LIKE '%JOIN unnest($2::oid[], $3::bigint[]) AS enrolled%')`,[`%${schema}%`])).rows;return {time,rows}};
+  const targetID=fixture.enrollment.queries[1].query_id,healthyID=fixture.enrollment.queries[0].query_id;output.target_query_id=targetID;
+  const initial=await snapshot();const writeID=initial.rows.find(r=>r.query.startsWith(`UPDATE ONLY "${schema}"."healthy"`))?.queryid;assert(writeID,'write identity unavailable');
+  const toCounter=(rows:any[],id:string)=>{const r=rows.find(r=>r.queryid===id);assert(r,'required statement counter missing');return {Database:r.dbid,Role:r.userid,Query:r.queryid,Boot:r.boot,Reset:r.reset,Entry:r.entry,Calls:r.calls,Blocks:r.blocks,ExecutionMS:r.total_exec_time}};
+  const calibration:number[]=[];for(let i=0;i<10;i++){const b=await snapshot();const r=await clients[0].query(targetSQL);assert.equal(r.rows[0].id,43);const a=await snapshot();const d=counterDeltas(b.rows,a.rows).find(r=>r.query_id===targetID);assert.equal(d?.calls,1);calibration.push(d!.execution_ms)}
+  output.healthy_calibration_ms=calibration;output.objective_ms=vacuumObjective(calibration);output.benefit_gates={minimum_fraction:.2,minimum_ms:5,noise_multiple:3,original_extra_fraction:.3,original_extra_ms:20};
+  fixture.enrollment.queries[0].mean_execution_ms=3;fixture.enrollment.queries[1].mean_execution_ms=output.objective_ms;writeFileSync(enrollment,JSON.stringify(fixture.enrollment),{mode:0o600});
+  const blocks=async()=>{const rows=(await observer.query(`SELECT ${sqlISO('clock_timestamp()')} AS at,r.runid::float8 AS run_id,r.jobid::float8 AS job_id,a.pid,${sqlISO('a.backend_start')} AS backend_start,w.pid AS waiting_pid,${sqlISO('w.backend_start')} AS waiting_start,w.query_id::text AS query_id FROM cron.job_run_details r JOIN pg_stat_activity a ON a.pid=r.job_pid JOIN pg_stat_activity w ON a.pid=ANY(pg_blocking_pids(w.pid)) WHERE r.jobid=$1 AND r.end_time IS NULL AND r.status='running' AND w.query_id=$2::bigint AND w.datid=$3 AND w.usesysid=$4`,[owned.target.id,targetID,fixture.enrollment.queries[1].database_oid,fixture.enrollment.queries[1].role_oid])).rows;return rows};
+  slice=async(name,seconds,targetOn,cycle)=>{
+   const before=await snapshot();const samples:RequestSample[]=[];const offered=[0,0,0,0];const attributed:any[]=[];const anchor=performance.now();let collecting=true;
+   const observe=cycle!==undefined&&targetOn?(async()=>{while(collecting){attributed.push(...await blocks());await sleep(50)}})():Promise.resolve();
+   await Promise.all(clients.map(async(c,lane)=>{const cadence=lane<2?1000:lane===2?250:500;const offset=lane===1?500:0;for(let tick=0;offset+tick*cadence<seconds*1000;tick++){if(lane<2&&!targetOn)continue;offered[lane]++;const scheduled=anchor+offset+tick*cadence;const wait=scheduled-performance.now();if(wait>0)await sleep(wait);if(performance.now()-scheduled>cadence)continue;const kind=lane<2?'target':lane===2?'healthy':'write';const id=kind==='write'?90001+tick%10:43;samples.push(await trafficRequest(c,lane<2?targetSQL:lane===2?healthySQL:writeSQL,lane<2?[]:[id],rows=>{assert.equal(rows.length,1);assert.equal(rows[0].id,id)},kind,scheduled))}}));
+   const remain=seconds*1000-(performance.now()-anchor);if(remain>0)await sleep(remain);collecting=false;await observe;const after=await snapshot();const requests:any={};const kinds=['target','healthy','write'];for(const [i,kind]of kinds.entries()){const n=i===0?offered[0]+offered[1]:offered[i+1];requests[kind]=summarizeTraffic(samples.filter(s=>s.kind===kind),n,seconds)}
+   const summary={name,start:iso(before.time),seconds,counters:counterDeltas(before.rows,after.rows),requests};phases.push(summary);
+   const metric=(id:string,kind:string)=>({before:toCounter(before.rows,id),after:toCounter(after.rows,id),offered:requests[kind].offered,errors:requests[kind].errors,missed:requests[kind].missed});
+   return {start:iso(before.time),end:iso(after.time),target:metric(targetID,'target'),healthy:metric(healthyID,'healthy'),write:metric(writeID,'write'),blocks:attributed};
+  };
+  // Two matched healthy comparisons with reversed monitoring order. The witness
+  // stays active for both, while the target remains inactive until the fault.
+  await command(['-cron-action','witness','-cron-id',fixture.id]);
+  const firstClean=Math.ceil((await dbNow()+1000)/120000)*120000;
+  for(const [i,on]of [false,true,true,false].entries()){const at=firstClean+Math.floor(i/2)*120000+(i%2)*30000;await waitUntil(at);if(on)startWorkers();else{await stop(worker);await stop(consumer);worker=consumer=undefined}await slice(on?'monitor_on':'monitor_off',20,true);assert.equal((await jobs()).length,0,'healthy monitoring opened a job')}
+  startWorkers();
+  const spikeAt=firstClean+240000;await waitUntil(spikeAt);progress('manual 30-hold brief spike, not a scheduled run');const spike=fault.query(`CALL "${schema}"."pooltune_cron_hold"(30)`);const sw=await slice('manual_brief_spike',20,true);await spike;output.spike_database_mean_ms=(sw.target.after.ExecutionMS-sw.target.before.ExecutionMS)/(sw.target.after.Calls-sw.target.before.Calls);assert(output.spike_database_mean_ms>output.objective_ms,'manual spike did not breach fixed objective');
+  await waitUntil(spikeAt+30000);await slice('spike_recovery',20,true);await waitUntil(spikeAt+65000);output.spike_jobs=await jobs();assert.equal(output.spike_jobs.length,0,'brief spike opened an investigation');
+  // Activation accepts an already active identical witness, but target activation
+  // remains inactive until this recorded odd-minute interval.
+  const activating=command(['-cron-action','activate','-cron-id',fixture.id]);await slice('activation_healthy',5,false);owned=JSON.parse(await activating);output.activation=owned;const firstCycle=Date.parse(owned.first_cycle);output.slowdown_at=iso(firstCycle);
+  let restarted=false;
+  for(let i=0;i<6;i++){
+   const cycle=firstCycle+i*120000;await waitUntil(cycle);progress(`${i<3?'original':'future'} actual cycle ${i%3+1}/3`);
+   const busy=await slice(i<3?'original_busy':'future_busy',20,true,cycle);await waitUntil(cycle+30000);const control=await slice(i<3?'original_control':'future_control',20,true);await waitUntil(cycle+60000);const quiet=await slice(i<3?'original_quiet':'future_quiet',20,false);
+   const period={cycle:iso(cycle),busy:{...busy,blocks:undefined},control:{...control,blocks:undefined},quiet:{...quiet,blocks:undefined},blocks:busy.blocks};const file=join(directory,`period-${i}.json`);writeFileSync(file,JSON.stringify(period),{mode:0o600});
+   const record=command(['-cron-action','record','-cron-id',fixture.id,'-cron-period',file]);
+   await slice('cycle_end_healthy',Math.max(.1,(cycle+100000-await dbNow())/1000),false);await record;
+   const queued=await jobs();output.jobs=queued;populateJobTimings(output);
+   if(i===2){const pending=queued.find(j=>j.result?.outcome==='awaiting_verification');assert(pending,'no acknowledged schedule action after full original periods');assert.equal(pending.result.proposal.model_call.requests,1);output.model_seconds=pending.result.proposal.model_call.duration_ms/1000;output.action_seconds=pending.result.cron.action_wall_ms/1000;output.action_at=pending.result.cron.commit_at;const child=queued.find(j=>!j.finished_at);assert(child&&new Date(child.not_before).getTime()>await dbNow(),'missing future verification child');await stop(consumer);consumer=undefined;startWorkers();const afterRestart=await jobs();assert(afterRestart.some(j=>j.id===child.id&&!j.finished_at),'restart lost pending child');restarted=true;output.consumer_restart={job_id:child.id,not_before:child.not_before,preserved:true}}
+  }
+  await waitUntil(firstCycle+12*60000+8000);output.jobs=await jobs();populateJobTimings(output);const final=output.jobs.filter((j:any)=>j.finished_at).at(-1);output.future_cycle_wait_seconds=final?.result?.cron?.cycle_wait_ms/1000;assert(restarted);assert.equal(final?.result?.outcome,'improved_tested_inputs','Cron follow-up did not verify all future work and traffic');assert.equal(output.jobs.filter((j:any)=>j.result?.proposal?.model_call?.requests===1&&j.result?.outcome==='awaiting_verification').length,1);output.repair_verified=true;output.passed=true;
+ }catch(e:any){output.passed=false;output.error=String(e.message).slice(0,400);process.exitCode=1}
+ finally{
+  await Promise.all(allChildren.map(stop));output.worker_failures=failures;output.worker_diagnostics=diagnostics;output.detector_windows=childResults.flatMap(r=>r.windows??[]);output.process_results=childResults.filter(r=>r.job_id);
+  try{output.jobs=await jobs();populateJobTimings(output)}catch{output.job_readback_failed=true}
+  output.traffic_errors=phases.reduce((n,p)=>n+Object.values(p.requests).reduce((v:number,r:any)=>v+r.errors,0),0);output.missed_requests=phases.reduce((n,p)=>n+Object.values(p.requests).reduce((v:number,r:any)=>v+r.missed,0),0);
+  await Promise.all(clients.map(c=>c.end().catch(()=>{})));
+  if(fixture){progress('waiting for safe target cleanup; stopping owned diagnostic witness separately');const cleanupDeadline=performance.now()+180000;for(let attempt=0;attempt<35&&performance.now()<cleanupDeadline;attempt++){try{await command(['-remove-consumer-fixture',fixture.id],Math.min(15000,cleanupDeadline-performance.now()));output.fixture_removed=(await admin.query('SELECT to_regnamespace($1) IS NULL AS gone',[fixture.schema])).rows[0].gone;output.owned_jobs_remaining=(await admin.query('SELECT count(*)::int AS n FROM cron.job WHERE jobname=ANY($1::text[])',[['pooltune_target_'+fixture.id,'pooltune_witness_'+fixture.id]])).rows[0].n;assert(output.fixture_removed&&output.owned_jobs_remaining===0);output.unrelated_jobs_after=(await admin.query('SELECT jobid,jobname,username,database,command,schedule,active FROM cron.job ORDER BY jobid')).rows;assert.deepEqual(output.unrelated_jobs_after,output.unrelated_jobs_before);output.public_indexes_after=(await admin.query("SELECT count(*)::int AS count,md5(coalesce(string_agg(indexdef,E'\n' ORDER BY indexdef),'')) AS hash FROM pg_indexes WHERE schemaname='public'")).rows[0];assert.deepEqual(output.public_indexes_after,output.public_indexes_before);break}catch{if(attempt===34){output.cleanup_failed=true;output.recovery_fixture_id=fixture.id}else await sleep(2000)}}if(!output.fixture_removed){output.cleanup_failed=true;output.recovery_fixture_id=fixture.id}}
+  await Promise.all([state.end().catch(()=>{}),admin.end().catch(()=>{}),observer.end().catch(()=>{}),fault.end().catch(()=>{})]);rmSync(directory,{recursive:true,force:true});output.total_seconds=(performance.now()-start)/1000;output.passed=!!output.passed&&!output.cleanup_failed&&!output.traffic_errors&&!output.missed_requests&&!failures.length;if(!output.passed)process.exitCode=1;writeFileSync(reportPath,JSON.stringify(output,null,2),{mode:0o600});console.log(JSON.stringify(output));
+ }
+}

@@ -53,3 +53,15 @@ test("worker diagnostics retain only bounded sanitized failure lines",async()=>{
  assert.equal(lines.length,40);
  assert(lines.every(line=>line.length<=200 && !line.includes("secret")));
 });
+
+test('failed repair reports retain first queue and final-save timings',async()=>{
+ const {populateJobTimings}=await import('./traffic.ts');
+ const report:any={slowdown_at:'2026-11-14T12:00:00Z',jobs:[{created_at:'2026-11-14T12:00:10Z',finished_at:'2026-11-14T12:00:20Z',result:{outcome:'awaiting_verification'}},{created_at:'2026-11-14T12:00:20Z',finished_at:'2026-11-14T12:06:00Z',result:{outcome:'inconclusive'}}]};
+ populateJobTimings(report);assert.equal(report.detection_seconds,10);assert.equal(report.repair_seconds,350);assert.equal(report.final_outcome,'inconclusive');
+});
+
+test('Cron timing preserves model, action, evidence and cycle waits separately on failure',async()=>{
+ const {populateJobTimings}=await import('./traffic.ts');
+ const report:any={jobs:[{created_at:'2026-11-14T12:00:00Z',finished_at:'2026-11-14T12:00:02Z',result:{elapsed_ms:500,outcome:'awaiting_evidence'}},{created_at:'2026-11-14T12:00:02Z',finished_at:'2026-11-14T12:12:00Z',result:{outcome:'inconclusive',proposal:{model_call:{duration_ms:3000}},cron:{action_wall_ms:6000,cycle_wait_ms:400000,before:[{cycle:'2026-11-14T12:00:00Z'},{},{quiet:{end:'2026-11-14T12:05:20Z'}}]}}}]};
+ populateJobTimings(report);assert.equal(report.initial_queue_delay_seconds,1.5);assert.equal(report.model_seconds,3);assert.equal(report.action_seconds,6);assert.equal(report.future_cycle_wait_seconds,400);assert.equal(report.evidence_accumulation_seconds,320);
+});
