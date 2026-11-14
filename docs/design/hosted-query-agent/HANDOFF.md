@@ -6,7 +6,7 @@ Prepared November 13, 2026, America/Vancouver. Start here in the implementation 
 
 Jared's latest instruction: “no if that covers eveyrhting, save evryrhting, and start a new chat for implementation.” Implementation belongs in that new chat. This planning chat did not write product code, install dependencies or create test data. The product direction is sufficiently established to plan and implement the first vertical slice; this is not a claim that all interfaces, credentials or six repair contracts are complete.
 
-Repository: `/Users/jshum/Desktop/code-folders/pooltune-learning`. The chat may be grouped under Projects & Internship Apps, whose directory is different. Always set the repository path explicitly. Existing code is the older traffic-admission/pool-tuning product. Its local Go backend, SQLite and local dashboard are not the new hosted architecture. Reuse code only after inspecting whether its assumptions fit.
+Current repository: `/Users/jshum/Desktop/code-folders/pooltune`. The checkout was previously named `pooltune-learning`. This handoff describes the initial state. At that point, the checkout contained the older traffic-admission and pool-tuning product. See [progress.md](progress.md) for the hosted implementation and current layout.
 
 Apply Jared's skills at `/Users/jshum/Desktop/code-folders/jared-skills`, beginning with `crocking/skills/using-superpowers/SKILL.md` and workflow-policy. Continue with writing-plans and the appropriate execution skills. Use plain explanations and concrete progress updates. Do not re-ask already selected stack, deployment or workflow preferences.
 
