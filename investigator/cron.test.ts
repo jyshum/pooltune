@@ -293,3 +293,27 @@ for(const mode of ['replacement_pending_child','wrong_improved_child']){
   assert.equal(reads,1);
  });
 }
+
+test('Cron delivers current and permitted candidate meanings while preserving model decline and schedule screening',async()=>{
+ const {buildSingleCallInvestigator}=await import('./model.ts');let calls=0;
+ const graph=buildGraph(buildSingleCallInvestigator(async messages=>{
+  calls++;
+  const instructions=String(messages[0].content),payload=JSON.parse(String(messages[1].content));
+  assert.match(instructions,/original_schedule is the current schedule/);
+  assert.match(instructions,/alternate_schedule is the owner-approved candidate for this enrolled job/);
+  assert.match(instructions,/permission applies only to this exact schedule pair/);
+  assert.match(instructions,/repair=cron proposes exactly alternate_schedule/);
+  assert.equal(payload.enrollment.cron.original_schedule,'*/2 * * * *');
+  assert.equal(payload.enrollment.cron.alternate_schedule,'1-59/2 * * * *');
+  assert.equal(payload.enrollment.cron.required_runs_per_cycle,1);
+  assert.equal(payload.enrollment.cron.deadline_seconds,120);
+  return {outcome:'no_change',run_id:payload.enrollment.run_id,table_oid:payload.enrollment.table_oid,column_number:payload.enrollment.column_number,reason:'Declined after reviewing evidence.'};
+ }));
+ const declined=await graph.invoke({evidence:evidence()});
+ assert.equal(declined.proposal?.reason,'Declined after reviewing evidence.');assert.equal(calls,1);
+ for(const field of ['original_schedule','alternate_schedule']){
+  const bad=evidence();bad.cron[field]='* * * * *';bad.cron.identity_verified=true;
+  assert.equal((await graph.invoke({evidence:bad})).proposal?.outcome,'no_change');
+ }
+ assert.equal(calls,1,'identity verification must not admit a disallowed schedule to the model');
+});
