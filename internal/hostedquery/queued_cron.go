@@ -183,17 +183,33 @@ func DispatchFixtureCron(ctx context.Context, state *pgx.Conn, config *pgx.ConnC
 			cronDefer(result, &r, "awaiting_evidence", evidenceDue)
 			return nil
 		}
+		last := f.FirstCycle.Add(4 * time.Minute)
+		deadline := last.Add(105 * time.Second)
+		admissionCutoff := last.Add(96 * time.Second)
+		if !now.Before(admissionCutoff) {
+			return final("inconclusive", "eligible handoff window expired before model admission")
+		}
 		r.Before, err = loadCronPeriods(ctx, state, fixture.ID, f.FirstCycle)
 		if err != nil {
 			return err
 		}
+		// The earliest evidence time does not guarantee the recorder committed.
+		// Keep missing periods pending through the existing durable continuation,
+		// bounded by the unchanged model-admission cutoff. Never fabricate them.
+		if len(r.Before) < 3 {
+			next := now.Add(time.Second)
+			if next.After(admissionCutoff) {
+				next = admissionCutoff
+			}
+			r.Outcome = "awaiting_evidence"
+			if err = writeCronReport(ctx, state, "cron_waiting", &r); err != nil {
+				return err
+			}
+			cronDefer(result, &r, "awaiting_evidence", next)
+			return nil
+		}
 		if err = validateCronPeriods(r.Before, true); err != nil {
 			return final("inconclusive", err.Error())
-		}
-		last := f.FirstCycle.Add(4 * time.Minute)
-		deadline := last.Add(105 * time.Second)
-		if !now.Before(last.Add(96 * time.Second)) {
-			return final("inconclusive", "eligible handoff window expired before model admission")
 		}
 		r.History, err = readCronRuns(ctx, target, f.Target.ID)
 		if err != nil {
