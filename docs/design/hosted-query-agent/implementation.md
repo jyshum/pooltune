@@ -102,6 +102,32 @@ Files: `internal/hostedquery/index_trial.go`, `index_journal.go`, `index_trial_i
 - [x] Test the normal path, healthy no-change, misleading/duplicate proposal, missing verification, interruption after the build, restart reconciliation, refusal of unowned objects, and fixture cleanup. Run `go test -count=1 ./...`, focused PostgreSQL integration, investigator tests, and one bounded Rookery trial. Check the public catalog fingerprint before/after. Document measured timings and distinguish deterministic evaluation from live Anthropic evidence.
 - [x] Record the technical choices, strongest alternatives and results. Publish a source-grounded learning view for the slice, review and present the index milestone. Any broader enablement requires a new qualification. Live model evidence is recorded. [Jared accepted the index milestone](progress.md#index-milestone-accepted-november-13-2026). See [measured results and decisions](index-slice.md).
 
+## Background worker
+
+The index milestone proved the repair loop on an isolated fixture. The worker makes the detection loop run on its own. It reads counters PostgreSQL already collects for queries a project has opted to monitor. Go screens those measurements against each query's target. Repeated breaches open one investigation in Pooltune's database, where it survives a restart.
+
+Start with one project and one kind of signal, an enrolled mean-latency objective. The v0 experiment uses a 60-second collection interval, five-minute windows, and three breaches in the latest five comparable windows. Sampling more often can shorten the wait for evidence and adds more database reads. The test will shorten its clock to exercise the same rules quickly. Real workload measurements will determine the release cadence.
+
+### Task 6: Collect and screen normal traffic
+
+Files: `cmd/pooltune-worker/main.go`, `internal/hostedquery/worker.go`, `internal/hostedquery/evidence.go` and their tests. Depends on Task 1. Decisions: d-language r2 and d-reuse r1. Use the objective path in [detection and verification](detection-verification-v0.md).
+
+- [ ] Write tests for healthy queries, one spike, sustained breaches, no calls and counter resets. Include distinct query objectives and missing samples.
+- [ ] Add a bounded, cancellable polling loop. Read only enrolled top-level PostgreSQL counter entries and their generation, with a timeout. Calculate interval deltas and combine them into comparable windows by total execution time and total calls. Share counter validation and `DetectObjective` with the lab while preserving the fixture's exact-count test. The worker emits a result for each finished window, including insufficient evidence when readings cannot be compared.
+- [ ] Verify with `go test -count=1 ./internal/hostedquery ./cmd/pooltune-worker` and commit the standalone sampler.
+
+### Task 7: Persist evidence and queue one investigation
+
+Files: `internal/hostedquery/worker_store.go`, `internal/hostedquery/worker_store_integration_test.go` and the worker command. Depends on Task 6. Decisions: d-hosting r1, d-reuse r1 and the proposed d-durability r1.
+
+- [ ] Write PostgreSQL tests for overlapping worker ticks, replay of the same window, separate project identities and restart with a partially collected history.
+- [ ] Store the latest counter, partial window and recent completed windows in Pooltune's PostgreSQL. Commit each evidence update and its investigation insert together. Use a database-backed uniqueness rule for one open investigation per project, database, role and query. The proposed local implementation uses PostgreSQL for both jobs and evidence. That keeps intake consistent in one transaction and makes Pooltune responsible for the later job claim and recovery logic. The production queue decision remains open.
+- [ ] Run the local integration scenario with healthy traffic and sustained breaches. Verify the healthy query creates zero jobs and the slow query creates one job even after a worker restart. Run `go test -tags=integration -count=1 ./internal/hostedquery ./cmd/pooltune-worker` and commit the durable queue producer.
+
+### Investigation handoff after worker intake
+
+A follow-up consumer will claim jobs with an expiring reservation and bounded retries. It will send validated query-plan and existing-index evidence to the current one-call LangGraph investigator, or record that evidence is missing. An integration test will show a queued investigation reaching the graph with measured evidence from an isolated fixture. The automatic index repair remains on the qualified fixture path until target-specific evidence collection, grants and capacity checks are ready.
+
 ## Candidate test application inspection (historical)
 
 
