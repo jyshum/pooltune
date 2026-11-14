@@ -1,5 +1,9 @@
 # Design progress
 
+## Measured page accesses in hosted staging, November 14, 2026
+
+Task 16 reused page accesses from the detector’s existing counter reads. A 1 ms test saw brief target breaches in both lookups. A rerun at a 3 ms fixture objective opened only job 15 and preserved 443 shared-page accesses per slow call across its five decision windows. The indexed control used 3 per call. The consumer saved the result in 2.914 seconds with no extra lookup execution. The [staging record](observed-page-access.md) includes both runs, the evidence limit, and the next production qualification step.
+
 ## Measured traffic reuse in hosted staging, November 14, 2026
 
 Jared accepted the preceding detector handoff with “Okay, these tests are good. Then let's continue.” Task 15 reused five traffic windows covering 91 Rookery calls, saved the current estimated plan and index check, and recorded why a measured plan is still needed. Job 12 finished on its first attempt 2.691 seconds after queuing. The healthy lookup created no job. The [diagnosis record](observed-traffic-diagnosis.md) captures exact metrics, the ten-minute freshness choice, and the next evidence gap. Independent review identified test-ordering and missing-value cases. Both now have focused regression coverage.

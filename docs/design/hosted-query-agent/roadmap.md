@@ -4,7 +4,7 @@ The [V1 product plan](../../product/query-performance-v1.md) defines what we are
 
 ## Where we are
 
-The Go detector, durable queue and consumer run on Railway staging. The same investigation survived a hosted restart. TypeScript and LangGraph run one shared investigator. The lab exercised Claude and one automatic index repair on a single-column equality lookup. A dedicated Rookery login passed evidence and revocation tests. The Railway detector now queues investigations from enrolled Rookery traffic, and the consumer saves the measured traffic windows, plan estimate, and index check. Compound indexes and the other five repairs still need qualification. [Hosted traffic test](enrolled-traffic-staging.md) · [Measured traffic reuse](observed-traffic-diagnosis.md)
+The Go detector, durable queue and consumer run on Railway staging. The same investigation survived a hosted restart. TypeScript and LangGraph run one shared investigator. The lab exercised Claude and one automatic index repair on a single-column equality lookup. A dedicated Rookery login passed evidence and revocation tests. The Railway detector now queues investigations from enrolled Rookery traffic, and the consumer saves the measured traffic windows, plan estimate, and index check. Compound indexes and the other five repairs still need qualification. [Hosted traffic test](enrolled-traffic-staging.md) · [Measured traffic reuse](observed-traffic-diagnosis.md) · [Observed page accesses](observed-page-access.md)
 
 ## What remains
 

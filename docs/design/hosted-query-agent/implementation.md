@@ -184,6 +184,13 @@ Depends on Task 14 and follows d-workflow r1 and d-reuse r1.
 - [x] Keep the sample counts for the five decision windows already measured by the detector. Read them with the existing queued job and preserve the valid, recent observations separately from the planner estimate.
 - [x] Record why the enrolled missing-index investigation stops here. Cover older jobs without sample counts, stale measurements, healthy traffic, and exact reuse of fresh detector output. Verify the consumer makes no extra lookup, and document the [results and trade-offs](observed-traffic-diagnosis.md).
 
+### Task 16: Reuse the detector's measured database page accesses
+
+Depends on Task 15 and follows d-workflow r1 and d-reuse r1.
+
+- [x] Keep shared-page access counts from the same five measured windows. Reuse the detector's existing counter reads. Preserve legacy timings when page data is unavailable or malformed.
+- [x] Verify the normal-traffic counts can distinguish the staging fixtures without another query execution. Keep whole-query counters separate from measured plan work and record the remaining gap for the index recommendation in [Observed page accesses](observed-page-access.md).
+
 ## Candidate test application inspection (historical)
 
 

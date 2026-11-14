@@ -69,6 +69,7 @@ func TestEnrolledDispatchReusesDetectorMeasurements(t *testing.T) {
 		existing    bool
 		legacy      bool
 		missingMean bool
+		blocksIssue string
 		planNode    string
 		wantReason  string
 	}{
@@ -77,6 +78,10 @@ func TestEnrolledDispatchReusesDetectorMeasurements(t *testing.T) {
 		{name: "stale", age: 11 * time.Minute, wantReason: "missing_fresh_latency"},
 		{name: "legacy", legacy: true, wantReason: "missing_fresh_latency"},
 		{name: "missing mean", missingMean: true, wantReason: "missing_fresh_latency"},
+		{name: "old latency payload", blocksIssue: "absent", wantReason: "missing_measured_plan"},
+		{name: "unknown block count", blocksIssue: "null", wantReason: "missing_measured_plan"},
+		{name: "negative block count", blocksIssue: "-1", wantReason: "missing_measured_plan"},
+		{name: "zero block count", blocksIssue: "zero", wantReason: "missing_measured_plan"},
 		{name: "another plan", planNode: "Index Scan", wantReason: "no_estimated_sequential_scan"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -85,19 +90,22 @@ func TestEnrolledDispatchReusesDetectorMeasurements(t *testing.T) {
 				{Database: 1, Role: 2, Query: 3, MeanMS: 1},
 				{Database: 1, Role: 2, Query: 4, MeanMS: 1},
 			}}
-			var calls int64
+			var calls, blocks int64
 			var executionMS float64
 			for i := 0; i <= 10; i++ {
 				if i > 0 {
 					window := (i + 1) / 2
 					batch := int64(4 * window)
 					calls += batch
+					if tc.blocksIssue != "zero" {
+						blocks += batch * int64(window+199)
+					}
 					executionMS += float64(batch) * float64(7+window)
 				}
 				poll, err := recordPoll(ctx, state, enrollment, policy, start.Add(time.Duration(i)*time.Second),
 					func(context.Context) (map[queryKey]Counter, error) {
 						slow := Counter{Database: 1, Role: 2, Query: 3, Boot: start, Reset: start, Entry: start,
-							Calls: calls, ExecutionMS: executionMS}
+							Calls: calls, Blocks: blocks, ExecutionMS: executionMS}
 						healthy := slow
 						healthy.Query, healthy.ExecutionMS = 4, float64(calls)*0.25
 						return map[queryKey]Counter{slow.key(): slow, healthy.key(): healthy}, nil
@@ -113,6 +121,16 @@ func TestEnrolledDispatchReusesDetectorMeasurements(t *testing.T) {
 			}
 			if tc.missingMean {
 				if _, err := state.Exec(ctx, "UPDATE pooltune_worker.investigations SET evidence=jsonb_set(evidence,'{recent_window_mean_ms,0}','null') WHERE project_id=$1", tc.name); err != nil {
+					t.Fatal(err)
+				}
+			}
+			switch tc.blocksIssue {
+			case "absent":
+				if _, err := state.Exec(ctx, "UPDATE pooltune_worker.investigations SET evidence=evidence-'recent_window_shared_block_accesses' WHERE project_id=$1", tc.name); err != nil {
+					t.Fatal(err)
+				}
+			case "null", "-1":
+				if _, err := state.Exec(ctx, "UPDATE pooltune_worker.investigations SET evidence=jsonb_set(evidence,'{recent_window_shared_block_accesses,0}',$2::jsonb) WHERE project_id=$1", tc.name, tc.blocksIssue); err != nil {
 					t.Fatal(err)
 				}
 			}
@@ -145,10 +163,11 @@ func TestEnrolledDispatchReusesDetectorMeasurements(t *testing.T) {
 				return
 			}
 			var latency struct {
-				Objective float64   `json:"objective_ms"`
-				Means     []float64 `json:"recent_window_mean_ms"`
-				Calls     []int64   `json:"recent_window_calls"`
-				Through   time.Time `json:"observed_through"`
+				Objective    float64   `json:"objective_ms"`
+				Means        []float64 `json:"recent_window_mean_ms"`
+				Calls        []int64   `json:"recent_window_calls"`
+				SharedBlocks []int64   `json:"recent_window_shared_block_accesses"`
+				Through      time.Time `json:"observed_through"`
 			}
 			if err := json.Unmarshal(observed, &latency); err != nil {
 				t.Fatal(err)
@@ -156,6 +175,15 @@ func TestEnrolledDispatchReusesDetectorMeasurements(t *testing.T) {
 			if latency.Objective != 1 || !latency.Through.Equal(now) ||
 				!slices.Equal(latency.Means, []float64{8, 9, 10, 11, 12}) || !slices.Equal(latency.Calls, []int64{8, 16, 24, 32, 40}) {
 				t.Fatalf("wrong saved detector measurements: %+v", latency)
+			}
+			var wantBlocks []int64
+			if tc.blocksIssue == "" {
+				wantBlocks = []int64{1600, 3216, 4848, 6496, 8160}
+			} else if tc.blocksIssue == "zero" {
+				wantBlocks = []int64{0, 0, 0, 0, 0}
+			}
+			if !slices.Equal(latency.SharedBlocks, wantBlocks) {
+				t.Fatalf("saved block counts: %v, want %v", latency.SharedBlocks, wantBlocks)
 			}
 		})
 	}
