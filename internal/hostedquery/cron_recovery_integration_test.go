@@ -265,3 +265,117 @@ func TestCronLostUnscheduleAckStillWaitsForWitnessTermination(t *testing.T) {
 		t.Fatal("absent catalog rows bypassed terminal history check after lost acknowledgement")
 	}
 }
+
+func TestCronActivationExcludesStalledLauncherCatchup(t *testing.T) {
+	ctx, _, target, state, fixture, f := cronCatalogAdapter(t)
+	// This adapter models the specific interleaving, not an actual scheduler:
+	// metadata refresh after activation catches up the prior even minute unless
+	// the launcher has demonstrably progressed while the target was inactive.
+	_, err := target.Exec(ctx, `CREATE TABLE cron_adapter.scheduler_clock(at timestamptz,last_minute timestamptz);
+ INSERT INTO cron_adapter.scheduler_clock VALUES('2026-11-14 12:01:10+00','2026-11-14 11:59:00+00');
+ CREATE FUNCTION cron_adapter.clock_timestamp() RETURNS timestamptz LANGUAGE sql AS $$SELECT at FROM cron_adapter.scheduler_clock$$;
+ CREATE FUNCTION cron.alter_job(bigint,active boolean) RETURNS void LANGUAGE plpgsql AS $$BEGIN
+ UPDATE cron.job SET active=$2 WHERE jobid=$1;
+ IF $1=1 AND $2 AND (SELECT last_minute<'2026-11-14 12:00:00+00' FROM cron_adapter.scheduler_clock) THEN
+ INSERT INTO cron.job_run_details VALUES(99,1,42,'2026-11-14 12:01:10+00',NULL,'running'); END IF;
+ END$$;
+ UPDATE cron.job SET active=false WHERE jobid=1`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	f.ActivationStarted = time.Time{}
+	f.Activated = time.Time{}
+	f.FirstCycle = time.Time{}
+	if err = writeCronFixture(ctx, state, fixture.ID, f); err != nil {
+		t.Fatal(err)
+	}
+	if err = writeTrialStatus(ctx, state, fixture.ID, "cron_ready", nil, nil); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = ActivateCronFixture(ctx, target, state, "local", fixture.ID); err == nil {
+		t.Fatal("stalled launcher activation admitted prior-even catch-up")
+	}
+	var active bool
+	var runs int
+	if err = target.QueryRow(ctx, "SELECT active,(SELECT count(*) FROM cron.job_run_details WHERE jobid=1) FROM cron.job WHERE jobid=1").Scan(&active, &runs); err != nil || active || runs != 0 {
+		t.Fatalf("refusal mutated target: active=%v runs=%d error=%v", active, runs, err)
+	}
+	saved, err := readCronFixture(ctx, state, fixture.ID)
+	if err != nil || !saved.ActivationStarted.IsZero() {
+		t.Fatal("missing proof consumed activation intent", err)
+	}
+	// One prequeued witness is not enough; its start predates the odd boundary.
+	if _, err = target.Exec(ctx, `UPDATE cron_adapter.scheduler_clock SET last_minute='2026-11-14 12:01:00+00';
+ INSERT INTO cron.job_run_details VALUES(1,2,42,'2026-11-14 12:00:59+00','2026-11-14 12:01:01+00','succeeded'),(2,2,43,'2026-11-14 12:01:02+00','2026-11-14 12:01:03+00','succeeded')`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = ActivateCronFixture(ctx, target, state, "local", fixture.ID); err == nil {
+		t.Fatal("one later witness admitted activation")
+	}
+	if _, err = target.Exec(ctx, `INSERT INTO cron.job_run_details VALUES(3,2,44,'2026-11-14 12:01:04+00','2026-11-14 12:01:05+00','succeeded')`); err != nil {
+		t.Fatal(err)
+	}
+	activated, err := ActivateCronFixture(ctx, target, state, "local", fixture.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := time.Date(2026, 11, 14, 12, 2, 0, 0, time.UTC)
+	if !activated.FirstCycle.Equal(want) {
+		t.Fatalf("wrong first accounted cycle: %s", activated.FirstCycle)
+	}
+	if err = target.QueryRow(ctx, "SELECT active,(SELECT count(*) FROM cron.job_run_details WHERE jobid=1) FROM cron.job WHERE jobid=1").Scan(&active, &runs); err != nil || !active || runs != 0 {
+		t.Fatalf("target activated with unaccounted work: %v %d %v", active, runs, err)
+	}
+}
+
+func TestCronCleanupValidatesRoutinesAndTablesBeforeUnscheduling(t *testing.T) {
+	for _, change := range []string{"procedure_body", "procedure_owner", "read_settings", "read_owner", "table_owner"} {
+		t.Run(change, func(t *testing.T) {
+			ctx, _, target, state, f, _ := cronCatalogAdapter(t)
+			if _, err := target.Exec(ctx, `CREATE ROLE cron_changed; CREATE FUNCTION cron.unschedule(bigint) RETURNS boolean LANGUAGE sql AS $$WITH gone AS (DELETE FROM cron.job WHERE jobid=$1 RETURNING jobid) SELECT EXISTS(SELECT FROM gone)$$; UPDATE cron.job SET active=false`); err != nil {
+				t.Fatal(err)
+			}
+			routine := cronProcedure
+			sql := ""
+			switch change {
+			case "procedure_body":
+				sql = "CREATE OR REPLACE PROCEDURE " + qualified(f.Schema, cronProcedure) + "(holds integer) LANGUAGE plpgsql AS $$BEGIN NULL;END$$"
+			case "procedure_owner":
+				sql = "ALTER PROCEDURE " + qualified(f.Schema, cronProcedure) + "(integer) OWNER TO cron_changed"
+			case "read_settings":
+				routine = cronReadFunction
+				sql = "ALTER FUNCTION " + qualified(f.Schema, cronReadFunction) + "() SET work_mem='8MB'"
+			case "read_owner":
+				routine = cronReadFunction
+				sql = "ALTER FUNCTION " + qualified(f.Schema, cronReadFunction) + "() OWNER TO cron_changed"
+			case "table_owner":
+				sql = "ALTER TABLE " + qualified(f.Schema, "candidate") + " OWNER TO cron_changed"
+			}
+			if _, err := target.Exec(ctx, sql); err != nil {
+				t.Fatal(err)
+			}
+			before, err := readCronRoutine(ctx, target, f.Schema, routine)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err = writeTrialStatus(ctx, state, f.ID, "cron_ready", nil, nil); err != nil {
+				t.Fatal(err)
+			}
+			if err = RemoveConsumerFixture(ctx, target, state, "local", f.ID); err == nil {
+				t.Fatal("changed fixture cleanup did not refuse")
+			}
+			var jobs int
+			if err = target.QueryRow(ctx, "SELECT count(*) FROM cron.job WHERE jobid IN (1,2)").Scan(&jobs); err != nil || jobs != 2 {
+				t.Fatalf("cleanup removed jobs before identity refusal: %d %v", jobs, err)
+			}
+			after, err := readCronRoutine(ctx, target, f.Schema, routine)
+			if err != nil || before != after {
+				t.Fatal("cleanup modified changed routine", err)
+			}
+			var exists bool
+			if err = target.QueryRow(ctx, "SELECT to_regclass($1) IS NOT NULL", qualified(f.Schema, "candidate")).Scan(&exists); err != nil || !exists {
+				t.Fatal("cleanup modified changed table", err)
+			}
+		})
+	}
+}

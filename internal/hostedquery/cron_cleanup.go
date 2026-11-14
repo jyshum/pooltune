@@ -142,6 +142,11 @@ func cleanCronJobs(ctx context.Context, target, state *pgx.Conn, id string) erro
 		if active {
 			return errors.New("target work active before unschedule")
 		}
+		// Refuse changed routines or table ownership before removing either job.
+		// cleanTrial repeats these checks before dropping the private objects.
+		if err := validateCronFixture(ctx, tx, state, id, f, targetJob.Schedule); err != nil {
+			return err
+		}
 		for _, j := range []CronJob{targetJob, witness} {
 			var removed bool
 			if err := tx.QueryRow(ctx, "SELECT cron.unschedule($1)", j.ID).Scan(&removed); err != nil {

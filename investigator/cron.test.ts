@@ -21,3 +21,64 @@ test('Cron target demand stays absent in odd minutes and unchanged after repair'
  const {cronTargetDue}=await import('./cron-traffic.ts');
  for(const [seconds,want] of [[0,true],[19,true],[20,false],[29,false],[30,true],[49,true],[50,false],[60,false],[79,false],[119,false],[120,true]] as const)assert.equal(cronTargetDue(seconds*1000),want);
 });
+
+// Run in a separate Node process with fatal unhandled-rejection behavior. A
+// deferred rejection handler must prevent the final report/cleanup assertions.
+import {spawnSync} from 'node:child_process';
+import {mkdtempSync,readFileSync,existsSync,rmSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+
+for(const phase of ['manual_spike','activation','record','traffic']){
+ test(`early ${phase} rejection settles parallel work, cleans up, and saves failure`,()=>{
+  const dir=mkdtempSync(join(tmpdir(),'cron-rejection-'));
+  try{
+   const moduleURL=new URL('./cron-traffic.ts',import.meta.url).href;
+   const script=`
+    import {runCronPhase,cleanupCronTraffic,saveCronTrafficReport} from ${JSON.stringify(moduleURL)};
+    import {writeFileSync,existsSync} from 'node:fs';
+    import {setTimeout as sleep} from 'node:timers/promises';
+    const dir=${JSON.stringify(dir)},phase=${JSON.stringify(phase)};
+    const output={passed:true,phase,worker_failures:[],traffic_errors:0,missed_requests:0};
+    try {
+      const late=async()=>{await sleep(40);writeFileSync(dir+'/traffic-settled','yes');return 'settled'};
+      const failed=()=>Promise.reject(new Error(phase+' refused'));
+      await runCronPhase(phase==='traffic'?late:failed,phase==='traffic'?failed:late);
+    } catch(error) {output.passed=false;output.error=error.message}
+    finally {
+      await cleanupCronTraffic(output,'owned-fixture',performance.now()+1000,async()=>{
+        if(!existsSync(dir+'/traffic-settled'))throw Error('cleanup raced live traffic');
+        writeFileSync(dir+'/cleanup-attempted','yes');output.fixture_removed=true;
+      });
+      saveCronTrafficReport(output,dir+'/report.json',true);
+    }`;
+   const child=spawnSync(process.execPath,['--unhandled-rejections=strict','--input-type=module','-e',script],{encoding:'utf8',timeout:10000});
+   assert.equal(child.status,1,child.stderr);
+   assert(existsSync(join(dir,'report.json')),`failure report missing: ${child.stderr}`);
+   const report=JSON.parse(readFileSync(join(dir,'report.json'),'utf8'));
+   assert.equal(report.passed,false);assert.match(report.error,new RegExp(phase+' refused'));
+   assert.equal(report.cleanup_verified,true);assert(existsSync(join(dir,'cleanup-attempted')));
+  }finally{rmSync(dir,{recursive:true,force:true})}
+ });
+}
+
+test('cleanup deadline after removal cannot credit incomplete preservation readback',()=>{
+ const dir=mkdtempSync(join(tmpdir(),'cron-cleanup-'));
+ try{
+  const script=`
+   import {cleanupCronTraffic,saveCronTrafficReport} from ${JSON.stringify(new URL('./cron-traffic.ts',import.meta.url).href)};
+   import {setTimeout as sleep} from 'node:timers/promises';
+   const output={passed:true,worker_failures:[],traffic_errors:0,missed_requests:0};let attempts=0;
+   await cleanupCronTraffic(output,'owned-fixture',performance.now()+15,async()=>{
+      attempts++;output.fixture_removed=true;output.owned_jobs_remaining=0;
+      await sleep(25);throw Error('unrelated job readback unavailable '+ 'x'.repeat(600));
+   });
+   output.cleanup_attempts=attempts;
+   saveCronTrafficReport(output,${JSON.stringify(join(dir,'report.json'))},true);`;
+  const child=spawnSync(process.execPath,['--unhandled-rejections=strict','--input-type=module','-e',script],{encoding:'utf8',timeout:10000});
+  assert.equal(child.status,1,child.stderr);assert(existsSync(join(dir,'report.json')),child.stderr);
+  const report=JSON.parse(readFileSync(join(dir,'report.json'),'utf8'));
+  assert.equal(report.fixture_removed,true);assert.equal(report.cleanup_verified,false);assert.equal(report.cleanup_failed,true);assert.equal(report.passed,false);
+  assert.equal(report.recovery_fixture_id,'owned-fixture');assert.equal(report.cleanup_attempts,1);assert.match(report.cleanup_last_error,/unrelated job readback unavailable/);assert(report.cleanup_last_error.length<=400);
+ }finally{rmSync(dir,{recursive:true,force:true})}
+});

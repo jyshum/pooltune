@@ -28,6 +28,7 @@ type CronJob struct {
 	Active   bool   `json:"active"`
 }
 type CronFixture struct {
+	ActivationWitness         []CronRun      `json:"activation_witness,omitempty"`
 	InheritedStatementTimeout string         `json:"inherited_statement_timeout"`
 	InheritedLockTimeout      string         `json:"inherited_lock_timeout"`
 	ExecutionMode             string         `json:"execution_mode"`
@@ -288,28 +289,66 @@ func ActivateCronFixture(ctx context.Context, target, state *pgx.Conn, route, id
 	if err = validateCronFixture(ctx, target, state, id, f, cronOriginal); err != nil {
 		return f, err
 	}
-	f.ActivationStarted = now
-	f.FirstCycle = cycle.Add(2 * time.Minute)
-	if err = writeCronFixture(ctx, state, id, f); err != nil {
+	// Witness progress while the target is still inactive excludes catch-up of
+	// the prior even minute when the launcher next refreshes its job cache.
+	f.ActivationWitness, err = readCronRuns(ctx, target, f.Witness.ID)
+	if err != nil {
 		return f, err
 	}
+	if err = validateCronWitness(f.Witness.ID, f.ActivationWitness, cycle.Add(time.Minute), cycle.Add(100*time.Second), now, f.Generation, g); err != nil {
+		return f, err
+	}
+	observedAt := now
 	err = pgx.BeginFunc(ctx, target, func(tx pgx.Tx) error {
-		for _, j := range []CronJob{f.Target, f.Witness} {
-			current, e := readCronJob(ctx, tx, j.Name)
-			if e != nil {
-				return e
-			}
-			if current.Active {
-				if j.ID == f.Witness.ID {
-					continue
-				}
-				return errors.New("target job unexpectedly active")
-			}
-			if _, e = tx.Exec(ctx, "SELECT cron.alter_job($1,active := true)", j.ID); e != nil {
-				return e
-			}
+		if _, e := tx.Exec(ctx, "SET LOCAL statement_timeout='2s'; SET LOCAL lock_timeout='250ms'"); e != nil {
+			return e
 		}
-		return nil
+		// Existing trial ownership coordinates our callers; row locks also keep
+		// job metadata stable through the final recheck and activation.
+		if _, e := tx.Exec(ctx, "SELECT jobid FROM cron.job WHERE jobid=ANY($1::bigint[]) ORDER BY jobid FOR UPDATE", []int64{f.Target.ID, f.Witness.ID}); e != nil {
+			return e
+		}
+		if err = validateCronFixture(ctx, tx, state, id, f, cronOriginal); err != nil {
+			return err
+		}
+		targetJob, e := readCronJob(ctx, tx, f.Target.Name)
+		if e != nil {
+			return e
+		}
+		if targetJob.Active {
+			return errors.New("target job unexpectedly active")
+		}
+		witness, e := readCronJob(ctx, tx, f.Witness.Name)
+		if e != nil {
+			return e
+		}
+		if !witness.Active {
+			return errors.New("activation requires an active enrolled witness")
+		}
+		var history bool
+		if e = tx.QueryRow(ctx, "SELECT EXISTS(SELECT FROM cron.job_run_details WHERE jobid=$1)", f.Target.ID).Scan(&history); e != nil {
+			return e
+		}
+		if history {
+			return errors.New("inactive target already has unaccounted history")
+		}
+		now, g, err = readCronClock(ctx, tx)
+		if err != nil {
+			return err
+		}
+		if now.Before(observedAt) {
+			return errors.New("database clock reversed before activation")
+		}
+		if err = validateCronWitness(f.Witness.ID, f.ActivationWitness, cycle.Add(time.Minute), cycle.Add(100*time.Second), now, f.Generation, g); err != nil {
+			return err
+		}
+		f.ActivationStarted = now
+		f.FirstCycle = cycle.Add(2 * time.Minute)
+		if err = writeCronFixture(ctx, state, id, f); err != nil {
+			return err
+		}
+		_, err = tx.Exec(ctx, "SELECT cron.alter_job($1,active := true)", f.Target.ID)
+		return err
 	})
 	if err != nil {
 		return f, err
@@ -318,7 +357,7 @@ func ActivateCronFixture(ctx context.Context, target, state *pgx.Conn, route, id
 	if err != nil {
 		return f, err
 	}
-	if g != f.Generation || !f.Activated.Before(f.FirstCycle.Add(-15*time.Second)) {
+	if g != f.Generation || f.Activated.Before(f.ActivationStarted) || !f.Activated.Before(f.FirstCycle.Add(-15*time.Second)) {
 		return f, errors.New("ambiguous activation acknowledgement; recovery required")
 	}
 	err = writeCronFixture(ctx, state, id, f)
