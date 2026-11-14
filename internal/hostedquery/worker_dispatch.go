@@ -36,6 +36,7 @@ type DispatchResult struct {
 	ElapsedMS        float64                  `json:"elapsed_ms"`
 	TargetPlanMS     float64                  `json:"target_plan_ms,omitempty"`
 	RecoveredIndex   string                   `json:"recovered_index,omitempty"`
+	Vacuum           *VacuumReport            `json:"vacuum,omitempty"`
 	Statistics       *StatisticsReport        `json:"statistics,omitempty"`
 	Analyze          *AnalyzeReport           `json:"analyze,omitempty"`
 	Repair           *IndexTrialReport        `json:"repair,omitempty"`
@@ -151,6 +152,9 @@ func runIndexInvestigator(ctx context.Context, claim investigationClaim, result 
 }
 
 func expectedRepair(evidence IndexEvidence) string {
+	if evidence.Vacuum != nil {
+		return "vacuum"
+	}
 	if evidence.Statistics != nil {
 		return "statistics"
 	}

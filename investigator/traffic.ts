@@ -18,6 +18,28 @@ export function summarizeTraffic(samples: RequestSample[], offered: number, seco
     error_codes: [...new Set(samples.filter(s => !s.ok).map(s => s.code))] };
 }
 
+export function trafficCase(repair: string, candidate: string) {
+  assert(["index", "analyze", "statistics", "vacuum"].includes(repair));
+  return {
+    sql: repair === "vacuum" ? `SELECT sum(lookup) FROM ONLY ${candidate} WHERE lookup >= $1 AND lookup <= $2`
+      : `SELECT id FROM ${repair === "index" ? "" : "ONLY "}${candidate} WHERE lookup=$1` + (repair === "statistics" ? " AND padding=$2" : ""),
+    input: (tick: number) => repair === "vacuum" ? [1,50000] : repair === "statistics" ? [1 + tick % 2, tick % 2 ? "a" : "b"] : [43],
+    check: (rows: any[], tick: number) => {
+      if (repair === "vacuum") { assert.equal(rows.length,1); assert.equal(String(rows[0]?.sum),"1250025000"); }
+      else if (repair === "statistics") {
+        const first = tick % 2 ? 101 : 1; const length = tick % 2 ? 300 : 100;
+        const ids = rows.map(r => r.id).sort((a,b) => a-b);
+        assert.equal(ids.length,length); assert(ids.every((id,i) => id === first+i));
+      } else { assert.equal(rows.length,1); assert.equal(rows[0]?.id,43); }
+    },
+  };
+}
+export function vacuumObjective(measured: number[]) {
+  assert.equal(measured.length,10);
+  assert(measured.every(v => Number.isFinite(v) && v > 0));
+  return Math.max(3,1.5 * measured.reduce((n,v) => n+v,0)/measured.length);
+}
+
 async function command(args: string[]) {
   return new Promise<string>((resolve, reject) => {
     const child = spawn("pooltune-query-lab", ["-target", "rookery", ...args]);
@@ -31,7 +53,7 @@ async function command(args: string[]) {
 
 async function main() {
   const repair = process.argv[2];
-  assert(["index", "analyze", "statistics"].includes(repair), "choose a supported fixture repair");
+  assert(["index", "analyze", "statistics", "vacuum"].includes(repair), "choose a supported fixture repair");
   assert.equal(process.env.POOLTUNE_STAGING_PRIVATE_STATE, "1");
   assert(process.env.ANTHROPIC_API_KEY && process.env.POOLTUNE_ANTHROPIC_MODEL);
   const config = new URL(process.env.POOLTUNE_LAB_TARGET_DSN!);
@@ -93,12 +115,12 @@ async function main() {
     output.fixture = fixture.id;
     output.target_query_id = String(fixture.enrollment.queries[1].query_id);
     const enrollment = join(directory, "enrollment.json");
-    for (const q of fixture.enrollment.queries) q.mean_execution_ms = 3;
-    writeFileSync(enrollment, JSON.stringify(fixture.enrollment), { mode: 0o600 });
+    let objective = 3;
     const candidate = `"${schema}"."candidate"`;
     const healthy = `"${schema}"."healthy"`;
     const source = repair === "index" ? "" : "ONLY ";
-    const targetSQL = `SELECT id FROM ${source}${candidate} WHERE lookup=$1` + (repair === "statistics" ? " AND padding=$2" : "");
+    const workload = trafficCase(repair,candidate);
+    const targetSQL = workload.sql;
     const healthySQL = `SELECT id FROM ${source}${healthy} WHERE id=$1`;
     const writeSQL = `UPDATE ONLY ${healthy} SET padding=CASE padding WHEN 'a' THEN 'b' ELSE 'a' END WHERE id=$1 RETURNING id`;
     const queryIDs = fixture.enrollment.queries.map((q: any) => q.query_id);
@@ -117,7 +139,8 @@ async function main() {
     for (let i = 0; i < kinds.length; i++) {
       const client = new pg.Client(targetOptions); client.on("error", () => {});
       await client.connect(); clients.push(client);
-      await client.query("SET lock_timeout='250ms'; SET statement_timeout='1500ms'; SET max_parallel_workers_per_gather=0; SET enable_bitmapscan=off; SET random_page_cost=5");
+      await client.query(`SET lock_timeout='250ms'; SET statement_timeout='1500ms'; SET max_parallel_workers_per_gather=0; SET random_page_cost=${repair === "vacuum" ? 1 : 5}`);
+      if (repair !== "vacuum") await client.query("SET enable_bitmapscan=off");
     }
     await admin.query("SET lock_timeout='250ms'; SET statement_timeout='5s'");
     async function createBaselineIndex() {
@@ -131,11 +154,35 @@ async function main() {
           await admin.query(`DROP INDEX "${schema}".pooltune_lookup_idx RESTRICT`);
           baselineIndexOID = null;
         } else await createBaselineIndex();
+      } else if (repair === "vacuum") {
+        if (slow) await admin.query(`UPDATE ONLY ${candidate} SET padding=CASE padding WHEN repeat('p',64) THEN repeat('q',64) ELSE repeat('p',64) END`);
+        else {
+          await admin.query("SET statement_timeout='2s'; SET maintenance_work_mem='16MB'");
+          await admin.query(`VACUUM (ANALYZE FALSE,FULL FALSE,TRUNCATE FALSE,PARALLEL 0) ${candidate}`);
+          await admin.query("SET statement_timeout='5s'");
+        }
       } else {
         await Promise.all(clients.slice(0, 2).map(c => c.query(`SET enable_seqscan=${slow ? "on" : "off"}`)));
       }
     }
-    if (repair !== "index") await setSlow(false);
+    if (repair === "analyze" || repair === "statistics") await setSlow(false);
+    if (repair === "vacuum") {
+      const baseline: number[] = [];
+      const warm = await clients[0].query(targetSQL,workload.input(0)); workload.check(warm.rows,0);
+      for (let i=0;i<10;i++) {
+        const result = await clients[0].query("EXPLAIN (ANALYZE,BUFFERS,FORMAT JSON,TIMING OFF) " + targetSQL,workload.input(0));
+        const plan = result.rows[0]["QUERY PLAN"][0];
+        assert.equal(plan.Plan.Plans[0]["Node Type"],"Index Only Scan");
+        assert.equal(plan.Plan.Plans[0]["Heap Fetches"],0);
+        baseline.push(plan["Execution Time"]);
+      }
+      objective = vacuumObjective(baseline);
+      output.healthy_calibration_ms = baseline;
+      output.benefit_gates = { minimum_ms:5, minimum_fraction:.2, noise_multiple:3, minimum_heap_reduction:.5 };
+    }
+    output.objective_ms = objective;
+    for (const [i,q] of fixture.enrollment.queries.entries()) q.mean_execution_ms = i === 1 ? objective : 3;
+    writeFileSync(enrollment, JSON.stringify(fixture.enrollment), { mode: 0o600 });
     async function phase(name: string, seconds: number) {
       const before = await snapshot();
       const samples: RequestSample[] = [];
@@ -154,15 +201,11 @@ async function main() {
           const kind = kinds[lane];
           let ok = true, code: string | undefined;
           try {
-            const input = repair === "statistics" ? [1 + tick % 2, tick % 2 ? "a" : "b"] : [43];
+            const input = workload.input(tick);
             const result = await client.query(kind === "target" ? targetSQL : kind === "healthy" ? healthySQL : writeSQL,
               kind === "target" ? input : [kind === "healthy" ? 43 : 90001 + tick % 10]);
-            if (kind === "target" && repair === "statistics") {
-              const first = tick % 2 ? 101 : 1; const length = tick % 2 ? 300 : 100;
-              const ids = result.rows.map(r => r.id).sort((a,b) => a-b);
-              assert.equal(ids.length, length);
-              assert(ids.every((id,i) => id === first+i));
-            } else assert.equal(result.rows[0]?.id, kind === "write" ? 90001 + tick % 10 : 43);
+            if (kind === "target") workload.check(result.rows,tick);
+            else assert.equal(result.rows[0]?.id, kind === "write" ? 90001 + tick % 10 : 43);
           } catch (error: any) { ok = false; code = typeof error.code === "string" ? error.code : "client_or_result_error"; }
           samples.push({ kind, duration_ms: performance.now() - scheduled, ok, code });
         }
@@ -196,7 +239,7 @@ async function main() {
     const spike = await phase("brief_spike", 3);
     const spikeCounters = spike.counters.filter((c: any) => c.query_id === output.target_query_id);
     output.spike_database_mean_ms = spikeCounters.reduce((n: number, c: any) => n + c.execution_ms, 0) / spikeCounters.reduce((n: number, c: any) => n + c.calls, 0);
-    assert(output.spike_database_mean_ms > 3, "spike did not exceed the enrolled database objective");
+    assert(output.spike_database_mean_ms > objective, "spike did not exceed the enrolled database objective");
     await setSlow(false);
     await phase("spike_recovery", 24);
     output.spike_jobs = await jobs();
@@ -216,7 +259,7 @@ async function main() {
     };
     output.before_database_mean_ms = meanFor(phases.find(p => p.name === "sustained"));
     output.after_database_mean_ms = meanFor(afterRepair);
-    assert(output.after_database_mean_ms < 3 && output.after_database_mean_ms < output.before_database_mean_ms, "ongoing target traffic did not recover below its objective");
+    assert(output.after_database_mean_ms < objective && output.after_database_mean_ms < output.before_database_mean_ms, "ongoing target traffic did not recover below its objective");
     output.worker_failures = childFailures;
     output.detector_windows = childResults.flatMap(r => r.windows ?? []);
     output.process_results = childResults.filter(r => r.job_id);
@@ -235,6 +278,12 @@ async function main() {
     process.exitCode = 1;
   } finally {
     await stopWorkers();
+    output.worker_failures = childFailures;
+    output.detector_windows = childResults.flatMap(r => r.windows ?? []);
+    output.process_results = childResults.filter(r => r.job_id);
+    output.traffic_errors = phases.reduce((sum, phase) => sum + Object.values(phase.requests).reduce((n: number, r: any) => n + r.errors, 0), 0);
+    output.missed_requests = phases.reduce((sum, phase) => sum + Object.values(phase.requests).reduce((n: number, r: any) => n + r.missed, 0), 0);
+    if (fixture) { try { output.jobs = (await state.query("SELECT id,created_at,finished_at,result,attempts FROM pooltune_worker.investigations WHERE project_id=$1 ORDER BY id", [fixture.enrollment.project])).rows; } catch { output.job_readback_failed = true; } }
     await Promise.all(clients.map(c => c.end().catch(() => {})));
     if (fixture) {
       try {

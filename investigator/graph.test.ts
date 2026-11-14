@@ -136,3 +136,25 @@ test("the model can decline either statistics repair and errors propagate withou
     await assert.rejects(buildGraph(async () => { throw new Error("provider timeout"); }).invoke({ evidence: input }), /provider timeout/);
   }
 });
+
+test("VACUUM visibility evidence reaches the shared model while weak and healthy cases stop", async () => {
+  const dirty = { ...evidence, covering_index: true,
+    plan: { node: "Index Only Scan", examined_rows: 2000, returned_rows: 2000, shared_blocks: 2000 },
+    vacuum: { heap_fetches: 1000, scan_rows: 2000, conditions_clear: true } };
+  const result = await buildGraph(scriptedInvestigator).invoke({ evidence: dirty });
+  assert.equal(result.proposal?.repair, "vacuum");
+  for (const changes of [ { decision: "no_change" as const }, { vacuum: { ...dirty.vacuum, heap_fetches: 999 } },
+    { vacuum: { ...dirty.vacuum, scan_rows: 2001 } }, { vacuum: { ...dirty.vacuum, conditions_clear: false } } ]) {
+    const skipped = await buildGraph(async () => { throw new Error("weak evidence reached model"); }).invoke({ evidence: { ...dirty, ...changes } });
+    assert.equal(skipped.proposal?.outcome, "no_change");
+  }
+  await assert.rejects(buildGraph(async () => { throw new Error("provider timeout"); }).invoke({ evidence: dirty }), /provider timeout/);
+  const declined = await buildGraph(buildSingleCallInvestigator(async () => ({ outcome: "no_change",run_id:"fixture",table_oid:42,column_number:2,reason:"uncertain cause" }))).invoke({evidence:dirty});
+  assert.equal(declined.proposal?.outcome,"no_change");
+});
+
+
+test("ambiguous VACUUM and statistics causes do not reach the model", async () => {
+ const input = { ...evidence, vacuum:{heap_fetches:1000,scan_rows:1000,conditions_clear:true},analyze:{estimated_rows:100000,actual_rows:1} };
+ await assert.rejects(buildGraph(async()=>{ throw new Error("ambiguous evidence reached model"); }).invoke({evidence:input}),/one repair cause/);
+});

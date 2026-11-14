@@ -18,19 +18,20 @@ export const evidenceSchema = z.strictObject({
   lookup_column: z.literal("lookup"),
   covering_index: z.boolean(),
   plan: planSchema,
+  vacuum: z.strictObject({ heap_fetches: z.number().nonnegative(), scan_rows: z.number().int().positive(), conditions_clear: z.boolean() }).optional(),
   statistics: z.strictObject({
     correlated_columns: z.boolean(),
     cases: z.array(z.strictObject({ estimated_rows: z.number().int().positive(), actual_rows: z.number().int().positive() })).length(2),
   }).optional(),
   analyze: z.strictObject({ estimated_rows: z.number().int().positive(), actual_rows: z.number().int().positive(), sampled_lookup_fraction: z.number().min(0).max(1).optional() }).optional(),
-});
+}).refine(e => [e.analyze,e.statistics,e.vacuum].filter(Boolean).length <= 1, "Evidence must contain at most one repair cause.");
 
 export const proposalSchema = z.strictObject({
   outcome: z.enum(["propose", "no_change"]),
   run_id: z.string().min(1).max(64),
   table_oid: z.number().int().positive().max(4294967295),
   column_number: z.number().int().positive().max(32767),
-  repair: z.enum(["analyze", "statistics"]).optional(),
+  repair: z.enum(["analyze", "statistics", "vacuum"]).optional(),
   reason: z.string().min(1).max(1000),
   model_call: z.strictObject({
     model: z.string().min(1), duration_ms: z.number().nonnegative(), requests: z.literal(1),
@@ -56,6 +57,12 @@ function identity(evidence: Evidence) {
 export function buildGraph(investigate: Investigator, checkpointer?: BaseCheckpointSaver) {
   return new StateGraph(state)
     .addNode("screen_evidence", ({ evidence }) => {
+      if (evidence.vacuum) {
+        const v = evidence.vacuum;
+        if (evidence.decision === "investigate" && evidence.covering_index && evidence.plan.node === "Index Only Scan" &&
+            v.conditions_clear && v.heap_fetches >= 1000 && v.heap_fetches / v.scan_rows >= .5) return {};
+        return { proposal: { ...identity(evidence), outcome: "no_change" as const, reason: "Measured visibility work does not justify VACUUM." } };
+      }
       if (evidence.statistics) {
         const { correlated_columns, cases } = evidence.statistics;
         const strong = evidence.decision === "investigate" && correlated_columns &&

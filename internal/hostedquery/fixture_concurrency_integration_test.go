@@ -15,7 +15,7 @@ import (
 // Catch verification blocking unrelated healthy writes, while retaining the
 // candidate-data and table-definition protections required by these fixtures.
 func TestRepairFixtureAllowsHealthyWritesButProtectsIdentity(t *testing.T) {
-	for _, kind := range []string{"index", "analyze", "statistics"} {
+	for _, kind := range []string{"index", "analyze", "statistics", "vacuum"} {
 		t.Run(kind, func(t *testing.T) {
 			ctx, config, _ := testpg.Start(t, "-c", "compute_query_id=on")
 			target, err := pgx.ConnectConfig(ctx, config)
@@ -34,6 +34,9 @@ func TestRepairFixtureAllowsHealthyWritesButProtectsIdentity(t *testing.T) {
 			}
 			defer state.Close(ctx)
 			create := CreateAnalyzeFixture
+			if kind == "vacuum" {
+				create = CreateVacuumFixture
+			}
 			if kind == "statistics" {
 				create = CreateStatisticsFixture
 			}

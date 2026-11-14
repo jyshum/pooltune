@@ -15,3 +15,14 @@ test("traffic report includes errors and offered requests in its rate denominato
   assert.equal(summary.completed_per_second, 1);
   assert.equal(summary.p95_ms, 750);
 });
+
+test("VACUUM traffic checks the aggregate result and freezes a baseline-based objective", async () => {
+  const { trafficCase, vacuumObjective } = await import("./traffic.ts");
+  const workload = trafficCase("vacuum", '"owned"."candidate"');
+  assert.equal(workload.sql, 'SELECT sum(lookup) FROM ONLY "owned"."candidate" WHERE lookup >= $1 AND lookup <= $2');
+  assert.deepEqual(workload.input(0), [1,50000]);
+  workload.check([{sum:"1250025000"}],0);
+  assert.throws(() => workload.check([{sum:"0"}],0));
+  assert.equal(vacuumObjective([4,4,4,4,4,4,4,4,4,4]),6);
+  assert.throws(() => vacuumObjective([4]));
+});

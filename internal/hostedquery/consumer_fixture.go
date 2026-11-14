@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 )
@@ -29,6 +30,33 @@ func CreateAnalyzeFixture(ctx context.Context, target, state *pgx.Conn, route st
 // CreateStatisticsFixture prepares correlated columns with current single-column statistics.
 func CreateStatisticsFixture(ctx context.Context, target, state *pgx.Conn, route string) (ConsumerFixture, error) {
 	return createConsumerFixture(ctx, target, state, route, "statistics")
+}
+
+// CreateVacuumFixture prepares a healthy indexed aggregate for visibility-loss tests.
+func CreateVacuumFixture(ctx context.Context, target, state *pgx.Conn, route string) (ConsumerFixture, error) {
+	if err := recoverVacuumPreparations(ctx, target, state, route); err != nil {
+		return ConsumerFixture{}, err
+	}
+	fixture, err := createConsumerFixture(ctx, target, state, route, "vacuum")
+	if err == nil || fixture.ID == "" {
+		return fixture, err
+	}
+	// Setup commits its base fixture before the nontransaction operation. Caller
+	// cancellation or connection loss must not abandon that owned committed data.
+	cleanup, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	cleanupTarget, cleanupErr := pgx.ConnectConfig(cleanup, target.Config())
+	if cleanupErr != nil {
+		return fixture, errors.Join(err, cleanupErr)
+	}
+	defer closeVacuumConnection(cleanupTarget)
+	cleanupState, cleanupErr := pgx.ConnectConfig(cleanup, state.Config())
+	if cleanupErr != nil {
+		return fixture, errors.Join(err, cleanupErr)
+	}
+	defer closeVacuumConnection(cleanupState)
+	cleanupErr = RemoveConsumerFixture(cleanup, cleanupTarget, cleanupState, route, fixture.ID)
+	return fixture, errors.Join(err, cleanupErr)
 }
 
 func createConsumerFixture(ctx context.Context, target, state *pgx.Conn, route, repair string) (report ConsumerFixture, err error) {
@@ -61,7 +89,9 @@ func createConsumerFixture(ctx context.Context, target, state *pgx.Conn, route, 
 		if err := writeTrialStatus(ctx, state, report.ID, repair+"_preparing", nil, nil); err != nil {
 			return report, err
 		}
-		if repair == "statistics" {
+		if repair == "vacuum" {
+			err = seedVacuumFixture(ctx, target, report.Schema)
+		} else if repair == "statistics" {
 			report.OrdinaryAnalyzeMS, err = seedCorrelatedFixture(ctx, target, report.Schema)
 		} else {
 			err = seedStaleLookupStats(ctx, target, report.Schema)
@@ -79,7 +109,9 @@ func createConsumerFixture(ctx context.Context, target, state *pgx.Conn, route, 
 			sql := "SELECT id FROM " + source + qualified(report.Schema, lookup.table) + " WHERE " + lookup.column + "=$1"
 			var plan explain
 			var err error
-			if repair == "statistics" && lookup.table == "candidate" {
+			if repair == "vacuum" && lookup.table == "candidate" {
+				plan, err = readLookupPlan(ctx, tx, "EXPLAIN (FORMAT JSON, VERBOSE) "+vacuumQuery(report.Schema), int32(1), int32(50000))
+			} else if repair == "statistics" && lookup.table == "candidate" {
 				plan, err = readStatisticsPlan(ctx, tx, report.Schema, statisticsCases[0])
 			} else {
 				plan, err = readPlan(ctx, tx, "EXPLAIN (FORMAT JSON, VERBOSE) "+sql)
@@ -97,7 +129,15 @@ func createConsumerFixture(ctx context.Context, target, state *pgx.Conn, route, 
 		return nil
 	})
 	if err == nil {
-		err = writeTrialStatus(ctx, state, report.ID, status, nil, nil)
+		if repair == "vacuum" {
+			var oid uint32
+			err = target.QueryRow(ctx, "SELECT to_regclass($1)::oid", qualified(report.Schema, trialIndex)).Scan(&oid)
+			if err == nil {
+				err = writeVacuumStatus(ctx, state, status, &VacuumReport{Fixture: report.ID, IndexOID: oid})
+			}
+		} else {
+			err = writeTrialStatus(ctx, state, report.ID, status, nil, nil)
+		}
 	}
 	return report, err
 }

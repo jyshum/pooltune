@@ -41,3 +41,29 @@ func TestRecoveryDrillRequiresScriptedRookeryAndPrivateState(t *testing.T) {
 		})
 	}
 }
+
+func TestVacuumFixtureRequiresPrivateRookeryAndExclusiveMode(t *testing.T) {
+	binary := filepath.Join(t.TempDir(), "lab")
+	if out, err := exec.Command("go", "build", "-o", binary, ".").CombinedOutput(); err != nil {
+		t.Fatalf("build: %v %s", err, out)
+	}
+	for _, tc := range []struct {
+		args    []string
+		private string
+		code    int
+		message string
+	}{
+		{[]string{"-target", "local", "-create-consumer-fixture", "-vacuum-fixture"}, "1", 2, "fixtures require"},
+		{[]string{"-target", "rookery", "-create-consumer-fixture", "-vacuum-fixture"}, "0", 2, "fixtures require"},
+		{[]string{"-target", "rookery", "-create-consumer-fixture", "-vacuum-fixture", "-statistics-fixture"}, "1", 2, "fixtures require"},
+		{[]string{"-target", "rookery", "-create-consumer-fixture", "-vacuum-fixture"}, "1", 1, "state configuration"},
+	} {
+		c := exec.Command(binary, tc.args...)
+		c.Env = append(os.Environ(), "POOLTUNE_STAGING_PRIVATE_STATE="+tc.private, "POOLTUNE_LAB_STATE_DSN=")
+		out, err := c.CombinedOutput()
+		exit, ok := err.(*exec.ExitError)
+		if !ok || exit.ExitCode() != tc.code || !strings.Contains(string(out), tc.message) {
+			t.Fatalf("args=%v error=%v output=%s", tc.args, err, out)
+		}
+	}
+}

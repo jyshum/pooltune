@@ -99,7 +99,11 @@ func journalTargetConfig(config *pgx.ConnConfig, identity string) string {
 }
 
 func reconcileTrials(ctx context.Context, target, state *pgx.Conn, identity string) error {
-	rows, err := state.Query(ctx, "SELECT id FROM "+journalTable+" WHERE target=$1 AND status IN ('setup','building','verified','declined') ORDER BY created_at", identity)
+	return reconcileTrialStatuses(ctx, target, state, identity, []string{"setup", "building", "verified", "declined", "vacuum_preparing"})
+}
+
+func reconcileTrialStatuses(ctx context.Context, target, state *pgx.Conn, identity string, statuses []string) error {
+	rows, err := state.Query(ctx, "SELECT id FROM "+journalTable+" WHERE target=$1 AND status=ANY($2) ORDER BY created_at", identity, statuses)
 	if err != nil {
 		return err
 	}

@@ -13,6 +13,7 @@ type IndexEvidence struct {
 	TableOID    uint32              `json:"table_oid"`
 	Column      int16               `json:"column_number"`
 	Existing    bool                `json:"covering_index"`
+	Vacuum      *VacuumEvidence     `json:"vacuum,omitempty"`
 	Statistics  *StatisticsEvidence `json:"statistics,omitempty"`
 	Analyze     *AnalyzeEvidence    `json:"analyze,omitempty"`
 	Plan        PlanEvidence        `json:"plan"`
