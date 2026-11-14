@@ -116,7 +116,12 @@ export async function runCronTraffic(){
    output.jobs=queued;populateJobTimings(output);
    if(i===2){const pending=queued.find(j=>j.result?.outcome==='awaiting_verification');assert(pending,'no acknowledged schedule action after full original periods');assert.equal(pending.result.proposal.model_call.requests,1);output.model_seconds=pending.result.proposal.model_call.duration_ms/1000;output.action_seconds=pending.result.cron.action_wall_ms/1000;output.action_at=pending.result.cron.commit_at;const child=queued.find(j=>!j.finished_at);assert(child&&new Date(child.not_before).getTime()>await dbNow(),'missing future verification child');await stop(consumer);consumer=undefined;startWorkers();const afterRestart=await jobs();assert(afterRestart.some(j=>j.id===child.id&&!j.finished_at),'restart lost pending child');restarted=true;output.consumer_restart={job_id:child.id,not_before:child.not_before,preserved:true}}
   }
-  await waitUntil(firstCycle+12*60000+8000);output.jobs=await jobs();populateJobTimings(output);const final=output.jobs.filter((j:any)=>j.finished_at).at(-1);output.future_cycle_wait_seconds=final?.result?.cron?.cycle_wait_ms/1000;assert(restarted);assert.equal(final?.result?.outcome,'improved_tested_inputs','Cron follow-up did not verify all future work and traffic');assert.equal(output.jobs.filter((j:any)=>j.result?.proposal?.model_call?.requests===1&&j.result?.outcome==='awaiting_verification').length,1);output.repair_verified=true;output.passed=true;
+  await waitUntil(firstCycle+12*60000+8000);output.current_phase='final_verification';
+  output.jobs=await waitCronFinalResult(firstCycle,jobs,dbNow,async seconds=>{
+   const observed=await traffic!('final_verification_healthy',seconds,false);
+   phases.push({name:'final_verification_healthy',seconds,counter_sampled:false,requests:observed.requests});
+  },start+1200000);output.current_phase='final_verification';
+  populateJobTimings(output);const final=output.jobs.filter((j:any)=>j.finished_at).at(-1);output.future_cycle_wait_seconds=final?.result?.cron?.cycle_wait_ms/1000;assert(restarted);assert.equal(final?.result?.outcome,'improved_tested_inputs','Cron follow-up did not verify all future work and traffic');assert.equal(output.jobs.filter((j:any)=>j.result?.proposal?.model_call?.requests===1&&j.result?.outcome==='awaiting_verification').length,1);output.repair_verified=true;output.passed=true;
  }catch(e:any){output.passed=false;output.failed_phase=e.command_failure?.operation??output.current_phase;output.command_failure=e.command_failure;output.error=clientFailures.length?`Cron client ${clientFailures[0].client} failed`:String(e.message).slice(0,400);process.exitCode=1}
  finally{
   await Promise.all(allChildren.map(stop));output.worker_failures=failures;output.worker_diagnostics=diagnostics;output.detector_windows=childResults.flatMap(r=>r.windows??[]);output.process_results=childResults.filter(r=>r.job_id);
@@ -221,5 +226,25 @@ export async function waitCronAcknowledgement(cycle:number,witnessID:number,read
   }
   if(ids.size<2||starts.size<2)throw Error('Cron acknowledged action lacks two on-time post-commit witnesses');
   return queued;
+ }
+}
+
+// A pending verification claim is not a terminal outcome. Observation remains
+// bounded by both the target clock and the original overall monotonic budget.
+export async function waitCronFinalResult(firstCycle:number,readJobs:()=>Promise<any[]>,clock:()=>Promise<number>,healthy:(seconds:number)=>Promise<void>,workDeadline:number,monotonic=()=>performance.now()):Promise<any[]> {
+ const observationDeadline=firstCycle+12*60000+35000;
+ let now=await clock();const localDeadline=Math.min(workDeadline,monotonic()+Math.max(0,observationDeadline-now));
+ for(;;){
+  if(!Number.isFinite(now)||now>=observationDeadline||monotonic()>=localDeadline)throw Error('Cron final verification observation deadline or work budget expired');
+  const seconds=Math.min(.5,(observationDeadline-now)/1000,(localDeadline-monotonic())/1000);
+  const [queued]=await runCronPhase(readJobs,()=>healthy(seconds));
+  const observed=await clock();
+  if(!Number.isFinite(observed)||observed<now)throw Error('Cron final verification clock ambiguous');
+  now=observed;
+  if(now>=observationDeadline||monotonic()>=localDeadline)throw Error('Cron final verification observation deadline or work budget expired');
+  const latest=queued.filter(j=>j.finished_at).at(-1),pending=queued.filter(j=>!j.finished_at);
+  if(latest?.result?.outcome==='improved_tested_inputs'&&pending.length===0)return queued;
+  if(latest?.result?.outcome!=='awaiting_verification')throw Error('Cron final verification has no improved terminal result');
+  if(pending.length!==1||pending[0].parent_id!==latest.id)throw Error('Cron final verification child missing or changed');
  }
 }

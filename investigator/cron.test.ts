@@ -255,3 +255,27 @@ for(const mode of ['missing_proof','late_commit','late_witness','duplicate_witne
   if(mode==='declined'||mode==='failed'||mode==='missing_proof')assert.equal(healthy,1);
  });
 }
+
+function pendingCronFinalJobs():any[]{return [{id:1,finished_at:new Date(106000).toISOString(),result:{outcome:'awaiting_verification'}},{id:2,parent_id:1,finished_at:null,not_before:new Date(722000).toISOString()}]}
+
+test('Cron final observation waits beyond the first check for one terminal saved result',async()=>{
+ const {waitCronFinalResult}=await import('./cron-traffic.ts');let now=728000,healthy=0,terminalReads=0;
+ const rows=pendingCronFinalJobs();const final=rows.map(j=>j.id===2?{...j,finished_at:new Date(740000).toISOString(),result:{outcome:'improved_tested_inputs'}}:j);
+ const observed=await waitCronFinalResult(0,async()=>{if(now>=740000){terminalReads++;return final}return rows},async()=>now,async seconds=>{healthy++;now+=seconds*1000},1200000,()=>now);
+ assert.equal(observed,final);assert.equal(terminalReads,1);assert(healthy>=24);assert(now<755000);
+});
+
+for(const mode of ['terminal_failure','missing_child','never_terminal','late_publication','clock_overshoot','clock_reversed','overall_budget','stalled_clock']){
+ test(`Cron final observation refuses ${mode}`,async()=>{
+  const {waitCronFinalResult}=await import('./cron-traffic.ts');let now=728000,mono=728000,healthy=0;
+  const rows=pendingCronFinalJobs();
+  if(mode==='terminal_failure'){rows[1].finished_at=new Date(now).toISOString();rows[1].result={outcome:'inconclusive'}}
+  if(mode==='missing_child')rows.pop();
+  await assert.rejects(waitCronFinalResult(0,async()=>{
+   if(mode==='late_publication'&&now>=755000)return rows.map(j=>j.id===2?{...j,finished_at:new Date(now).toISOString(),result:{outcome:'improved_tested_inputs'}}:j);
+   return rows;
+  },async()=>now,async seconds=>{healthy++;mono+=seconds*1000;if(mode!=='stalled_clock')now+=seconds*1000;if(mode==='clock_overshoot')now=755001;if(mode==='clock_reversed')now=727999},mode==='overall_budget'?729000:1200000,()=>mono),/Cron/);
+  assert(healthy>0);if(mode==='terminal_failure'||mode==='missing_child')assert.equal(healthy,1);
+  if(mode==='overall_budget')assert(mono<=729000);
+ });
+}
