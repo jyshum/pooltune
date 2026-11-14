@@ -1,5 +1,9 @@
 # Design progress
 
+## Dedicated Rookery login, November 14, 2026
+
+Task 12 authenticated to Rookery over the verified session pooler using a temporary dedicated login. It collected the enrolled plan estimate and index check in 221.179 ms in the final test. The statement counter stayed at one execution. Revoking the table grant stopped evidence collection and denied the next lookup on the open session. Disabling the login and clearing the password blocked a fresh connection. The existing session could still run a statement requiring no table access. The test removed the temporary role and schema and verified cleanup. [Results and trade-offs](dedicated-login.md)
+
 ## Restricted Supabase evidence, November 14, 2026
 
 Task 11 tested one enrolled equality lookup on a disposable local PostgreSQL instance and on Rookery. A temporary restricted role collected the estimated plan and checked for a full B-tree index without running the lookup a second time. Wrong identities, stale statistics and revoked access yielded no evidence. Direct read and write probes verified the fixture permissions. Both the schema and role rolled back.

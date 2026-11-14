@@ -22,6 +22,8 @@ The final integration run took **2.060 ms locally** and **168.963 ms from the la
 
 The evidence reader takes a short shared table lock. The caller must end its transaction promptly. Before connecting it to the hosted consumer, use a bounded read-only transaction and account for plan or catalog changes while collection is in progress. Reading statistics for a different application role also needs a separate access decision. PostgreSQL restricts who can see another role's query identifiers. [PostgreSQL statement statistics](https://www.postgresql.org/docs/17/pgstatstatements.html)
 
+A follow-up test verified a separate Rookery login and the difference between revoking a table grant and disabling login. [Dedicated login and revocation](dedicated-login.md)
+
 ## Reproduce
 
 Run with PostgreSQL 17 binaries on PATH and the repository's Go toolchain.

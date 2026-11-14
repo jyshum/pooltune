@@ -156,6 +156,13 @@ Depends on Task 10 and follows d-onboarding r1, d-reuse r1 and proposed d-identi
 - [x] Add a bounded planner and index reader for an explicitly enrolled ordinary table and integer equality lookup. Require exact statement, relation and role identities. Read estimated plans without executing the lookup. Classify estimates separately from measured repair evidence.
 - [x] Qualify access under a restricted role using a disposable PostgreSQL fixture and the authorized Rookery route. Check stale counters, denied access, changed indexes and matching statements. Record the results in [Enrolled query evidence](enrolled-evidence.md).
 
+### Task 12: Verify a dedicated Rookery login and revocation
+
+Depends on Task 11. Records evidence for proposed d-identity r1.
+
+- [x] Use a separate, short-lived test login to collect the enrolled estimate and index check through the verified Supabase session pooler. Verify session identity and table grants using the login itself.
+- [x] Revoke the enrolled table grant on a separate administrative connection. Verify the open session loses access on its next statement. Disable login and test a new connection. Remove the test schema and role, then record the observed pooler behavior and trade-offs in [Dedicated login](dedicated-login.md).
+
 ## Candidate test application inspection (historical)
 
 
