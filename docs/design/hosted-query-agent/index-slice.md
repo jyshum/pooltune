@@ -48,6 +48,13 @@ Total wall time was **8.08 s**, including **2.72 s** for the investigation and i
 
 ## One Claude request versus two
 
+Each eligible request gives Claude two pieces of evidence collected by Go:
+
+1. **The measured query plan.** It shows how PostgreSQL found the rows, how many it examined and returned, and how many shared buffer blocks it touched. In the Rookery example, PostgreSQL scanned 100,000 rows to return one and touched 1,334 blocks.
+2. **The existing-index check.** It tells Claude whether PostgreSQL already has a valid B-tree index on the lookup column. The check looks for the column first in the index and excludes indexes that cover only some rows. For that Rookery query the check was false. Go sends the result of the check as a boolean.
+
+The request also identifies the run, table and lookup column so Go can match the structured recommendation to the investigation. The model receives the measured summary and catalog check without application rows or connection credentials.
+
 Go already had the query plan and the existing-index check. We tested sending both in the first Claude request, saving the round trip where Claude asks for them. Both versions used the same Claude Haiku 5.5 model, saved Rookery evidence, graph screening rules, and recommendation format. We ran six pairs and alternated which version went first. The timer covered the graph investigation and API requests, with PostgreSQL and checkpoint writes outside this replay.
 
 | Approach | Median investigation time | Range | Correct index proposals | Claude requests per investigation |

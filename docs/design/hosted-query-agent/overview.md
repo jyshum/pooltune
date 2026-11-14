@@ -40,4 +40,18 @@ The first automatic index repair ran on disposable test data in Rookery, a real 
 
 The background worker now observes synthetic application-like reads from a separate connection. It keeps healthy queries quiet and saves an investigation for sustained breaches. The traffic lab now delivers the investigation to LangGraph and saves its recommendation. The consumer also runs continuously against a journaled synthetic fixture and can recover an unfinished job after a restart. [Worker traffic test](worker-traffic.md) · [Investigation handoff](worker-investigation.md) · [Always-on consumer](always-on-consumer.md)
 
-[Engineering notes and exact measurements](index-slice.md) · [Implementation plan](implementation.md)
+## Why we send both pieces of evidence in one Claude call
+
+Go already has the measured query plan and knows whether an existing index can serve the lookup. Sending both up front saves the first round trip, when Claude used to ask for them. LangGraph screens obvious no-change cases before any model call.
+
+On saved Rookery evidence, the median investigation fell from **2.56 s to 1.61 s (37%)**. On three unfamiliar synthetic queries it fell from **2.08 s to 1.57 s (24%)**. Both approaches picked the expected index in all six runs of each comparison. One call is now the default. These benchmarks timed the graph investigation and model requests during replay. [Inputs, test cases and exact timings](index-slice.md#one-claude-request-versus-two)
+
+## What to build next
+
+The lab timings are sufficient to continue building. The consumer adds one measured scan per active investigation and checks only Pooltune's queue when idle. A larger traffic test is still needed to measure slow-tail impact reliably. [Consumer overhead results](always-on-consumer.md#what-rookery-measured)
+
+1. Run the detector and consumer in a supervised staging service with persistent state and verify a hosted restart.
+2. Qualify evidence access for real enrolled Supabase queries. Start with observation and saved recommendations, then check that fresh plans and the existing-index check remain accurate under representative traffic.
+3. Measure query latency and database load during spikes, then qualify automatic index changes and recovery under the customer's configured grants.
+
+[Implementation plan](implementation.md)
