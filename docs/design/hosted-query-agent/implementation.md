@@ -226,6 +226,15 @@ Depends on Task 20. Follows d-workflow r1, d-reuse r1, and repair 3 of the V1 de
 - [x] Use two representative inputs with a measured row-estimate error after a current ordinary ANALYZE. Verify a relationship between the two predicate columns and check for existing extended statistics before applying a scoped MCV statistics object.
 - [x] Verify both inputs, protected reads and writes, added analysis time and statistics storage. Run one Rookery/Railway timeline and retain the outcome and cleanup evidence. [Rookery job 38](richer-statistics.md#one-railway-run-on-rookery)
 
+### Task 22: Qualify live investigator decisions across the three implemented repairs
+
+Next milestone, ahead of another repair type. Jared identified the missing live decision test after Task 21. Tasks 17–21 verified scripted workflows and database operations. Tasks 20–21 return their recommendations in graph screening before invoking the investigator. Their timings establish no Claude decision latency or diagnosis quality.
+
+- [ ] Extend the live investigator evidence and structured response to cover the implemented index, targeted ANALYZE and richer-statistics operations. Give it the measured cause evidence and eligible choices. Keep Go responsible for admission, current permissions, bounded execution and verification. Document the prompt, evidence available to the model and which decisions remain deterministic.
+- [ ] Evaluate live decisions on supported examples, ambiguous causes, misleading evidence and healthy controls. Record which controls screening closes, which cases reach Claude, the actual request count and whether each answer matches the evidence. Verify failure, timeout and unsupported recommendations stop mutation.
+- [ ] Exercise the hosted path with live Claude on authorized Rookery fixtures. Measure evidence collection, model request, graph overhead, action, verification and total elapsed time. Save model identity and token usage when returned. Verify the proposed action and measured outcome through the same Go executor, then clean up.
+- [ ] Update the repair reports with the live results and remaining limitations before continuing to bounded VACUUM. A scripted graph run alone does not complete this milestone.
+
 ## Candidate test application inspection (historical)
 
 

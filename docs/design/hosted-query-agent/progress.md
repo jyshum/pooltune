@@ -1,5 +1,11 @@
 # Design progress
 
+## Live investigator coverage correction, November 14, 2026
+
+Jared asked why the new repairs had no Claude call and whether the tests measured the agent's decision speed. Inspection confirmed that the original index slice and early worker investigations used live Anthropic. Subsequent hosted repair runs used scripted decisions. The ANALYZE and richer-statistics branches return a deterministic proposal from `screen_evidence`, bypassing the investigator even when the graph is constructed with the Anthropic adapter. Its prompt and model response currently support only the index recommendation.
+
+The repair tools and queue have measured staging evidence. Live diagnosis across the three implemented repairs remains incomplete. Task 22 now precedes the next repair type and covers model routing, cause evidence, decision quality, request latency and a hosted live-model workflow. The prior recommendation to move directly to VACUUM omitted this integration gap.
+
 ## Richer planner statistics in the hosted queue, November 14, 2026
 
 Task 21 used the same queue and graph to add one joint summary for two related columns. Rookery job 38 reused the existing index for both inputs. Mean reads fell from 13.709 to 0.093 ms and from 13.797 to 0.207 ms. The run took 31.659 seconds from first traffic to saved result. The fixture was removed after the checks. Broader input coverage, repeated maintenance-cost measurements and column statistics-target changes remain open. [Results and trade-offs](richer-statistics.md)
