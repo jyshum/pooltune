@@ -23,7 +23,28 @@ const (
 	RookeryUser = "postgres.osdjqwpzgyzwfaxyufze"
 )
 
+func StateConfig(dsn string) (*pgx.ConnConfig, error) {
+	if os.Getenv("POOLTUNE_STAGING_PRIVATE_STATE") == "1" {
+		return config(dsn, "state")
+	}
+	return Config(dsn, false)
+}
+
+func TargetConfig(dsn, route string) (*pgx.ConnConfig, error) {
+	if route == "staging" && os.Getenv("POOLTUNE_STAGING_PRIVATE_STATE") != "1" {
+		return nil, errors.New("staging requires the dedicated Railway private network")
+	}
+	return config(dsn, route)
+}
+
 func Config(dsn string, rookery bool) (*pgx.ConnConfig, error) {
+	if rookery {
+		return config(dsn, "rookery")
+	}
+	return config(dsn, "local")
+}
+
+func config(dsn, route string) (*pgx.ConnConfig, error) {
 	u, err := url.Parse(dsn)
 	if err != nil || (u.Scheme != "postgres" && u.Scheme != "postgresql") ||
 		u.User == nil || u.Fragment != "" {
@@ -37,13 +58,15 @@ func Config(dsn string, rookery bool) (*pgx.ConnConfig, error) {
 		return nil, errors.New("URL requires a user, password, port and database")
 	}
 	query, err := url.ParseQuery(u.RawQuery)
-	if err != nil || len(query) != 1 || len(query["sslmode"]) != 1 {
-		return nil, errors.New("URL requires exactly one sslmode parameter")
+	private := route == "state" || route == "staging"
+	if err != nil || (!private && (len(query) != 1 || len(query["sslmode"]) != 1)) ||
+		(private && u.RawQuery != "") {
+		return nil, errors.New("unexpected PostgreSQL URL options")
 	}
 
 	mode := query.Get("sslmode")
 	var tlsConfig *tls.Config
-	if rookery {
+	if route == "rookery" {
 		if u.Hostname() != RookeryHost || port != 5432 || u.User.Username() != RookeryUser ||
 			db != "postgres" || mode != "verify-full" {
 			return nil, errors.New("expected the Rookery session pooler with verify-full")
@@ -54,7 +77,12 @@ func Config(dsn string, rookery bool) (*pgx.ConnConfig, error) {
 			return nil, errors.New("supply the Supabase CA with POOLTUNE_LAB_ROOKERY_CA_FILE")
 		}
 		tlsConfig = &tls.Config{RootCAs: roots, ServerName: RookeryHost, MinVersion: tls.VersionTLS12}
-	} else if u.Hostname() != "127.0.0.1" || mode != "disable" {
+	} else if private {
+		if u.Hostname() != "postgres.railway.internal" || port != 5432 ||
+			(route == "state" && db != "railway") || (route == "staging" && db != "pooltune_fixture") {
+			return nil, errors.New("expected the dedicated private staging database")
+		}
+	} else if route != "local" || u.Hostname() != "127.0.0.1" || mode != "disable" {
 		return nil, errors.New("expected a local disposable database at 127.0.0.1 with sslmode=disable")
 	}
 	if os.Getenv("PGSERVICE") != "" {

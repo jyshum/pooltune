@@ -18,7 +18,7 @@ import (
 )
 
 func main() {
-	route := flag.String("target", "local", "fixture route: local or rookery")
+	route := flag.String("target", "local", "fixture route: local, rookery or staging")
 	trial := flag.String("index-trial", "", "automatic index fixture: anthropic or scripted")
 	recoverOnly := flag.Bool("recover-index-trials", false, "reconcile interrupted fixture runs")
 	trafficTrial := flag.Bool("worker-traffic", false, "observe a bounded read-only traffic stream from another session")
@@ -38,12 +38,16 @@ func main() {
 		fmt.Fprintln(os.Stderr, "choose scripted or anthropic worker investigation with -worker-traffic")
 		os.Exit(2)
 	}
-	if flag.NArg() != 0 || (*route != "local" && *route != "rookery") {
-		fmt.Fprintln(os.Stderr, "select -target local or -target rookery and supply connection settings in the environment")
+	if *route == "staging" && !*createConsumer && *removeConsumer == "" {
+		fmt.Fprintln(os.Stderr, "staging supports synthetic fixture setup and cleanup")
+		os.Exit(2)
+	}
+	if flag.NArg() != 0 || (*route != "local" && *route != "rookery" && *route != "staging") {
+		fmt.Fprintln(os.Stderr, "select -target local, rookery or staging and supply connection settings in the environment")
 		os.Exit(2)
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 65*time.Second)
-	err := run(ctx, *route == "rookery", *trial, *recoverOnly, *trafficTrial, *investigation, *createConsumer, *removeConsumer)
+	err := run(ctx, *route, *trial, *recoverOnly, *trafficTrial, *investigation, *createConsumer, *removeConsumer)
 	cancel()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -51,12 +55,12 @@ func main() {
 	}
 }
 
-func run(ctx context.Context, rookery bool, trial string, recoverOnly, trafficTrial bool, investigation string, createConsumer bool, removeConsumer string) error {
-	stateConfig, err := labdb.Config(os.Getenv("POOLTUNE_LAB_STATE_DSN"), false)
+func run(ctx context.Context, route string, trial string, recoverOnly, trafficTrial bool, investigation string, createConsumer bool, removeConsumer string) error {
+	stateConfig, err := labdb.StateConfig(os.Getenv("POOLTUNE_LAB_STATE_DSN"))
 	if err != nil {
 		return fmt.Errorf("state configuration: %w", err)
 	}
-	targetConfig, err := labdb.Config(os.Getenv("POOLTUNE_LAB_TARGET_DSN"), rookery)
+	targetConfig, err := labdb.TargetConfig(os.Getenv("POOLTUNE_LAB_TARGET_DSN"), route)
 	if err != nil {
 		return fmt.Errorf("target configuration: %w", err)
 	}
@@ -85,10 +89,7 @@ func run(ctx context.Context, rookery bool, trial string, recoverOnly, trafficTr
 	}
 	defer labdb.Close(target)
 
-	identity := "local"
-	if rookery {
-		identity = "rookery"
-	}
+	identity := route
 	if createConsumer {
 		report, err := hostedquery.CreateConsumerFixture(ctx, target, state, identity)
 		if err != nil {

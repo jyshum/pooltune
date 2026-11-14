@@ -143,6 +143,12 @@ Depends on Task 8 and reuses d-workflow r1, d-reuse r1 and proposed d-durability
 - [x] Kill and replace a real consumer process mid-claim. Verify the replacement respects the lease, reclaims the same job, sees an index added while it was offline, and saves the new outcome.
 - [x] Compare matched Rookery traffic with the consumer off and on. Report request latency, server execution times and additional evidence work. Record the trade-offs and reproduction in [Always-on consumer](always-on-consumer.md).
 
+### Task 10: Verify the detector and consumer in hosted staging
+
+- [x] Package the existing binaries and scripted graph in one image. Deploy two private processes and use separate state and synthetic target databases in the dedicated staging PostgreSQL instance.
+- [x] Let the hosted detector create a job from bounded synthetic traffic. Hold evidence collection briefly, restart the hosted consumer and verify the same job completes on its second attempt and saves graph checkpoints.
+- [x] Record verified service state, restart behavior, cleanup and staging trade-offs in [Hosted staging](hosted-staging.md).
+
 ## Candidate test application inspection (historical)
 
 

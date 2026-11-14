@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -253,16 +255,50 @@ func (q *labCase) result(ctx context.Context, tx pgx.Tx) (CaseResult, error) {
 }
 
 type explain struct {
-	ExecutionMS float64 `json:"Execution Time"`
-	QueryID     int64   `json:"Query Identifier"`
-	Node        struct {
-		Type     string `json:"Node Type"`
-		Rows     int64  `json:"Actual Rows"`
-		Loops    int64  `json:"Actual Loops"`
-		Filtered int64  `json:"Rows Removed by Filter"`
-		Hit      int64  `json:"Shared Hit Blocks"`
-		Read     int64  `json:"Shared Read Blocks"`
-	} `json:"Plan"`
+	ExecutionMS float64     `json:"Execution Time"`
+	QueryID     int64       `json:"Query Identifier"`
+	Node        explainNode `json:"Plan"`
+}
+
+type explainNode struct {
+	Type     string `json:"Node Type"`
+	Rows     int64  `json:"Actual Rows"`
+	Loops    int64  `json:"Actual Loops"`
+	Filtered int64  `json:"Rows Removed by Filter"`
+	Hit      int64  `json:"Shared Hit Blocks"`
+	Read     int64  `json:"Shared Read Blocks"`
+}
+
+func (n *explainNode) UnmarshalJSON(data []byte) error {
+	type fields explainNode
+	raw := struct {
+		*fields
+		Rows     json.Number `json:"Actual Rows"`
+		Filtered json.Number `json:"Rows Removed by Filter"`
+	}{fields: (*fields)(n)}
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+	var err error
+	n.Rows, err = integralPlanCount(raw.Rows)
+	if err != nil {
+		return err
+	}
+	n.Filtered, err = integralPlanCount(raw.Filtered)
+	return err
+}
+
+func integralPlanCount(value json.Number) (int64, error) {
+	if value == "" {
+		return 0, nil
+	}
+	// PostgreSQL 18 emits averages such as 1.00. Current consumers accept only
+	// single-loop measurements, whose row counts must be exact integers.
+	count, fraction, _ := strings.Cut(value.String(), ".")
+	if strings.Trim(fraction, "0") != "" {
+		return 0, errors.New("expected an integral plan row count")
+	}
+	return strconv.ParseInt(count, 10, 64)
 }
 
 func readPlan(ctx context.Context, tx pgx.Tx, sql string) (explain, error) {

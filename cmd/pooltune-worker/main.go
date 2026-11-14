@@ -23,18 +23,18 @@ import (
 const enrollmentLimit = 32 << 10
 
 func main() {
-	route := flag.String("target", "local", "development target: local or rookery")
+	route := flag.String("target", "local", "development target: local, rookery or staging")
 	enrollmentPath := flag.String("enrollment", "", "path to query enrollment JSON")
 	interval := flag.Duration("interval", time.Minute, "time between sampling ticks")
 	window := flag.Duration("window", 5*time.Minute, "duration of one objective window")
 	flag.Parse()
-	if flag.NArg() != 0 || (*route != "local" && *route != "rookery") || *enrollmentPath == "" {
+	if flag.NArg() != 0 || (*route != "local" && *route != "rookery" && *route != "staging") || *enrollmentPath == "" {
 		flag.Usage()
 		os.Exit(2)
 	}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
-	err := run(ctx, *route == "rookery", *enrollmentPath, hostedquery.SamplingPolicy{Interval: *interval, Window: *window})
+	err := run(ctx, *route, *enrollmentPath, hostedquery.SamplingPolicy{Interval: *interval, Window: *window})
 	if err != nil && ctx.Err() == nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
@@ -55,7 +55,7 @@ func readEnrollment(input io.Reader) (hostedquery.Enrollment, error) {
 	return enrollment, nil
 }
 
-func run(ctx context.Context, rookery bool, enrollmentPath string, policy hostedquery.SamplingPolicy) error {
+func run(ctx context.Context, route string, enrollmentPath string, policy hostedquery.SamplingPolicy) error {
 	file, err := os.Open(enrollmentPath)
 	if err != nil {
 		return errors.New("cannot open enrollment file")
@@ -65,11 +65,11 @@ func run(ctx context.Context, rookery bool, enrollmentPath string, policy hosted
 	if err != nil {
 		return err
 	}
-	targetConfig, err := labdb.Config(os.Getenv("POOLTUNE_WORKER_TARGET_DSN"), rookery)
+	targetConfig, err := labdb.TargetConfig(os.Getenv("POOLTUNE_WORKER_TARGET_DSN"), route)
 	if err != nil {
 		return fmt.Errorf("worker target configuration: %w", err)
 	}
-	stateConfig, err := labdb.Config(os.Getenv("POOLTUNE_WORKER_STATE_DSN"), false)
+	stateConfig, err := labdb.StateConfig(os.Getenv("POOLTUNE_WORKER_STATE_DSN"))
 	if err != nil {
 		return fmt.Errorf("worker state configuration: %w", err)
 	}

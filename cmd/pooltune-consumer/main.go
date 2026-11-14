@@ -20,13 +20,13 @@ import (
 )
 
 func main() {
-	route := flag.String("target", "local", "development target: local or rookery")
+	route := flag.String("target", "local", "development target: local, rookery or staging")
 	project := flag.String("project", "", "enrolled project identity")
 	fixture := flag.String("fixture", "", "journaled synthetic fixture ID")
 	mode := flag.String("mode", "scripted", "investigator: scripted or anthropic")
 	poll := flag.Duration("poll", 2*time.Second, "wait between empty queue checks")
 	flag.Parse()
-	if flag.NArg() != 0 || (*route != "local" && *route != "rookery") ||
+	if flag.NArg() != 0 || (*route != "local" && *route != "rookery" && *route != "staging") ||
 		(*mode != "scripted" && *mode != "anthropic") || *project == "" || len(*project) > 128 ||
 		*poll < 100*time.Millisecond || *poll > time.Minute {
 		flag.Usage()
@@ -34,6 +34,10 @@ func main() {
 	}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
+	if *route == "staging" && *mode != "scripted" {
+		fmt.Fprintln(os.Stderr, "staging uses the scripted investigator")
+		os.Exit(2)
+	}
 	if err := run(ctx, *route, *project, *fixture, *mode, *poll); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
@@ -41,12 +45,12 @@ func main() {
 }
 
 func run(ctx context.Context, route, project, fixture, mode string, poll time.Duration) error {
-	target, err := labdb.Config(os.Getenv("POOLTUNE_WORKER_TARGET_DSN"), route == "rookery")
+	target, err := labdb.TargetConfig(os.Getenv("POOLTUNE_WORKER_TARGET_DSN"), route)
 	if err != nil {
 		return fmt.Errorf("consumer target: %w", err)
 	}
 	stateDSN := os.Getenv("POOLTUNE_WORKER_STATE_DSN")
-	stateConfig, err := labdb.Config(stateDSN, false)
+	stateConfig, err := labdb.StateConfig(stateDSN)
 	if err != nil {
 		return fmt.Errorf("consumer state: %w", err)
 	}
@@ -81,6 +85,9 @@ func run(ctx context.Context, route, project, fixture, mode string, poll time.Du
 			setup, cancel := context.WithTimeout(ctx, 5*time.Second)
 			state, err = connectState(setup, stateConfig)
 			cancel()
+			if err == nil {
+				fmt.Fprintln(os.Stderr, "consumer connected to Pooltune state")
+			}
 		} else {
 			err = nil
 		}

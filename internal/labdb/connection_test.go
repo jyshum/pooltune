@@ -77,3 +77,32 @@ func testCA(t *testing.T) string {
 	}
 	return certFile
 }
+
+func TestStagingRoutes(t *testing.T) {
+	const state = "postgresql://pooltune:test@postgres.railway.internal:5432/railway"
+	const target = "postgresql://pooltune:test@postgres.railway.internal:5432/pooltune_fixture"
+	t.Setenv("POOLTUNE_STAGING_PRIVATE_STATE", "")
+	if _, err := StateConfig(state); err == nil {
+		t.Fatal("accepted hosted state without staging opt-in")
+	}
+	t.Setenv("POOLTUNE_STAGING_PRIVATE_STATE", "1")
+	for _, spec := range []struct{ dsn, route string }{{state, "state"}, {target, "staging"}} {
+		var err error
+		if spec.route == "state" {
+			_, err = StateConfig(spec.dsn)
+		} else {
+			_, err = TargetConfig(spec.dsn, spec.route)
+		}
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, bad := range []string{target, strings.Replace(state, "postgres.railway.internal", "postgres.example.com", 1), state + "?host=localhost", state + "?sslmode=disable"} {
+		if _, err := StateConfig(bad); err == nil {
+			t.Fatal("accepted invalid staging state")
+		}
+	}
+	if _, err := TargetConfig(state, "staging"); err == nil {
+		t.Fatal("state database accepted as staging target")
+	}
+}

@@ -37,7 +37,7 @@ func Process(mode, stateDSN string) (hostedquery.IndexInvestigator, error) {
 		}
 		call := exec.CommandContext(ctx, node, path, mode)
 		call.Stdin = bytes.NewReader(payload)
-		call.Env = []string{"POOLTUNE_LAB_STATE_DSN=" + stateDSN, "LANGSMITH_TRACING=false"}
+		call.Env = []string{"POOLTUNE_LAB_STATE_DSN=" + stateDSN, "LANGSMITH_TRACING=false", "POOLTUNE_STAGING_PRIVATE_STATE=" + os.Getenv("POOLTUNE_STAGING_PRIVATE_STATE")}
 		if mode == "anthropic" {
 			call.Env = append(call.Env, "ANTHROPIC_API_KEY="+os.Getenv("ANTHROPIC_API_KEY"),
 				"POOLTUNE_ANTHROPIC_MODEL="+os.Getenv("POOLTUNE_ANTHROPIC_MODEL"))

@@ -1,5 +1,13 @@
 # Design progress
 
+## Hosted staging restart, November 14, 2026
+
+Jared authorized running the detector and consumer together in staging and verifying a hosted restart. Task 10 deployed both processes to a dedicated private Railway environment using a shared PostgreSQL instance and separate state and synthetic target databases. Railway was selected for this staging test. The [staging record](hosted-staging.md) explains the trade-offs and reproduction steps.
+
+The hosted detector opened job 4 from bound synthetic traffic. The consumer was restarted with an unfinished claim. A replacement completed that same job on attempt two, 0.899 seconds after the original claim expired, with a saved recommendation and four checkpoints. One job was created. The first exercise exposed a PostgreSQL 18 row-count parsing bug. The regression test and hosted rerun verified the fix. The programs and fixture remain available in private staging. The traffic driver and temporary lock were removed.
+
+The race-enabled Go integration suite, investigator tests, TypeScript checks and launcher syntax passed. The staging graph is scripted. This test covers hosted restart and durable state for synthetic queries.
+
 ## Continuous investigation consumer, November 13, 2026
 
 Jared authorized the always-on consumer, a process restart test and a Rookery load comparison on the local revamp development branch. Task 9 adds the independent queue consumer and an explicitly enrolled synthetic fixture that survives process loss. The consumer checks Pooltune's database when idle and uses one short-lived target connection per investigation. Queue coordination allows one active job per project.

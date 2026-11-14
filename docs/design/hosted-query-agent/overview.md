@@ -50,7 +50,7 @@ On saved Rookery evidence, the median investigation fell from **2.56 s to 1.61 s
 
 The lab timings are sufficient to continue building. The consumer adds one measured scan per active investigation and checks only Pooltune's queue when idle. A larger traffic test is still needed to measure slow-tail impact reliably. [Consumer overhead results](always-on-consumer.md#what-rookery-measured)
 
-1. Run the detector and consumer in a supervised staging service with persistent state and verify a hosted restart.
+1. **Done.** The private staging deployment recovered the same investigation after a hosted consumer restart. [Hosted restart result](hosted-staging.md#restart-exercise)
 2. Qualify evidence access for real enrolled Supabase queries. Start with observation and saved recommendations, then check that fresh plans and the existing-index check remain accurate under representative traffic.
 3. Measure query latency and database load during spikes, then qualify automatic index changes and recovery under the customer's configured grants.
 
