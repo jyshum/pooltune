@@ -14,7 +14,15 @@ The sustained workload created job **101** after **20.932 seconds**. The consume
 
 Recording the first period failed with the generic `fixture command exited 1`. The saved phase timestamps independently show an invalid measurement: the control window began **1.026 seconds** after its boundary and the quiet window **1.015 seconds** after its boundary, exceeding the prespecified one-second allowance. The driver discarded command stderr, so the report does not establish which internal check failed first. The bounded timing fix must remove repeated network/setup delays from window alignment without relaxing the gate. Failure diagnostics and complete period evidence also need preservation.
 
+The delayed child remains pending in Pooltune state after the private fixture consumer stops. Existing fixture cleanup removes database jobs/objects and marks its journal recovered; it does not terminalize investigation rows. This is a lifecycle limitation to address before general customer operation, not a running target job or a completed investigation.
+
 All **3,051 requests** completed with zero errors or missed slots. Automatic cleanup verified zero owned jobs/fixtures and unchanged unrelated jobs/public indexes; an independent read confirmed empty jobs and fixtures. Total attempt time was **523.725 seconds**, including setup, clock alignment, one cycle and cleanup. This is failed qualification, not an agent-speed result. [Preserved follow-up evidence](evidence/mixed-traffic/cron-window-alignment-failed.json).
+
+## Aligned-driver run: brief fault was too small
+
+Source `a350470`, deployment `960be266-a46c-470b-afd0-a89b1a672fd0`, fixture `1227b325242d8621f125799d`. The manual spike window started **0.293 seconds** after its boundary and ended at **20.443 seconds**, within the unchanged timing limits. The manual 30-hold workload completed in **2.508 seconds**, but its 40 target requests averaged only **2.196 ms**, below the fixed **3 ms** objective. The harness therefore stopped before target activation, Claude or any schedule repair. This trial does not qualify spike rejection or the missing full scheduler flow.
+
+All **2,393 offered requests** completed with zero errors/misses. Automatic cleanup verified the owned jobs and fixture absent and unrelated jobs/public indexes preserved. Total attempt time was **400.352 seconds**. The earlier 30-hold spike was only marginally above the objective at 3.137 ms. The next bounded calibration must strengthen the manual fault without lowering the objective, changing scheduled 200-hold work, or removing the brief-spike rejection test. [Preserved failed calibration](evidence/mixed-traffic/cron-spike-calibration-failed.json).
 
 ## Problems found
 

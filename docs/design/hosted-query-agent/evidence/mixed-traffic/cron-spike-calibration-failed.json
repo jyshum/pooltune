@@ -1,0 +1,2749 @@
+{
+  "repair": "cron",
+  "phases": [
+    {
+      "name": "healthy_between_periods",
+      "seconds": 9.999923482000002,
+      "counter_sampled": false,
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.000030607434201,
+          "p50_ms": 139.35789900000236,
+          "p95_ms": 141.29553899999883,
+          "p99_ms": 142.195845000002,
+          "max_ms": 142.195845000002,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.0000153037171007,
+          "p50_ms": 143.61804399999892,
+          "p95_ms": 144.94877700000143,
+          "p99_ms": 146.11591500000213,
+          "max_ms": 146.11591500000213,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "seconds": 9.999997170000002,
+      "counter_sampled": false,
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.000001132000319,
+          "p50_ms": 139.05395399999543,
+          "p95_ms": 141.2107049999977,
+          "p99_ms": 141.83679499999562,
+          "max_ms": 141.83679499999562,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.0000005660001596,
+          "p50_ms": 143.62273399999685,
+          "p95_ms": 145.27743299999565,
+          "p99_ms": 145.8081219999949,
+          "max_ms": 145.8081219999949,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "seconds": 9.99999641,
+      "counter_sampled": false,
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.000001436000516,
+          "p50_ms": 139.09269199999835,
+          "p95_ms": 140.5593349999981,
+          "p99_ms": 145.01519700000063,
+          "max_ms": 145.01519700000063,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.000000718000258,
+          "p50_ms": 143.6201230000006,
+          "p95_ms": 146.4071019999974,
+          "p99_ms": 147.3590089999998,
+          "max_ms": 147.3590089999998,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "seconds": 9.999995149999988,
+      "counter_sampled": false,
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.000001940000946,
+          "p50_ms": 139.08198199999606,
+          "p95_ms": 140.31782999999996,
+          "p99_ms": 141.30860799999937,
+          "max_ms": 141.30860799999937,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.000000970000473,
+          "p50_ms": 143.335825999995,
+          "p95_ms": 144.124063999996,
+          "p99_ms": 144.1261169999998,
+          "max_ms": 144.1261169999998,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "seconds": 9.99999579999999,
+      "counter_sampled": false,
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.000001680000709,
+          "p50_ms": 138.8524529999995,
+          "p95_ms": 139.72908800000732,
+          "p99_ms": 143.05679699999746,
+          "max_ms": 143.05679699999746,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.0000008400003546,
+          "p50_ms": 143.55588699999498,
+          "p95_ms": 144.68317699999898,
+          "p99_ms": 145.14983999999822,
+          "max_ms": 145.14983999999822,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "seconds": 9.999995990000011,
+      "counter_sampled": false,
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.000001604000639,
+          "p50_ms": 138.71907900000224,
+          "p95_ms": 139.72561300000234,
+          "p99_ms": 141.9199479999952,
+          "max_ms": 141.9199479999952,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.0000008020003195,
+          "p50_ms": 143.29856999999902,
+          "p95_ms": 144.1195080000034,
+          "p99_ms": 145.90116999999736,
+          "max_ms": 145.90116999999736,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "seconds": 9.999995259999997,
+      "counter_sampled": false,
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.0000018960009,
+          "p50_ms": 138.7446659999987,
+          "p95_ms": 139.60421200000565,
+          "p99_ms": 141.6205090000003,
+          "max_ms": 141.6205090000003,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.00000094800045,
+          "p50_ms": 143.5276040000026,
+          "p95_ms": 144.20907899999293,
+          "p99_ms": 145.5308159999986,
+          "max_ms": 145.5308159999986,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "seconds": 9.999996041000006,
+      "counter_sampled": false,
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.000001583600624,
+          "p50_ms": 138.688897,
+          "p95_ms": 139.51394799999252,
+          "p99_ms": 141.87282599999162,
+          "max_ms": 141.87282599999162,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.000000791800312,
+          "p50_ms": 143.29392799999914,
+          "p95_ms": 143.88718900000094,
+          "p99_ms": 143.90872899998794,
+          "max_ms": 143.90872899998794,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "seconds": 9.999995839999988,
+      "counter_sampled": false,
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.000001664000697,
+          "p50_ms": 138.5879580000037,
+          "p95_ms": 140.1201599999913,
+          "p99_ms": 145.06295199999295,
+          "max_ms": 145.06295199999295,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.0000008320003486,
+          "p50_ms": 143.3431469999923,
+          "p95_ms": 144.11750399999437,
+          "p99_ms": 144.1434789999912,
+          "max_ms": 144.1434789999912,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "seconds": 9.99998413099999,
+      "counter_sampled": false,
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.000006347610077,
+          "p50_ms": 138.84176099998876,
+          "p95_ms": 139.68608899999526,
+          "p99_ms": 142.33029899999383,
+          "max_ms": 142.33029899999383,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.0000031738050383,
+          "p50_ms": 143.70400599999994,
+          "p95_ms": 144.22168299999612,
+          "p99_ms": 144.35893899999792,
+          "max_ms": 144.35893899999792,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "seconds": 6.309360359218758,
+      "counter_sampled": false,
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 26,
+          "completed": 26,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.1208614692630094,
+          "p50_ms": 138.56463800001075,
+          "p95_ms": 139.8162430000084,
+          "p99_ms": 141.39046500000404,
+          "max_ms": 141.39046500000404,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 13,
+          "completed": 13,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.0604307346315047,
+          "p50_ms": 143.03385900000285,
+          "p95_ms": 145.80823500000406,
+          "p99_ms": 145.80823500000406,
+          "max_ms": 145.80823500000406,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "monitor_off",
+      "start": "2026-11-14T21:34:00.317Z",
+      "end": "2026-11-14T21:34:20.467Z",
+      "seconds": 20,
+      "counters": [
+        {
+          "query_id": "8376506712191311468",
+          "calls": 40,
+          "execution_ms": 2.229343,
+          "blocks": 200,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "4989434566909385372",
+          "calls": 80,
+          "execution_ms": 1.9338239999999995,
+          "blocks": 240,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "6041729584556514702",
+          "calls": 40,
+          "execution_ms": 60.468034,
+          "blocks": 241,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 148.9594410000136,
+          "p95_ms": 150.5417010000092,
+          "p99_ms": 234.74929300000076,
+          "max_ms": 234.74929300000076,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 80,
+          "completed": 80,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 138.74958300002618,
+          "p95_ms": 139.87966100001358,
+          "p99_ms": 141.452391000028,
+          "max_ms": 141.452391000028,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 142.6844170000113,
+          "p95_ms": 143.8362190000189,
+          "p99_ms": 144.5946770000155,
+          "max_ms": 144.5946770000155,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "seconds": 9.385478710234368,
+      "counter_sampled": false,
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 38,
+          "completed": 38,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.048807862998294,
+          "p50_ms": 138.70656599997892,
+          "p95_ms": 140.15323699999135,
+          "p99_ms": 140.31059700000333,
+          "max_ms": 140.31059700000333,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 19,
+          "completed": 19,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.024403931499147,
+          "p50_ms": 143.36541399999987,
+          "p95_ms": 144.52223400000366,
+          "p99_ms": 144.52223400000366,
+          "max_ms": 144.52223400000366,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "monitor_on",
+      "start": "2026-11-14T21:34:30.152Z",
+      "end": "2026-11-14T21:34:50.298Z",
+      "seconds": 20,
+      "counters": [
+        {
+          "query_id": "8376506712191311468",
+          "calls": 40,
+          "execution_ms": 2.3359939999999995,
+          "blocks": 200,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "4989434566909385372",
+          "calls": 80,
+          "execution_ms": 1.8831670000000003,
+          "blocks": 240,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "6041729584556514702",
+          "calls": 40,
+          "execution_ms": 3.46126799999999,
+          "blocks": 120,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 10,
+          "execution_ms": 42.29815099999996,
+          "blocks": 18,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 143.52526599998237,
+          "p95_ms": 150.025513999979,
+          "p99_ms": 150.15326500000083,
+          "max_ms": 150.15326500000083,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 80,
+          "completed": 80,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 138.87221899998258,
+          "p95_ms": 139.64225199999055,
+          "p99_ms": 141.39781799999764,
+          "max_ms": 141.39781799999764,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 143.46702699997695,
+          "p95_ms": 143.99306700000307,
+          "p99_ms": 144.20495899999514,
+          "max_ms": 144.20495899999514,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "seconds": 9.999994420000002,
+      "counter_sampled": false,
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.000002232001244,
+          "p50_ms": 139.07434699998703,
+          "p95_ms": 143.5080489999964,
+          "p99_ms": 143.69091299999855,
+          "max_ms": 143.69091299999855,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.000001116000622,
+          "p50_ms": 143.71981199999573,
+          "p95_ms": 144.06086599998525,
+          "p99_ms": 144.1013169999933,
+          "max_ms": 144.1013169999933,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "seconds": 9.999995049999997,
+      "counter_sampled": false,
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.000001980000981,
+          "p50_ms": 138.86189200001536,
+          "p95_ms": 139.78755500001716,
+          "p99_ms": 141.5012590000115,
+          "max_ms": 141.5012590000115,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.0000009900004905,
+          "p50_ms": 143.6588300000003,
+          "p95_ms": 144.57681500000763,
+          "p99_ms": 144.62776800000574,
+          "max_ms": 144.62776800000574,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "seconds": 9.999994980000018,
+      "counter_sampled": false,
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.000002008001001,
+          "p50_ms": 138.70957000000635,
+          "p95_ms": 139.89562500000466,
+          "p99_ms": 140.1237839999958,
+          "max_ms": 140.1237839999958,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.0000010040005005,
+          "p50_ms": 143.16939500000444,
+          "p95_ms": 143.83624499998405,
+          "p99_ms": 144.1578149999841,
+          "max_ms": 144.1578149999841,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "seconds": 9.999995049999997,
+      "counter_sampled": false,
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.000001980000981,
+          "p50_ms": 138.81369899999117,
+          "p95_ms": 139.38912999999593,
+          "p99_ms": 140.6175809999986,
+          "max_ms": 140.6175809999986,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.0000009900004905,
+          "p50_ms": 143.50239899998996,
+          "p95_ms": 144.16471199999796,
+          "p99_ms": 144.57904799998505,
+          "max_ms": 144.57904799998505,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "seconds": 9.999992299999983,
+      "counter_sampled": false,
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.0000030800023785,
+          "p50_ms": 138.83047800001805,
+          "p95_ms": 139.96478999999817,
+          "p99_ms": 141.35491799999727,
+          "max_ms": 141.35491799999727,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.0000015400011892,
+          "p50_ms": 143.5422210000106,
+          "p95_ms": 144.57904500002041,
+          "p99_ms": 146.2554919999966,
+          "max_ms": 146.2554919999966,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "seconds": 9.999994530000025,
+      "counter_sampled": false,
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.0000021880011865,
+          "p50_ms": 138.82397699999274,
+          "p95_ms": 139.80020800000057,
+          "p99_ms": 140.06757899999502,
+          "max_ms": 140.06757899999502,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.0000010940005932,
+          "p50_ms": 143.68127899998217,
+          "p95_ms": 144.33303499998874,
+          "p99_ms": 144.79809599998407,
+          "max_ms": 144.79809599998407,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "seconds": 9.560291160187509,
+      "counter_sampled": false,
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 39,
+          "completed": 39,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.079373666192304,
+          "p50_ms": 138.89374300002237,
+          "p95_ms": 141.05660400001216,
+          "p99_ms": 141.12233700000797,
+          "max_ms": 141.12233700000797,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.091986495483233,
+          "p50_ms": 143.37213400000473,
+          "p95_ms": 144.21280700000352,
+          "p99_ms": 144.24599900000612,
+          "max_ms": 144.24599900000612,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "monitor_on",
+      "start": "2026-11-14T21:36:00.226Z",
+      "end": "2026-11-14T21:36:20.373Z",
+      "seconds": 20,
+      "counters": [
+        {
+          "query_id": "8376506712191311468",
+          "calls": 40,
+          "execution_ms": 7.178077000000002,
+          "blocks": 200,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "4989434566909385372",
+          "calls": 80,
+          "execution_ms": 1.915662000000001,
+          "blocks": 240,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "6041729584556514702",
+          "calls": 40,
+          "execution_ms": 3.239618000000007,
+          "blocks": 120,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 10,
+          "execution_ms": 27.713938000000326,
+          "blocks": 0,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 142.69455799998832,
+          "p95_ms": 150.13655699999072,
+          "p99_ms": 150.34301499999128,
+          "max_ms": 150.34301499999128,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 80,
+          "completed": 80,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 138.5463349999918,
+          "p95_ms": 139.3597830000217,
+          "p99_ms": 141.13557600000058,
+          "max_ms": 141.13557600000058,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 143.10444299998926,
+          "p95_ms": 143.88044400000945,
+          "p99_ms": 148.25313299999107,
+          "max_ms": 148.25313299999107,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "seconds": 9.483619816249993,
+      "counter_sampled": false,
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 38,
+          "completed": 38,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.006908831887984,
+          "p50_ms": 138.93974400003208,
+          "p95_ms": 140.63195100001758,
+          "p99_ms": 141.2839990000357,
+          "max_ms": 141.2839990000357,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 19,
+          "completed": 19,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.003454415943992,
+          "p50_ms": 143.9217049999861,
+          "p95_ms": 145.65455600002315,
+          "p99_ms": 145.65455600002315,
+          "max_ms": 145.65455600002315,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "seconds": 0.000598796250007581,
+      "counter_sampled": false,
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 1,
+          "completed": 1,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 1670.0171385297413,
+          "p50_ms": 138.82278200000292,
+          "p95_ms": 138.82278200000292,
+          "p99_ms": 138.82278200000292,
+          "max_ms": 138.82278200000292,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 1,
+          "completed": 1,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 1670.0171385297413,
+          "p50_ms": 143.64928599999985,
+          "p95_ms": 143.64928599999985,
+          "p99_ms": 143.64928599999985,
+          "max_ms": 143.64928599999985,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "monitor_off",
+      "start": "2026-11-14T21:36:30.292Z",
+      "end": "2026-11-14T21:36:50.438Z",
+      "seconds": 20,
+      "counters": [
+        {
+          "query_id": "8376506712191311468",
+          "calls": 40,
+          "execution_ms": 2.180233000000001,
+          "blocks": 200,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "4989434566909385372",
+          "calls": 80,
+          "execution_ms": 1.8614449999999998,
+          "blocks": 240,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "6041729584556514702",
+          "calls": 40,
+          "execution_ms": 3.2206860000000006,
+          "blocks": 120,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 143.55316499999026,
+          "p95_ms": 150.45191499998327,
+          "p99_ms": 151.31778799998574,
+          "max_ms": 151.31778799998574,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 80,
+          "completed": 80,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 139.03845200000796,
+          "p95_ms": 140.52900899999077,
+          "p99_ms": 141.64956099999836,
+          "max_ms": 141.64956099999836,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 143.32000000000698,
+          "p95_ms": 144.1196629999904,
+          "p99_ms": 144.42921499995282,
+          "max_ms": 144.42921499995282,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "seconds": 9.999997220000019,
+      "counter_sampled": false,
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.000001112000302,
+          "p50_ms": 138.79829399997834,
+          "p95_ms": 140.93386599997757,
+          "p99_ms": 143.86583500000415,
+          "max_ms": 143.86583500000415,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.000000556000151,
+          "p50_ms": 143.06606300000567,
+          "p95_ms": 144.01863800000865,
+          "p99_ms": 148.48840400000336,
+          "max_ms": 148.48840400000336,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "seconds": 9.999997069999983,
+      "counter_sampled": false,
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.00000117200035,
+          "p50_ms": 138.78558000002522,
+          "p95_ms": 139.527127999987,
+          "p99_ms": 141.60104700003285,
+          "max_ms": 141.60104700003285,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.000000586000175,
+          "p50_ms": 143.46761100000003,
+          "p95_ms": 144.4028619999881,
+          "p99_ms": 144.49787600000855,
+          "max_ms": 144.49787600000855,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "seconds": 9.999997250000014,
+      "counter_sampled": false,
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.000001100000297,
+          "p50_ms": 138.91430200001923,
+          "p95_ms": 140.37653200002387,
+          "p99_ms": 141.94271500001196,
+          "max_ms": 141.94271500001196,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.0000005500001485,
+          "p50_ms": 143.44027700001607,
+          "p95_ms": 144.2757950000232,
+          "p99_ms": 145.89231600001222,
+          "max_ms": 145.89231600001222,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "seconds": 9.999997460000042,
+      "counter_sampled": false,
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.000001016000241,
+          "p50_ms": 138.8699219999835,
+          "p95_ms": 140.90795099997194,
+          "p99_ms": 143.02990600001067,
+          "max_ms": 143.02990600001067,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.0000005080001206,
+          "p50_ms": 143.35936199995922,
+          "p95_ms": 144.11715999996522,
+          "p99_ms": 145.13585399999283,
+          "max_ms": 145.13585399999283,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "seconds": 9.999996250000025,
+      "counter_sampled": false,
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.000001500000552,
+          "p50_ms": 139.02797100000316,
+          "p95_ms": 140.3671360000153,
+          "p99_ms": 140.6771300000255,
+          "max_ms": 140.6771300000255,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.000000750000276,
+          "p50_ms": 143.44010399997933,
+          "p95_ms": 144.45554400002584,
+          "p99_ms": 145.1304990000208,
+          "max_ms": 145.1304990000208,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "seconds": 9.999997080000002,
+      "counter_sampled": false,
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.00000116800034,
+          "p50_ms": 138.62244499998633,
+          "p95_ms": 139.81453999999212,
+          "p99_ms": 141.6502089999849,
+          "max_ms": 141.6502089999849,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.00000058400017,
+          "p50_ms": 143.0848189999815,
+          "p95_ms": 144.6419899999746,
+          "p99_ms": 144.95287899998948,
+          "max_ms": 144.95287899998948,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "seconds": 9.412325574859395,
+      "counter_sampled": false,
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 38,
+          "completed": 38,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.037259410309726,
+          "p50_ms": 138.78125599998748,
+          "p95_ms": 139.73561099998187,
+          "p99_ms": 141.2938650000142,
+          "max_ms": 141.2938650000142,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 19,
+          "completed": 19,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.018629705154863,
+          "p50_ms": 143.67319599998882,
+          "p95_ms": 144.87480399996275,
+          "p99_ms": 144.87480399996275,
+          "max_ms": 144.87480399996275,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "seconds": 0.00024814985936973247,
+      "counter_sampled": false,
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 1,
+          "completed": 1,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4029.8229567401995,
+          "p50_ms": 139.09460800001398,
+          "p95_ms": 139.09460800001398,
+          "p99_ms": 139.09460800001398,
+          "max_ms": 139.09460800001398,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 1,
+          "completed": 1,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4029.8229567401995,
+          "p50_ms": 144.05108000000473,
+          "p95_ms": 144.05108000000473,
+          "p99_ms": 144.05108000000473,
+          "max_ms": 144.05108000000473,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "manual_brief_spike",
+      "start": "2026-11-14T21:38:00.293Z",
+      "end": "2026-11-14T21:38:20.443Z",
+      "seconds": 20,
+      "counters": [
+        {
+          "query_id": "8376506712191311468",
+          "calls": 40,
+          "execution_ms": 2.297910999999999,
+          "blocks": 200,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "4989434566909385372",
+          "calls": 80,
+          "execution_ms": 1.8698620000000048,
+          "blocks": 240,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "6041729584556514702",
+          "calls": 40,
+          "execution_ms": 87.85250199999999,
+          "blocks": 120,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 10,
+          "execution_ms": 26.821391000000403,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-4456189544666059141",
+          "calls": 1,
+          "execution_ms": 2508.11841,
+          "blocks": 251,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 149.1387870000326,
+          "p95_ms": 161.93079399998533,
+          "p99_ms": 174.21692199999234,
+          "max_ms": 174.21692199999234,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 80,
+          "completed": 80,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 138.52603499998804,
+          "p95_ms": 139.62222200003453,
+          "p99_ms": 139.8280440000235,
+          "max_ms": 139.8280440000235,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 143.2252660000231,
+          "p95_ms": 144.11489500000607,
+          "p99_ms": 144.61680399999022,
+          "max_ms": 144.61680399999022,
+          "error_codes": []
+        }
+      }
+    }
+  ],
+  "client_failures": [],
+  "limits": {
+    "procedure_holds": 200,
+    "hold_ms": 80,
+    "elapsed_guard_seconds": 19,
+    "per_lock_timeout_ms": 150,
+    "cycle_seconds": 120,
+    "guard_margin_seconds": 15,
+    "wall_budget_seconds": 1200
+  },
+  "target_calls_per_second": 2,
+  "quiet_target_calls_per_second": 0,
+  "report_path": "/tmp/pooltune-cron-1794691907808.json",
+  "public_indexes_before": {
+    "count": 12,
+    "hash": "f56ad07a58d2b60570ee6b64a8978936"
+  },
+  "unrelated_jobs_before": [],
+  "fixture": {
+    "id": "1227b325242d8621f125799d",
+    "schema": "pooltune_trial_1227b325242d8621f125799d",
+    "enrollment": {
+      "project": "rookery/consumer/1227b325242d8621f125799d",
+      "queries": [
+        {
+          "database_oid": 5,
+          "role_oid": 16388,
+          "query_id": "4989434566909385372",
+          "mean_execution_ms": 3
+        },
+        {
+          "database_oid": 5,
+          "role_oid": 16388,
+          "query_id": "6041729584556514702",
+          "mean_execution_ms": 3
+        }
+      ]
+    }
+  },
+  "enrollment": {
+    "inherited_statement_timeout": "2min",
+    "inherited_lock_timeout": "0",
+    "execution_mode": "off",
+    "target": {
+      "id": 6,
+      "name": "pooltune_target_1227b325242d8621f125799d",
+      "owner": "postgres",
+      "database": "postgres",
+      "command": "CALL \"pooltune_trial_1227b325242d8621f125799d\".\"pooltune_cron_hold\"(200)",
+      "schedule": "*/2 * * * *",
+      "active": false
+    },
+    "witness": {
+      "id": 7,
+      "name": "pooltune_witness_1227b325242d8621f125799d",
+      "owner": "postgres",
+      "database": "postgres",
+      "command": "SELECT 1",
+      "schedule": "2 seconds",
+      "active": false
+    },
+    "read": {
+      "oid": 27099,
+      "owner": 16388,
+      "definition": "CREATE OR REPLACE FUNCTION pooltune_trial_1227b325242d8621f125799d.pooltune_cron_read()\n RETURNS integer\n LANGUAGE plpgsql\n SET search_path TO 'pg_catalog'\nAS $function$ DECLARE answer integer; BEGIN SELECT id INTO STRICT answer FROM ONLY \"pooltune_trial_1227b325242d8621f125799d\".\"candidate\" WHERE id=43; RETURN answer; END $function$\n",
+      "signature": "",
+      "private": true
+    },
+    "procedure": {
+      "oid": 27098,
+      "owner": 16388,
+      "definition": "CREATE OR REPLACE PROCEDURE pooltune_trial_1227b325242d8621f125799d.pooltune_cron_hold(IN holds integer)\n LANGUAGE plpgsql\nAS $procedure$DECLARE started timestamptz := pg_catalog.clock_timestamp(); i integer;\nBEGIN\n IF holds < 1 OR holds > 200 THEN RAISE EXCEPTION 'invalid hold count'; END IF;\n IF EXISTS(SELECT FROM pg_catalog.pg_settings WHERE name='statement_timeout' AND setting::bigint BETWEEN 1 AND 19999) THEN RAISE EXCEPTION 'job session timeout cannot cover required full work'; END IF;\n IF started >= '2026-11-14T21:56:58.299086Z'::timestamptz THEN RAISE EXCEPTION 'fixture lifetime expired'; END IF;\n FOR i IN 1..holds LOOP\n  IF pg_catalog.clock_timestamp()-started >= interval '19 seconds' THEN RAISE EXCEPTION 'cron work budget exceeded'; END IF;\n  PERFORM pg_catalog.set_config('lock_timeout','150ms',true);\n  LOCK TABLE ONLY \"pooltune_trial_1227b325242d8621f125799d\".\"candidate\" IN ACCESS EXCLUSIVE MODE;\n  PERFORM pg_catalog.pg_sleep(0.080);\n  COMMIT;\n END LOOP;\n IF pg_catalog.clock_timestamp()-started >= interval '19 seconds' THEN RAISE EXCEPTION 'cron work budget exceeded'; END IF;\nEND$procedure$\n",
+      "signature": "IN holds integer",
+      "private": true
+    },
+    "generation": {
+      "pid": 6864,
+      "started": "2026-11-13T06:32:09.921085Z",
+      "postmaster": "2026-11-13T06:32:09.8816Z"
+    },
+    "created": "2026-11-14T21:31:58.299086Z",
+    "expires": "2026-11-14T21:56:58.299086Z",
+    "activation_started": "0001-01-01T00:00:00Z",
+    "activated": "0001-01-01T00:00:00Z",
+    "first_cycle": "0001-01-01T00:00:00Z"
+  },
+  "target_query_id": "6041729584556514702",
+  "healthy_calibration_ms": [
+    0.08886100000000008,
+    0.11405199999999993,
+    0.08774100000000007,
+    0.08597099999999991,
+    0.08502100000000001,
+    0.08813099999999996,
+    0.08535100000000018,
+    0.08671099999999998,
+    0.15282099999999987,
+    0.086951
+  ],
+  "objective_ms": 3,
+  "benefit_gates": {
+    "minimum_fraction": 0.2,
+    "minimum_ms": 5,
+    "noise_multiple": 3,
+    "original_extra_fraction": 0.3,
+    "original_extra_ms": 20
+  },
+  "current_phase": "manual_brief_spike",
+  "spike_database_mean_ms": 2.1963125499999996,
+  "passed": false,
+  "failed_phase": "manual_brief_spike",
+  "error": "manual spike did not breach fixed objective",
+  "worker_failures": [],
+  "worker_diagnostics": [],
+  "detector_windows": [
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:34:31.381738Z",
+      "end": "2026-11-14T21:34:35.385269Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02288599999999985,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:34:31.381738Z",
+      "end": "2026-11-14T21:34:35.385269Z",
+      "calls": 8,
+      "mean_execution_ms": 0.08314337500000057,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:34:35.385269Z",
+      "end": "2026-11-14T21:34:39.387309Z",
+      "calls": 16,
+      "mean_execution_ms": 0.024747937499999928,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:34:35.385269Z",
+      "end": "2026-11-14T21:34:39.387309Z",
+      "calls": 8,
+      "mean_execution_ms": 0.0843671249999991,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:34:39.387309Z",
+      "end": "2026-11-14T21:34:43.390727Z",
+      "calls": 16,
+      "mean_execution_ms": 0.024864499999999956,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:34:39.387309Z",
+      "end": "2026-11-14T21:34:43.390727Z",
+      "calls": 8,
+      "mean_execution_ms": 0.08878237499999919,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:34:43.390727Z",
+      "end": "2026-11-14T21:34:47.393108Z",
+      "calls": 16,
+      "mean_execution_ms": 0.022842625000000116,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:34:43.390727Z",
+      "end": "2026-11-14T21:34:47.393108Z",
+      "calls": 8,
+      "mean_execution_ms": 0.0838958750000014,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:34:47.393108Z",
+      "end": "2026-11-14T21:34:51.393727Z",
+      "calls": 15,
+      "mean_execution_ms": 0.022703399999999856,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:34:47.393108Z",
+      "end": "2026-11-14T21:34:51.393727Z",
+      "calls": 5,
+      "mean_execution_ms": 0.10151920000000132,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:34:51.393727Z",
+      "end": "2026-11-14T21:34:55.395035Z",
+      "calls": 16,
+      "mean_execution_ms": 0.022968812499999713,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:34:51.393727Z",
+      "end": "2026-11-14T21:34:55.395035Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:34:55.395035Z",
+      "end": "2026-11-14T21:34:59.396718Z",
+      "calls": 16,
+      "mean_execution_ms": 0.025409125000000032,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:34:55.395035Z",
+      "end": "2026-11-14T21:34:59.396718Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:34:59.396718Z",
+      "end": "2026-11-14T21:35:03.399314Z",
+      "calls": 16,
+      "mean_execution_ms": 0.022639062499999696,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:34:59.396718Z",
+      "end": "2026-11-14T21:35:03.399314Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:35:03.399314Z",
+      "end": "2026-11-14T21:35:07.400006Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02314649999999996,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:35:03.399314Z",
+      "end": "2026-11-14T21:35:07.400006Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:35:07.400006Z",
+      "end": "2026-11-14T21:35:11.400362Z",
+      "calls": 16,
+      "mean_execution_ms": 0.024821562499999672,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:35:07.400006Z",
+      "end": "2026-11-14T21:35:11.400362Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:35:11.400362Z",
+      "end": "2026-11-14T21:35:15.402043Z",
+      "calls": 16,
+      "mean_execution_ms": 0.023130874999999884,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:35:11.400362Z",
+      "end": "2026-11-14T21:35:15.402043Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:35:15.402043Z",
+      "end": "2026-11-14T21:35:19.404533Z",
+      "calls": 16,
+      "mean_execution_ms": 0.024952187499999612,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:35:15.402043Z",
+      "end": "2026-11-14T21:35:19.404533Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:35:19.404533Z",
+      "end": "2026-11-14T21:35:23.407552Z",
+      "calls": 16,
+      "mean_execution_ms": 0.024815875000000487,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:35:19.404533Z",
+      "end": "2026-11-14T21:35:23.407552Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:35:23.407552Z",
+      "end": "2026-11-14T21:35:27.41024Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02580587500000009,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:35:23.407552Z",
+      "end": "2026-11-14T21:35:27.41024Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:35:27.41024Z",
+      "end": "2026-11-14T21:35:31.411556Z",
+      "calls": 16,
+      "mean_execution_ms": 0.023310875000000175,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:35:27.41024Z",
+      "end": "2026-11-14T21:35:31.411556Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:35:31.411556Z",
+      "end": "2026-11-14T21:35:35.413819Z",
+      "calls": 16,
+      "mean_execution_ms": 0.023542374999999893,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:35:31.411556Z",
+      "end": "2026-11-14T21:35:35.413819Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:35:35.413819Z",
+      "end": "2026-11-14T21:35:39.416079Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02316018750000004,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:35:35.413819Z",
+      "end": "2026-11-14T21:35:39.416079Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:35:39.416079Z",
+      "end": "2026-11-14T21:35:43.416384Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02307331250000022,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:35:39.416079Z",
+      "end": "2026-11-14T21:35:43.416384Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:35:43.416384Z",
+      "end": "2026-11-14T21:35:47.419314Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02294843749999953,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:35:43.416384Z",
+      "end": "2026-11-14T21:35:47.419314Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:35:47.419314Z",
+      "end": "2026-11-14T21:35:51.419618Z",
+      "calls": 16,
+      "mean_execution_ms": 0.023567874999999683,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:35:47.419314Z",
+      "end": "2026-11-14T21:35:51.419618Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:35:51.419618Z",
+      "end": "2026-11-14T21:35:55.422459Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02493175000000014,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:35:51.419618Z",
+      "end": "2026-11-14T21:35:55.422459Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:35:55.422459Z",
+      "end": "2026-11-14T21:35:59.424445Z",
+      "calls": 16,
+      "mean_execution_ms": 0.0227659375,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:35:55.422459Z",
+      "end": "2026-11-14T21:35:59.424445Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:35:59.424445Z",
+      "end": "2026-11-14T21:36:03.426716Z",
+      "calls": 16,
+      "mean_execution_ms": 0.023368999999999973,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:35:59.424445Z",
+      "end": "2026-11-14T21:36:03.426716Z",
+      "calls": 7,
+      "mean_execution_ms": 0.08169228571428278,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:36:03.426716Z",
+      "end": "2026-11-14T21:36:07.429477Z",
+      "calls": 16,
+      "mean_execution_ms": 0.024932000000000176,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:36:03.426716Z",
+      "end": "2026-11-14T21:36:07.429477Z",
+      "calls": 8,
+      "mean_execution_ms": 0.08411587500000017,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:36:07.429477Z",
+      "end": "2026-11-14T21:36:11.430454Z",
+      "calls": 16,
+      "mean_execution_ms": 0.024976937500000407,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:36:07.429477Z",
+      "end": "2026-11-14T21:36:11.430454Z",
+      "calls": 8,
+      "mean_execution_ms": 0.0830098750000019,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:36:11.430454Z",
+      "end": "2026-11-14T21:36:15.433856Z",
+      "calls": 16,
+      "mean_execution_ms": 0.022833937499999957,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:36:11.430454Z",
+      "end": "2026-11-14T21:36:15.433856Z",
+      "calls": 8,
+      "mean_execution_ms": 0.08377862500000077,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:36:15.433856Z",
+      "end": "2026-11-14T21:36:19.436341Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02375325000000017,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:36:15.433856Z",
+      "end": "2026-11-14T21:36:19.436341Z",
+      "calls": 8,
+      "mean_execution_ms": 0.07364699999999935,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:36:19.436341Z",
+      "end": "2026-11-14T21:36:23.438356Z",
+      "calls": 15,
+      "mean_execution_ms": 0.02270753333333341,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:36:19.436341Z",
+      "end": "2026-11-14T21:36:23.438356Z",
+      "calls": 1,
+      "mean_execution_ms": 0.07136099999999601,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:36:23.438356Z",
+      "end": "2026-11-14T21:36:27.440371Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02487706249999988,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:36:23.438356Z",
+      "end": "2026-11-14T21:36:27.440371Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:36:27.440371Z",
+      "end": "2026-11-14T21:36:51.776324Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:36:27.440371Z",
+      "end": "2026-11-14T21:36:51.776324Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:36:51.776324Z",
+      "end": "2026-11-14T21:36:55.779852Z",
+      "calls": 16,
+      "mean_execution_ms": 0.025887812500000384,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:36:51.776324Z",
+      "end": "2026-11-14T21:36:55.779852Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:36:55.779852Z",
+      "end": "2026-11-14T21:36:59.781866Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02251531249999994,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:36:55.779852Z",
+      "end": "2026-11-14T21:36:59.781866Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:36:59.781866Z",
+      "end": "2026-11-14T21:37:03.784389Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02337712500000011,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:36:59.781866Z",
+      "end": "2026-11-14T21:37:03.784389Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:37:03.784389Z",
+      "end": "2026-11-14T21:37:07.786004Z",
+      "calls": 16,
+      "mean_execution_ms": 0.024430124999999636,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:37:03.784389Z",
+      "end": "2026-11-14T21:37:07.786004Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:37:07.786004Z",
+      "end": "2026-11-14T21:37:11.78875Z",
+      "calls": 16,
+      "mean_execution_ms": 0.0246853124999995,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:37:07.786004Z",
+      "end": "2026-11-14T21:37:11.78875Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:37:11.78875Z",
+      "end": "2026-11-14T21:37:15.79136Z",
+      "calls": 16,
+      "mean_execution_ms": 0.0227556874999999,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:37:11.78875Z",
+      "end": "2026-11-14T21:37:15.79136Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:37:15.79136Z",
+      "end": "2026-11-14T21:37:19.794106Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02254893750000031,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:37:15.79136Z",
+      "end": "2026-11-14T21:37:19.794106Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:37:19.794106Z",
+      "end": "2026-11-14T21:37:23.797184Z",
+      "calls": 16,
+      "mean_execution_ms": 0.021962750000000142,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:37:19.794106Z",
+      "end": "2026-11-14T21:37:23.797184Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:37:23.797184Z",
+      "end": "2026-11-14T21:37:27.799307Z",
+      "calls": 16,
+      "mean_execution_ms": 0.026971437499999862,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:37:23.797184Z",
+      "end": "2026-11-14T21:37:27.799307Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:37:27.799307Z",
+      "end": "2026-11-14T21:37:31.801297Z",
+      "calls": 16,
+      "mean_execution_ms": 0.023483312500000242,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:37:27.799307Z",
+      "end": "2026-11-14T21:37:31.801297Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:37:31.801297Z",
+      "end": "2026-11-14T21:37:35.803324Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02487849999999958,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:37:31.801297Z",
+      "end": "2026-11-14T21:37:35.803324Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:37:35.803324Z",
+      "end": "2026-11-14T21:37:39.806656Z",
+      "calls": 16,
+      "mean_execution_ms": 0.024925375000000027,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:37:35.803324Z",
+      "end": "2026-11-14T21:37:39.806656Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:37:39.806656Z",
+      "end": "2026-11-14T21:37:43.808656Z",
+      "calls": 16,
+      "mean_execution_ms": 0.022423875000000315,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:37:39.806656Z",
+      "end": "2026-11-14T21:37:43.808656Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:37:43.808656Z",
+      "end": "2026-11-14T21:37:47.810758Z",
+      "calls": 16,
+      "mean_execution_ms": 0.022692625000000133,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:37:43.808656Z",
+      "end": "2026-11-14T21:37:47.810758Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:37:47.810758Z",
+      "end": "2026-11-14T21:37:51.813977Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02265887500000119,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:37:47.810758Z",
+      "end": "2026-11-14T21:37:51.813977Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:37:51.813977Z",
+      "end": "2026-11-14T21:37:55.816961Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02256643750000009,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:37:51.813977Z",
+      "end": "2026-11-14T21:37:55.816961Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:37:55.816961Z",
+      "end": "2026-11-14T21:37:59.819173Z",
+      "calls": 16,
+      "mean_execution_ms": 0.024630874999999275,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:37:55.816961Z",
+      "end": "2026-11-14T21:37:59.819173Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:37:59.819173Z",
+      "end": "2026-11-14T21:38:03.822199Z",
+      "calls": 16,
+      "mean_execution_ms": 0.023189562499998928,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:37:59.819173Z",
+      "end": "2026-11-14T21:38:03.822199Z",
+      "calls": 7,
+      "mean_execution_ms": 12.16401285714286,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:38:03.822199Z",
+      "end": "2026-11-14T21:38:07.824703Z",
+      "calls": 16,
+      "mean_execution_ms": 0.024628499999999942,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:38:03.822199Z",
+      "end": "2026-11-14T21:38:07.824703Z",
+      "calls": 8,
+      "mean_execution_ms": 0.0851046249999996,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:38:07.824703Z",
+      "end": "2026-11-14T21:38:11.827592Z",
+      "calls": 16,
+      "mean_execution_ms": 0.0227046250000007,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:38:07.824703Z",
+      "end": "2026-11-14T21:38:11.827592Z",
+      "calls": 8,
+      "mean_execution_ms": 0.08043849999999964,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:38:11.827592Z",
+      "end": "2026-11-14T21:38:15.829764Z",
+      "calls": 16,
+      "mean_execution_ms": 0.022455937499999745,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:38:11.827592Z",
+      "end": "2026-11-14T21:38:15.829764Z",
+      "calls": 8,
+      "mean_execution_ms": 0.0750610000000016,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "4989434566909385372",
+      "start": "2026-11-14T21:38:15.829764Z",
+      "end": "2026-11-14T21:38:19.832035Z",
+      "calls": 16,
+      "mean_execution_ms": 0.024081499999999423,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6041729584556514702",
+      "start": "2026-11-14T21:38:15.829764Z",
+      "end": "2026-11-14T21:38:19.832035Z",
+      "calls": 8,
+      "mean_execution_ms": 0.08527100000000232,
+      "decision": "no_change"
+    }
+  ],
+  "process_results": [],
+  "jobs": [],
+  "traffic_errors": 0,
+  "missed_requests": 0,
+  "cleanup_verified": true,
+  "fixture_removed": true,
+  "owned_jobs_remaining": 0,
+  "unrelated_jobs_after": [],
+  "public_indexes_after": {
+    "count": 12,
+    "hash": "f56ad07a58d2b60570ee6b64a8978936"
+  },
+  "total_seconds": 400.352042851,
+  "source_commit": "a350470",
+  "deployment_id": "960be266-a46c-470b-afd0-a89b1a672fd0"
+}
