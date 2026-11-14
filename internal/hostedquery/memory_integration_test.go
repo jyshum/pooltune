@@ -139,7 +139,7 @@ func TestMemoryRejectsIdentityAndSettingDriftAndPreservesForeignObjects(t *testi
 	}
 }
 func TestQueuedMemoryRejectsUnsafeOutcomesAndRestoresPendingChange(t *testing.T) {
-	for _, mode := range []string{"apply", "healthy", "wrong repair", "wrong identity", "decline", "provider failure", "changed setting", "changed body", "verification failure", "independent candidate"} {
+	for _, mode := range []string{"apply", "healthy", "wrong repair", "wrong identity", "decline", "provider failure", "changed setting", "changed body", "verification failure", "independent candidate", "final acknowledgement lost"} {
 		t.Run(mode, func(t *testing.T) { exerciseQueuedMemory(t, mode) })
 	}
 }
@@ -185,7 +185,18 @@ func exerciseQueuedMemory(t *testing.T, mode string) {
 		dispatchConfig.Tracer = trace
 	}
 	binding := ConsumerFixture{ID: f.ID, Enrollment: Enrollment{Project: f.Enrollment.Project}}
-	result, err := DispatchFixtureMemory(ctx, state, dispatchConfig, "local", binding, func(_ context.Context, e IndexEvidence) (IndexProposal, error) {
+	dispatchState := state
+	acknowledgement := &loseMemoryAcknowledgement{state: state}
+	if mode == "final acknowledgement lost" {
+		stateConfig := state.Config().Copy()
+		stateConfig.Tracer = acknowledgement
+		dispatchState, err = pgx.ConnectConfig(ctx, stateConfig)
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer dispatchState.Close(ctx)
+	}
+	result, err := DispatchFixtureMemory(ctx, dispatchState, dispatchConfig, "local", binding, func(_ context.Context, e IndexEvidence) (IndexProposal, error) {
 		called = true
 		if !memoryCause(e) {
 			t.Fatalf("weak cause %+v", e)
@@ -223,6 +234,38 @@ func exerciseQueuedMemory(t *testing.T, mode string) {
 	}
 	if mode != "healthy" && !called {
 		t.Fatalf("missing model %v", err)
+	}
+	if mode == "final acknowledgement lost" {
+		if err == nil || !acknowledgement.seen || acknowledgement.commitErr != nil {
+			t.Fatalf("missing committed acknowledgement loss: seen=%v commit=%v error=%v", acknowledgement.seen, acknowledgement.commitErr, err)
+		}
+		var status string
+		var raw []byte
+		if e := state.QueryRow(ctx, "SELECT status,report FROM "+journalTable+" WHERE id=$1", f.ID).Scan(&status, &raw); e != nil {
+			t.Fatal(e)
+		}
+		var saved MemoryReport
+		if e := json.Unmarshal(raw, &saved); e != nil {
+			t.Fatal(e)
+		}
+		if status != "memory_verified" || saved.Outcome != "improved_tested_inputs" {
+			t.Fatalf("test requires actual measured improvement, got %s: %+v", status, saved)
+		}
+		current, e := readMemoryFunction(ctx, target, f.Schema)
+		if e != nil || current.WorkMem != "32MB" {
+			t.Fatalf("committed success was compensated: %s %v", current.WorkMem, e)
+		}
+		if _, e := state.Exec(ctx, "UPDATE pooltune_worker.investigations SET lease_until=now()-interval '1 second' WHERE project_id=$1", f.Enrollment.Project); e != nil {
+			t.Fatal(e)
+		}
+		retry, e := DispatchFixtureMemory(ctx, state, cfg, "local", binding, func(context.Context, IndexEvidence) (IndexProposal, error) {
+			t.Fatal("recovery called model")
+			return IndexProposal{}, nil
+		})
+		if e != nil || retry == nil || retry.Outcome != "improved_tested_inputs" {
+			t.Fatalf("durable success not replayed: %+v %v", retry, e)
+		}
+		return
 	}
 	if mode == "independent candidate" {
 		if err == nil {
@@ -421,3 +464,23 @@ func TestMemoryReplacementOIDAndChangedOtherSettingsArePreserved(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+// Commit the actual final journal SQL on a separate connection, then make the
+// caller observe a lost acknowledgement. Production code has no test-only hook.
+type loseMemoryAcknowledgement struct {
+	state     *pgx.Conn
+	seen      bool
+	commitErr error
+}
+
+func (t *loseMemoryAcknowledgement) TraceQueryStart(ctx context.Context, _ *pgx.Conn, data pgx.TraceQueryStartData) context.Context {
+	if strings.HasPrefix(data.SQL, "UPDATE "+journalTable+" SET status=") && len(data.Args) > 1 && data.Args[1] == "memory_verified" {
+		t.seen = true
+		_, t.commitErr = t.state.Exec(ctx, data.SQL, data.Args...)
+		ctx, cancel := context.WithCancel(ctx)
+		cancel()
+		return ctx
+	}
+	return ctx
+}
+func (*loseMemoryAcknowledgement) TraceQueryEnd(context.Context, *pgx.Conn, pgx.TraceQueryEndData) {}

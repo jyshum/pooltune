@@ -132,9 +132,9 @@ func DispatchFixtureMemory(ctx context.Context, state *pgx.Conn, config *pgx.Con
 		}
 		start = time.Now()
 		applied, err := alterMemorySetting(ctx, target, fixture.ID, expected, report.Function, memoryOriginal, memoryCandidate, func() error { return writeMemoryStatus(ctx, state, "memory_pending", &report) })
-		verified := false
+		verificationComplete := false
 		defer func() {
-			if applied && !verified {
+			if applied && !verificationComplete {
 				cleanup, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 				defer cancel()
 				recovery, recoveryErr := pgx.ConnectConfig(cleanup, config)
@@ -172,10 +172,14 @@ func DispatchFixtureMemory(ctx context.Context, state *pgx.Conn, config *pgx.Con
 				return err
 			}
 		}
+		// A lost final-journal acknowledgement may still have committed success.
+		// Once measurement and any required restoration finish, leave the target
+		// unchanged on persistence errors. Durable pending/verified recovery owns
+		// that uncertainty; compensating here could contradict committed success.
+		verificationComplete = true
 		if err := writeMemoryStatus(ctx, state, "memory_verified", &report); err != nil {
 			return err
 		}
-		verified = true
 		saveMemory(result, claim, &report)
 		return nil
 	})
