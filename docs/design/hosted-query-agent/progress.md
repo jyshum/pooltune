@@ -1,5 +1,9 @@
 # Design progress
 
+## Enrolled traffic in hosted staging, November 14, 2026
+
+Task 14 connected the Railway detector and consumer to the same enrolled Rookery test login. From 240 pairs of reads, the detector created job 11 for the unindexed lookup and reported no change for the indexed lookup. The consumer saved the estimate and index check in 2.841 seconds after queuing. The [traffic test](enrolled-traffic-staging.md) records the timing, design trade-offs, and staging reproduction. Cross-role telemetry and measured evidence for the hosted investigator remain open.
+
 ## Enrolled evidence in hosted staging, November 14, 2026
 
 Jared confirmed Railway for continued staging. Task 13 passed through the hosted queue and a dedicated Rookery connection. The consumer saved an estimated plan and matching-index check for job 9 and recorded insufficient evidence for a mismatched job and a revoked grant. Statement counters confirmed one foreground lookup. The graph did not run in this mode. The [staging test](enrolled-staging.md) records the results. The [V1 build sequence](roadmap.md) connects this slice to the six repair types, onboarding, dashboard, and rollout.

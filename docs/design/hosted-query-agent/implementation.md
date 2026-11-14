@@ -170,6 +170,13 @@ Follows d-workflow r1, d-reuse r1 and d-onboarding r1. The dedicated login quali
 - [x] Run a queued lookup through the consumer using a dedicated login and one explicit enrollment. Save the estimated plan and index check separately from measured evidence. Gate on the enrolled query identity and current grants. Test mismatched jobs and revoked access.
 - [x] Verify the path in Railway staging against a bounded synthetic Supabase fixture and record the [hosted test result](enrolled-staging.md). Keep the existing measured fixture path available.
 
+### Task 14: Run enrolled traffic through the hosted detector and consumer
+
+Depends on Tasks 10 and 13. Follows d-workflow r1, d-reuse r1 and d-onboarding r1. This test supplies evidence for proposed d-identity r1.
+
+- [x] Run the Go detector with the dedicated Rookery login and matching query enrollment. Restrict the detector to statements executed by that authenticated role. Keep the existing fixture routes.
+- [x] Drive indexed and unindexed synthetic traffic while Railway runs the detector and consumer. Verify the detector alone creates one durable job, the healthy lookup creates zero jobs, and the consumer saves estimate-only evidence. Record checks, cleanup, and trade-offs in [Enrolled Rookery traffic in hosted staging](enrolled-traffic-staging.md).
+
 ## Candidate test application inspection (historical)
 
 

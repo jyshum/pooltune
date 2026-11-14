@@ -23,12 +23,12 @@ import (
 const enrollmentLimit = 32 << 10
 
 func main() {
-	route := flag.String("target", "local", "development target: local, rookery or staging")
+	route := flag.String("target", "local", "development target: local, rookery, staging or rookery-enrolled")
 	enrollmentPath := flag.String("enrollment", "", "path to query enrollment JSON")
 	interval := flag.Duration("interval", time.Minute, "time between sampling ticks")
 	window := flag.Duration("window", 5*time.Minute, "duration of one objective window")
 	flag.Parse()
-	if flag.NArg() != 0 || (*route != "local" && *route != "rookery" && *route != "staging") || *enrollmentPath == "" {
+	if flag.NArg() != 0 || (*route != "local" && *route != "rookery" && *route != "staging" && *route != "rookery-enrolled") || *enrollmentPath == "" {
 		flag.Usage()
 		os.Exit(2)
 	}
@@ -87,6 +87,11 @@ func run(ctx context.Context, route string, enrollmentPath string, policy hosted
 		return labdb.Diagnostic("connect worker target", err)
 	}
 	defer labdb.Close(target)
+	if route == "rookery-enrolled" {
+		if err := verifyDedicatedDetector(setup, target, enrollment); err != nil {
+			return labdb.Diagnostic("verify dedicated detector identity", err)
+		}
+	}
 	state, err := pgx.ConnectConfig(setup, stateConfig)
 	if err != nil {
 		return labdb.Diagnostic("connect worker state", err)
@@ -103,6 +108,24 @@ func run(ctx context.Context, route string, enrollmentPath string, policy hosted
 	encoder := json.NewEncoder(os.Stdout)
 	if err := worker.Run(ctx, func(result hostedquery.PollResult) error { return encoder.Encode(result) }); err != nil {
 		return labdb.Diagnostic("poll worker", err)
+	}
+	return nil
+}
+
+// The first enrolled Rookery path uses the same narrow identity for traffic and
+// statistics. Cross-role collection needs its own access decision.
+func verifyDedicatedDetector(ctx context.Context, target *pgx.Conn, enrollment hostedquery.Enrollment) error {
+	var role, session uint32
+	if err := target.QueryRow(ctx, "SELECT current_user::regrole::oid, session_user::regrole::oid").Scan(&role, &session); err != nil {
+		return err
+	}
+	if role != session {
+		return errors.New("worker must use its authenticated role")
+	}
+	for _, query := range enrollment.Queries {
+		if query.Role != role {
+			return errors.New("worker can observe only statements from its authenticated role")
+		}
 	}
 	return nil
 }
