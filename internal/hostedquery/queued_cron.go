@@ -256,13 +256,10 @@ func DispatchFixtureCron(ctx context.Context, state *pgx.Conn, config *pgx.ConnC
 		r.FirstFutureCycle = last.Add(2 * time.Minute)
 		r.VerifyAfter = r.FirstFutureCycle.Add(6*time.Minute + 2*time.Second)
 		started := time.Now()
-		// Persist intent while holding catalog row locks, before the schedule mutation.
-		err = pgx.BeginFunc(ctx, target, func(tx pgx.Tx) error {
+		// Validate one RR snapshot and persist intent before either supported API
+		// write. A serialization error leaves durable intent for inspection, not retry.
+		err = pgx.BeginTxFunc(ctx, target, pgx.TxOptions{IsoLevel: pgx.RepeatableRead}, func(tx pgx.Tx) error {
 			if _, err := tx.Exec(ctx, "SET LOCAL statement_timeout='2s'; SET LOCAL lock_timeout='250ms'"); err != nil {
-				return err
-			}
-			var locked int64
-			if err := tx.QueryRow(ctx, "SELECT jobid FROM cron.job WHERE jobid=$1 FOR UPDATE", f.Target.ID).Scan(&locked); err != nil {
 				return err
 			}
 			now, g, err = readCronClock(ctx, tx)
@@ -278,6 +275,15 @@ func DispatchFixtureCron(ctx context.Context, state *pgx.Conn, config *pgx.ConnC
 			if err = validateCronFixture(ctx, tx, state, fixture.ID, f, cronOriginal); err != nil {
 				return err
 			}
+			for _, job := range []CronJob{f.Target, f.Witness} {
+				current, e := readCronJob(ctx, tx, job.Name)
+				if e != nil {
+					return e
+				}
+				if !current.Active {
+					return errors.New("target and witness must remain active before schedule handoff")
+				}
+			}
 			var active bool
 			if err = tx.QueryRow(ctx, "SELECT EXISTS(SELECT FROM cron.job_run_details WHERE jobid=$1 AND (end_time IS NULL OR status NOT IN ('succeeded','failed')))", f.Target.ID).Scan(&active); err != nil {
 				return err
@@ -290,7 +296,12 @@ func DispatchFixtureCron(ctx context.Context, state *pgx.Conn, config *pgx.ConnC
 			if err = writeCronReport(ctx, state, "cron_pending", &r); err != nil {
 				return err
 			}
-			_, err = tx.Exec(ctx, "SELECT cron.alter_job($1,schedule := $2)", f.Target.ID, cronAlternate)
+			// Guard the exact active diagnostic witness as well as the target row.
+			// Re-reading it inside RR alone would not detect an independent edit.
+			if _, err = tx.Exec(ctx, "SELECT cron.alter_job($1::bigint,active := true)", f.Witness.ID); err != nil {
+				return err
+			}
+			_, err = tx.Exec(ctx, "SELECT cron.alter_job($1::bigint,schedule := $2)", f.Target.ID, cronAlternate)
 			return err
 		})
 		if err != nil {

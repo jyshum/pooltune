@@ -117,12 +117,21 @@ func cronPrerequisites(ctx context.Context, db trialReader) error {
 	if !ok {
 		return errors.New("private Cron prerequisites unavailable")
 	}
-	// This empty query checks the exact privileges our activation/action locks
-	// require, including a sufficient column-level UPDATE grant. It neither
-	// reads nor locks any job and must pass before creating a fixture or jobs.
-	var unused int64
-	if err := db.QueryRow(ctx, "SELECT jobid FROM cron.job WHERE false FOR UPDATE").Scan(&unused); !errors.Is(err, pgx.ErrNoRows) {
-		return fmt.Errorf("Cron job row-lock prerequisite failed: %w", err)
+	// Probe the exact read surfaces and supported API signatures before creating
+	// any fixture or job. The provider API supplies its own write authority; no
+	// direct cron.job UPDATE privilege or grant is needed by this adapter.
+	err = db.QueryRow(ctx, `SELECT NOT EXISTS(SELECT jobid,jobname,username,database,command,schedule,active FROM cron.job WHERE false)
+ AND NOT EXISTS(SELECT runid,jobid,job_pid,start_time,end_time,status FROM cron.job_run_details WHERE false)`).Scan(&ok)
+	if err != nil {
+		return fmt.Errorf("Cron catalog/history read prerequisite failed: %w", err)
+	}
+	for _, signature := range []string{"cron.schedule(text,text,text)", "cron.alter_job(bigint,text,text,text,text,boolean)", "cron.unschedule(bigint)"} {
+		if err = db.QueryRow(ctx, "SELECT coalesce(has_function_privilege(current_user,to_regprocedure($1),'EXECUTE'),false)", signature).Scan(&ok); err != nil {
+			return err
+		}
+		if !ok {
+			return fmt.Errorf("Cron API prerequisite unavailable: %s", signature)
+		}
 	}
 	return nil
 }
@@ -306,15 +315,12 @@ func ActivateCronFixture(ctx context.Context, target, state *pgx.Conn, route, id
 		return f, err
 	}
 	observedAt := now
-	err = pgx.BeginFunc(ctx, target, func(tx pgx.Tx) error {
+	err = pgx.BeginTxFunc(ctx, target, pgx.TxOptions{IsoLevel: pgx.RepeatableRead}, func(tx pgx.Tx) error {
 		if _, e := tx.Exec(ctx, "SET LOCAL statement_timeout='2s'; SET LOCAL lock_timeout='250ms'"); e != nil {
 			return e
 		}
-		// Existing trial ownership coordinates our callers; row locks also keep
-		// job metadata stable through the final recheck and activation.
-		if _, e := tx.Exec(ctx, "SELECT jobid FROM cron.job WHERE jobid=ANY($1::bigint[]) ORDER BY jobid FOR UPDATE", []int64{f.Target.ID, f.Witness.ID}); e != nil {
-			return e
-		}
+		// All identities are checked in the RR snapshot. Supported writes below
+		// conflict if either job changed since that snapshot, without catalog grants.
 		if err = validateCronFixture(ctx, tx, state, id, f, cronOriginal); err != nil {
 			return err
 		}
@@ -354,7 +360,12 @@ func ActivateCronFixture(ctx context.Context, target, state *pgx.Conn, route, id
 		if err = writeCronFixture(ctx, state, id, f); err != nil {
 			return err
 		}
-		_, err = tx.Exec(ctx, "SELECT cron.alter_job($1,active := true)", f.Target.ID)
+		// The witness was already active in this snapshot. A same-value write
+		// protects it through commit and cannot overwrite a concurrent stop/edit.
+		if _, err = tx.Exec(ctx, "SELECT cron.alter_job($1::bigint,active := true)", f.Witness.ID); err != nil {
+			return err
+		}
+		_, err = tx.Exec(ctx, "SELECT cron.alter_job($1::bigint,active := true)", f.Target.ID)
 		return err
 	})
 	if err != nil {

@@ -16,6 +16,14 @@ Replace the direct-catalog-update privilege prerequisite with actual catalog rea
 
 This is a routine internal guard implementation choice under the existing delegated fixture work, preserving the required no-overwrite behavior. It is not human approval of new customer permissions. A fresh builder check and regression tests must verify the bounded interpretation before implementation is credited. If the same protection cannot be established, retain the refusal and report the gap.
 
+## Witness protection choice after builder review
+
+The original activation transaction locked both the target and the diagnostic witness. A target-only API write cannot preserve that second row. In the same REPEATABLE READ transaction, validate the exact active owned SELECT 1 / two-second witness, then issue `cron.alter_job(witness_id, active := true)` with the already-true value. This supported same-value update changes no effective command, schedule, owner or active state. It obtains the witness write lock until transaction end and aborts on any concurrent witness edit after the snapshot. Apply this protection to activation and the schedule handoff where the witness is relied upon.
+
+Persist the existing action intent before these transactional API writes. If either write conflicts, the whole target transaction rolls back; the independent state-database intent remains for conservative inspection. Never clear intent and automatically retry. If the witness is inactive or otherwise changed at validation, refuse; do not reactivate an independently stopped witness. Both job rows must be protected before the final commit, with current clock margins and post-commit scheduler observations retained.
+
+The extra diagnostic metadata update invalidates the job cache even though its effective values are unchanged. It is a deliberate private-witness guard, not another repair or permission to modify customer jobs. Tests must show witness command/active changes cause rollback of target activation/change, and unchanged witness fields stay unchanged. The actual full run must still pass witness cadence, counts and deadline checks. This bounded witness choice addresses the builder check's must-resolve point; unsupported broader cross-object coordination remains excluded.
+
 ## Required checks
 
 - A login with catalog SELECT plus the supported job API can activate/change its owned job without direct catalog UPDATE.
@@ -28,3 +36,14 @@ This is a routine internal guard implementation choice under the existing delega
 ## Trade-off
 
 A direct row lock waits before the change and needs catalog write permission. This approach reads a consistent snapshot and lets PostgreSQL reject a conflicting update. It uses existing provider access, but a conflict can leave a saved intent requiring inspection. Pooltune must treat that as uncertainty and preserve newer state. It does not automatically retry a failed repair transaction merely because general database guidance permits transaction retries. Production coordination across unrelated owner changes and arbitrary routines remains unqualified.
+
+
+## Local implementation and evidence boundary
+
+Activation and the schedule handoff now begin target transactions explicitly with `pgx.RepeatableRead`. Each validates the exact enrolled target and witness in that snapshot, including the required inactive/active target state and an already-active witness. After the separate state database has saved the existing intent, the target transaction calls `cron.alter_job(witness_id::bigint, active := true)` and then the target API. The witness write preserves every effective field, protects its row until commit and aborts on a concurrent edit. The target API similarly conflicts with an independent target update or deletion. No direct catalog `FOR UPDATE` remains in either path. Two-second statement and 250 ms lock limits, actual database clock margins, equal-instant launcher identity and post-commit polling remain in place.
+
+Pre-creation capability checks read the actual required job/history columns and require EXECUTE on the exact named `cron.schedule(text,text,text)`, `cron.alter_job(bigint,text,text,text,text,boolean)` and `cron.unschedule(bigint)` signatures. They neither create a probe job nor request a catalog grant. API execution ACLs do not replace exact owned identity validation.
+
+The restricted-role local adapter tests the actual activation and queue-dispatch paths against real PostgreSQL permissions and transaction conflicts. Its API-shaped SQL function owns only the disposable Cron catalog; the caller owns the private fixture but has no catalog UPDATE privilege. Two-connection cases change target schedule, command, active flag or owner, delete the target, and change/stop the witness after validation and saved intent. All must return 40001, preserve the independent edit and roll back the other job write. Pre-existing changed/stopped identities refuse before either API write. Connection loss before commit and after committed mutation retains uncertain intent; fresh callers inspect without another API/model call. A missing/deleted target remains unresolved and discoverable rather than being recreated. Temporary removal of Repeatable Read or the witness write caused the corresponding interleaving regression to fail.
+
+The adapter supplies selected synthetic period records and scheduler-clock/history rows to isolate these transaction boundaries. These are not observed pg_cron cycles, real model decisions or workload qualification. Repeatable Read does not make routine definitions, table ownership or newly inserted history rows fresh merely because they are read again. Arbitrary concurrent same-owner DDL and broader cross-object coordination remain outside the private-fixture guarantee. The same-value witness update invalidates real pg_cron's cache; actual witness cadence, activation/handoff progress and all six full cycles must still pass the reviewed hosted run.

@@ -3,26 +3,33 @@
 package hostedquery
 
 import (
-	"errors"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgconn"
 	"pooltune/internal/testpg"
 	"testing"
 	"time"
 )
 
-func TestCronPrerequisitesRefuseMissingRowLockPrivilegeBeforeFixtureCreation(t *testing.T) {
+func TestCronPrerequisitesUseSupportedAPIsBeforeFixtureCreation(t *testing.T) {
 	ctx, cfg, _ := testpg.Start(t)
 	admin, err := pgx.ConnectConfig(ctx, cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer admin.Close(ctx)
-	// Only extension/settings discovery is adapted. PostgreSQL performs actual
-	// privilege checks for a non-superuser against the real cron.job table.
-	if _, err = admin.Exec(ctx, `CREATE SCHEMA cron; CREATE TABLE cron.job(jobid bigint PRIMARY KEY); INSERT INTO cron.job VALUES(7);
-	 CREATE SCHEMA cron_adapter; CREATE VIEW cron_adapter.pg_extension AS SELECT 'pg_cron'::name AS extname,'1.6.4'::text AS extversion;
-	 GRANT USAGE ON SCHEMA cron,cron_adapter TO fixture_app; GRANT SELECT ON cron.job,cron_adapter.pg_extension TO fixture_app`); err != nil {
+	// Real ACL checks; only extension/settings discovery and API bodies are adapted.
+	_, err = admin.Exec(ctx, `CREATE SCHEMA cron;
+ CREATE TABLE cron.job(jobid bigint PRIMARY KEY,jobname text,username text,database text,command text,schedule text,active boolean);
+ INSERT INTO cron.job VALUES(7,'existing','fixture_app','postgres','SELECT 1','2 seconds',false);
+ CREATE TABLE cron.job_run_details(runid bigint,jobid bigint,job_pid integer,start_time timestamptz,end_time timestamptz,status text);
+ CREATE FUNCTION cron.schedule(text,text,text) RETURNS bigint LANGUAGE sql AS $$SELECT 7::bigint$$;
+ CREATE FUNCTION cron.alter_job(bigint,schedule text DEFAULT NULL,command text DEFAULT NULL,database text DEFAULT NULL,username text DEFAULT NULL,active boolean DEFAULT NULL) RETURNS void LANGUAGE sql AS $$SELECT$$;
+ CREATE FUNCTION cron.unschedule(bigint) RETURNS boolean LANGUAGE sql AS $$SELECT true$$;
+ CREATE SCHEMA cron_adapter; CREATE VIEW cron_adapter.pg_extension AS SELECT 'pg_cron'::name AS extname,'1.6.4'::text AS extversion;
+ GRANT USAGE ON SCHEMA cron,cron_adapter TO fixture_app;
+ GRANT SELECT ON cron.job,cron.job_run_details,cron_adapter.pg_extension TO fixture_app;
+ REVOKE ALL ON ALL FUNCTIONS IN SCHEMA cron FROM PUBLIC;
+ GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA cron TO fixture_app`)
+	if err != nil {
 		t.Fatal(err)
 	}
 	restricted := cfg.Copy()
@@ -36,25 +43,30 @@ func TestCronPrerequisitesRefuseMissingRowLockPrivilegeBeforeFixtureCreation(t *
 		t.Fatal(err)
 	}
 	defer target.Close(ctx)
-	if err := cronPrerequisites(ctx, target); err == nil {
-		t.Fatal("SELECT-only Cron role admitted without the required row-lock privilege")
+	var directUpdate bool
+	if err = target.QueryRow(ctx, "SELECT has_any_column_privilege(current_user,'cron.job','UPDATE')").Scan(&directUpdate); err != nil || directUpdate {
+		t.Fatalf("adapter must have no catalog UPDATE: %v %v", directUpdate, err)
 	}
-	f, err := CreateCronFixture(ctx, target, admin, "local")
-	var denied *pgconn.PgError
-	if err == nil || !errors.As(err, &denied) || denied.Code != "42501" || f.ID != "" {
-		t.Fatalf("fixture must refuse on row-lock privilege before creation: fixture=%+v err=%v", f, err)
+	if err = cronPrerequisites(ctx, target); err != nil {
+		t.Fatalf("supported API role without catalog UPDATE rejected: %v", err)
 	}
-	var untouched bool
-	if err := admin.QueryRow(ctx, `SELECT to_regnamespace('pooltune_lab_state') IS NULL AND NOT EXISTS(SELECT FROM pg_namespace WHERE nspname LIKE 'pooltune_trial_%') AND (SELECT count(*)=1 AND min(jobid)=7 FROM cron.job)`).Scan(&untouched); err != nil || !untouched {
-		t.Fatalf("preflight refusal changed fixture or journal state: %v %v", untouched, err)
-	}
-	// A column-level UPDATE grant is sufficient for SELECT FOR UPDATE. Requiring
-	// blanket table UPDATE would incorrectly reject this narrower authority.
-	if _, err := admin.Exec(ctx, `GRANT UPDATE(jobid) ON cron.job TO fixture_app`); err != nil {
-		t.Fatal(err)
-	}
-	if err := cronPrerequisites(ctx, target); err != nil {
-		t.Fatalf("minimal row-lock privilege rejected: %v", err)
+	for _, privilege := range []string{"SELECT ON cron.job", "SELECT ON cron.job_run_details", "USAGE ON SCHEMA cron", "EXECUTE ON FUNCTION cron.schedule(text,text,text)", "EXECUTE ON FUNCTION cron.alter_job(bigint,text,text,text,text,boolean)", "EXECUTE ON FUNCTION cron.unschedule(bigint)"} {
+		t.Run(privilege, func(t *testing.T) {
+			if _, err = admin.Exec(ctx, "REVOKE "+privilege+" FROM fixture_app"); err != nil {
+				t.Fatal(err)
+			}
+			f, e := CreateCronFixture(ctx, target, admin, "local")
+			if e == nil || f.ID != "" {
+				t.Fatalf("missing capability admitted creation: %+v %v", f, e)
+			}
+			var untouched bool
+			if err = admin.QueryRow(ctx, `SELECT to_regnamespace('pooltune_lab_state') IS NULL AND NOT EXISTS(SELECT FROM pg_namespace WHERE nspname LIKE 'pooltune_trial_%') AND (SELECT count(*)=1 AND min(jobid)=7 FROM cron.job)`).Scan(&untouched); err != nil || !untouched {
+				t.Fatalf("preflight mutated state: %v %v", untouched, err)
+			}
+			if _, err = admin.Exec(ctx, "GRANT "+privilege+" TO fixture_app"); err != nil {
+				t.Fatal(err)
+			}
+		})
 	}
 }
 
