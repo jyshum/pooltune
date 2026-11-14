@@ -28,7 +28,7 @@
 
 ## Global constraints
 
-- Exactly six V1 repairs. The first slice qualifies nonunique indexes, including compound indexes. The other V1 operations remain targeted ANALYZE, extended/column statistics, bounded plain VACUUM and qualified cleanup settings, enrolled function-scoped work_mem, and enrolled future Cron scheduling.
+- Exactly six V1 repairs. The first slice qualifies a nonunique index for a single-column equality lookup on synthetic data. Compound indexes remain in V1 scope and need separate qualification. The other V1 operations remain targeted ANALYZE, extended/column statistics, bounded plain VACUUM and qualified cleanup settings, enrolled function-scoped work_mem, and enrolled future Cron scheduling.
 - Preserve exclusions for pool and WAL/checkpoint tuning, index rebuilds and customer-index deletion, arbitrary SQL and application/RLS rewrites, killing customer work, compute purchases, replicas and migrations. Restrict operations to authorized projects and enrolled objects.
 - Preserve upfront capability grants, relevant evidence access, encrypted production transport/storage, account isolation, retention, and evidence reuse. Avoid redundant experiments and copying application tables. Adapt scheduling to current capacity and optional owner windows; missing guards defer heavy work.
 - Keep detection, benefit and protection baselines distinct. Measurements, planner estimates and client timings have different meanings. No resets of shared counters. Missing observations cannot pass a guard. v0 numerical defaults are calibration candidates.
