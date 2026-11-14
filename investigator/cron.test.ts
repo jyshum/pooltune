@@ -220,3 +220,38 @@ test('Cron alignment reports overshoot and never backdates slow snapshots',async
   assert.throws(()=>assertCronWindowTiming({start,end:new Date(Date.parse(at)+20500).toISOString()},Date.parse(at)),/outside required window/);
  }
 });
+
+function acknowledgedCronJobs(cycle:number):any[]{
+ const stamp=(ms:number)=>new Date(cycle+ms).toISOString();
+ return [{id:1,finished_at:stamp(106000),result:{outcome:'awaiting_verification',cron:{commit_at:stamp(101000),post_witness:[{id:11,job_id:2,status:'succeeded',start:stamp(102000),end:stamp(102100)},{id:12,job_id:2,status:'succeeded',start:stamp(104000),end:stamp(104100)}]}}},{id:2,parent_id:1,finished_at:null,not_before:stamp(482000)}];
+}
+
+test('Cron waits for published on-time proof while healthy traffic continues before restart',async()=>{
+ const {waitCronAcknowledgement}=await import('./cron-traffic.ts');
+ let now=100000,healthy=0,stopped=false;
+ const ready=acknowledgedCronJobs(0);
+ const waiting=waitCronAcknowledgement(0,2,async()=>now>=107000?ready:[],async()=>now,async seconds=>{assert.equal(stopped,false);healthy++;now+=seconds*1000},()=>now);
+ assert.equal(stopped,false);
+ const jobs=await waiting;stopped=true;
+ assert.equal(jobs,ready);assert(now>=107000&&now<110000);assert(healthy>=14);assert.equal(stopped,true);
+});
+
+for(const mode of ['missing_proof','late_commit','late_witness','duplicate_witness','foreign_witness','failed_witness','declined','failed','late_publication','clock_overshoot','clock_reversed']){
+ test(`Cron acknowledgement refuses ${mode} without premature restart`,async()=>{
+  const {waitCronAcknowledgement}=await import('./cron-traffic.ts');
+  let now=106000,healthy=0,stopped=false;const ready=acknowledgedCronJobs(0),proof=ready[0].result.cron;
+  if(mode==='missing_proof')proof.post_witness=[];
+  if(mode==='late_commit')proof.commit_at=new Date(105000).toISOString();
+  if(mode==='late_witness')proof.post_witness[1].end=new Date(105000).toISOString();
+  if(mode==='duplicate_witness')proof.post_witness[1]=proof.post_witness[0];
+  if(mode==='foreign_witness')proof.post_witness[1].job_id=3;
+  if(mode==='failed_witness')proof.post_witness[1].status='failed';
+  if(mode==='declined'||mode==='failed')ready[0].result.outcome=mode==='declined'?'no_change':'inconclusive';
+  await assert.rejects(async()=>{
+   await waitCronAcknowledgement(0,2,async()=>mode==='late_publication'&&now<110000?[]:ready,async()=>now,async seconds=>{healthy++;now+=seconds*1000;if(mode==='clock_overshoot')now=110001;if(mode==='clock_reversed')now=99999},()=>now);
+   stopped=true;
+  },/Cron/);
+  assert.equal(stopped,false);assert(healthy>0);
+  if(mode==='declined'||mode==='failed'||mode==='missing_proof')assert.equal(healthy,1);
+ });
+}

@@ -104,7 +104,16 @@ export async function runCronTraffic(){
    for(const [window,offset] of [[busy,0],[control,30000],[quiet,60000]] as const)assertCronWindowTiming(window,cycle+offset);
    const file=join(directory,`period-${i}.json`);writeFileSync(file,JSON.stringify(period),{mode:0o600});
    await phase(()=>command(['-cron-action','record','-cron-id',fixture.id,'-cron-period',file]),async()=>slice!('cycle_end_healthy',Math.max(.1,(cycle+100000-await dbNow())/1000),false));
-   const queued=await jobs();output.jobs=queued;populateJobTimings(output);
+   let queued=await jobs();
+   if(i===2){
+    output.current_phase='schedule_acknowledgement';
+    queued=await waitCronAcknowledgement(cycle,owned.witness.id,jobs,dbNow,async seconds=>{
+     const observed=await traffic!('acknowledgement_healthy',seconds,false);
+     phases.push({name:'acknowledgement_healthy',seconds,counter_sampled:false,requests:observed.requests});
+    });
+    output.current_phase='schedule_acknowledgement';
+   }
+   output.jobs=queued;populateJobTimings(output);
    if(i===2){const pending=queued.find(j=>j.result?.outcome==='awaiting_verification');assert(pending,'no acknowledged schedule action after full original periods');assert.equal(pending.result.proposal.model_call.requests,1);output.model_seconds=pending.result.proposal.model_call.duration_ms/1000;output.action_seconds=pending.result.cron.action_wall_ms/1000;output.action_at=pending.result.cron.commit_at;const child=queued.find(j=>!j.finished_at);assert(child&&new Date(child.not_before).getTime()>await dbNow(),'missing future verification child');await stop(consumer);consumer=undefined;startWorkers();const afterRestart=await jobs();assert(afterRestart.some(j=>j.id===child.id&&!j.finished_at),'restart lost pending child');restarted=true;output.consumer_restart={job_id:child.id,not_before:child.not_before,preserved:true}}
   }
   await waitUntil(firstCycle+12*60000+8000);output.jobs=await jobs();populateJobTimings(output);const final=output.jobs.filter((j:any)=>j.finished_at).at(-1);output.future_cycle_wait_seconds=final?.result?.cron?.cycle_wait_ms/1000;assert(restarted);assert.equal(final?.result?.outcome,'improved_tested_inputs','Cron follow-up did not verify all future work and traffic');assert.equal(output.jobs.filter((j:any)=>j.result?.proposal?.model_call?.requests===1&&j.result?.outcome==='awaiting_verification').length,1);output.repair_verified=true;output.passed=true;
@@ -185,4 +194,32 @@ export function assertCronWindowTiming(window:{start:string,end:string},expected
  const start=Date.parse(window.start)-expected,end=Date.parse(window.end)-expected;
  if(!Number.isFinite(start)||!Number.isFinite(end)||start<0||start>1000||end<20000||end>21000)
   throw Error(`Cron period outside required window: start_offset_ms=${start} end_offset_ms=${end}`);
+}
+
+// Go's action/proof deadline stays at +105s. Only publication observation gets
+// five additional seconds, leaving ten seconds before the next busy boundary.
+export async function waitCronAcknowledgement(cycle:number,witnessID:number,readJobs:()=>Promise<any[]>,clock:()=>Promise<number>,healthy:(seconds:number)=>Promise<void>,monotonic=()=>performance.now()):Promise<any[]> {
+ const actionDeadline=cycle+105000,observationDeadline=cycle+110000;
+ let now=await clock();const localDeadline=monotonic()+Math.max(0,observationDeadline-now);
+ for(;;){
+  if(!Number.isFinite(now)||now>=observationDeadline||monotonic()>=localDeadline)throw Error('Cron acknowledgement publication deadline expired');
+  const [queued]=await runCronPhase(readJobs,()=>healthy(Math.min(.5,(observationDeadline-now)/1000)));
+  const observed=await clock();
+  if(!Number.isFinite(observed)||observed<now)throw Error('Cron acknowledgement clock ambiguous');
+  now=observed;
+  if(now>=observationDeadline||monotonic()>=localDeadline)throw Error('Cron acknowledgement publication deadline expired');
+  const latest=queued.filter(j=>j.finished_at).at(-1);
+  if(latest&&!['awaiting_evidence','awaiting_verification'].includes(latest.result?.outcome))throw Error('Cron action declined or failed before acknowledgement');
+  const pending=queued.find(j=>j.finished_at&&j.result?.outcome==='awaiting_verification');
+  if(!pending)continue;
+  const report=pending.result.cron,commit=Date.parse(report?.commit_at);
+  if(!Number.isFinite(commit)||commit<=cycle+60000||commit>=actionDeadline||commit>now)throw Error('Cron acknowledged action has missing or late commit proof');
+  const ids=new Set<number>(),starts=new Set<number>();
+  for(const run of report?.post_witness??[]){
+   const start=Date.parse(run.start),end=Date.parse(run.end);
+   if(run.job_id===witnessID&&Number.isSafeInteger(run.id)&&run.id>0&&run.status==='succeeded'&&Number.isFinite(start)&&Number.isFinite(end)&&start>commit&&end>=start&&end<actionDeadline&&end<=now){ids.add(run.id);starts.add(start)}
+  }
+  if(ids.size<2||starts.size<2)throw Error('Cron acknowledged action lacks two on-time post-commit witnesses');
+  return queued;
+ }
 }
