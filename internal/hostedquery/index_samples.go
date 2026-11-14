@@ -6,12 +6,22 @@ import (
 	"errors"
 	"math"
 	"sort"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 )
 
 func sampleTrial(ctx context.Context, target *pgx.Conn, schema string) (sample TrialSample, err error) {
-	err = pgx.BeginFunc(ctx, target, func(tx pgx.Tx) error {
+	tx, err := target.Begin(ctx)
+	if err != nil {
+		return sample, err
+	}
+	defer func() {
+		cleanup, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+		err = errors.Join(err, tx.Rollback(cleanup))
+	}()
+	err = func() error {
 		for _, setting := range []string{
 			"SET LOCAL statement_timeout='750ms'",
 			"SET LOCAL lock_timeout='250ms'",
@@ -26,26 +36,34 @@ func sampleTrial(ctx context.Context, target *pgx.Conn, schema string) (sample T
 		candidate := qualified(schema, "candidate")
 		reads := "SELECT id FROM " + candidate + " WHERE lookup=$1"
 		healthy := "SELECT id FROM " + qualified(schema, "healthy") + " WHERE id=$1"
-		writes := "UPDATE " + candidate + " SET lookup=lookup WHERE id=$1"
+		// Use distinct write keys that never overlap the verification reads. Changing the
+		// indexed value exercises index maintenance even when PostgreSQL could use HOT.
+		writes := "UPDATE " + candidate + " SET lookup=-lookup WHERE id=$1 RETURNING id"
 		// A single roundtrip per iteration. Each phase uses the same known inputs and order.
 		var beforeRead, beforeHealthy, beforeWrite []float64
+		var cohort [len(inputIDs)][3][]float64
 		for round := range trialRuns {
 			batch := &pgx.Batch{}
 			for _, input := range inputIDs {
-				batch.Queue(reads, input)
-				batch.Queue(healthy, input)
-				for _, sql := range []string{reads, healthy, writes} {
-					batch.Queue("EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON, TIMING OFF) "+sql, input)
+				if round == 0 {
+					batch.Queue(reads, input)
+					batch.Queue(healthy, input)
 				}
+				const measured = "EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON, TIMING OFF) "
+				batch.Queue(measured+reads, input)
+				batch.Queue(measured+healthy, input)
+				batch.Queue(measured+writes, fixtureRows+1-input)
 			}
 			batchRead, batchHealthy := 0.0, 0.0
 			result := tx.SendBatch(ctx, batch)
-			for _, input := range inputIDs {
-				for range 2 {
-					var id int32
-					if err := result.QueryRow().Scan(&id); err != nil || id != input {
-						sample.Errors++
-						return errors.Join(errors.New("unexpected fixture result"), err, result.Close())
+			for position, input := range inputIDs {
+				if round == 0 {
+					for range 2 {
+						var id int32
+						if err := result.QueryRow().Scan(&id); err != nil || id != input {
+							sample.Errors++
+							return errors.Join(errors.New("unexpected fixture result"), err, result.Close())
+						}
 					}
 				}
 				for kind := range 3 {
@@ -54,10 +72,14 @@ func sampleTrial(ctx context.Context, target *pgx.Conn, schema string) (sample T
 						sample.Errors++
 						return errors.Join(err, result.Close())
 					}
+					cohort[position][kind] = append(cohort[position][kind], *plan.ExecutionMS)
 					switch kind {
 					case 0:
 						if plan.Node.Rows != 1 || plan.Node.Loops != 1 {
 							return errors.Join(errors.New("target did not return a single row"), result.Close())
+						}
+						if sample.Reads > 0 && (sample.Plan != plan.Node.Type || sample.PlanExamined != plan.Node.Rows+plan.Node.Filtered) {
+							return errors.Join(errors.New("target plan varied across enrolled inputs"), result.Close())
 						}
 						sample.Plan, sample.PlanReturned = plan.Node.Type, plan.Node.Rows
 						sample.PlanExamined = plan.Node.Rows + plan.Node.Filtered
@@ -70,6 +92,9 @@ func sampleTrial(ctx context.Context, target *pgx.Conn, schema string) (sample T
 						batchHealthy += *plan.ExecutionMS
 						beforeHealthy = append(beforeHealthy, *plan.ExecutionMS)
 					case 2:
+						if plan.Node.Rows != 1 || plan.Node.Loops != 1 {
+							return errors.Join(errors.New("write guard did not update a single row"), result.Close())
+						}
 						sample.Writes++
 						beforeWrite = append(beforeWrite, *plan.ExecutionMS)
 					}
@@ -91,8 +116,14 @@ func sampleTrial(ctx context.Context, target *pgx.Conn, schema string) (sample T
 		sample.HealthyMS, sample.HealthyMAD = meanMAD(beforeHealthy)
 		sample.WriteMS, sample.WriteMAD = meanMAD(beforeWrite)
 		sample.Blocks /= float64(sample.Reads)
+		for i, measurements := range cohort {
+			read, readMAD := meanMAD(measurements[0])
+			healthy, healthyMAD := meanMAD(measurements[1])
+			write, writeMAD := meanMAD(measurements[2])
+			sample.Inputs = append(sample.Inputs, TrialInput{inputIDs[i], read, readMAD, healthy, healthyMAD, write, writeMAD})
+		}
 		return nil
-	})
+	}()
 	return sample, err
 }
 
@@ -148,15 +179,24 @@ func compareTrial(before, after TrialSample) (string, string) {
 			return "inconclusive", "missing comparable read, write or plan evidence"
 		}
 	}
-	for _, metric := range []struct{ old, recent, oldMAD, recentMAD, relative, absolute float64 }{
-		{before.HealthyMS, after.HealthyMS, before.HealthyMAD, after.HealthyMAD, .2, 5},
-		{before.WriteMS, after.WriteMS, before.WriteMAD, after.WriteMAD, .1, 2},
-		{before.ReadMS, after.ReadMS, before.ReadMAD, after.ReadMAD, .2, 5},
-	} {
-		delta := metric.recent - metric.old
-		if delta >= metric.absolute && delta >= metric.old*metric.relative &&
-			delta > 3*math.Max(metric.oldMAD, metric.recentMAD) {
-			return "regressed", "measured fixture read or write crossed a regression guard"
+	if len(before.Inputs) != len(inputIDs) || len(after.Inputs) != len(inputIDs) {
+		return "inconclusive", "missing enrolled input comparisons"
+	}
+	for i, input := range inputIDs {
+		old, recent := before.Inputs[i], after.Inputs[i]
+		if old.Input != input || recent.Input != input {
+			return "inconclusive", "enrolled input comparisons changed"
+		}
+		for _, metric := range []struct{ old, recent, oldMAD, recentMAD, relative, absolute float64 }{
+			{old.HealthyMS, recent.HealthyMS, old.HealthyMAD, recent.HealthyMAD, .2, 5},
+			{old.WriteMS, recent.WriteMS, old.WriteMAD, recent.WriteMAD, .1, 2},
+			{old.ReadMS, recent.ReadMS, old.ReadMAD, recent.ReadMAD, .2, 5},
+		} {
+			delta := metric.recent - metric.old
+			if delta >= metric.absolute && delta >= metric.old*metric.relative &&
+				delta > 3*math.Max(metric.oldMAD, metric.recentMAD) {
+				return "regressed", "an enrolled fixture input crossed a read or write regression guard"
+			}
 		}
 	}
 	delta := before.ReadMS - after.ReadMS

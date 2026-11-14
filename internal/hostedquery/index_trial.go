@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -36,23 +37,34 @@ type IndexTrialReport struct {
 	TotalWallMS  float64       `json:"total_wall_ms"`
 }
 
+type TrialInput struct {
+	Input      int32   `json:"input"`
+	ReadMS     float64 `json:"read_mean_ms"`
+	ReadMAD    float64 `json:"read_mad_ms"`
+	HealthyMS  float64 `json:"healthy_mean_ms"`
+	HealthyMAD float64 `json:"healthy_mad_ms"`
+	WriteMS    float64 `json:"write_mean_ms"`
+	WriteMAD   float64 `json:"write_mad_ms"`
+}
+
 type TrialSample struct {
-	ReadMS          float64 `json:"read_mean_ms"`
-	ReadMAD         float64 `json:"read_mad_ms"`
-	HealthyMS       float64 `json:"healthy_mean_ms"`
-	HealthyMAD      float64 `json:"healthy_mad_ms"`
-	WriteMS         float64 `json:"write_mean_ms"`
-	WriteMAD        float64 `json:"write_mad_ms"`
-	Reads           int     `json:"read_calls"`
-	HealthyReads    int     `json:"healthy_read_calls"`
-	Writes          int     `json:"write_calls"`
-	Errors          int     `json:"errors"`
-	Blocks          float64 `json:"blocks_per_read"`
-	Plan            string  `json:"plan"`
-	PlanReturned    int64   `json:"returned_rows"`
-	PlanExamined    int64   `json:"examined_rows"`
-	HealthyBreaches int     `json:"healthy_objective_breaches"`
-	Breaches        int     `json:"candidate_objective_breaches"`
+	ReadMS          float64      `json:"read_mean_ms"`
+	ReadMAD         float64      `json:"read_mad_ms"`
+	HealthyMS       float64      `json:"healthy_mean_ms"`
+	HealthyMAD      float64      `json:"healthy_mad_ms"`
+	WriteMS         float64      `json:"write_mean_ms"`
+	WriteMAD        float64      `json:"write_mad_ms"`
+	Reads           int          `json:"read_calls"`
+	HealthyReads    int          `json:"healthy_read_calls"`
+	Writes          int          `json:"write_calls"`
+	Errors          int          `json:"errors"`
+	Blocks          float64      `json:"blocks_per_read"`
+	Plan            string       `json:"plan"`
+	PlanReturned    int64        `json:"returned_rows"`
+	PlanExamined    int64        `json:"examined_rows"`
+	Inputs          []TrialInput `json:"inputs"`
+	HealthyBreaches int          `json:"healthy_objective_breaches"`
+	Breaches        int          `json:"candidate_objective_breaches"`
 }
 
 func RunIndexTrial(ctx context.Context, target, state *pgx.Conn, investigate IndexInvestigator, identity string) (IndexTrialReport, error) {
@@ -94,7 +106,7 @@ func runIndexTrial(ctx context.Context, target, state *pgx.Conn, investigate Ind
 		return report, fmt.Errorf("record fixture intent: %w", err)
 	}
 	schema := trialSchema(report.RunID)
-	if err := createTrial(ctx, target, report.RunID); err != nil {
+	if err := createTrial(ctx, target, state, report.RunID); err != nil {
 		return report, err
 	}
 	detectStart := time.Now()
@@ -134,6 +146,18 @@ func runIndexTrial(ctx context.Context, target, state *pgx.Conn, investigate Ind
 		report.Outcome, report.Reason = "no_change", err.Error()
 		return finishTrial(ctx, target, state, report, started)
 	}
+	expected, err := expectedFixture(ctx, state, report.RunID)
+	if err != nil {
+		return report, err
+	}
+	actual, err := loadFixture(ctx, target, report.RunID)
+	if err != nil || actual != expected || actual.Candidate != report.Proposal.TableOID {
+		return report, errors.Join(errors.New("enrolled fixture changed before build"), err)
+	}
+	existing, err := inspectTrialIndex(ctx, target, schema)
+	if err != nil || existing.Exists {
+		return report, errors.Join(errors.New("reserved trial index name is occupied"), err)
+	}
 	if err := writeTrialStatus(ctx, state, report.RunID, "building", nil, &report); err != nil {
 		return report, err
 	}
@@ -158,7 +182,15 @@ func runIndexTrial(ctx context.Context, target, state *pgx.Conn, investigate Ind
 	verifyStart := time.Now()
 	report.After, err = sampleTrial(ctx, target, schema)
 	if err != nil {
-		return report, fmt.Errorf("verify outcome: %w", err)
+		report.Outcome, report.Reason = "failed", "verification could not complete the measured fixture workload"
+		return report, errors.Join(fmt.Errorf("verify outcome: %w", err),
+			writeTrialStatus(ctx, state, report.RunID, "building", nil, &report))
+	}
+	if err := target.QueryRow(ctx, "SELECT count(*)<>1 FROM pg_index WHERE indrelid=$1", expected.Healthy).Scan(&report.HealthyBuilt); err != nil {
+		return report, err
+	}
+	if report.HealthyBuilt {
+		return report, errors.New("healthy comparison index catalog changed")
 	}
 	report.VerifyWallMS = elapsedMS(verifyStart)
 	report.Outcome, report.Reason = compareTrial(report.Before, report.After)
@@ -166,10 +198,14 @@ func runIndexTrial(ctx context.Context, target, state *pgx.Conn, investigate Ind
 }
 
 func finishTrial(ctx context.Context, target, state *pgx.Conn, report IndexTrialReport, started time.Time) (IndexTrialReport, error) {
-	if err := writeTrialStatus(ctx, state, report.RunID, "verified", nil, &report); err != nil {
+	status := "verified"
+	if !report.IndexValid {
+		status = "declined"
+	}
+	if err := writeTrialStatus(ctx, state, report.RunID, status, nil, &report); err != nil {
 		return report, err
 	}
-	if _, err := cleanTrial(ctx, target, report.RunID); err != nil {
+	if _, err := cleanTrial(ctx, target, state, report.RunID); err != nil {
 		return report, err
 	}
 	report.TotalWallMS = elapsedMS(started)
@@ -203,7 +239,7 @@ func trialCapacity(ctx context.Context, target *pgx.Conn) error {
 	return nil
 }
 
-func createTrial(ctx context.Context, target *pgx.Conn, id string) error {
+func createTrial(ctx context.Context, target, state *pgx.Conn, id string) error {
 	schema := trialSchema(id)
 	return pgx.BeginFunc(ctx, target, func(tx pgx.Tx) error {
 		if _, err := tx.Exec(ctx, "SET LOCAL statement_timeout='5s'"); err != nil {
@@ -220,7 +256,23 @@ func createTrial(ctx context.Context, target *pgx.Conn, id string) error {
 		if _, err := tx.Exec(ctx, "COMMENT ON SCHEMA "+name+" IS 'pooltune trial "+id+"'"); err != nil {
 			return err
 		}
-		return seedFixtureTables(ctx, tx, schema)
+		if err := seedFixtureTables(ctx, tx, schema); err != nil {
+			return err
+		}
+		ids, err := loadFixture(ctx, tx, id)
+		if err != nil {
+			return err
+		}
+		raw, err := json.Marshal(ids)
+		if err != nil {
+			return err
+		}
+		tag, err := state.Exec(ctx, "UPDATE "+journalTable+" SET objects=$2::jsonb,index_name=$3,index_definition=$4 WHERE id=$1 AND status='setup'",
+			id, string(raw), trialIndex, trialDefinition)
+		if err == nil && tag.RowsAffected() != 1 {
+			return errors.New("fixture intent disappeared before commit")
+		}
+		return err
 	})
 }
 
@@ -251,13 +303,13 @@ type trialIndexState struct {
 	Bytes                         int64
 }
 
-func inspectTrialIndex(ctx context.Context, target *pgx.Conn, schema string) (trialIndexState, error) {
+func inspectTrialIndex(ctx context.Context, target trialReader, schema string) (trialIndexState, error) {
 	var index trialIndexState
 	err := target.QueryRow(ctx, `
 		SELECT true, i.indisvalid, i.indisready, c.relname='candidate' AND c.relnamespace=n.oid
 		  AND NOT i.indisunique AND i.indnkeyatts=1 AND i.indnatts=1
 		  AND i.indpred IS NULL AND i.indexprs IS NULL AND a.attname='lookup' AND am.amname='btree'
-		  AND i.indoption[0]=0, pg_relation_size(ix.oid)
+		  AND i.indoption[0]=0 AND i.indclass[0]=(SELECT oid FROM pg_opclass WHERE opcname='int4_ops' AND opcmethod=am.oid AND opcnamespace='pg_catalog'::regnamespace), pg_relation_size(ix.oid)
 		FROM pg_class ix JOIN pg_namespace n ON ix.relnamespace=n.oid
 		  JOIN pg_index i ON i.indexrelid=ix.oid JOIN pg_class c ON c.oid=i.indrelid
 		  JOIN pg_am am ON am.oid=ix.relam JOIN pg_attribute a ON a.attrelid=c.oid AND a.attnum=i.indkey[0]
@@ -275,11 +327,6 @@ func inspectTrialIndex(ctx context.Context, target *pgx.Conn, schema string) (tr
 }
 
 func buildTrialIndex(ctx context.Context, target *pgx.Conn, schema string) (err error) {
-	for _, setting := range []string{"SET lock_timeout='250ms'", "SET statement_timeout='5s'", "SET maintenance_work_mem='16MB'", "SET max_parallel_maintenance_workers=0"} {
-		if _, err := target.Exec(ctx, setting); err != nil {
-			return err
-		}
-	}
 	defer func() {
 		cleanup, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 		defer cancel()
@@ -288,6 +335,11 @@ func buildTrialIndex(ctx context.Context, target *pgx.Conn, schema string) (err 
 			err = errors.Join(err, resetErr)
 		}
 	}()
+	for _, setting := range []string{"SET lock_timeout='250ms'", "SET statement_timeout='5s'", "SET maintenance_work_mem='16MB'", "SET max_parallel_maintenance_workers=0"} {
+		if _, err := target.Exec(ctx, setting); err != nil {
+			return err
+		}
+	}
 	_, err = target.Exec(ctx, "CREATE INDEX CONCURRENTLY "+pgx.Identifier{trialIndex}.Sanitize()+" ON "+
 		qualified(schema, "candidate")+" USING btree (lookup)")
 	return err
