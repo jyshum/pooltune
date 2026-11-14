@@ -43,7 +43,11 @@ export async function runCronTraffic(){
  const jobs=async()=>fixture?(await state.query('SELECT id,created_at,finished_at,result,attempts,not_before,parent_id FROM pooltune_worker.investigations WHERE project_id=$1 ORDER BY id',[fixture.enrollment.project])).rows:[];
  let dbNow=async()=>{checkClients();const now=Number((await admin.query('SELECT extract(epoch FROM clock_timestamp())*1000 AS ms')).rows[0].ms);checkClients();return now};
  let slice:((name:string,seconds:number,targetOn:boolean,cycle?:number)=>Promise<any>)|undefined;
- async function waitUntil(at:number){for(;;){const remaining=(at-await dbNow())/1000;if(remaining<=.04)return;if(performance.now()-start>1200000)throw Error('Cron wall-clock budget expired');await slice!('healthy_between_periods',Math.min(remaining,10),false)}}
+ let traffic:((name:string,seconds:number,targetOn:boolean,cycle?:number)=>Promise<any>)|undefined;
+ async function waitUntil(at:number){await waitCronBoundary(at,dbNow,async deadline=>{
+  const seconds=Math.max(0,(deadline-performance.now())/1000);const result=await traffic!('healthy_between_periods',seconds,false);
+  phases.push({name:'healthy_between_periods',seconds,counter_sampled:false,requests:result.requests});
+ },()=>performance.now(),()=>{checkClients();if(performance.now()-start>1200000)throw Error('Cron wall-clock budget expired')})}
  function startWorkers(){checkClients();if(!worker||worker.exitCode!==null||worker.signalCode!==null)worker=launch('pooltune-worker',['-target','rookery','-enrollment',enrollment,'-interval','2s','-window','4s']);if(!consumer||consumer.exitCode!==null||consumer.signalCode!==null)consumer=launch('pooltune-consumer',['-target','rookery','-project',fixture.enrollment.project,'-fixture',fixture.id,'-mode','anthropic','-cron-staging-fixture'])}
  try{
   await state.connect();await admin.connect();await observer.connect();await fault.connect();
@@ -55,7 +59,7 @@ export async function runCronTraffic(){
   for(let i=0;i<4;i++){checkClients();const c=client(`traffic_${i}`,options);clients.push(c);await c.connect();await c.query("SET lock_timeout='250ms'")}
   await clients[0].query(targetSQL);await clients[2].query(healthySQL,[43]);await clients[3].query(writeSQL,[90001]);
   const ext=(await admin.query("SELECT n.nspname FROM pg_extension e JOIN pg_namespace n ON n.oid=e.extnamespace WHERE e.extname='pg_stat_statements'")).rows[0].nspname;assert.match(ext,/^[a-z_]+$/);
-  const snapshot=async()=>{const time=await dbNow();const rows=(await admin.query(`SELECT s.queryid::text AS queryid,s.dbid,s.userid,${sqlISO('pg_postmaster_start_time()')} AS boot,${sqlISO('i.stats_reset')} AS reset,${sqlISO('s.stats_since')} AS entry,s.calls::float8 AS calls,s.total_exec_time,s.shared_blks_hit::float8+s.shared_blks_read::float8 AS blocks,s.temp_blks_written::float8 AS temp_blocks,s.query FROM "${ext}".pg_stat_statements s CROSS JOIN "${ext}".pg_stat_statements_info i WHERE s.dbid=(SELECT oid FROM pg_database WHERE datname=current_database()) AND s.userid=current_user::regrole::oid AND s.toplevel AND (s.query LIKE $1 OR s.query LIKE '%JOIN unnest($2::oid[], $3::bigint[]) AS enrolled%')`,[`%${schema}%`])).rows;return {time,rows}};
+  const snapshot=async()=>{checkClients();const rows=(await admin.query(`SELECT extract(epoch FROM clock_timestamp())*1000 AS snapshot_ms,s.queryid::text AS queryid,s.dbid,s.userid,${sqlISO('pg_postmaster_start_time()')} AS boot,${sqlISO('i.stats_reset')} AS reset,${sqlISO('s.stats_since')} AS entry,s.calls::float8 AS calls,s.total_exec_time,s.shared_blks_hit::float8+s.shared_blks_read::float8 AS blocks,s.temp_blks_written::float8 AS temp_blocks,s.query FROM "${ext}".pg_stat_statements s CROSS JOIN "${ext}".pg_stat_statements_info i WHERE s.dbid=(SELECT oid FROM pg_database WHERE datname=current_database()) AND s.userid=current_user::regrole::oid AND s.toplevel AND (s.query LIKE $1 OR s.query LIKE '%JOIN unnest($2::oid[], $3::bigint[]) AS enrolled%')`,[`%${schema}%`])).rows;checkClients();const time=Number(rows[0]?.snapshot_ms);assert(Number.isFinite(time),'snapshot clock/counters unavailable');return {time,rows}};
   const targetID=fixture.enrollment.queries[1].query_id,healthyID=fixture.enrollment.queries[0].query_id;output.target_query_id=targetID;
   const initial=await snapshot();const writeID=initial.rows.find(r=>r.query.startsWith(`UPDATE ONLY "${schema}"."healthy"`))?.queryid;assert(writeID,'write identity unavailable');
   const toCounter=(rows:any[],id:string)=>{const r=rows.find(r=>r.queryid===id);assert(r,'required statement counter missing');return {Database:r.dbid,Role:r.userid,Query:r.queryid,Boot:r.boot,Reset:r.reset,Entry:r.entry,Calls:r.calls,Blocks:r.blocks,ExecutionMS:r.total_exec_time}};
@@ -63,17 +67,23 @@ export async function runCronTraffic(){
   output.healthy_calibration_ms=calibration;output.objective_ms=vacuumObjective(calibration);output.benefit_gates={minimum_fraction:.2,minimum_ms:5,noise_multiple:3,original_extra_fraction:.3,original_extra_ms:20};
   fixture.enrollment.queries[0].mean_execution_ms=3;fixture.enrollment.queries[1].mean_execution_ms=output.objective_ms;writeFileSync(enrollment,JSON.stringify(fixture.enrollment),{mode:0o600});
   const blocks=async()=>{const rows=(await observer.query(`SELECT ${sqlISO('clock_timestamp()')} AS at,r.runid::float8 AS run_id,r.jobid::float8 AS job_id,a.pid,${sqlISO('a.backend_start')} AS backend_start,w.pid AS waiting_pid,${sqlISO('w.backend_start')} AS waiting_start,w.query_id::text AS query_id FROM cron.job_run_details r JOIN pg_stat_activity a ON a.pid=r.job_pid JOIN pg_stat_activity w ON a.pid=ANY(pg_blocking_pids(w.pid)) WHERE r.jobid=$1 AND r.end_time IS NULL AND r.status='running' AND w.query_id=$2::bigint AND w.datid=$3 AND w.usesysid=$4`,[owned.target.id,targetID,fixture.enrollment.queries[1].database_oid,fixture.enrollment.queries[1].role_oid])).rows;return rows};
-  slice=async(name,seconds,targetOn,cycle)=>{
-   const before=await snapshot();const samples:RequestSample[]=[];const offered=[0,0,0,0];const attributed:any[]=[];const anchor=performance.now();let collecting=true;
+  traffic=async(name,seconds,targetOn,cycle)=>{
+   output.current_phase=name;const samples:RequestSample[]=[];const offered=[0,0,0,0];const attributed:any[]=[];const anchor=performance.now();let collecting=true;
    await phase(async()=>{if(cycle!==undefined&&targetOn){while(collecting){checkClients();attributed.push(...await blocks());await sleep(50)}}},async()=>{try{
    const lanes=await Promise.allSettled(clients.map(async(c,lane)=>{const cadence=lane<2?1000:lane===2?250:500;const offset=lane===1?500:0;for(let tick=0;offset+tick*cadence<seconds*1000;tick++){checkClients();if(lane<2&&!targetOn)continue;offered[lane]++;const scheduled=anchor+offset+tick*cadence;const wait=scheduled-performance.now();if(wait>0)await sleep(wait);checkClients();if(performance.now()-scheduled>cadence)continue;const kind=lane<2?'target':lane===2?'healthy':'write';const id=kind==='write'?90001+tick%10:43;samples.push(await trafficRequest(c,lane<2?targetSQL:lane===2?healthySQL:writeSQL,lane<2?[]:[id],rows=>{assert.equal(rows.length,1);assert.equal(rows[0].id,id)},kind,scheduled))}}));
    const failed=lanes.find(r=>r.status==='rejected');if(failed?.status==='rejected')throw failed.reason;
    const remain=seconds*1000-(performance.now()-anchor);if(remain>0)await sleep(remain);
    }finally{collecting=false}});
-   const after=await snapshot();const requests:any={};const kinds=['target','healthy','write'];for(const [i,kind]of kinds.entries()){const n=i===0?offered[0]+offered[1]:offered[i+1];requests[kind]=summarizeTraffic(samples.filter(s=>s.kind===kind),n,seconds)}
-   const summary={name,start:iso(before.time),seconds,counters:counterDeltas(before.rows,after.rows),requests};phases.push(summary);
+   const requests:any={};const kinds=['target','healthy','write'];for(const [i,kind]of kinds.entries()){const n=i===0?offered[0]+offered[1]:offered[i+1];requests[kind]=summarizeTraffic(samples.filter(s=>s.kind===kind),n,seconds)}
+   return {requests,attributed};
+  };
+  slice=async(name,seconds,targetOn,cycle)=>{
+   output.current_phase=name;const before=await snapshot();const {requests,attributed}=await traffic!(name,seconds,targetOn,cycle);const after=await snapshot();
+   phases.push({name,start:iso(before.time),end:iso(after.time),seconds,counters:counterDeltas(before.rows,after.rows),requests});
    const metric=(id:string,kind:string)=>({before:toCounter(before.rows,id),after:toCounter(after.rows,id),offered:requests[kind].offered,errors:requests[kind].errors,missed:requests[kind].missed});
-   return {start:iso(before.time),end:iso(after.time),target:metric(targetID,'target'),healthy:metric(healthyID,'healthy'),write:metric(writeID,'write'),blocks:attributed};
+   const window={start:iso(before.time),end:iso(after.time),target:metric(targetID,'target'),healthy:metric(healthyID,'healthy'),write:metric(writeID,'write'),blocks:attributed};
+   if(name.startsWith('original_')||name.startsWith('future_'))(output.period_windows??=[]).push({phase:name,cycle:output.current_cycle,window});
+   return window;
   };
   // Two matched healthy comparisons with reversed monitoring order. The witness
   // stays active for both, while the target remains inactive until the fault.
@@ -88,15 +98,17 @@ export async function runCronTraffic(){
   const [activated]=await phase(()=>command(['-cron-action','activate','-cron-id',fixture.id]),()=>slice!('activation_healthy',5,false));owned=JSON.parse(activated);output.activation=owned;const firstCycle=Date.parse(owned.first_cycle);output.slowdown_at=iso(firstCycle);
   let restarted=false;
   for(let i=0;i<6;i++){
-   const cycle=firstCycle+i*120000;await waitUntil(cycle);progress(`${i<3?'original':'future'} actual cycle ${i%3+1}/3`);
+   const cycle=firstCycle+i*120000;output.current_cycle=iso(cycle);await waitUntil(cycle);progress(`${i<3?'original':'future'} actual cycle ${i%3+1}/3`);
    const busy=await slice(i<3?'original_busy':'future_busy',20,true,cycle);await waitUntil(cycle+30000);const control=await slice(i<3?'original_control':'future_control',20,true);await waitUntil(cycle+60000);const quiet=await slice(i<3?'original_quiet':'future_quiet',20,false);
-   const period={cycle:iso(cycle),busy:{...busy,blocks:undefined},control:{...control,blocks:undefined},quiet:{...quiet,blocks:undefined},blocks:busy.blocks};const file=join(directory,`period-${i}.json`);writeFileSync(file,JSON.stringify(period),{mode:0o600});
+   const period={cycle:iso(cycle),busy:{...busy,blocks:undefined},control:{...control,blocks:undefined},quiet:{...quiet,blocks:undefined},blocks:busy.blocks};(output.periods??=[]).push(period);output.current_phase='record_period';
+   for(const [window,offset] of [[busy,0],[control,30000],[quiet,60000]] as const)assertCronWindowTiming(window,cycle+offset);
+   const file=join(directory,`period-${i}.json`);writeFileSync(file,JSON.stringify(period),{mode:0o600});
    await phase(()=>command(['-cron-action','record','-cron-id',fixture.id,'-cron-period',file]),async()=>slice!('cycle_end_healthy',Math.max(.1,(cycle+100000-await dbNow())/1000),false));
    const queued=await jobs();output.jobs=queued;populateJobTimings(output);
    if(i===2){const pending=queued.find(j=>j.result?.outcome==='awaiting_verification');assert(pending,'no acknowledged schedule action after full original periods');assert.equal(pending.result.proposal.model_call.requests,1);output.model_seconds=pending.result.proposal.model_call.duration_ms/1000;output.action_seconds=pending.result.cron.action_wall_ms/1000;output.action_at=pending.result.cron.commit_at;const child=queued.find(j=>!j.finished_at);assert(child&&new Date(child.not_before).getTime()>await dbNow(),'missing future verification child');await stop(consumer);consumer=undefined;startWorkers();const afterRestart=await jobs();assert(afterRestart.some(j=>j.id===child.id&&!j.finished_at),'restart lost pending child');restarted=true;output.consumer_restart={job_id:child.id,not_before:child.not_before,preserved:true}}
   }
   await waitUntil(firstCycle+12*60000+8000);output.jobs=await jobs();populateJobTimings(output);const final=output.jobs.filter((j:any)=>j.finished_at).at(-1);output.future_cycle_wait_seconds=final?.result?.cron?.cycle_wait_ms/1000;assert(restarted);assert.equal(final?.result?.outcome,'improved_tested_inputs','Cron follow-up did not verify all future work and traffic');assert.equal(output.jobs.filter((j:any)=>j.result?.proposal?.model_call?.requests===1&&j.result?.outcome==='awaiting_verification').length,1);output.repair_verified=true;output.passed=true;
- }catch(e:any){output.passed=false;output.error=clientFailures.length?`Cron client ${clientFailures[0].client} failed`:String(e.message).slice(0,400);process.exitCode=1}
+ }catch(e:any){output.passed=false;output.failed_phase=e.command_failure?.operation??output.current_phase;output.command_failure=e.command_failure;output.error=clientFailures.length?`Cron client ${clientFailures[0].client} failed`:String(e.message).slice(0,400);process.exitCode=1}
  finally{
   await Promise.all(allChildren.map(stop));output.worker_failures=failures;output.worker_diagnostics=diagnostics;output.detector_windows=childResults.flatMap(r=>r.windows??[]);output.process_results=childResults.filter(r=>r.job_id);
   try{output.jobs=await jobs();populateJobTimings(output)}catch{output.job_readback_failed=true}
@@ -155,4 +167,22 @@ export function saveCronTrafficReport(output:any,reportPath:string,requiresClean
  output.passed=!!output.passed&&(!requiresCleanup||output.cleanup_verified===true)&&!output.cleanup_failed&&!output.traffic_errors&&!output.missed_requests&&!output.worker_failures?.length&&!output.client_failures?.length;
  if(!output.passed)process.exitCode=1;
  writeFileSync(reportPath,JSON.stringify(output,null,2),{mode:0o600});
+}
+
+// The database observation is a lower bound at receipt. Anchoring from receipt
+// deliberately waits through reply latency, never backdates a server snapshot.
+// Between-period traffic has no counter snapshots that could extend the wait.
+export async function waitCronBoundary(at:number,clock:()=>Promise<number>,healthyUntil:(deadline:number)=>Promise<void>,now=()=>performance.now(),check=()=>{}) {
+ check();const observed=await clock();assert(Number.isFinite(observed),'Cron clock unavailable');
+ const deadline=now()+Math.max(0,at-observed);
+ while(now()<deadline){check();await healthyUntil(Math.min(deadline,now()+10000))}
+ check();
+}
+
+// Mirror the existing Go admission limits only to report the failing window
+// locally. Actual database timestamps and full selected evidence stay intact.
+export function assertCronWindowTiming(window:{start:string,end:string},expected:number) {
+ const start=Date.parse(window.start)-expected,end=Date.parse(window.end)-expected;
+ if(!Number.isFinite(start)||!Number.isFinite(end)||start<0||start>1000||end<20000||end>21000)
+  throw Error(`Cron period outside required window: start_offset_ms=${start} end_offset_ms=${end}`);
 }

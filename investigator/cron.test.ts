@@ -123,11 +123,11 @@ for(const role of ['admin','observer','fault','state','traffic_0']){
      async end(){if(active)writeFileSync(dir+'/cleanup-raced-traffic','yes');closed.push(this.role)}
      async query(sql,params=[]){
       if(!this._queryable){if(cleaned&&this.role==='admin')clockOffset=180001;throw Error('client is not queryable')}
-      if(sql.includes('extract(epoch'))return {rows:[{ms:118800}]};
+      if(sql.includes('extract(epoch')&&!sql.includes('pg_stat_statements s'))return {rows:[{ms:118800}]};
       if(sql.includes('string_agg(indexdef'))return {rows:[{count:0,hash:'unchanged'}]};
       if(sql.includes('FROM cron.job ORDER BY'))return {rows:[]};
       if(sql.includes('FROM pg_extension'))return {rows:[{nspname:'public'}]};
-      if(sql.includes('pg_stat_statements s'))return {rows:[['11','SELECT healthy'],['12','SELECT target'],['13','UPDATE ONLY "'+schema+'"."healthy"']].map(([queryid,query])=>({queryid,query,dbid:1,userid:2,boot:'2026-11-14T12:00:00Z',reset:'2026-11-14T12:00:00Z',entry:'2026-11-14T12:00:00Z',calls:queryid==='12'?calls:10,total_exec_time:queryid==='12'?calls:10,blocks:0,temp_blocks:0}))};
+      if(sql.includes('pg_stat_statements s'))return {rows:[['11','SELECT healthy'],['12','SELECT target'],['13','UPDATE ONLY "'+schema+'"."healthy"']].map(([queryid,query])=>({snapshot_ms:118800,queryid,query,dbid:1,userid:2,boot:'2026-11-14T12:00:00Z',reset:'2026-11-14T12:00:00Z',entry:'2026-11-14T12:00:00Z',calls:queryid==='12'?calls:10,total_exec_time:queryid==='12'?calls:10,blocks:0,temp_blocks:0}))};
       if(sql.includes('pooltune_worker.investigations'))return {rows:[]};
       if(sql.includes('to_regnamespace'))return {rows:[{gone:true}]};
       if(sql.includes('FROM cron.job WHERE'))return {rows:[{n:0}]};
@@ -185,3 +185,38 @@ for(const role of ['admin','observer','fault','state','traffic_0']){
   }finally{rmSync(dir,{recursive:true,force:true})}
  });
 }
+
+// Virtual transport time is explicit. Snapshots keep their actual server time;
+// neither the scheduled boundary nor a client timestamp substitutes for it.
+test('Cron boundary alignment absorbs transport overhead without shifting measured windows',async()=>{
+ const {waitCronBoundary,assertCronWindowTiming}=await import('./cron-traffic.ts');
+ let now=90000;const requests:number[]=[];
+ const clock=async()=>{now+=150;const stamp=now;now+=150;return stamp};
+ const snapshot=async()=>{now+=150;const time=now;now+=150;return time};
+ const healthyUntil=async(deadline:number)=>{for(let at=now;at<deadline;at+=250)requests.push(at);now=Math.max(now,deadline)};
+ for(const at of [120000,150000,180000]){
+  await waitCronBoundary(at,clock,healthyUntil,()=>now,()=>{});
+  const start=await snapshot();const trafficStart=now;
+  // The fixed 20-second workload retains every cadence and offered count.
+  const offered=[1000,1000,250,500].map((cadence,lane)=>Array.from({length:20000/cadence},(_,i)=>trafficStart+(lane===1?500:0)+i*cadence));
+  assert.deepEqual(offered.map(slots=>slots.length),[20,20,80,40]);
+  now=trafficStart+20000;const end=await snapshot();
+  assertCronWindowTiming({start:new Date(start).toISOString(),end:new Date(end).toISOString()},at);
+  assert.equal(start-at,300);assert.equal(end-at,20600);
+ }
+ assert(requests.length>0);
+});
+
+test('Cron alignment reports overshoot and never backdates slow snapshots',async()=>{
+ const {waitCronBoundary,assertCronWindowTiming}=await import('./cron-traffic.ts');
+ let now=119000;
+ const clock=async()=>{now+=600;const stamp=now;now+=600;return stamp};
+ await waitCronBoundary(120000,clock,async deadline=>{now=Math.max(now,deadline)},()=>now,()=>{});
+ now+=600;const start=now;now+=600;now+=20000;now+=600;const end=now;
+ assert.equal(start,121200);assert.equal(end,142400);
+ assert.throws(()=>assertCronWindowTiming({start:new Date(start).toISOString(),end:new Date(end).toISOString()},120000),/outside required window/);
+ // The two saved hosted starts independently violate the unchanged 1s gate.
+ for(const [start,at] of [['2026-11-14T21:02:31.026Z','2026-11-14T21:02:30Z'],['2026-11-14T21:03:01.015Z','2026-11-14T21:03:00Z']]){
+  assert.throws(()=>assertCronWindowTiming({start,end:new Date(Date.parse(at)+20500).toISOString()},Date.parse(at)),/outside required window/);
+ }
+});

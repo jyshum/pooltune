@@ -60,14 +60,26 @@ export function recordWorkerDiagnostic(lines: string[], binary: string, raw: str
 }
 
 export async function command(args: string[], timeoutMS = 65000) {
+  const action=args[args.indexOf("-cron-action")+1];
+  const operation=args.includes("-cron-action")&&["activate","record","inspect","witness","recover"].includes(action)?`cron_${action}`
+    :args.includes("-remove-consumer-fixture")?"remove_consumer_fixture":args.includes("-create-consumer-fixture")?"create_consumer_fixture":"fixture";
   return new Promise<string>((resolve, reject) => {
     const child = spawn("pooltune-query-lab", ["-target", "rookery", ...args]);
-    const timeout=setTimeout(()=>child.kill("SIGKILL"),timeoutMS);
-    let result = "";
+    let timedOut=false;
+    const timeout=setTimeout(()=>{timedOut=true;child.kill("SIGKILL")},timeoutMS);
+    let result = "",diagnostic="";
     child.stdout.on("data", b => { result += b; });
-    child.stderr.resume();
-    child.on("error", error=>{clearTimeout(timeout);reject(error)});
-    child.on("exit", code => {clearTimeout(timeout);code === 0 ? resolve(result) : reject(new Error(`fixture command exited ${code}`))});
+    child.stderr.on("data",b=>{diagnostic=(diagnostic+b).slice(-4096)});
+    child.on("error", ()=>{clearTimeout(timeout);reject(Object.assign(new Error(`fixture command ${operation} could not start`),{command_failure:{operation,code:"spawn_failed"}}))});
+    // Wait for close so the bounded stderr tail is complete. Never retain raw
+    // stderr, arguments, paths or connection details in an error/report.
+    child.on("close", (code,signal) => {
+      clearTimeout(timeout);
+      if(code===0){resolve(result);return}
+      const sqlstate=diagnostic.match(/\(SQLSTATE ([A-Z0-9]{5})\)/)?.[1];
+      const command_failure={operation,exit_code:code,signal,timed_out:timedOut,...(sqlstate?{sqlstate}:{})};
+      reject(Object.assign(new Error(`fixture command ${operation} exited ${code}${signal?` (${signal})`:""}`),{command_failure}));
+    });
   });
 }
 

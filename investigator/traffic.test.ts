@@ -65,3 +65,19 @@ test('Cron timing preserves model, action, evidence and cycle waits separately o
  const report:any={jobs:[{created_at:'2026-11-14T12:00:00Z',finished_at:'2026-11-14T12:00:02Z',result:{elapsed_ms:500,outcome:'awaiting_evidence'}},{created_at:'2026-11-14T12:00:02Z',finished_at:'2026-11-14T12:12:00Z',result:{outcome:'inconclusive',proposal:{model_call:{duration_ms:3000}},cron:{action_wall_ms:6000,cycle_wait_ms:400000,before:[{cycle:'2026-11-14T12:00:00Z'},{},{quiet:{end:'2026-11-14T12:05:20Z'}}]}}}]};
  populateJobTimings(report);assert.equal(report.initial_queue_delay_seconds,1.5);assert.equal(report.model_seconds,3);assert.equal(report.action_seconds,6);assert.equal(report.future_cycle_wait_seconds,400);assert.equal(report.evidence_accumulation_seconds,320);
 });
+
+test('failed fixture commands retain bounded operation and SQLSTATE without stderr secrets',async()=>{
+ const {command}=await import('./traffic.ts');
+ const {mkdtempSync,writeFileSync,chmodSync,rmSync}=await import('node:fs');
+ const {tmpdir}=await import('node:os');const {join}=await import('node:path');
+ const dir=mkdtempSync(join(tmpdir(),'fixture-command-'));const prior=process.env.PATH;
+ try{
+  const binary=join(dir,'pooltune-query-lab');
+  writeFileSync(binary,'#!/bin/sh\nprintf "%s\\n" "postgresql://user:password@host/private secret (SQLSTATE 42501)" >&2\nexit 1\n');chmodSync(binary,0o700);process.env.PATH=dir+':'+prior;
+  await assert.rejects(command(['-cron-action','record','-cron-id','private-id','-cron-period','/private/path']),error=>{
+   const e=error as Error&{command_failure?:unknown};
+   assert.deepEqual(e.command_failure,{operation:'cron_record',exit_code:1,signal:null,timed_out:false,sqlstate:'42501'});
+   assert.match(e.message,/cron_record/);assert(!JSON.stringify(e).includes('password'));assert(!e.message.includes('private'));return true;
+  });
+ }finally{process.env.PATH=prior;rmSync(dir,{recursive:true,force:true})}
+});
