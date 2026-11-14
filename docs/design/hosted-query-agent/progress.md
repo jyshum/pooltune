@@ -1,5 +1,15 @@
 # Design progress
 
+## Continuous investigation consumer, November 13, 2026
+
+Jared authorized the always-on consumer, a process restart test and a Rookery load comparison on the local revamp development branch. Task 9 adds the independent queue consumer and an explicitly enrolled synthetic fixture that survives process loss. The consumer checks Pooltune's database when idle and uses one short-lived target connection per investigation. Queue coordination allows one active job per project.
+
+The restart test killed the actual consumer after its first claim and started a replacement. After lease expiry, attempt two saw the index added while the process was down and saved `no_change` on the same job. The [measurement and trade-off record](always-on-consumer.md) documents two rounds of six Rookery phases with 336 foreground reads each. Each active phase added one 9.857–11.557 ms measured scan. Unindexed client medians shifted by −0.209 to +0.852 ms across the pairs, with variable tail latency. Fresh checks verified fixture cleanup and the public index fingerprint.
+
+Independent review found the claim relied on the state database’s default transaction isolation. A regression test reproduced a serialization failure. The producer and consumer now explicitly use read committed isolation. The race-enabled Go integration suite, Go vet, and investigator checks passed.
+
+This version processes journaled synthetic lookups. Hosting supervision, a durable benchmark journal outside the automated test, and evidence access for real customer enrollments remain production work. The restart test interrupted evidence collection. A crash while a model child process is active can repeat a call after expiry.
+
 ## Queued investigation handoff, November 13, 2026
 
 At Jared's request the local development branch was renamed from `feat/hosted-query-worker` to `feat/pooltune-revamp-dev` for broader revamp work. The accepted index milestone remains on `feat/pooltune-revamp`.

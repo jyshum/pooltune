@@ -23,14 +23,15 @@ type investigationClaim struct {
 }
 
 type DispatchResult struct {
-	JobID     int64          `json:"job_id"`
-	Attempt   int            `json:"attempt"`
-	Outcome   string         `json:"outcome"`
-	ThreadID  string         `json:"thread_id,omitempty"`
-	Evidence  *IndexEvidence `json:"evidence,omitempty"`
-	Proposal  *IndexProposal `json:"proposal,omitempty"`
-	ElapsedMS float64        `json:"elapsed_ms"`
-	GraphMS   float64        `json:"graph_ms,omitempty"`
+	JobID        int64          `json:"job_id"`
+	Attempt      int            `json:"attempt"`
+	Outcome      string         `json:"outcome"`
+	ThreadID     string         `json:"thread_id,omitempty"`
+	Evidence     *IndexEvidence `json:"evidence,omitempty"`
+	Proposal     *IndexProposal `json:"proposal,omitempty"`
+	ElapsedMS    float64        `json:"elapsed_ms"`
+	TargetPlanMS float64        `json:"target_plan_ms,omitempty"`
+	GraphMS      float64        `json:"graph_ms,omitempty"`
 }
 
 // InvestigationEvidence supplies fresh evidence for this exact enrolled job.
@@ -38,29 +39,42 @@ type InvestigationEvidence func(context.Context, InvestigationJob) (IndexEvidenc
 
 func claimInvestigation(ctx context.Context, state *pgx.Conn, project string) (*investigationClaim, error) {
 	claim := investigationClaim{Project: project}
-	err := state.QueryRow(ctx, `
-		WITH locked_project AS MATERIALIZED (
-			SELECT project_id FROM pooltune_worker.projects WHERE project_id=$1 FOR UPDATE
-		), exhausted AS (
-			UPDATE pooltune_worker.investigations
-			SET finished_at=statement_timestamp(), lease_until=NULL,
-			    result=jsonb_build_object('outcome','retry_exhausted')
-			WHERE project_id=(SELECT project_id FROM locked_project) AND finished_at IS NULL AND attempts >= $2
-			  AND lease_until <= statement_timestamp()
-		), available AS (
-			SELECT id FROM pooltune_worker.investigations
-			WHERE project_id=(SELECT project_id FROM locked_project) AND finished_at IS NULL AND attempts < $2
-			  AND (lease_until IS NULL OR lease_until <= statement_timestamp())
-			ORDER BY id LIMIT 1 FOR UPDATE SKIP LOCKED
-		)
-		UPDATE pooltune_worker.investigations AS jobs
-		SET attempts=jobs.attempts+1,
-		    lease_until=clock_timestamp()+make_interval(secs=>$3)
-		FROM available WHERE jobs.id=available.id
-		RETURNING jobs.id,jobs.database_oid,jobs.role_oid,jobs.query_id,jobs.attempts
-	`, project, maxInvestigationAttempts, investigationLease.Seconds()).
-		Scan(&claim.ID, &claim.Database, &claim.Role, &claim.Query, &claim.Attempt)
-	if errors.Is(err, pgx.ErrNoRows) {
+	err := pgx.BeginTxFunc(ctx, state, pgx.TxOptions{IsoLevel: pgx.ReadCommitted}, func(tx pgx.Tx) error {
+		var locked string
+		if err := tx.QueryRow(ctx, "SELECT project_id FROM pooltune_worker.projects WHERE project_id=$1 FOR UPDATE", project).Scan(&locked); err != nil {
+			return err
+		}
+		// A new statement after the project lock sees a competing consumer's committed claim.
+		err := tx.QueryRow(ctx, `
+			WITH exhausted AS (
+				UPDATE pooltune_worker.investigations
+				SET finished_at=statement_timestamp(), lease_until=NULL,
+				    result=jsonb_build_object('outcome','retry_exhausted')
+				WHERE project_id=$1 AND finished_at IS NULL AND attempts >= $2
+				  AND lease_until <= statement_timestamp()
+			), available AS (
+				SELECT id FROM pooltune_worker.investigations
+				WHERE project_id=$1 AND finished_at IS NULL AND attempts < $2
+				  AND (lease_until IS NULL OR lease_until <= statement_timestamp())
+				  AND NOT EXISTS (
+					SELECT FROM pooltune_worker.investigations
+					WHERE project_id=$1 AND finished_at IS NULL AND lease_until>statement_timestamp()
+				  )
+				ORDER BY id LIMIT 1
+			)
+			UPDATE pooltune_worker.investigations AS jobs
+			SET attempts=jobs.attempts+1, lease_until=clock_timestamp()+make_interval(secs=>$3)
+			FROM available WHERE jobs.id=available.id
+			RETURNING jobs.id,jobs.database_oid,jobs.role_oid,jobs.query_id,jobs.attempts,
+			          jobs.evidence->'counter_generation'
+		`, project, maxInvestigationAttempts, investigationLease.Seconds()).
+			Scan(&claim.ID, &claim.Database, &claim.Role, &claim.Query, &claim.Attempt, &claim.Generation)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil
+		}
+		return err
+	})
+	if errors.Is(err, pgx.ErrNoRows) || (err == nil && claim.ID == 0) {
 		return nil, nil
 	}
 	return &claim, err
@@ -122,6 +136,7 @@ func DispatchInvestigation(ctx context.Context, state *pgx.Conn, project string,
 			proposal.Column != evidence.Column || len(proposal.Reason) == 0 || len(proposal.Reason) > 1000 {
 			return nil, errors.New("graph response does not match the claimed investigation")
 		}
+		result.TargetPlanMS = evidence.ExecutionMS
 		result.Outcome, result.ThreadID, result.Evidence, result.Proposal = proposal.Outcome, evidence.RunID, &evidence, &proposal
 	}
 	result.ElapsedMS = elapsedMS(started)

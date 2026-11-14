@@ -277,13 +277,19 @@ func createTrial(ctx context.Context, target, state *pgx.Conn, id string) error 
 }
 
 func trialEvidence(ctx context.Context, target *pgx.Conn, id string, sample TrialSample) (IndexEvidence, error) {
-	schema := trialSchema(id)
 	e := IndexEvidence{RunID: id, At: time.Now().UTC(), Decision: NoChange, Label: "lookup",
 		Plan: PlanEvidence{Node: sample.Plan, ExaminedRows: sample.PlanExamined, ReturnedRows: sample.PlanReturned,
 			SharedBlocks: int64(sample.Blocks)}}
 	if sample.Breaches >= 3 {
 		e.Decision = Investigate
 	}
+	catalog, err := collectIndexCatalog(ctx, target, id)
+	e.TableOID, e.Column, e.Existing = catalog.TableOID, catalog.Column, catalog.Existing
+	return e, err
+}
+
+func collectIndexCatalog(ctx context.Context, target trialReader, id string) (IndexEvidence, error) {
+	e := IndexEvidence{Label: "lookup"}
 	err := target.QueryRow(ctx, `
 		SELECT c.oid, a.attnum, EXISTS (SELECT FROM pg_index i JOIN pg_class ix ON ix.oid=i.indexrelid
 		  JOIN pg_am am ON am.oid=ix.relam WHERE i.indrelid=c.oid AND i.indisvalid
@@ -294,7 +300,7 @@ func trialEvidence(ctx context.Context, target *pgx.Conn, id string, sample Tria
 		  AND c.relkind='r' AND NOT c.relispartition
 		  AND a.attname='lookup' AND a.attnum>0 AND NOT a.attisdropped AND a.atttypid='int4'::regtype
 		  AND pg_relation_size(c.oid) <= 25165824
-	`, schema, "pooltune trial "+id).Scan(&e.TableOID, &e.Column, &e.Existing)
+	`, trialSchema(id), "pooltune trial "+id).Scan(&e.TableOID, &e.Column, &e.Existing)
 	return e, err
 }
 

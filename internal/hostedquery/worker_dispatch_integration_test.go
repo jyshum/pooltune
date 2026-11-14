@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"pooltune/internal/testpg"
 
@@ -108,5 +109,106 @@ func TestInvestigationClaimAndRecovery(t *testing.T) {
 		})
 	if err != nil || diagnosed.Outcome != "insufficient_evidence" {
 		t.Fatalf("insufficient evidence: %+v %v", diagnosed, err)
+	}
+}
+
+func TestInvestigationOnlyOneActiveJobPerProject(t *testing.T) {
+	ctx, config, _ := testpg.Start(t)
+	state, err := pgx.ConnectConfig(ctx, config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer state.Close(ctx)
+	if err := PrepareWorkerState(ctx, state); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := state.Exec(ctx, `
+		INSERT INTO pooltune_worker.projects(project_id) VALUES ('one');
+		INSERT INTO pooltune_worker.investigations(project_id,database_oid,role_oid,query_id,evidence)
+		VALUES ('one',1,2,3,'{}'),('one',1,2,4,'{}');
+	`); err != nil {
+		t.Fatal(err)
+	}
+	first, err := claimInvestigation(ctx, state, "one")
+	if first == nil || err != nil {
+		t.Fatalf("first claim = %+v, %v", first, err)
+	}
+	competing, err := claimInvestigation(ctx, state, "one")
+	if competing != nil || err != nil {
+		t.Fatalf("claimed a second active job: %+v, %v", competing, err)
+	}
+	if err := finishInvestigation(ctx, state, *first, DispatchResult{Outcome: "no_change"}); err != nil {
+		t.Fatal(err)
+	}
+	second, err := claimInvestigation(ctx, state, "one")
+	if second == nil || second.ID == first.ID || err != nil {
+		t.Fatalf("second claim after finish = %+v, %v", second, err)
+	}
+}
+
+func TestInvestigationClaimUsesFreshSnapshot(t *testing.T) {
+	ctx, config, _ := testpg.Start(t)
+	first, err := pgx.ConnectConfig(ctx, config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer first.Close(ctx)
+	second, err := pgx.ConnectConfig(ctx, config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer second.Close(ctx)
+	if err := PrepareWorkerState(ctx, first); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := first.Exec(ctx, `
+		INSERT INTO pooltune_worker.projects(project_id) VALUES ('concurrent');
+		INSERT INTO pooltune_worker.investigations(project_id,database_oid,role_oid,query_id,evidence)
+		VALUES ('concurrent',1,2,3,'{}'),('concurrent',1,2,4,'{}');
+	`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := second.Exec(ctx, "SET default_transaction_isolation='repeatable read'"); err != nil {
+		t.Fatal(err)
+	}
+	tx, err := first.Begin(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer tx.Rollback(ctx)
+	if _, err := tx.Exec(ctx, "SELECT FROM pooltune_worker.projects WHERE project_id='concurrent' FOR UPDATE"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := tx.Exec(ctx, "UPDATE pooltune_worker.investigations SET lease_until=now()+interval '30 seconds', attempts=1 WHERE query_id=3"); err != nil {
+		t.Fatal(err)
+	}
+	type outcome struct {
+		job *investigationClaim
+		err error
+	}
+	done := make(chan outcome, 1)
+	go func() {
+		job, err := claimInvestigation(ctx, second, "concurrent")
+		done <- outcome{job, err}
+	}()
+	for deadline := time.Now().Add(2 * time.Second); ; {
+		var waiting bool
+		if err := tx.QueryRow(ctx, "SELECT cardinality(pg_blocking_pids($1::integer))>0", int32(second.PgConn().PID())).Scan(&waiting); err != nil {
+			t.Fatal(err)
+		}
+		if waiting {
+			break
+		}
+		if time.Now().After(deadline) {
+			t.Fatal("competing claim did not block")
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	if err := tx.Commit(ctx); err != nil {
+		t.Fatal(err)
+	}
+	result := <-done
+	if result.job != nil || result.err != nil {
+		t.Fatalf("competing process missed the committed claim: %+v, %v", result.job, result.err)
 	}
 }

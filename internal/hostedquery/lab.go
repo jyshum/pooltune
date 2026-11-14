@@ -253,8 +253,9 @@ func (q *labCase) result(ctx context.Context, tx pgx.Tx) (CaseResult, error) {
 }
 
 type explain struct {
-	QueryID int64 `json:"Query Identifier"`
-	Node    struct {
+	ExecutionMS float64 `json:"Execution Time"`
+	QueryID     int64   `json:"Query Identifier"`
+	Node        struct {
 		Type     string `json:"Node Type"`
 		Rows     int64  `json:"Actual Rows"`
 		Loops    int64  `json:"Actual Loops"`

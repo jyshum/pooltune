@@ -2,17 +2,15 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
 	"os"
-	"os/exec"
-	"path/filepath"
 	"time"
 
+	"pooltune/internal/graphrunner"
 	"pooltune/internal/hostedquery"
 	"pooltune/internal/labdb"
 
@@ -25,7 +23,13 @@ func main() {
 	recoverOnly := flag.Bool("recover-index-trials", false, "reconcile interrupted fixture runs")
 	trafficTrial := flag.Bool("worker-traffic", false, "observe a bounded read-only traffic stream from another session")
 	investigation := flag.String("worker-investigation", "", "investigate the queued traffic job: anthropic or scripted")
+	createConsumer := flag.Bool("create-consumer-fixture", false, "create a journaled synthetic fixture for the continuous consumer")
+	removeConsumer := flag.String("remove-consumer-fixture", "", "remove a journaled synthetic fixture by ID")
 	flag.Parse()
+	if (*createConsumer || *removeConsumer != "") && (*trafficTrial || *trial != "" || *recoverOnly || (*createConsumer && *removeConsumer != "")) {
+		flag.Usage()
+		os.Exit(2)
+	}
 	if (*trial != "" && *trial != "anthropic" && *trial != "scripted") || (*recoverOnly && *trial != "") || (*trafficTrial && (*recoverOnly || *trial != "")) {
 		fmt.Fprintln(os.Stderr, "choose an explicit index trial mode or recovery")
 		os.Exit(2)
@@ -39,7 +43,7 @@ func main() {
 		os.Exit(2)
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 65*time.Second)
-	err := run(ctx, *route == "rookery", *trial, *recoverOnly, *trafficTrial, *investigation)
+	err := run(ctx, *route == "rookery", *trial, *recoverOnly, *trafficTrial, *investigation, *createConsumer, *removeConsumer)
 	cancel()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -47,7 +51,7 @@ func main() {
 	}
 }
 
-func run(ctx context.Context, rookery bool, trial string, recoverOnly, trafficTrial bool, investigation string) error {
+func run(ctx context.Context, rookery bool, trial string, recoverOnly, trafficTrial bool, investigation string, createConsumer bool, removeConsumer string) error {
 	stateConfig, err := labdb.Config(os.Getenv("POOLTUNE_LAB_STATE_DSN"), false)
 	if err != nil {
 		return fmt.Errorf("state configuration: %w", err)
@@ -62,7 +66,7 @@ func run(ctx context.Context, rookery bool, trial string, recoverOnly, trafficTr
 	}
 	var investigator hostedquery.IndexInvestigator
 	if mode := trial + investigation; mode != "" {
-		investigator, err = processInvestigator(mode)
+		investigator, err = graphrunner.Process(mode, os.Getenv("POOLTUNE_LAB_STATE_DSN"))
 		if err != nil {
 			return err
 		}
@@ -84,6 +88,22 @@ func run(ctx context.Context, rookery bool, trial string, recoverOnly, trafficTr
 	identity := "local"
 	if rookery {
 		identity = "rookery"
+	}
+	if createConsumer {
+		report, err := hostedquery.CreateConsumerFixture(ctx, target, state, identity)
+		if err != nil {
+			if report.ID != "" {
+				fmt.Fprintf(os.Stderr, "Fixture %s can be reconciled against the same databases.\n", report.ID)
+			}
+			return labdb.Diagnostic("create consumer fixture", err)
+		}
+		return json.NewEncoder(os.Stdout).Encode(report)
+	}
+	if removeConsumer != "" {
+		if err := hostedquery.RemoveConsumerFixture(ctx, target, state, identity, removeConsumer); err != nil {
+			return labdb.Diagnostic("remove consumer fixture", err)
+		}
+		return nil
 	}
 	if trafficTrial {
 		observerConfig := targetConfig.Copy()
@@ -132,50 +152,4 @@ func run(ctx context.Context, rookery bool, trial string, recoverOnly, trafficTr
 		ID     int64              `json:"id"`
 		Report hostedquery.Report `json:"report"`
 	}{ID: id, Report: report})
-}
-
-func processInvestigator(mode string) (hostedquery.IndexInvestigator, error) {
-	if mode == "anthropic" && (os.Getenv("ANTHROPIC_API_KEY") == "" || os.Getenv("POOLTUNE_ANTHROPIC_MODEL") == "") {
-		return nil, errors.New("anthropic mode requires ANTHROPIC_API_KEY and POOLTUNE_ANTHROPIC_MODEL")
-	}
-	path, err := filepath.Abs("investigator/run.ts")
-	if err != nil {
-		return nil, err
-	}
-	if _, err := os.Stat(path); err != nil {
-		return nil, errors.New("run from the Pooltune repo with investigator dependencies installed")
-	}
-	node, err := exec.LookPath("node")
-	if err != nil {
-		return nil, errors.New("Node.js is required for the investigator")
-	}
-	return func(ctx context.Context, e hostedquery.IndexEvidence) (hostedquery.IndexProposal, error) {
-		ctx, cancel := context.WithTimeout(ctx, 22*time.Second)
-		defer cancel()
-		payload, err := json.Marshal(e)
-		if err != nil {
-			return hostedquery.IndexProposal{}, err
-		}
-		call := exec.CommandContext(ctx, node, path, mode)
-		call.Stdin = bytes.NewReader(payload)
-		call.Env = []string{"POOLTUNE_LAB_STATE_DSN=" + os.Getenv("POOLTUNE_LAB_STATE_DSN"), "LANGSMITH_TRACING=false"}
-		if mode == "anthropic" {
-			call.Env = append(call.Env, "ANTHROPIC_API_KEY="+os.Getenv("ANTHROPIC_API_KEY"),
-				"POOLTUNE_ANTHROPIC_MODEL="+os.Getenv("POOLTUNE_ANTHROPIC_MODEL"))
-		}
-		response, err := call.Output()
-		if err != nil {
-			return hostedquery.IndexProposal{}, errors.New("investigator process failed")
-		}
-		if len(response) > 4096 {
-			return hostedquery.IndexProposal{}, errors.New("oversized investigator response")
-		}
-		var proposal hostedquery.IndexProposal
-		decoder := json.NewDecoder(bytes.NewReader(response))
-		decoder.DisallowUnknownFields()
-		if err := decoder.Decode(&proposal); err != nil || !json.Valid(response) {
-			return hostedquery.IndexProposal{}, errors.New("invalid investigator response")
-		}
-		return proposal, nil
-	}, nil
 }

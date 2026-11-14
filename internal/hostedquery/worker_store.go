@@ -60,7 +60,8 @@ type QueryWindow struct {
 }
 
 type InvestigationJob struct {
-	ID int64 `json:"id"`
+	Generation []time.Time `json:"-"`
+	ID         int64       `json:"id"`
 	queryKey
 }
 
@@ -108,6 +109,8 @@ func PrepareWorkerState(ctx context.Context, state *pgx.Conn) error {
 				ADD COLUMN IF NOT EXISTS attempts integer NOT NULL DEFAULT 0,
 				ADD COLUMN IF NOT EXISTS lease_until timestamptz,
 				ADD COLUMN IF NOT EXISTS result jsonb;
+			CREATE INDEX IF NOT EXISTS open_investigations_by_project
+				ON pooltune_worker.investigations (project_id,id) WHERE finished_at IS NULL;
 			CREATE UNIQUE INDEX IF NOT EXISTS one_open_investigation
 				ON pooltune_worker.investigations (project_id, database_oid, role_oid, query_id)
 				WHERE finished_at IS NULL;
@@ -120,7 +123,7 @@ type collectCounters func(context.Context) (map[queryKey]Counter, error)
 
 func recordPoll(ctx context.Context, state *pgx.Conn, enrollment Enrollment, policy SamplingPolicy, at time.Time, collect collectCounters) (PollResult, error) {
 	var result PollResult
-	err := pgx.BeginFunc(ctx, state, func(tx pgx.Tx) error {
+	err := pgx.BeginTxFunc(ctx, state, pgx.TxOptions{IsoLevel: pgx.ReadCommitted}, func(tx pgx.Tx) error {
 		_, err := tx.Exec(ctx, "INSERT INTO pooltune_worker.projects (project_id) VALUES ($1) ON CONFLICT DO NOTHING", enrollment.Project)
 		if err != nil {
 			return err

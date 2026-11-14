@@ -134,6 +134,15 @@ The Go consumer uses the same PostgreSQL queue as the worker. It reserves a job 
 - [x] In `internal/hostedquery/worker_traffic.go`, pass the existing lab investigator through to the consumer. Collect fresh evidence for the exact synthetic query whose durable job was claimed. Verify its plan query ID and catalog identity. Generic enrolled queries need a qualified evidence source before they can reach the model.
 - [x] Measure claim-to-result latency and verify the saved job and LangGraph checkpoints. Keep a record of the fastest production alternatives and their trade-offs in [Investigation handoff](worker-investigation.md).
 
+### Task 9: Run the consumer continuously and measure its load
+
+Depends on Task 8 and reuses d-workflow r1, d-reuse r1 and proposed d-durability r1.
+
+- [x] Add `cmd/pooltune-consumer` and reuse the existing graph runner. Check Pooltune's state on an idle interval, process one job at a time, back off state connection errors, and honor shutdown signals. Serialize active claims per project. Open a target connection only once a job matches explicit enrollment.
+- [x] Collect fresh evidence from a journaled synthetic fixture that outlives the consumer. Match the job's database, role and query ID to the enrolled lookup, and match the target objects to the recorded fixture. Use bounded read-only PostgreSQL transactions. No arbitrary SQL or repair execution.
+- [x] Kill and replace a real consumer process mid-claim. Verify the replacement respects the lease, reclaims the same job, sees an index added while it was offline, and saves the new outcome.
+- [x] Compare matched Rookery traffic with the consumer off and on. Report request latency, server execution times and additional evidence work. Record the trade-offs and reproduction in [Always-on consumer](always-on-consumer.md).
+
 ## Candidate test application inspection (historical)
 
 

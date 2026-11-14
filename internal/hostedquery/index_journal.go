@@ -90,7 +90,10 @@ func RecoverIndexTrials(ctx context.Context, target, state *pgx.Conn, identity s
 }
 
 func journalTarget(target *pgx.Conn, identity string) string {
-	config := target.Config()
+	return journalTargetConfig(target.Config(), identity)
+}
+
+func journalTargetConfig(config *pgx.ConnConfig, identity string) string {
 	return fmt.Sprintf("%s/%s:%d/%s/%s", identity, config.Host, config.Port, config.Database, config.User)
 }
 
