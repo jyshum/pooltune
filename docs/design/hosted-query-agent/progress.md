@@ -1,5 +1,11 @@
 # Design progress
 
+## Restricted Supabase evidence, November 14, 2026
+
+Task 11 tested one enrolled equality lookup on a disposable local PostgreSQL instance and on Rookery. A temporary restricted role collected the estimated plan and checked for a full B-tree index without running the lookup a second time. Wrong identities, stale statistics and revoked access yielded no evidence. Direct read and write probes verified the fixture permissions. Both the schema and role rolled back.
+
+Rookery needed explicit grants to switch roles and use the statistics schema. The [evidence record](enrolled-evidence.md) captures the trade-offs and final single-run timings. This test used a bootstrap connection to set the role. Issuing and revoking a dedicated credential, verifying representative customer evidence and wiring the resulting adapter into staging remain open. The estimate type stays separate from the measured evidence accepted by LangGraph.
+
 ## Hosted staging restart, November 14, 2026
 
 Jared authorized running the detector and consumer together in staging and verifying a hosted restart. Task 10 deployed both processes to a dedicated private Railway environment using a shared PostgreSQL instance and separate state and synthetic target databases. Railway was selected for this staging test. The [staging record](hosted-staging.md) explains the trade-offs and reproduction steps.

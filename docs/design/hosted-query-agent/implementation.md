@@ -149,6 +149,13 @@ Depends on Task 8 and reuses d-workflow r1, d-reuse r1 and proposed d-durability
 - [x] Let the hosted detector create a job from bounded synthetic traffic. Hold evidence collection briefly, restart the hosted consumer and verify the same job completes on its second attempt and saves graph checkpoints.
 - [x] Record verified service state, restart behavior, cleanup and staging trade-offs in [Hosted staging](hosted-staging.md).
 
+### Task 11: Qualify restricted Supabase evidence
+
+Depends on Task 10 and follows d-onboarding r1, d-reuse r1 and proposed d-identity r1.
+
+- [x] Add a bounded planner and index reader for an explicitly enrolled ordinary table and integer equality lookup. Require exact statement, relation and role identities. Read estimated plans without executing the lookup. Classify estimates separately from measured repair evidence.
+- [x] Qualify access under a restricted role using a disposable PostgreSQL fixture and the authorized Rookery route. Check stale counters, denied access, changed indexes and matching statements. Record the results in [Enrolled query evidence](enrolled-evidence.md).
+
 ## Candidate test application inspection (historical)
 
 
