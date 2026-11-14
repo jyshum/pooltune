@@ -1,0 +1,10 @@
+.card.pt-verified { background:color-mix(in srgb,#3da66c 12%,var(--bg)); border:1.5px solid #4f986c !important; }
+.card.pt-partial { background:color-mix(in srgb,#c4953a 7%,var(--bg)); border:1.5px solid #9b814f !important; }
+.card.pt-planned { border-style:dashed !important; }
+.pt-status { display:inline-block;padding:4px 9px;border-radius:6px;font-size:12px;font-weight:650;background:var(--raise);margin:0 0 10px; }
+.pt-status.verified { color:#3d9d64;background:color-mix(in srgb,#3da66c 12%,transparent); }
+.pt-status.partial { color:#a98635;background:color-mix(in srgb,#c4953a 12%,transparent); }
+.pt-copy { font-size:13px;line-height:1.65;color:var(--text-2);margin:8px 0; }
+.pt-link { display:block;padding:10px 0;border-bottom:1px solid var(--hair);color:var(--text);text-decoration:none;font-size:13px; }
+.pt-legend {display:flex;flex-wrap:wrap;gap:6px;margin:10px 0;}
+@media(max-width:650px){#pooltune-progress-button{font-size:11px;padding:0 8px;}}

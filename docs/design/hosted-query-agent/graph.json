@@ -2,18 +2,18 @@
   "schemaVersion": 1,
   "id": "pooltune-hosted-agent",
   "title": "Maintain Supabase query performance",
-  "workType": "New hosted architecture",
-  "summary": "Agreed boundaries and open decisions for a Go backend and one LangGraph investigator. Design only; no running agent.",
+  "workType": "Build progress and remaining work",
+  "summary": "Six repair cases verified in staging; broader diagnosis, customer connection and the hosted product remain unfinished.",
   "sourceRevision": {
-    "commit": "7edaf4946ad9e6ad355866690a687d089969540b",
-    "dirty": true
+    "commit": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+    "dirty": false
   },
   "components": [
     {
       "id": "owner",
       "label": "Startup team",
       "type": "actor",
-      "purpose": "Configures grants and checks outcomes; no open browser is required for background operation.",
+      "purpose": "Owns the project and decides what Pooltune may inspect or change.",
       "decisionIds": [],
       "sources": [
         {
@@ -23,14 +23,14 @@
         }
       ],
       "changeStatus": "unchanged",
-      "changeSummary": "Configures grants and checks outcomes; no open browser is required for background operation.",
+      "changeSummary": "Owns the project and decides what Pooltune may inspect or change.",
       "ownership": "external"
     },
     {
       "id": "dashboard",
       "label": "Customer dashboard",
       "type": "interface",
-      "purpose": "Add project setup, evidence, action history, and stop controls; frontend integration remains open.",
+      "purpose": "Customer application remains to be built: sign-in, projects and visible repair activity.",
       "decisionIds": [
         "d-hosting",
         "d-onboarding"
@@ -40,17 +40,23 @@
           "path": "docs/product/query-performance-v1.md",
           "revision": "2026-11-12 accepted decisions and open design",
           "kind": "intended"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/roadmap.md",
+          "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+          "kind": "intended"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Add project setup, evidence, action history, and stop controls; frontend integration remains open.",
-      "after": "Add project setup, evidence, action history, and stop controls; frontend integration remains open."
+      "changeSummary": "Customer application remains to be built: sign-in, projects and visible repair activity.",
+      "after": "Add project setup, evidence, action history, and stop controls; frontend integration remains open.",
+      "expandWhy": "What will a customer use to connect a project and watch Pooltune work?"
     },
     {
       "id": "backend",
       "label": "Hosted API",
       "type": "service",
-      "purpose": "Authenticate project access and expose configuration and results; auth and credential design remain open.",
+      "purpose": "Hosted project API remains to be built for configuration, permissions and result access.",
       "decisionIds": [
         "d-language",
         "d-hosting",
@@ -62,20 +68,26 @@
           "path": "docs/product/query-performance-v1.md",
           "revision": "2026-11-12 accepted decisions and open design",
           "kind": "intended"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/roadmap.md",
+          "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+          "kind": "intended"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Authenticate project access and expose configuration and results; auth and credential design remain open.",
+      "changeSummary": "Hosted project API remains to be built for configuration, permissions and result access.",
       "stack": [
         "Go"
       ],
-      "after": "Authenticate project access and expose configuration and results; auth and credential design remain open."
+      "after": "Authenticate project access and expose configuration and results; auth and credential design remain open.",
+      "expandWhy": "What must connect the tested worker to a real customer project?"
     },
     {
       "id": "collector",
       "label": "Collector and detector",
       "type": "service",
-      "purpose": "Collect bounded telemetry, reuse valid evidence, and identify worthwhile investigations; cadence and thresholds remain open.",
+      "purpose": "Built in staging: collect enrolled query counters and detect repeated slowdowns.",
       "decisionIds": [
         "d-language",
         "d-hosting",
@@ -86,10 +98,20 @@
           "path": "docs/product/query-performance-v1.md",
           "revision": "2026-11-12 accepted decisions and open design",
           "kind": "intended"
+        },
+        {
+          "path": "internal/hostedquery/worker.go",
+          "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/mixed-traffic.md",
+          "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Collect bounded telemetry, reuse valid evidence, and identify worthwhile investigations; cadence and thresholds remain open.",
+      "changeSummary": "Built in staging: collect enrolled query counters and detect repeated slowdowns.",
       "stack": [
         "Go"
       ],
@@ -99,7 +121,7 @@
       "id": "scheduler",
       "label": "Durable scheduling",
       "type": "queue",
-      "purpose": "Coordinate work, budgets and project concurrency; queue implementation and recovery protocol remain open.",
+      "purpose": "Built in staging: saved jobs, an always-on consumer, retries and delayed follow-ups survive restarts.",
       "decisionIds": [
         "d-language",
         "d-hosting",
@@ -110,13 +132,29 @@
           "path": "docs/product/query-performance-v1.md",
           "revision": "2026-11-12 accepted decisions and open design",
           "kind": "intended"
+        },
+        {
+          "path": "cmd/pooltune-consumer/main.go",
+          "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+          "kind": "verified"
+        },
+        {
+          "path": "internal/hostedquery/worker_store.go",
+          "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/cron-staging.md",
+          "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Coordinate work, budgets and project concurrency; queue implementation and recovery protocol remain open.",
+      "changeSummary": "Built in staging: saved jobs, an always-on consumer, retries and delayed follow-ups survive restarts.",
       "stack": [
         "Go",
-        "PostgreSQL state; queue library undecided"
+        "PostgreSQL queue",
+        "Railway staging"
       ],
       "after": "Coordinate work, budgets and project concurrency; queue implementation and recovery protocol remain open."
     },
@@ -124,7 +162,7 @@
       "id": "investigator",
       "label": "Investigator graph",
       "type": "service",
-      "purpose": "One investigator chooses structured evidence requests and proposes qualified repairs; graph nodes remain proposed.",
+      "purpose": "Working graph screens supplied evidence and asks Claude for one bounded repair recommendation.",
       "decisionIds": [
         "d-workflow"
       ],
@@ -133,21 +171,37 @@
           "path": "docs/product/query-performance-v1.md",
           "revision": "2026-11-12 accepted decisions and open design",
           "kind": "intended"
+        },
+        {
+          "path": "investigator/graph.ts",
+          "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+          "kind": "verified"
+        },
+        {
+          "path": "investigator/model.ts",
+          "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/live-repairs.md",
+          "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "One investigator chooses structured evidence requests and proposes qualified repairs; graph nodes remain proposed.",
+      "changeSummary": "Working graph screens supplied evidence and asks Claude for one bounded repair recommendation.",
       "stack": [
         "TypeScript",
         "LangGraph"
       ],
-      "after": "One investigator chooses structured evidence requests and proposes qualified repairs; graph nodes remain proposed."
+      "after": "One investigator chooses structured evidence requests and proposes qualified repairs; graph nodes remain proposed.",
+      "expandWhy": "Which agent steps exist, and which diagnostic steps still need building?"
     },
     {
       "id": "tools",
       "label": "Controlled database tools",
       "type": "service",
-      "purpose": "Check authority and current conditions before inspection, experiments, repairs, or recovery.",
+      "purpose": "Six bounded repair cases are verified; broader evidence collection and customer repair coverage remain.",
       "decisionIds": [
         "d-language"
       ],
@@ -156,10 +210,20 @@
           "path": "docs/product/query-performance-v1.md",
           "revision": "2026-11-12 accepted decisions and open design",
           "kind": "intended"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/roadmap.md",
+          "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/cron-staging.md",
+          "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Check authority and current conditions before inspection, experiments, repairs, or recovery.",
+      "changeSummary": "Six bounded repair cases are verified; broader evidence collection and customer repair coverage remain.",
       "stack": [
         "Go"
       ],
@@ -170,7 +234,7 @@
       "id": "state",
       "label": "Pooltune state",
       "type": "data-store",
-      "purpose": "Store selected telemetry, grants, jobs, checkpoints and action records; not a replica of customer tables.",
+      "purpose": "Built in staging: PostgreSQL saves measurements, jobs, action intent and graph checkpoints.",
       "decisionIds": [
         "d-workflow",
         "d-hosting",
@@ -181,10 +245,20 @@
           "path": "docs/product/query-performance-v1.md",
           "revision": "2026-11-12 accepted decisions and open design",
           "kind": "intended"
+        },
+        {
+          "path": "internal/hostedquery/worker_store.go",
+          "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/hosted-staging.md",
+          "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Store selected telemetry, grants, jobs, checkpoints and action records; not a replica of customer tables.",
+      "changeSummary": "Built in staging: PostgreSQL saves measurements, jobs, action intent and graph checkpoints.",
       "stack": [
         "PostgreSQL"
       ],
@@ -194,17 +268,22 @@
       "id": "customer-db",
       "label": "Customer database",
       "type": "data-store",
-      "purpose": "Execute customer queries and permitted Pooltune operations; trials consume resources here.",
+      "purpose": "Rookery on Supabase supplies the measured staging workload.",
       "decisionIds": [],
       "sources": [
         {
           "path": "docs/product/query-performance-v1.md",
           "revision": "2026-11-12 accepted decisions and open design",
           "kind": "intended"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/cron-staging.md",
+          "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+          "kind": "intended"
         }
       ],
       "changeStatus": "unchanged",
-      "changeSummary": "Execute customer queries and permitted Pooltune operations; trials consume resources here.",
+      "changeSummary": "Rookery on Supabase supplies the measured staging workload.",
       "stack": [
         "Supabase",
         "PostgreSQL"
@@ -215,17 +294,22 @@
       "id": "model",
       "label": "Model provider",
       "type": "external-system",
-      "purpose": "Perform inference using Pooltune-supplied credentials; model and usage budgets remain open.",
+      "purpose": "Claude interprets evidence and returns a typed proposal or no change.",
       "decisionIds": [],
       "sources": [
         {
           "path": "docs/product/query-performance-v1.md",
           "revision": "2026-11-12 accepted decisions and open design",
           "kind": "intended"
+        },
+        {
+          "path": "investigator/model.ts",
+          "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+          "kind": "intended"
         }
       ],
       "changeStatus": "unchanged",
-      "changeSummary": "Perform inference using Pooltune-supplied credentials; model and usage budgets remain open.",
+      "changeSummary": "Claude interprets evidence and returns a typed proposal or no change.",
       "stack": [
         "Anthropic"
       ],
@@ -235,7 +319,7 @@
       "id": "studio",
       "label": "Developer graph viewer",
       "type": "interface",
-      "purpose": "Proposed LangSmith Studio setup to inspect graph runs; account, tracing and export settings remain open.",
+      "purpose": "Developer graph registration and scripted replay were verified; Studio shows the investigator graph.",
       "decisionIds": [
         "d-studio"
       ],
@@ -244,12 +328,23 @@
           "path": "docs/product/query-performance-v1.md",
           "revision": "2026-11-12 accepted decisions and open design",
           "kind": "intended"
+        },
+        {
+          "path": "investigator/langgraph.json",
+          "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/index-slice.md",
+          "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Proposed LangSmith Studio setup to inspect graph runs; account, tracing and export settings remain open.",
+      "changeSummary": "Developer graph registration and scripted replay were verified; Studio shows the investigator graph.",
       "stack": [
-        "LangSmith Studio (proposed)"
+        "LangGraph development server",
+        "LangSmith Studio"
       ],
       "after": "Proposed LangSmith Studio setup to inspect graph runs; account, tracing and export settings remain open."
     },
@@ -257,7 +352,7 @@
       "id": "inspection",
       "label": "Inspect existing evidence",
       "type": "service",
-      "purpose": "Reuse valid query windows, catalogs, plans and resource context. Missing data is unknown; freshness rules and schemas remain open.",
+      "purpose": "Go gathers measured plans, existing-index checks and repair-specific evidence for enrolled test cases.",
       "decisionIds": [
         "d-reuse",
         "d-identity"
@@ -267,10 +362,20 @@
           "path": "docs/product/query-performance-v1.md",
           "revision": "2026-11-12 accepted decisions and open design",
           "kind": "intended"
+        },
+        {
+          "path": "investigator/graph.ts",
+          "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/live-repairs.md",
+          "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Reuse valid query windows, catalogs, plans and resource context. Missing data is unknown; freshness rules and schemas remain open.",
+      "changeSummary": "Go gathers measured plans, existing-index checks and repair-specific evidence for enrolled test cases.",
       "stack": [
         "Go"
       ],
@@ -281,7 +386,7 @@
       "id": "experiments",
       "label": "Run a justified experiment",
       "type": "service",
-      "purpose": "Require an enrolled query and approved role/context; request only evidence missing from a decision. Live-trial budgets and limits remain open.",
+      "purpose": "Controlled before/after trials test whether a permitted change helps and harms other traffic.",
       "decisionIds": [
         "d-reuse",
         "d-trials",
@@ -292,10 +397,20 @@
           "path": "docs/product/query-performance-v1.md",
           "revision": "2026-11-12 accepted decisions and open design",
           "kind": "intended"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/mixed-traffic.md",
+          "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/function-memory.md",
+          "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Require an enrolled query and approved role/context; request only evidence missing from a decision. Live-trial budgets and limits remain open.",
+      "changeSummary": "Controlled before/after trials test whether a permitted change helps and harms other traffic.",
       "stack": [
         "Go"
       ],
@@ -306,7 +421,7 @@
       "id": "index",
       "label": "Add a nonunique index",
       "type": "service",
-      "purpose": "Inspect access work and existing indexes; evaluate bounded candidates and measure actual effects. Recover only eligible Pooltune-created artifacts; build resources cannot be undone.",
+      "purpose": "Single-column index case verified with real Claude and ongoing traffic.",
       "decisionIds": [
         "d-trials"
       ],
@@ -315,10 +430,15 @@
           "path": "docs/product/query-performance-v1.md",
           "revision": "2026-11-12 accepted decisions and open design",
           "kind": "intended"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/mixed-traffic.md",
+          "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Inspect access work and existing indexes; evaluate bounded candidates and measure actual effects. Recover only eligible Pooltune-created artifacts; build resources cannot be undone.",
+      "changeSummary": "Single-column index case verified with real Claude and ongoing traffic.",
       "stack": [
         "Go"
       ],
@@ -329,17 +449,22 @@
       "id": "refresh",
       "label": "Refresh statistics",
       "type": "service",
-      "purpose": "Use change history and estimate errors to qualify targeted ANALYZE. Verify useful execution outcomes; exact undo of gathered statistics is unavailable.",
+      "purpose": "Targeted ANALYZE case verified: refresh stale statistics and measure the result.",
       "decisionIds": [],
       "sources": [
         {
           "path": "docs/product/query-performance-v1.md",
           "revision": "2026-11-12 accepted decisions and open design",
           "kind": "intended"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/targeted-analyze.md",
+          "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Use change history and estimate errors to qualify targeted ANALYZE. Verify useful execution outcomes; exact undo of gathered statistics is unavailable.",
+      "changeSummary": "Targeted ANALYZE case verified: refresh stale statistics and measure the result.",
       "stack": [
         "Go"
       ],
@@ -350,17 +475,22 @@
       "id": "richer",
       "label": "Improve statistics detail",
       "type": "service",
-      "purpose": "Use persistent estimate errors after refresh to qualify extended statistics or a bounded column target. Preserve prior definitions/settings; exact sampled statistics cannot be restored by resetting a target.",
+      "purpose": "Joint-statistics case verified for related predicate columns.",
       "decisionIds": [],
       "sources": [
         {
           "path": "docs/product/query-performance-v1.md",
           "revision": "2026-11-12 accepted decisions and open design",
           "kind": "intended"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/richer-statistics.md",
+          "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Use persistent estimate errors after refresh to qualify extended statistics or a bounded column target. Preserve prior definitions/settings; exact sampled statistics cannot be restored by resetting a target.",
+      "changeSummary": "Joint-statistics case verified for related predicate columns.",
       "stack": [
         "Go"
       ],
@@ -371,17 +501,22 @@
       "id": "cleanup",
       "label": "Perform targeted cleanup",
       "type": "service",
-      "purpose": "Use cleanup and access evidence for bounded plain VACUUM or permitted threshold adjustments. Pinned versions may prevent cleanup; completed cleanup has no exact undo.",
+      "purpose": "Plain VACUUM case verified: reduce visibility work without replacing the index.",
       "decisionIds": [],
       "sources": [
         {
           "path": "docs/product/query-performance-v1.md",
           "revision": "2026-11-12 accepted decisions and open design",
           "kind": "intended"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/bounded-vacuum.md",
+          "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Use cleanup and access evidence for bounded plain VACUUM or permitted threshold adjustments. Pinned versions may prevent cleanup; completed cleanup has no exact undo.",
+      "changeSummary": "Plain VACUUM case verified: reduce visibility work without replacing the index.",
       "stack": [
         "Go"
       ],
@@ -392,17 +527,22 @@
       "id": "memory",
       "label": "Tune an enrolled function",
       "type": "service",
-      "purpose": "Require internal spill evidence and a concurrency-aware memory budget before function-scoped work_mem tuning. Restore the previous setting when recovery is qualified.",
+      "purpose": "Function-memory case verified with attributed disk spill and a fixed test memory budget.",
       "decisionIds": [],
       "sources": [
         {
           "path": "docs/product/query-performance-v1.md",
           "revision": "2026-11-12 accepted decisions and open design",
           "kind": "intended"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/function-memory.md",
+          "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Require internal spill evidence and a concurrency-aware memory budget before function-scoped work_mem tuning. Restore the previous setting when recovery is qualified.",
+      "changeSummary": "Function-memory case verified with attributed disk spill and a fixed test memory budget.",
       "stack": [
         "Go"
       ],
@@ -413,17 +553,22 @@
       "id": "cron",
       "label": "Move an enrolled job",
       "type": "service",
-      "purpose": "Require repeated interference evidence and owner-approved windows/deadlines. Change future schedules only; never cancel running customer jobs.",
+      "purpose": "Scheduling case verified: move one job to an allowed quiet minute and preserve deadlines after restart.",
       "decisionIds": [],
       "sources": [
         {
           "path": "docs/product/query-performance-v1.md",
           "revision": "2026-11-12 accepted decisions and open design",
           "kind": "intended"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/cron-staging.md",
+          "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Require repeated interference evidence and owner-approved windows/deadlines. Change future schedules only; never cancel running customer jobs.",
+      "changeSummary": "Scheduling case verified: move one job to an allowed quiet minute and preserve deadlines after restart.",
       "stack": [
         "Go"
       ],
@@ -434,7 +579,7 @@
       "id": "recovery",
       "label": "Verify and reconcile",
       "type": "service",
-      "purpose": "Compare valid before/after observations; reconcile uncertain actions before retrying. Preserve improved, regressed, inconclusive and failed outcomes; recovery rules remain to be specified.",
+      "purpose": "Staging verification measures benefit and protected traffic; saved intent supports repair-specific recovery.",
       "decisionIds": [
         "d-reuse",
         "d-durability"
@@ -444,15 +589,272 @@
           "path": "docs/product/query-performance-v1.md",
           "revision": "2026-11-12 accepted decisions and open design",
           "kind": "intended"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/cron-staging.md",
+          "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/function-memory.md",
+          "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Compare valid before/after observations; reconcile uncertain actions before retrying. Preserve improved, regressed, inconclusive and failed outcomes; recovery rules remain to be specified.",
+      "changeSummary": "Staging verification measures benefit and protected traffic; saved intent supports repair-specific recovery.",
       "stack": [
         "Go"
       ],
       "parent": "tools",
       "after": "Compare valid before/after observations; reconcile uncertain actions before retrying. Preserve improved, regressed, inconclusive and failed outcomes; recovery rules remain to be specified."
+    },
+    {
+      "id": "screen-evidence",
+      "label": "Screen supplied evidence",
+      "type": "service",
+      "purpose": "Built: check supplied measurements and skip unsupported or healthy cases.",
+      "decisionIds": [],
+      "sources": [
+        {
+          "path": "investigator/graph.ts",
+          "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+          "kind": "verified"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Built: check supplied measurements and skip unsupported or healthy cases.",
+      "after": "Built: check supplied measurements and skip unsupported or healthy cases.",
+      "parent": "investigator",
+      "stack": [
+        "TypeScript"
+      ]
+    },
+    {
+      "id": "model-recommendation",
+      "label": "One Claude recommendation",
+      "type": "service",
+      "purpose": "Built: send plan, index checks and the supplied cause evidence together; validate the response.",
+      "decisionIds": [],
+      "sources": [
+        {
+          "path": "investigator/model.ts",
+          "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/live-repairs.md",
+          "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+          "kind": "verified"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Built: send plan, index checks and the supplied cause evidence together; validate the response.",
+      "after": "Built: send plan, index checks and the supplied cause evidence together; validate the response.",
+      "parent": "investigator",
+      "stack": [
+        "TypeScript",
+        "Anthropic"
+      ]
+    },
+    {
+      "id": "diagnose-causes",
+      "label": "Compare possible causes",
+      "type": "service",
+      "purpose": "Next: investigate why an unfamiliar query is slow before choosing a repair.",
+      "decisionIds": [],
+      "sources": [
+        {
+          "path": "docs/product/query-performance-v1.md",
+          "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+          "kind": "intended"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/roadmap.md",
+          "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+          "kind": "intended"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Next: investigate why an unfamiliar query is slow before choosing a repair.",
+      "after": "Next: investigate why an unfamiliar query is slow before choosing a repair.",
+      "parent": "investigator",
+      "stack": [
+        "TypeScript",
+        "LangGraph"
+      ]
+    },
+    {
+      "id": "request-evidence",
+      "label": "Ask for missing evidence",
+      "type": "service",
+      "purpose": "Next: let the investigator request useful Go measurements within permissions and cost limits.",
+      "decisionIds": [],
+      "sources": [
+        {
+          "path": "docs/product/query-performance-v1.md",
+          "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+          "kind": "intended"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/roadmap.md",
+          "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+          "kind": "intended"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Next: let the investigator request useful Go measurements within permissions and cost limits.",
+      "after": "Next: let the investigator request useful Go measurements within permissions and cost limits.",
+      "parent": "investigator",
+      "stack": [
+        "TypeScript",
+        "Go"
+      ]
+    },
+    {
+      "id": "repair-coverage",
+      "label": "Qualify broader repairs",
+      "type": "service",
+      "purpose": "Remaining: test richer repair variants and ordinary application workloads.",
+      "decisionIds": [],
+      "sources": [
+        {
+          "path": "docs/design/hosted-query-agent/roadmap.md",
+          "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+          "kind": "intended"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Remaining: test richer repair variants and ordinary application workloads.",
+      "after": "Remaining: test richer repair variants and ordinary application workloads.",
+      "parent": "tools",
+      "stack": [
+        "Go"
+      ]
+    },
+    {
+      "id": "connect-project",
+      "label": "Connect and enroll a project",
+      "type": "service",
+      "purpose": "Next: accept an authorized project connection and select the queries and objects Pooltune may manage.",
+      "decisionIds": [],
+      "sources": [
+        {
+          "path": "docs/design/hosted-query-agent/enrolled-staging.md",
+          "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/dedicated-login.md",
+          "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+          "kind": "verified"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Next: accept an authorized project connection and select the queries and objects Pooltune may manage.",
+      "after": "Next: accept an authorized project connection and select the queries and objects Pooltune may manage.",
+      "parent": "backend",
+      "stack": [
+        "Go",
+        "PostgreSQL"
+      ]
+    },
+    {
+      "id": "credential-lifecycle",
+      "label": "Credentials and disconnect",
+      "type": "service",
+      "purpose": "Remaining: store credentials securely, rotate them and stop access/work when disconnected.",
+      "decisionIds": [],
+      "sources": [
+        {
+          "path": "docs/design/hosted-query-agent/roadmap.md",
+          "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+          "kind": "intended"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Remaining: store credentials securely, rotate them and stop access/work when disconnected.",
+      "after": "Remaining: store credentials securely, rotate them and stop access/work when disconnected.",
+      "parent": "backend",
+      "stack": [
+        "Go"
+      ]
+    },
+    {
+      "id": "auth",
+      "label": "Sign-in and account access",
+      "type": "service",
+      "purpose": "Remaining: create accounts and restrict every project and action to its owner.",
+      "decisionIds": [],
+      "sources": [
+        {
+          "path": "docs/design/hosted-query-agent/roadmap.md",
+          "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+          "kind": "intended"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Remaining: create accounts and restrict every project and action to its owner.",
+      "after": "Remaining: create accounts and restrict every project and action to its owner.",
+      "parent": "dashboard"
+    },
+    {
+      "id": "activity",
+      "label": "Project activity and controls",
+      "type": "service",
+      "purpose": "Next: show detection, investigation, applied changes, verification and pause controls.",
+      "decisionIds": [],
+      "sources": [
+        {
+          "path": "docs/design/hosted-query-agent/roadmap.md",
+          "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+          "kind": "intended"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Next: show detection, investigation, applied changes, verification and pause controls.",
+      "after": "Next: show detection, investigation, applied changes, verification and pause controls.",
+      "parent": "dashboard"
+    },
+    {
+      "id": "landing",
+      "label": "Landing and onboarding pages",
+      "type": "service",
+      "purpose": "Remaining: explain Pooltune and guide a new user into their first project.",
+      "decisionIds": [],
+      "sources": [
+        {
+          "path": "docs/design/hosted-query-agent/roadmap.md",
+          "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+          "kind": "intended"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Remaining: explain Pooltune and guide a new user into their first project.",
+      "after": "Remaining: explain Pooltune and guide a new user into their first project.",
+      "parent": "dashboard"
+    },
+    {
+      "id": "operations",
+      "label": "Production operations",
+      "type": "service",
+      "purpose": "Remaining: qualify account separation, operating limits, monitoring and recovery for customer use.",
+      "decisionIds": [],
+      "sources": [
+        {
+          "path": "docs/design/hosted-query-agent/roadmap.md",
+          "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+          "kind": "intended"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Remaining: qualify account separation, operating limits, monitoring and recovery for customer use.",
+      "after": "Remaining: qualify account separation, operating limits, monitoring and recovery for customer use.",
+      "stack": [
+        "Go",
+        "PostgreSQL",
+        "Hosting choice open for production"
+      ]
     }
   ],
   "edges": [
@@ -508,7 +910,7 @@
       "id": "e-tools",
       "from": "investigator",
       "to": "tools",
-      "label": "requests structured operations"
+      "label": "returns a proposal for Go to validate and execute"
     },
     {
       "id": "e-execute",
@@ -538,19 +940,19 @@
       "id": "e-view",
       "from": "studio",
       "to": "investigator",
-      "label": "inspects development runs; setup proposed"
+      "label": "inspects investigator graph and development replays"
     },
     {
       "id": "e-context",
       "from": "inspection",
       "to": "experiments",
-      "label": "provides evidence gaps and context"
+      "label": "planned: identifies a decision-changing evidence gap"
     },
     {
       "id": "e-screen",
       "from": "experiments",
       "to": "index",
-      "label": "supplies qualified candidate evidence"
+      "label": "supplies index evidence when an index trial is justified"
     },
     {
       "id": "e-index-outcome",
@@ -587,6 +989,48 @@
       "from": "cron",
       "to": "recovery",
       "label": "supplies repair state for verification"
+    },
+    {
+      "id": "e-screen-model",
+      "from": "screen-evidence",
+      "to": "model-recommendation",
+      "label": "eligible supplied evidence reaches Claude"
+    },
+    {
+      "id": "e-diagnose-request",
+      "from": "diagnose-causes",
+      "to": "request-evidence",
+      "label": "planned: asks for a missing observation"
+    },
+    {
+      "id": "e-request-inspect",
+      "from": "request-evidence",
+      "to": "inspection",
+      "label": "planned: requests a permitted Go measurement"
+    },
+    {
+      "id": "e-auth-api",
+      "from": "auth",
+      "to": "backend",
+      "label": "planned: supplies authenticated account identity"
+    },
+    {
+      "id": "e-connect-credentials",
+      "from": "connect-project",
+      "to": "credential-lifecycle",
+      "label": "planned: manages enrolled project access"
+    },
+    {
+      "id": "e-activity-api",
+      "from": "activity",
+      "to": "backend",
+      "label": "planned: reads authorized activity and pause state"
+    },
+    {
+      "id": "e-ops-state",
+      "from": "operations",
+      "to": "state",
+      "label": "planned: governs isolation, retention and recovery"
     }
   ],
   "decisions": [
@@ -865,6 +1309,23 @@
         "e-context",
         "e-screen",
         "e-index-outcome"
+      ]
+    },
+    {
+      "id": "current-graph",
+      "title": "Current evidence-to-recommendation path",
+      "kind": "secondary",
+      "edgeIds": [
+        "e-screen-model"
+      ]
+    },
+    {
+      "id": "remaining-diagnosis",
+      "title": "Remaining diagnostic loop",
+      "kind": "secondary",
+      "edgeIds": [
+        "e-diagnose-request",
+        "e-request-inspect"
       ]
     }
   ]

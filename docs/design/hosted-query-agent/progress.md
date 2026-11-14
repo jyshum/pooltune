@@ -1,5 +1,12 @@
 # Design progress
 
+## Design-map status refresh, November 14, 2026
+
+Jared requested green highlights for completed work, updated/new nodes and the remaining build. This authorizes the map refresh and related explanation, not production feature changes. Existing ask/milestones settings persist; decision content and approval records remain untouched. The shared renderer now has a repository-local status presentation layer. Green means verified staging scope, amber partial, gray remaining, with explicit limits on every node. The incomplete diagnostic loop is visible under Investigator graph; connection, credentials, sign-in, activity and operations are also visible. The earlier design-only map claim and roadmap description are corrected. Source reference is `2a96b52`; user legacy edits are excluded.
+
+Verification: canonical design-map validation, complete status/evidence coverage, reproducible generated-output check, embedded JavaScript syntax and whitespace checks pass. Decision objects and approval records match the prior commit. The viewer's existing panel navigation handles the new node links. Browser security rejected the local file URL, so visual rendering and interactive behavior were not browser-verified; no alternate access route was used. No database or production code changed.
+
+
 ## Remaining-repairs technical results, November 14, 2026
 
 Task 26 passed its full hosted qualification on source `bc833c5`, deployment `753674b3-67f7-4ac3-b581-1f72c0afc2ad`, fixture `67de7231e86353727df62e2f`. Investigation 109 detected the workload; child 111 used one real Claude call (2.048 seconds) and applied the exact allowed schedule with unchanged guards; child 112 survived a consumer restart and saved `improved_tested_inputs`. Three original and three future target executions completed on time. Target busy-window database mean fell 33.641 → 0.0897 ms, with client p95 ranges 219.49–225.04 → 150.71–151.18 ms. All 7,663 requests completed with zero errors/misses. The brief spike was ignored, owned cleanup/preservation passed, and an independent Rookery read found zero Cron jobs and zero Pooltune trial schemas.

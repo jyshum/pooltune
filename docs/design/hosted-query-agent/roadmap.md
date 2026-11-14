@@ -1,6 +1,6 @@
 # Pooltune V1 build sequence
 
-The [V1 product plan](../../product/query-performance-v1.md) defines what we are building. The [interactive design map](design.html) shows how the pieces fit, while the [implementation plan](implementation.md) and [progress log](progress.md) show what has been built and tested. The map is a design snapshot from before the staged implementation and Studio shows actual graph runs or replays.
+The [V1 product plan](../../product/query-performance-v1.md) defines what we are building. The [interactive design map](design.html) shows how the pieces fit, while the [implementation plan](implementation.md) and [progress log](progress.md) show what has been built and tested. The map now shows verified staging scope, partial work and remaining nodes. It is a source snapshot; Studio shows investigator graph runs or replays.
 
 ## Where we are
 

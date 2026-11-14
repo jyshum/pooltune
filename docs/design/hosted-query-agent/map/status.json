@@ -1,0 +1,279 @@
+{
+  "sourceRevision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+  "summary": "Green means verified in the stated staging scope. Amber means part exists. Gray means remaining work. External services are context. This is build status, not design approval or production readiness.",
+  "next": [
+    "connect-project",
+    "diagnose-causes",
+    "request-evidence",
+    "activity",
+    "repair-coverage",
+    "auth",
+    "credential-lifecycle",
+    "operations"
+  ],
+  "nodes": {
+    "owner": {
+      "status": "external",
+      "scope": "Owns the project and decides what Pooltune may inspect or change.",
+      "remaining": "Customer permissions must be explicit before automatic work.",
+      "evidence": [
+        "docs/product/query-performance-v1.md"
+      ]
+    },
+    "customer-db": {
+      "status": "external",
+      "scope": "Rookery on Supabase supplies the measured staging workload.",
+      "remaining": "General project connections and additional providers are not implemented.",
+      "evidence": [
+        "docs/design/hosted-query-agent/cron-staging.md"
+      ]
+    },
+    "model": {
+      "status": "external",
+      "scope": "Claude interprets evidence and returns a typed proposal or no change.",
+      "remaining": "Provider failures and incorrect decisions remain possible; Go must independently check every action.",
+      "evidence": [
+        "investigator/model.ts"
+      ]
+    },
+    "collector": {
+      "status": "verified",
+      "scope": "Built in staging: collect enrolled query counters and detect repeated slowdowns.",
+      "remaining": "Broader signals, workload calibration and automatic query enrollment remain.",
+      "evidence": [
+        "internal/hostedquery/worker.go",
+        "docs/design/hosted-query-agent/mixed-traffic.md"
+      ]
+    },
+    "scheduler": {
+      "status": "verified",
+      "scope": "Built in staging: saved jobs, an always-on consumer, retries and delayed follow-ups survive restarts.",
+      "remaining": "Customer scheduling limits and abandoned-investigation lifecycle still need work.",
+      "evidence": [
+        "cmd/pooltune-consumer/main.go",
+        "internal/hostedquery/worker_store.go",
+        "docs/design/hosted-query-agent/cron-staging.md"
+      ]
+    },
+    "state": {
+      "status": "verified",
+      "scope": "Built in staging: PostgreSQL saves measurements, jobs, action intent and graph checkpoints.",
+      "remaining": "Account isolation, retention, backup/restore qualification and production secret handling remain.",
+      "evidence": [
+        "internal/hostedquery/worker_store.go",
+        "docs/design/hosted-query-agent/hosted-staging.md"
+      ]
+    },
+    "investigator": {
+      "status": "partial",
+      "scope": "Working graph screens supplied evidence and asks Claude for one bounded repair recommendation.",
+      "remaining": "It does not yet investigate competing causes or request additional evidence in a diagnostic loop.",
+      "evidence": [
+        "investigator/graph.ts",
+        "investigator/model.ts",
+        "docs/design/hosted-query-agent/live-repairs.md"
+      ]
+    },
+    "tools": {
+      "status": "partial",
+      "scope": "Six bounded repair cases are verified; broader evidence collection and customer repair coverage remain.",
+      "remaining": "Green repair cards refer to their tested staging slice, not the full production capability.",
+      "evidence": [
+        "docs/design/hosted-query-agent/roadmap.md",
+        "docs/design/hosted-query-agent/cron-staging.md"
+      ]
+    },
+    "inspection": {
+      "status": "partial",
+      "scope": "Go gathers measured plans, existing-index checks and repair-specific evidence for enrolled test cases.",
+      "remaining": "The investigator needs callable evidence tools to explore an unfamiliar slowdown and compare causes.",
+      "evidence": [
+        "investigator/graph.ts",
+        "docs/design/hosted-query-agent/live-repairs.md"
+      ]
+    },
+    "experiments": {
+      "status": "partial",
+      "scope": "Controlled before/after trials test whether a permitted change helps and harms other traffic.",
+      "remaining": "General experiment selection, customer resource headroom and representative workloads remain.",
+      "evidence": [
+        "docs/design/hosted-query-agent/mixed-traffic.md",
+        "docs/design/hosted-query-agent/function-memory.md"
+      ]
+    },
+    "index": {
+      "status": "verified",
+      "scope": "Single-column index case verified with real Claude and ongoing traffic.",
+      "remaining": "Compound indexes, broader query shapes and committed writes to the repaired table remain.",
+      "evidence": [
+        "docs/design/hosted-query-agent/mixed-traffic.md"
+      ]
+    },
+    "refresh": {
+      "status": "verified",
+      "scope": "Targeted ANALYZE case verified: refresh stale statistics and measure the result.",
+      "remaining": "Broader stale-statistics signals and representative customer traffic remain.",
+      "evidence": [
+        "docs/design/hosted-query-agent/targeted-analyze.md"
+      ]
+    },
+    "richer": {
+      "status": "verified",
+      "scope": "Joint-statistics case verified for related predicate columns.",
+      "remaining": "Column statistics targets and broader data distributions remain.",
+      "evidence": [
+        "docs/design/hosted-query-agent/richer-statistics.md"
+      ]
+    },
+    "cleanup": {
+      "status": "verified",
+      "scope": "Plain VACUUM case verified: reduce visibility work without replacing the index.",
+      "remaining": "Recurring cleanup settings and broader maintenance workloads remain.",
+      "evidence": [
+        "docs/design/hosted-query-agent/bounded-vacuum.md"
+      ]
+    },
+    "memory": {
+      "status": "verified",
+      "scope": "Function-memory case verified with attributed disk spill and a fixed test memory budget.",
+      "remaining": "Customer memory headroom, representative functions and wider concurrency remain.",
+      "evidence": [
+        "docs/design/hosted-query-agent/function-memory.md"
+      ]
+    },
+    "cron": {
+      "status": "verified",
+      "scope": "Scheduling case verified: move one job to an allowed quiet minute and preserve deadlines after restart.",
+      "remaining": "Real customer schedules, broader interference and safe recovery windows remain.",
+      "evidence": [
+        "docs/design/hosted-query-agent/cron-staging.md"
+      ]
+    },
+    "recovery": {
+      "status": "verified",
+      "scope": "Staging verification measures benefit and protected traffic; saved intent supports repair-specific recovery.",
+      "remaining": "Customer lifecycle, uncertain external changes and broader failure coverage remain.",
+      "evidence": [
+        "docs/design/hosted-query-agent/cron-staging.md",
+        "docs/design/hosted-query-agent/function-memory.md"
+      ]
+    },
+    "backend": {
+      "status": "planned",
+      "scope": "Hosted project API remains to be built for configuration, permissions and result access.",
+      "remaining": "Wire account ownership, credentials, enrollment, pause/disconnect and authorized history.",
+      "evidence": [
+        "docs/design/hosted-query-agent/roadmap.md"
+      ]
+    },
+    "dashboard": {
+      "status": "planned",
+      "scope": "Customer application remains to be built: sign-in, projects and visible repair activity.",
+      "remaining": "The legacy dashboard is not the hosted product. No final frontend or auth provider is selected.",
+      "evidence": [
+        "docs/design/hosted-query-agent/roadmap.md"
+      ]
+    },
+    "studio": {
+      "status": "partial",
+      "scope": "Developer graph registration and scripted replay were verified; Studio shows the investigator graph.",
+      "remaining": "A live view covering detector, queue, Go actions and outcomes still needs integration. Studio is not the customer dashboard.",
+      "evidence": [
+        "investigator/langgraph.json",
+        "docs/design/hosted-query-agent/index-slice.md"
+      ]
+    },
+    "screen-evidence": {
+      "status": "verified",
+      "scope": "Built: check supplied measurements and skip unsupported or healthy cases.",
+      "remaining": "Broader diagnosis must still use fresh evidence and retain no-change outcomes.",
+      "evidence": [
+        "investigator/graph.ts"
+      ]
+    },
+    "model-recommendation": {
+      "status": "verified",
+      "scope": "Built: send plan, index checks and the supplied cause evidence together; validate the response.",
+      "remaining": "These are one-cause cases, not a completed open-ended diagnostic loop.",
+      "evidence": [
+        "investigator/model.ts",
+        "docs/design/hosted-query-agent/live-repairs.md"
+      ]
+    },
+    "diagnose-causes": {
+      "status": "planned",
+      "scope": "Next: investigate why an unfamiliar query is slow before choosing a repair.",
+      "remaining": "Compare missing indexes, stale estimates, spill, contention and unsupported causes; test ambiguous cases.",
+      "evidence": [
+        "docs/product/query-performance-v1.md",
+        "docs/design/hosted-query-agent/roadmap.md"
+      ]
+    },
+    "request-evidence": {
+      "status": "planned",
+      "scope": "Next: let the investigator request useful Go measurements within permissions and cost limits.",
+      "remaining": "Add bounded tool requests, fresh-evidence reuse and stop conditions; avoid redundant experiments.",
+      "evidence": [
+        "docs/product/query-performance-v1.md",
+        "docs/design/hosted-query-agent/roadmap.md"
+      ]
+    },
+    "repair-coverage": {
+      "status": "planned",
+      "scope": "Remaining: test richer repair variants and ordinary application workloads.",
+      "remaining": "Compound indexes, statistics targets, cleanup settings, candidate-table writes, realistic memory budgets and schedules.",
+      "evidence": [
+        "docs/design/hosted-query-agent/roadmap.md"
+      ]
+    },
+    "connect-project": {
+      "status": "partial",
+      "scope": "Next: accept an authorized project connection and select the queries and objects Pooltune may manage.",
+      "remaining": "Dedicated Rookery evidence/revocation passed; general onboarding and repair grants are unfinished.",
+      "evidence": [
+        "docs/design/hosted-query-agent/enrolled-staging.md",
+        "docs/design/hosted-query-agent/dedicated-login.md"
+      ]
+    },
+    "credential-lifecycle": {
+      "status": "planned",
+      "scope": "Remaining: store credentials securely, rotate them and stop access/work when disconnected.",
+      "remaining": "Customer credential lifecycle and shutdown of in-flight sessions/jobs need implementation.",
+      "evidence": [
+        "docs/design/hosted-query-agent/roadmap.md"
+      ]
+    },
+    "auth": {
+      "status": "planned",
+      "scope": "Remaining: create accounts and restrict every project and action to its owner.",
+      "remaining": "Google/GitHub sign-in choices and auth provider remain open; account sign-in is separate from database access.",
+      "evidence": [
+        "docs/design/hosted-query-agent/roadmap.md"
+      ]
+    },
+    "activity": {
+      "status": "planned",
+      "scope": "Next: show detection, investigation, applied changes, verification and pause controls.",
+      "remaining": "Join Go worker and LangGraph events into one understandable timeline.",
+      "evidence": [
+        "docs/design/hosted-query-agent/roadmap.md"
+      ]
+    },
+    "landing": {
+      "status": "planned",
+      "scope": "Remaining: explain Pooltune and guide a new user into their first project.",
+      "remaining": "Implement the hosted web experience; keep product details understandable.",
+      "evidence": [
+        "docs/design/hosted-query-agent/roadmap.md"
+      ]
+    },
+    "operations": {
+      "status": "planned",
+      "scope": "Remaining: qualify account separation, operating limits, monitoring and recovery for customer use.",
+      "remaining": "Backups/restore, retention, cost limits, deployment/outage behavior and abandoned jobs remain.",
+      "evidence": [
+        "docs/design/hosted-query-agent/roadmap.md"
+      ]
+    }
+  }
+}
