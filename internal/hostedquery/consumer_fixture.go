@@ -10,22 +10,28 @@ import (
 )
 
 type ConsumerFixture struct {
-	ID         string     `json:"id"`
-	Schema     string     `json:"schema"`
-	Enrollment Enrollment `json:"enrollment"`
+	ID                string     `json:"id"`
+	Schema            string     `json:"schema"`
+	OrdinaryAnalyzeMS float64    `json:"ordinary_analyze_wall_ms,omitempty"`
+	Enrollment        Enrollment `json:"enrollment"`
 }
 
 // CreateConsumerFixture creates a committed synthetic fixture so it can survive a worker restart.
 func CreateConsumerFixture(ctx context.Context, target, state *pgx.Conn, route string) (ConsumerFixture, error) {
-	return createConsumerFixture(ctx, target, state, route, false)
+	return createConsumerFixture(ctx, target, state, route, "")
 }
 
 // CreateAnalyzeFixture prepares one private stale-statistics comparison.
 func CreateAnalyzeFixture(ctx context.Context, target, state *pgx.Conn, route string) (ConsumerFixture, error) {
-	return createConsumerFixture(ctx, target, state, route, true)
+	return createConsumerFixture(ctx, target, state, route, "analyze")
 }
 
-func createConsumerFixture(ctx context.Context, target, state *pgx.Conn, route string, analyze bool) (report ConsumerFixture, err error) {
+// CreateStatisticsFixture prepares correlated columns with current single-column statistics.
+func CreateStatisticsFixture(ctx context.Context, target, state *pgx.Conn, route string) (ConsumerFixture, error) {
+	return createConsumerFixture(ctx, target, state, route, "statistics")
+}
+
+func createConsumerFixture(ctx context.Context, target, state *pgx.Conn, route, repair string) (report ConsumerFixture, err error) {
 	if err := prepareJournal(ctx, state); err != nil {
 		return report, err
 	}
@@ -50,12 +56,17 @@ func createConsumerFixture(ctx context.Context, target, state *pgx.Conn, route s
 		return report, err
 	}
 	status, source := "consumer_ready", ""
-	if analyze {
-		status, source = "analyze_ready", "ONLY "
-		if err := writeTrialStatus(ctx, state, report.ID, "analyze_preparing", nil, nil); err != nil {
+	if repair != "" {
+		status, source = repair+"_ready", "ONLY "
+		if err := writeTrialStatus(ctx, state, report.ID, repair+"_preparing", nil, nil); err != nil {
 			return report, err
 		}
-		if err := seedStaleLookupStats(ctx, target, report.Schema); err != nil {
+		if repair == "statistics" {
+			report.OrdinaryAnalyzeMS, err = seedCorrelatedFixture(ctx, target, report.Schema)
+		} else {
+			err = seedStaleLookupStats(ctx, target, report.Schema)
+		}
+		if err != nil {
 			return report, err
 		}
 	}
@@ -66,7 +77,13 @@ func createConsumerFixture(ctx context.Context, target, state *pgx.Conn, route s
 		}
 		for _, lookup := range []struct{ table, column string }{{"healthy", "id"}, {"candidate", "lookup"}} {
 			sql := "SELECT id FROM " + source + qualified(report.Schema, lookup.table) + " WHERE " + lookup.column + "=$1"
-			plan, err := readPlan(ctx, tx, "EXPLAIN (FORMAT JSON, VERBOSE) "+sql)
+			var plan explain
+			var err error
+			if repair == "statistics" && lookup.table == "candidate" {
+				plan, err = readStatisticsPlan(ctx, tx, report.Schema, statisticsCases[0])
+			} else {
+				plan, err = readPlan(ctx, tx, "EXPLAIN (FORMAT JSON, VERBOSE) "+sql)
+			}
 			if err != nil {
 				return err
 			}

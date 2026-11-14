@@ -7,16 +7,17 @@ import (
 
 // IndexEvidence is a bounded snapshot of an enrolled synthetic lookup.
 type IndexEvidence struct {
-	RunID       string           `json:"run_id"`
-	At          time.Time        `json:"observed_at"`
-	Decision    Decision         `json:"decision"`
-	TableOID    uint32           `json:"table_oid"`
-	Column      int16            `json:"column_number"`
-	Existing    bool             `json:"covering_index"`
-	Analyze     *AnalyzeEvidence `json:"analyze,omitempty"`
-	Plan        PlanEvidence     `json:"plan"`
-	ExecutionMS float64          `json:"-"`
-	Label       string           `json:"lookup_column"`
+	RunID       string              `json:"run_id"`
+	At          time.Time           `json:"observed_at"`
+	Decision    Decision            `json:"decision"`
+	TableOID    uint32              `json:"table_oid"`
+	Column      int16               `json:"column_number"`
+	Existing    bool                `json:"covering_index"`
+	Statistics  *StatisticsEvidence `json:"statistics,omitempty"`
+	Analyze     *AnalyzeEvidence    `json:"analyze,omitempty"`
+	Plan        PlanEvidence        `json:"plan"`
+	ExecutionMS float64             `json:"-"`
+	Label       string              `json:"lookup_column"`
 }
 
 // IndexProposal refers to evidence by identity. Only Go resolves identifiers.

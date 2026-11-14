@@ -219,6 +219,13 @@ Depends on Task 19. Follows d-workflow r1, d-reuse r1, and repair 2 of the V1 de
 - [x] Reproduce stale lookup-column statistics on a disposable fixture with an existing index. Qualify a worthwhile query with a measured 10x row estimate error. Use the shared graph and exact Go-gated column-scoped ANALYZE.
 - [x] Reuse the matched test-input baseline, measure plan accuracy and reads/writes after, and record a single Railway timeline. Keep pending actions from repeating automatically. Verify a healthy control and fixture cleanup. [Targeted ANALYZE results](targeted-analyze.md)
 
+### Task 21: Qualify richer planner statistics through the shared queue
+
+Depends on Task 20. Follows d-workflow r1, d-reuse r1, and repair 3 of the V1 design.
+
+- [x] Use two representative inputs with a measured row-estimate error after a current ordinary ANALYZE. Verify a relationship between the two predicate columns and check for existing extended statistics before applying a scoped MCV statistics object.
+- [x] Verify both inputs, protected reads and writes, added analysis time and statistics storage. Run one Rookery/Railway timeline and retain the outcome and cleanup evidence. [Rookery job 38](richer-statistics.md#one-railway-run-on-rookery)
+
 ## Candidate test application inspection (historical)
 
 

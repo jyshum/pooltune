@@ -308,9 +308,9 @@ func readPlan(ctx context.Context, tx pgx.Tx, sql string) (explain, error) {
 	return readLookupPlan(ctx, tx, sql, inputIDs[0])
 }
 
-func readLookupPlan(ctx context.Context, tx pgx.Tx, sql string, input int32) (explain, error) {
+func readLookupPlan(ctx context.Context, tx pgx.Tx, sql string, args ...any) (explain, error) {
 	var raw []byte
-	if err := tx.QueryRow(ctx, sql, input).Scan(&raw); err != nil {
+	if err := tx.QueryRow(ctx, sql, args...).Scan(&raw); err != nil {
 		return explain{}, err
 	}
 	var plans []explain

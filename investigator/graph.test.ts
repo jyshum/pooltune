@@ -103,3 +103,12 @@ test("the shared graph recommends targeted ANALYZE only for a material row estim
   const current = await graph.invoke({ evidence: { ...stale, analyze: { estimated_rows: 2, actual_rows: 1 } } });
   assert.equal(current.proposal?.outcome, "no_change");
 });
+
+test("the shared graph requires two measured errors and a correlation clue for richer statistics", async () => {
+  const graph = buildGraph(async () => { throw new Error("index model should not be called"); });
+  const statistics = { correlated_columns: true, cases: [{ estimated_rows: 25000, actual_rows: 1 }, { estimated_rows: 24999, actual_rows: 1 }] };
+  const result = await graph.invoke({ evidence: { ...evidence, statistics } });
+  assert.equal(result.proposal?.repair, "statistics");
+  const unsupported = await graph.invoke({ evidence: { ...evidence, statistics: { ...statistics, correlated_columns: false } } });
+  assert.equal(unsupported.proposal?.outcome, "no_change");
+});

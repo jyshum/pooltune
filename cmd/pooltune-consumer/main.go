@@ -24,6 +24,7 @@ import (
 func main() {
 	route := flag.String("target", "local", "development target: local, rookery or staging")
 	project := flag.String("project", "", "enrolled project identity")
+	statistics := flag.Bool("statistics-staging-fixture", false, "qualify richer planner statistics from the staging queue")
 	analyze := flag.Bool("analyze-staging-fixture", false, "qualify one targeted ANALYZE from the staging queue")
 	repair := flag.Bool("repair-staging-fixture", false, "qualify one owned Rookery fixture repair from the staging queue")
 	measure := flag.Bool("measure-staging-lookup", false, "measure one authorized synthetic Rookery lookup")
@@ -44,13 +45,13 @@ func main() {
 		fmt.Fprintln(os.Stderr, "staging uses the scripted investigator")
 		os.Exit(2)
 	}
-	if err := run(ctx, *route, *project, *fixture, *mode, *enrolledPath, *measure, *repair, *analyze, *poll); err != nil {
+	if err := run(ctx, *route, *project, *fixture, *mode, *enrolledPath, *measure, *repair, *analyze, *statistics, *poll); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 }
 
-func run(ctx context.Context, route, project, fixture, mode, enrolledPath string, measure, repair, analyze bool, poll time.Duration) error {
+func run(ctx context.Context, route, project, fixture, mode, enrolledPath string, measure, repair, analyze, statistics bool, poll time.Duration) error {
 	target, err := labdb.TargetConfig(os.Getenv("POOLTUNE_WORKER_TARGET_DSN"), route)
 	if err != nil {
 		return fmt.Errorf("consumer target: %w", err)
@@ -64,12 +65,12 @@ func run(ctx context.Context, route, project, fixture, mode, enrolledPath string
 		return errors.New("consumer target and state must use separate databases")
 	}
 	target.RuntimeParams["application_name"] = "pooltune-consumer"
-	if !repair && !analyze {
+	if !repair && !analyze && !statistics {
 		target.RuntimeParams["default_transaction_read_only"] = "on"
 	}
 	stateConfig.RuntimeParams["application_name"] = "pooltune-consumer-state"
 	stateConfig.RuntimeParams["statement_timeout"] = "3s"
-	if (repair || analyze) && (route != "rookery" || mode != "scripted" || os.Getenv("POOLTUNE_STAGING_PRIVATE_STATE") != "1" || measure || (repair && analyze)) {
+	if (repair || analyze || statistics) && (route != "rookery" || mode != "scripted" || os.Getenv("POOLTUNE_STAGING_PRIVATE_STATE") != "1" || measure || (repair && analyze) || (statistics && (repair || analyze))) {
 		return errors.New("repair requires the scripted Rookery fixture and Railway private state")
 	}
 	if measure && (route != "rookery-enrolled" || mode != "scripted") {
@@ -128,11 +129,13 @@ func run(ctx context.Context, route, project, fixture, mode, enrolledPath string
 		if err == nil {
 			var result *hostedquery.DispatchResult
 			var workErr error
-			if repair || analyze {
+			if repair || analyze || statistics {
 				binding := hostedquery.ConsumerFixture{ID: fixture, Enrollment: hostedquery.Enrollment{Project: project}}
 				dispatch := hostedquery.DispatchFixtureRepair
 				if analyze {
 					dispatch = hostedquery.DispatchFixtureAnalyze
+				} else if statistics {
+					dispatch = hostedquery.DispatchFixtureStatistics
 				}
 				result, workErr = dispatch(ctx, state, target, route, binding, investigate)
 			} else if measure {

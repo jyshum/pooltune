@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/jackc/pgx/v5"
 )
@@ -216,6 +217,33 @@ func cleanTrial(ctx context.Context, target, state *pgx.Conn, id string) (string
 		}
 		if unexpected {
 			return errors.New("fixture contains unexpected relations or triggers")
+		}
+		if strings.HasPrefix(status, "statistics_") {
+			var exists, hasStats bool
+			err := tx.QueryRow(ctx, "SELECT to_regclass($1) IS NOT NULL, EXISTS(SELECT FROM pg_statistic_ext WHERE stxrelid IN ($2,$3) OR stxnamespace=$4)",
+				qualified(schema, trialIndex), actual.Candidate, actual.Healthy, actual.Schema).Scan(&exists, &hasStats)
+			if err != nil {
+				return err
+			}
+			if hasStats && status != "statistics_pending" && status != "statistics_verified" {
+				return errors.New("extended statistics appeared before a repair was authorized")
+			}
+			if exists {
+				if err := validateStatisticsFixture(ctx, tx, id, expected, hasStats); err != nil {
+					return err
+				}
+			} else if status != "statistics_preparing" || hasStats {
+				return errors.New("statistics fixture index disappeared")
+			}
+			observed = "absent"
+			if hasStats {
+				observed = "statistics_present"
+			}
+			if _, err := tx.Exec(ctx, "DROP TABLE "+candidate+", "+healthy+" RESTRICT"); err != nil {
+				return err
+			}
+			_, err = tx.Exec(ctx, "DROP SCHEMA "+pgx.Identifier{schema}.Sanitize()+" RESTRICT")
+			return err
 		}
 		index, err := inspectTrialIndex(ctx, tx, schema)
 		if err != nil {

@@ -1,5 +1,9 @@
 # Design progress
 
+## Richer planner statistics in the hosted queue, November 14, 2026
+
+Task 21 used the same queue and graph to add one joint summary for two related columns. Rookery job 38 reused the existing index for both inputs. Mean reads fell from 13.709 to 0.093 ms and from 13.797 to 0.207 ms. The run took 31.659 seconds from first traffic to saved result. The fixture was removed after the checks. Broader input coverage, repeated maintenance-cost measurements and column statistics-target changes remain open. [Results and trade-offs](richer-statistics.md)
+
 ## Targeted ANALYZE in the hosted queue, November 14, 2026
 
 Task 20 refreshed one lookup column from the same Railway queue and shared LangGraph. Rookery job 27 reduced the row estimate from 106,720 to one, used the existing index, and improved the measured lookup from 10.709 ms to 0.023 ms. The complete staging run took 29.245 seconds. The [results and trade-offs](targeted-analyze.md) distinguish the hosted measurements from local recovery and concurrent-refresh checks. The modification-count detection path and customer qualification remain open.
