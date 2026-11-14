@@ -6,6 +6,16 @@ The first Railway/Rookery attempt stopped before activating its target job. It m
 
 Normal monitoring created no investigation. The short manual spike averaged **6.310 ms**, above the fixed **3 ms** objective, but also created no investigation. All **2,223 offered requests** completed without errors or missed slots. The attempt lasted **558.270 seconds**, including clock alignment, healthy comparisons, the spike and failed automatic cleanup attempts. This is test setup/failure time, not agent decision latency. There are no before/after scheduled-repair timings to report.
 
+## Provider-guard follow-up: activation passed, measurement timing refused
+
+Source `fc3d781`, deployment `4d001521-03b6-409d-8d80-652b1cfdc141`, fixture `d8effa98576ae11f4abf0117`. Supported-API activation succeeded without a privilege grant. The first real scheduled target run succeeded in **16.458 seconds**. The short spike averaged **3.137 ms** against a fixed **3 ms** objective and created no investigation.
+
+The sustained workload created job **101** after **20.932 seconds**. The consumer saved `awaiting_evidence` and a delayed child **102**. It made **zero Claude calls and zero schedule repairs**, because three actual periods were not yet available. The report's 4.196-second `repair_seconds` field is the time to that intermediate waiting result, not a verified repair.
+
+Recording the first period failed with the generic `fixture command exited 1`. The saved phase timestamps independently show an invalid measurement: the control window began **1.026 seconds** after its boundary and the quiet window **1.015 seconds** after its boundary, exceeding the prespecified one-second allowance. The driver discarded command stderr, so the report does not establish which internal check failed first. The bounded timing fix must remove repeated network/setup delays from window alignment without relaxing the gate. Failure diagnostics and complete period evidence also need preservation.
+
+All **3,051 requests** completed with zero errors or missed slots. Automatic cleanup verified zero owned jobs/fixtures and unchanged unrelated jobs/public indexes; an independent read confirmed empty jobs and fixtures. Total attempt time was **523.725 seconds**, including setup, clock alignment, one cycle and cleanup. This is failed qualification, not an agent-speed result. [Preserved follow-up evidence](evidence/mixed-traffic/cron-window-alignment-failed.json).
+
 ## Problems found
 
 A follow-up check also reproduced an activation failure under `TZ=UTC`, matching Railway, while the local default timezone passed. The scheduler-generation comparison used `time.Time` values whose location representation changed after JSON persistence. Commit `7b88d99` compares actual instants while preserving exact process/start identity. UTC regression and race tests passed; final narrow review is recorded in progress. The original driver saved a generic command failure, so its report alone does not identify which activation guard refused first.
@@ -20,10 +30,12 @@ The target remained inactive and had **zero execution-history entries**. Recover
 
 ## Historical grant option and provider-compatible path
 
-First finish and review the UTC scheduler comparison, typed-ID cleanup and pre-creation permission guard. The guard should refuse this setup before creating a fixture or job when row-lock authority is absent.
+The UTC comparison, typed-ID cleanup and pre-creation permission checks were implemented and reviewed. The temporary direct-row-lock guard refused the original setup before creating jobs. It was then replaced by the supported API guard below.
 
 A minimal temporary setup option is `GRANT UPDATE (jobid) ON cron.job TO postgres`, followed by `REVOKE UPDATE (jobid) ON cron.job FROM postgres` after the bounded test and cleanup. It enables the required lock, but it also grants column-write authority; it is not a lock-only permission. The test code would still act only on its exact owned jobs. Record the original column privilege before any grant, and remove only a grant added by this trial. No other job columns or server settings are proposed.
 
 **No grant was requested or performed.** Further read-only inspection showed both available connections lack grant authority and cannot assume the catalog owner. The grant option is therefore unavailable through current access. A real inactive-job probe instead demonstrated write-conflict refusal through the supported API inside a consistent-snapshot transaction. See the [provider-compatible guard design](cron-provider-guard.md) for its evidence, required tests and trade-offs. It must preserve the same no-overwrite behavior; removing protection or broadening permissions is not an acceptable shortcut.
 
-Once the provider-compatible guard is implemented, reviewed and verified, use the same required three original and three future cycles, real Claude decision, unchanged traffic/deadline gates, consumer restart and owned cleanup. One passing scheduling alteration alone is insufficient.
+The provider-compatible guard is implemented in `fc3d781` and passed independent scoped review. Both the target and active diagnostic witness receive supported API writes inside one Repeatable Read transaction, after saved intent. Concurrent changes abort instead of overwriting the other change. Restricted-role tests passed without direct catalog UPDATE; the complete Go integration suite passed under UTC. No extra Rookery permission was granted.
+
+Deployment `4d001521-03b6-409d-8d80-652b1cfdc141` reached SUCCESS; its failed timing follow-up is recorded above. The scheduling repair must still pass three original and three future cycles, real Claude, unchanged traffic/deadline gates, consumer restart and owned cleanup. One passing scheduling alteration alone is insufficient.

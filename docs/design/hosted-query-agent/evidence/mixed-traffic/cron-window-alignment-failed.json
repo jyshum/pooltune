@@ -1,0 +1,6244 @@
+{
+  "repair": "cron",
+  "phases": [
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T20:55:35.413Z",
+      "seconds": 10,
+      "counters": [
+        {
+          "query_id": "703000873111273164",
+          "calls": 20,
+          "execution_ms": 1.118776,
+          "blocks": 100,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3370560422602638696",
+          "calls": 40,
+          "execution_ms": 1.006767,
+          "blocks": 120,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 153.70199700000376,
+          "p95_ms": 154.6950780000043,
+          "p99_ms": 159.3318450000006,
+          "max_ms": 159.3318450000006,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 152.69887700000254,
+          "p95_ms": 154.55935700000555,
+          "p99_ms": 159.14502700000594,
+          "max_ms": 159.14502700000594,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T20:55:46.196Z",
+      "seconds": 10,
+      "counters": [
+        {
+          "query_id": "703000873111273164",
+          "calls": 20,
+          "execution_ms": 1.1296989999999998,
+          "blocks": 101,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3370560422602638696",
+          "calls": 40,
+          "execution_ms": 1.0853479999999998,
+          "blocks": 120,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 153.63703199999873,
+          "p95_ms": 154.77361799999926,
+          "p99_ms": 155.42552499999874,
+          "max_ms": 155.42552499999874,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 152.70585500000016,
+          "p95_ms": 154.82821200000035,
+          "p99_ms": 155.11329299999488,
+          "max_ms": 155.11329299999488,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T20:55:56.978Z",
+      "seconds": 3.1753779296875,
+      "counters": [
+        {
+          "query_id": "703000873111273164",
+          "calls": 7,
+          "execution_ms": 0.37145300000000026,
+          "blocks": 35,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3370560422602638696",
+          "calls": 13,
+          "execution_ms": 0.2937620000000001,
+          "blocks": 39,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 13,
+          "completed": 13,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.0940008678838975,
+          "p50_ms": 153.5501929999955,
+          "p95_ms": 155.461037999994,
+          "p99_ms": 155.461037999994,
+          "max_ms": 155.461037999994,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 7,
+          "completed": 7,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.2044620057836375,
+          "p50_ms": 152.81071299999894,
+          "p95_ms": 154.6666339999938,
+          "p99_ms": 154.6666339999938,
+          "max_ms": 154.6666339999938,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "monitor_off",
+      "start": "2026-11-14T20:56:00.936Z",
+      "seconds": 20,
+      "counters": [
+        {
+          "query_id": "703000873111273164",
+          "calls": 40,
+          "execution_ms": 2.4872300000000003,
+          "blocks": 200,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "2030624601616570513",
+          "calls": 40,
+          "execution_ms": 6.777551999999999,
+          "blocks": 241,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3370560422602638696",
+          "calls": 80,
+          "execution_ms": 1.5748360000000003,
+          "blocks": 240,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 150.287986000003,
+          "p95_ms": 155.1216390000045,
+          "p99_ms": 156.98186500000156,
+          "max_ms": 156.98186500000156,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 80,
+          "completed": 80,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 153.76225400000112,
+          "p95_ms": 155.239883000002,
+          "p99_ms": 157.1915880000015,
+          "max_ms": 157.1915880000015,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 152.7863950000028,
+          "p95_ms": 154.2425149999981,
+          "p99_ms": 156.517061999999,
+          "max_ms": 156.517061999999,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T20:56:21.726Z",
+      "seconds": 8.429360107421875,
+      "counters": [
+        {
+          "query_id": "703000873111273164",
+          "calls": 17,
+          "execution_ms": 0.9415619999999993,
+          "blocks": 85,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3370560422602638696",
+          "calls": 34,
+          "execution_ms": 0.7771499999999998,
+          "blocks": 102,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 34,
+          "completed": 34,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.033520880198689,
+          "p50_ms": 153.75173299999733,
+          "p95_ms": 154.76221099999384,
+          "p99_ms": 154.87685899999633,
+          "max_ms": 154.87685899999633,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 17,
+          "completed": 17,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.0167604400993446,
+          "p50_ms": 152.51435599999968,
+          "p95_ms": 154.66825299999618,
+          "p99_ms": 154.66825299999618,
+          "max_ms": 154.66825299999618,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "monitor_on",
+      "start": "2026-11-14T20:56:30.961Z",
+      "seconds": 20,
+      "counters": [
+        {
+          "query_id": "703000873111273164",
+          "calls": 40,
+          "execution_ms": 2.306584,
+          "blocks": 200,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "2030624601616570513",
+          "calls": 40,
+          "execution_ms": 3.738557,
+          "blocks": 120,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 10,
+          "execution_ms": 31.11576200000036,
+          "blocks": 18,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3370560422602638696",
+          "calls": 80,
+          "execution_ms": 1.6266350000000003,
+          "blocks": 240,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 153.5496470000071,
+          "p95_ms": 155.3236700000125,
+          "p99_ms": 158.39759000000777,
+          "max_ms": 158.39759000000777,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 80,
+          "completed": 80,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 154.00928000001295,
+          "p95_ms": 157.54653400000825,
+          "p99_ms": 161.58066099999996,
+          "max_ms": 161.58066099999996,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 156.84032899999875,
+          "p95_ms": 159.9559370000061,
+          "p99_ms": 162.31347000000824,
+          "max_ms": 162.31347000000824,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T20:56:51.748Z",
+      "seconds": 10,
+      "counters": [
+        {
+          "query_id": "703000873111273164",
+          "calls": 20,
+          "execution_ms": 1.1076930000000011,
+          "blocks": 100,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 5,
+          "execution_ms": 13.158543999999893,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3370560422602638696",
+          "calls": 40,
+          "execution_ms": 0.9342809999999995,
+          "blocks": 120,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 153.91284900000028,
+          "p95_ms": 155.59696399999666,
+          "p99_ms": 157.72112599998945,
+          "max_ms": 157.72112599998945,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 156.8226999999897,
+          "p95_ms": 158.42604299999948,
+          "p99_ms": 158.51850799999374,
+          "max_ms": 158.51850799999374,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T20:57:02.533Z",
+      "seconds": 10,
+      "counters": [
+        {
+          "query_id": "703000873111273164",
+          "calls": 20,
+          "execution_ms": 1.0769149999999996,
+          "blocks": 100,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 5,
+          "execution_ms": 13.277403000010054,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3370560422602638696",
+          "calls": 40,
+          "execution_ms": 0.9477389999999994,
+          "blocks": 120,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 153.99878400001035,
+          "p95_ms": 155.55275900001288,
+          "p99_ms": 157.53070200000366,
+          "max_ms": 157.53070200000366,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 156.66079100000206,
+          "p95_ms": 158.21432600000117,
+          "p99_ms": 160.4150970000046,
+          "max_ms": 160.4150970000046,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T20:57:13.317Z",
+      "seconds": 10,
+      "counters": [
+        {
+          "query_id": "703000873111273164",
+          "calls": 20,
+          "execution_ms": 1.1174140000000001,
+          "blocks": 100,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 5,
+          "execution_ms": 14.428426999989824,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3370560422602638696",
+          "calls": 40,
+          "execution_ms": 0.9215799999999916,
+          "blocks": 120,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 153.80096299998695,
+          "p95_ms": 155.1563269999897,
+          "p99_ms": 155.94701499998337,
+          "max_ms": 155.94701499998337,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 156.4608600000065,
+          "p95_ms": 158.16690499999095,
+          "p99_ms": 158.7751569999964,
+          "max_ms": 158.7751569999964,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T20:57:24.105Z",
+      "seconds": 10,
+      "counters": [
+        {
+          "query_id": "703000873111273164",
+          "calls": 20,
+          "execution_ms": 1.139104999999999,
+          "blocks": 100,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 6,
+          "execution_ms": 16.582565000010163,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3370560422602638696",
+          "calls": 40,
+          "execution_ms": 0.9020010000000092,
+          "blocks": 120,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 153.67155100000673,
+          "p95_ms": 156.65791999999783,
+          "p99_ms": 157.09188799999538,
+          "max_ms": 157.09188799999538,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 156.40729199998896,
+          "p95_ms": 158.5669629999902,
+          "p99_ms": 159.47243100000196,
+          "max_ms": 159.47243100000196,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T20:57:34.894Z",
+      "seconds": 10,
+      "counters": [
+        {
+          "query_id": "703000873111273164",
+          "calls": 20,
+          "execution_ms": 1.0461400000000012,
+          "blocks": 100,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 5,
+          "execution_ms": 13.118040999990171,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3370560422602638696",
+          "calls": 40,
+          "execution_ms": 0.9009730000000005,
+          "blocks": 120,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 153.72253599998658,
+          "p95_ms": 154.38972599999397,
+          "p99_ms": 154.69378199998755,
+          "max_ms": 154.69378199998755,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 156.45117099999334,
+          "p95_ms": 157.52728099998785,
+          "p99_ms": 157.60110599998734,
+          "max_ms": 157.60110599998734,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T20:57:45.683Z",
+      "seconds": 10,
+      "counters": [
+        {
+          "query_id": "703000873111273164",
+          "calls": 20,
+          "execution_ms": 1.103681,
+          "blocks": 100,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 5,
+          "execution_ms": 13.259472999999616,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3370560422602638696",
+          "calls": 40,
+          "execution_ms": 0.9063239999999997,
+          "blocks": 120,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 153.88277900000685,
+          "p95_ms": 154.73879800000577,
+          "p99_ms": 155.51474700000836,
+          "max_ms": 155.51474700000836,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 156.56023600001936,
+          "p95_ms": 157.7987209999992,
+          "p99_ms": 158.00346400000853,
+          "max_ms": 158.00346400000853,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T20:57:56.468Z",
+      "seconds": 3.685303955078125,
+      "counters": [
+        {
+          "query_id": "703000873111273164",
+          "calls": 8,
+          "execution_ms": 0.4186129999999988,
+          "blocks": 40,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 2,
+          "execution_ms": 5.370577000000139,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3370560422602638696",
+          "calls": 15,
+          "execution_ms": 0.36675199999999997,
+          "blocks": 45,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 15,
+          "completed": 15,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.070220579589076,
+          "p50_ms": 153.45246800000314,
+          "p95_ms": 154.0208209999837,
+          "p99_ms": 154.0208209999837,
+          "max_ms": 154.0208209999837,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 8,
+          "completed": 8,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.170784309114174,
+          "p50_ms": 156.30950899998425,
+          "p95_ms": 157.03991299998597,
+          "p99_ms": 157.03991299998597,
+          "max_ms": 157.03991299998597,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "monitor_on",
+      "start": "2026-11-14T20:58:00.934Z",
+      "seconds": 20,
+      "counters": [
+        {
+          "query_id": "703000873111273164",
+          "calls": 40,
+          "execution_ms": 2.1022360000000013,
+          "blocks": 200,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "2030624601616570513",
+          "calls": 40,
+          "execution_ms": 4.095599000000002,
+          "blocks": 120,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 10,
+          "execution_ms": 26.40083800000002,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3370560422602638696",
+          "calls": 80,
+          "execution_ms": 1.6596130000000002,
+          "blocks": 240,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 153.33522900001844,
+          "p95_ms": 154.6502160000091,
+          "p99_ms": 155.30166100000497,
+          "max_ms": 155.30166100000497,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 80,
+          "completed": 80,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 153.48912400001427,
+          "p95_ms": 154.2676780000038,
+          "p99_ms": 161.66540900000837,
+          "max_ms": 161.66540900000837,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 156.45127499999944,
+          "p95_ms": 157.02453799999785,
+          "p99_ms": 158.61908200001926,
+          "max_ms": 158.61908200001926,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T20:58:21.725Z",
+      "seconds": 8.427991943359375,
+      "counters": [
+        {
+          "query_id": "703000873111273164",
+          "calls": 17,
+          "execution_ms": 0.9325340000000004,
+          "blocks": 85,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 5,
+          "execution_ms": 13.163262999999915,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3370560422602638696",
+          "calls": 34,
+          "execution_ms": 0.8257309999999993,
+          "blocks": 102,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 34,
+          "completed": 34,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.034175664677687,
+          "p50_ms": 153.54713000002084,
+          "p95_ms": 154.4319180000166,
+          "p99_ms": 154.79341000001295,
+          "max_ms": 154.79341000001295,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 17,
+          "completed": 17,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.0170878323388437,
+          "p50_ms": 156.28850900000543,
+          "p95_ms": 157.22764600001392,
+          "p99_ms": 157.22764600001392,
+          "max_ms": 157.22764600001392,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "monitor_off",
+      "start": "2026-11-14T20:58:30.948Z",
+      "seconds": 20,
+      "counters": [
+        {
+          "query_id": "703000873111273164",
+          "calls": 40,
+          "execution_ms": 2.2005680000000005,
+          "blocks": 200,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "2030624601616570513",
+          "calls": 40,
+          "execution_ms": 3.625951999999998,
+          "blocks": 120,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3370560422602638696",
+          "calls": 80,
+          "execution_ms": 1.598008,
+          "blocks": 240,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 153.32307399998535,
+          "p95_ms": 154.3460839999898,
+          "p99_ms": 154.9422219999833,
+          "max_ms": 154.9422219999833,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 80,
+          "completed": 80,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 153.5171289999853,
+          "p95_ms": 154.47700399998575,
+          "p99_ms": 156.87789599999087,
+          "max_ms": 156.87789599999087,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 156.43027699997765,
+          "p95_ms": 157.36144799998146,
+          "p99_ms": 158.30858899999293,
+          "max_ms": 158.30858899999293,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T20:58:51.751Z",
+      "seconds": 10,
+      "counters": [
+        {
+          "query_id": "703000873111273164",
+          "calls": 20,
+          "execution_ms": 1.0972739999999988,
+          "blocks": 100,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 5,
+          "execution_ms": 17.22974299999987,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3370560422602638696",
+          "calls": 40,
+          "execution_ms": 0.9260610000000007,
+          "blocks": 120,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 153.64237600000342,
+          "p95_ms": 155.60848399999668,
+          "p99_ms": 156.11567199998535,
+          "max_ms": 156.11567199998535,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 156.3098020000034,
+          "p95_ms": 157.58380900000338,
+          "p99_ms": 158.51422700000694,
+          "max_ms": 158.51422700000694,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T20:59:02.534Z",
+      "seconds": 10,
+      "counters": [
+        {
+          "query_id": "703000873111273164",
+          "calls": 20,
+          "execution_ms": 1.147583000000001,
+          "blocks": 100,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 6,
+          "execution_ms": 15.927396000000044,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3370560422602638696",
+          "calls": 40,
+          "execution_ms": 0.9135910000000003,
+          "blocks": 120,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 153.7391710000229,
+          "p95_ms": 155.33287199999904,
+          "p99_ms": 157.79665100001148,
+          "max_ms": 157.79665100001148,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 156.70137399999658,
+          "p95_ms": 157.27184100000886,
+          "p99_ms": 157.7148589999997,
+          "max_ms": 157.7148589999997,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T20:59:13.320Z",
+      "seconds": 10,
+      "counters": [
+        {
+          "query_id": "703000873111273164",
+          "calls": 20,
+          "execution_ms": 15.600462999999998,
+          "blocks": 100,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 5,
+          "execution_ms": 13.547888000000057,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3370560422602638696",
+          "calls": 40,
+          "execution_ms": 1.0603279999999984,
+          "blocks": 120,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 153.6144149999891,
+          "p95_ms": 154.77569199999562,
+          "p99_ms": 155.78155099999276,
+          "max_ms": 155.78155099999276,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 156.2108920000028,
+          "p95_ms": 157.89696399998502,
+          "p99_ms": 171.64785499998834,
+          "max_ms": 171.64785499998834,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T20:59:24.105Z",
+      "seconds": 10,
+      "counters": [
+        {
+          "query_id": "703000873111273164",
+          "calls": 20,
+          "execution_ms": 1.1446180000000012,
+          "blocks": 100,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 5,
+          "execution_ms": 13.22832500000004,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3370560422602638696",
+          "calls": 40,
+          "execution_ms": 1.0421620000000011,
+          "blocks": 120,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 153.5494840000174,
+          "p95_ms": 154.64932100003352,
+          "p99_ms": 158.93253499999992,
+          "max_ms": 158.93253499999992,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 156.4760510000051,
+          "p95_ms": 159.16502400001627,
+          "p99_ms": 161.78205400001025,
+          "max_ms": 161.78205400001025,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T20:59:34.891Z",
+      "seconds": 10,
+      "counters": [
+        {
+          "query_id": "703000873111273164",
+          "calls": 20,
+          "execution_ms": 1.1172320000000013,
+          "blocks": 100,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 5,
+          "execution_ms": 13.461856999999782,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3370560422602638696",
+          "calls": 40,
+          "execution_ms": 0.939661000000001,
+          "blocks": 120,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 153.2726879999973,
+          "p95_ms": 154.110606000002,
+          "p99_ms": 157.29328300000634,
+          "max_ms": 157.29328300000634,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 156.14013800001703,
+          "p95_ms": 157.35504799999762,
+          "p99_ms": 157.45096600003308,
+          "max_ms": 157.45096600003308,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T20:59:45.674Z",
+      "seconds": 10,
+      "counters": [
+        {
+          "query_id": "703000873111273164",
+          "calls": 20,
+          "execution_ms": 1.0650049999999993,
+          "blocks": 100,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 5,
+          "execution_ms": 13.10325499999999,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3370560422602638696",
+          "calls": 40,
+          "execution_ms": 0.9373289999999983,
+          "blocks": 120,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 153.67298400000436,
+          "p95_ms": 155.48245200002566,
+          "p99_ms": 156.11641200003214,
+          "max_ms": 156.11641200003214,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 156.57265300001018,
+          "p95_ms": 157.6014370000339,
+          "p99_ms": 159.82743100001244,
+          "max_ms": 159.82743100001244,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T20:59:56.455Z",
+      "seconds": 3.6977900390625,
+      "counters": [
+        {
+          "query_id": "703000873111273164",
+          "calls": 8,
+          "execution_ms": 0.45781499999999653,
+          "blocks": 40,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 2,
+          "execution_ms": 5.401737000000139,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3370560422602638696",
+          "calls": 15,
+          "execution_ms": 0.3380340000000004,
+          "blocks": 45,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 15,
+          "completed": 15,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.056476933937263,
+          "p50_ms": 153.85810299997684,
+          "p95_ms": 154.7777599999681,
+          "p99_ms": 154.7777599999681,
+          "max_ms": 154.7777599999681,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 8,
+          "completed": 8,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.1634543647665403,
+          "p50_ms": 156.48322200000985,
+          "p95_ms": 159.1976559999748,
+          "p99_ms": 159.1976559999748,
+          "max_ms": 159.1976559999748,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "manual_brief_spike",
+      "start": "2026-11-14T21:00:00.950Z",
+      "seconds": 20,
+      "counters": [
+        {
+          "query_id": "703000873111273164",
+          "calls": 40,
+          "execution_ms": 2.2180239999999998,
+          "blocks": 200,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "2030624601616570513",
+          "calls": 40,
+          "execution_ms": 125.47958700000001,
+          "blocks": 120,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 10,
+          "execution_ms": 26.499361000000135,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "1768467656680296453",
+          "calls": 1,
+          "execution_ms": 2477.542243,
+          "blocks": 251,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3370560422602638696",
+          "calls": 80,
+          "execution_ms": 1.6746179999999988,
+          "blocks": 240,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 153.65275299997302,
+          "p95_ms": 169.28297900001053,
+          "p99_ms": 231.03977899998426,
+          "max_ms": 231.03977899998426,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 80,
+          "completed": 80,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 154.23119699995732,
+          "p95_ms": 156.51623899996048,
+          "p99_ms": 165.39520899998024,
+          "max_ms": 165.39520899998024,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 157.26673400000436,
+          "p95_ms": 161.4531989999814,
+          "p99_ms": 164.72171899996465,
+          "max_ms": 164.72171899996465,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T21:00:21.735Z",
+      "seconds": 8.418321044921875,
+      "counters": [
+        {
+          "query_id": "703000873111273164",
+          "calls": 17,
+          "execution_ms": 0.9813840000000056,
+          "blocks": 85,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 4,
+          "execution_ms": 10.546211999999741,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3370560422602638696",
+          "calls": 34,
+          "execution_ms": 0.791169,
+          "blocks": 102,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 34,
+          "completed": 34,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.038810092721468,
+          "p50_ms": 153.99243400001433,
+          "p95_ms": 155.60954999999376,
+          "p99_ms": 156.82336099998793,
+          "max_ms": 156.82336099998793,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 17,
+          "completed": 17,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.019405046360734,
+          "p50_ms": 156.94962800003123,
+          "p95_ms": 158.0939500000095,
+          "p99_ms": 158.0939500000095,
+          "max_ms": 158.0939500000095,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "spike_recovery",
+      "start": "2026-11-14T21:00:30.938Z",
+      "seconds": 20,
+      "counters": [
+        {
+          "query_id": "703000873111273164",
+          "calls": 40,
+          "execution_ms": 2.108829,
+          "blocks": 200,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "2030624601616570513",
+          "calls": 40,
+          "execution_ms": 3.737462999999991,
+          "blocks": 120,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 10,
+          "execution_ms": 26.828055999999833,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3370560422602638696",
+          "calls": 80,
+          "execution_ms": 1.5580360000000013,
+          "blocks": 240,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 153.50372400000924,
+          "p95_ms": 155.1971589999739,
+          "p99_ms": 156.12959299999056,
+          "max_ms": 156.12959299999056,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 80,
+          "completed": 80,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 154.0826540000271,
+          "p95_ms": 156.780923000013,
+          "p99_ms": 159.04142899997532,
+          "max_ms": 159.04142899997532,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 157.10596000001533,
+          "p95_ms": 160.24599299998954,
+          "p99_ms": 162.2759279999882,
+          "max_ms": 162.2759279999882,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T21:00:51.725Z",
+      "seconds": 10,
+      "counters": [
+        {
+          "query_id": "703000873111273164",
+          "calls": 20,
+          "execution_ms": 1.069431000000094,
+          "blocks": 100,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 5,
+          "execution_ms": 13.586648999999852,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3370560422602638696",
+          "calls": 40,
+          "execution_ms": 0.9130490000000009,
+          "blocks": 120,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 153.95197499997448,
+          "p95_ms": 157.20415700000012,
+          "p99_ms": 160.12477499997476,
+          "max_ms": 160.12477499997476,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 157.02199099998688,
+          "p95_ms": 158.4008020000183,
+          "p99_ms": 159.17901199997868,
+          "max_ms": 159.17901199997868,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T21:01:02.538Z",
+      "seconds": 2.615535888671875,
+      "counters": [
+        {
+          "query_id": "703000873111273164",
+          "calls": 6,
+          "execution_ms": 0.3148049999999998,
+          "blocks": 30,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 2,
+          "execution_ms": 5.3276670000000195,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3370560422602638696",
+          "calls": 11,
+          "execution_ms": 0.2804639999999985,
+          "blocks": 33,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 11,
+          "completed": 11,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.205639099674374,
+          "p50_ms": 154.88789899996482,
+          "p95_ms": 156.87286800000584,
+          "p99_ms": 156.87286800000584,
+          "max_ms": 156.87286800000584,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 6,
+          "completed": 6,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.2939849634587497,
+          "p50_ms": 157.52067699999316,
+          "p95_ms": 158.21018599998206,
+          "p99_ms": 158.21018599998206,
+          "max_ms": 158.21018599998206,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "activation_healthy",
+      "start": "2026-11-14T21:01:05.994Z",
+      "seconds": 5,
+      "counters": [
+        {
+          "query_id": "703000873111273164",
+          "calls": 10,
+          "execution_ms": 0.7900090000000048,
+          "blocks": 50,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 3,
+          "execution_ms": 7.890759000000344,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3370560422602638696",
+          "calls": 20,
+          "execution_ms": 0.4667950000000012,
+          "blocks": 60,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 154.35719099995913,
+          "p95_ms": 155.88044699997408,
+          "p99_ms": 156.09006299998146,
+          "max_ms": 156.09006299998146,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 10,
+          "completed": 10,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 157.04756699997233,
+          "p95_ms": 159.8951699999743,
+          "p99_ms": 159.8951699999743,
+          "max_ms": 159.8951699999743,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T21:01:11.777Z",
+      "seconds": 10,
+      "counters": [
+        {
+          "query_id": "703000873111273164",
+          "calls": 20,
+          "execution_ms": 1.1226330000000004,
+          "blocks": 100,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 5,
+          "execution_ms": 13.523817999999665,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3370560422602638696",
+          "calls": 40,
+          "execution_ms": 0.935645000000001,
+          "blocks": 120,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 154.25881500000833,
+          "p95_ms": 156.0839890000061,
+          "p99_ms": 159.01004600001033,
+          "max_ms": 159.01004600001033,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 156.55879199999617,
+          "p95_ms": 158.5455039999797,
+          "p99_ms": 161.00266499997815,
+          "max_ms": 161.00266499997815,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T21:01:22.564Z",
+      "seconds": 10,
+      "counters": [
+        {
+          "query_id": "703000873111273164",
+          "calls": 20,
+          "execution_ms": 1.0797649999999948,
+          "blocks": 100,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 6,
+          "execution_ms": 15.879738000000089,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3370560422602638696",
+          "calls": 40,
+          "execution_ms": 0.9678759999999968,
+          "blocks": 120,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 153.96896600001492,
+          "p95_ms": 155.56723500002408,
+          "p99_ms": 156.73764000000665,
+          "max_ms": 156.73764000000665,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 156.56448100000853,
+          "p95_ms": 157.2004639999941,
+          "p99_ms": 157.64504500001203,
+          "max_ms": 157.64504500001203,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T21:01:33.351Z",
+      "seconds": 10,
+      "counters": [
+        {
+          "query_id": "703000873111273164",
+          "calls": 20,
+          "execution_ms": 1.266134000000001,
+          "blocks": 100,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 5,
+          "execution_ms": 13.099921999999879,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3370560422602638696",
+          "calls": 40,
+          "execution_ms": 0.9420910000000013,
+          "blocks": 120,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 154.19276100001298,
+          "p95_ms": 155.26241099997424,
+          "p99_ms": 156.94169399997918,
+          "max_ms": 156.94169399997918,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 156.88727999996627,
+          "p95_ms": 157.99540600000182,
+          "p99_ms": 159.78879999998026,
+          "max_ms": 159.78879999998026,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T21:01:44.135Z",
+      "seconds": 10,
+      "counters": [
+        {
+          "query_id": "703000873111273164",
+          "calls": 20,
+          "execution_ms": 1.1013730000000024,
+          "blocks": 100,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 5,
+          "execution_ms": 13.67274000000043,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3370560422602638696",
+          "calls": 40,
+          "execution_ms": 0.914512000000002,
+          "blocks": 120,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 154.17398899997352,
+          "p95_ms": 156.47469800000545,
+          "p99_ms": 159.75476300000446,
+          "max_ms": 159.75476300000446,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 156.74494800000684,
+          "p95_ms": 159.43651799997315,
+          "p99_ms": 159.8944359999732,
+          "max_ms": 159.8944359999732,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T21:01:54.929Z",
+      "seconds": 5.224341064453125,
+      "counters": [
+        {
+          "query_id": "703000873111273164",
+          "calls": 11,
+          "execution_ms": 0.6164569999999969,
+          "blocks": 55,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 2,
+          "execution_ms": 5.375817000000097,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3370560422602638696",
+          "calls": 21,
+          "execution_ms": 0.47662400000000105,
+          "blocks": 63,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 21,
+          "completed": 21,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.019645681803939,
+          "p50_ms": 153.8293030000059,
+          "p95_ms": 156.5112599999993,
+          "p99_ms": 157.93354300002102,
+          "max_ms": 157.93354300002102,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 11,
+          "completed": 11,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.10552869046873,
+          "p50_ms": 157.14995499997167,
+          "p95_ms": 158.149786999973,
+          "p99_ms": 158.149786999973,
+          "max_ms": 158.149786999973,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "original_busy",
+      "start": "2026-11-14T21:02:00.937Z",
+      "seconds": 20,
+      "counters": [
+        {
+          "query_id": "703000873111273164",
+          "calls": 40,
+          "execution_ms": 2.788016000000006,
+          "blocks": 200,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "2030624601616570513",
+          "calls": 40,
+          "execution_ms": 1351.539493,
+          "blocks": 120,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 10,
+          "execution_ms": 27.583282999999938,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "1768467656680296453",
+          "calls": 1,
+          "execution_ms": 16457.301771,
+          "blocks": 421,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3370560422602638696",
+          "calls": 80,
+          "execution_ms": 1.8748930000000001,
+          "blocks": 240,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 184.23862600000575,
+          "p95_ms": 229.7539959999849,
+          "p99_ms": 234.46883699996397,
+          "max_ms": 234.46883699996397,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 80,
+          "completed": 80,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 153.8904319999856,
+          "p95_ms": 155.75041799998144,
+          "p99_ms": 159.5142529999721,
+          "max_ms": 159.5142529999721,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 156.92418600001838,
+          "p95_ms": 158.1163570000208,
+          "p99_ms": 162.20500600000378,
+          "max_ms": 162.20500600000378,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T21:02:21.811Z",
+      "seconds": 8.342176025390625,
+      "counters": [
+        {
+          "query_id": "703000873111273164",
+          "calls": 17,
+          "execution_ms": 0.9644949999999994,
+          "blocks": 85,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 4,
+          "execution_ms": 12.84315000000015,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "4110958114333177296",
+          "calls": 1,
+          "execution_ms": 2.015445,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3370560422602638696",
+          "calls": 34,
+          "execution_ms": 0.8264669999999938,
+          "blocks": 102,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 34,
+          "completed": 34,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.075675207106163,
+          "p50_ms": 153.74783000000753,
+          "p95_ms": 156.31818100000964,
+          "p99_ms": 157.49707099999068,
+          "max_ms": 157.49707099999068,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 17,
+          "completed": 17,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.0378376035530814,
+          "p50_ms": 157.10366600000998,
+          "p95_ms": 159.63998199999332,
+          "p99_ms": 159.63998199999332,
+          "max_ms": 159.63998199999332,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "original_control",
+      "start": "2026-11-14T21:02:31.026Z",
+      "seconds": 20,
+      "counters": [
+        {
+          "query_id": "703000873111273164",
+          "calls": 40,
+          "execution_ms": 2.662521999999896,
+          "blocks": 200,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "2030624601616570513",
+          "calls": 40,
+          "execution_ms": 8.471656999999823,
+          "blocks": 120,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 10,
+          "execution_ms": 34.44020900000032,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3370560422602638696",
+          "calls": 80,
+          "execution_ms": 1.7542900000000046,
+          "blocks": 240,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 153.46727199997986,
+          "p95_ms": 155.81820400001016,
+          "p99_ms": 156.18501800001832,
+          "max_ms": 156.18501800001832,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 80,
+          "completed": 80,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 153.8123379999888,
+          "p95_ms": 155.68760699999984,
+          "p99_ms": 158.57127999997465,
+          "max_ms": 158.57127999997465,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 156.64923199999612,
+          "p95_ms": 157.63969300000463,
+          "p99_ms": 161.6255699999747,
+          "max_ms": 161.6255699999747,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T21:02:51.827Z",
+      "seconds": 8.326136962890626,
+      "counters": [
+        {
+          "query_id": "703000873111273164",
+          "calls": 17,
+          "execution_ms": 0.943013999999998,
+          "blocks": 85,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 4,
+          "execution_ms": 10.590392000000065,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3370560422602638696",
+          "calls": 34,
+          "execution_ms": 0.8097399999999979,
+          "blocks": 102,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 34,
+          "completed": 34,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.083526388232275,
+          "p50_ms": 153.81820300000254,
+          "p95_ms": 156.18017999996664,
+          "p99_ms": 156.7793599999859,
+          "max_ms": 156.7793599999859,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 17,
+          "completed": 17,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.0417631941161374,
+          "p50_ms": 156.53350899997167,
+          "p95_ms": 158.2072309999494,
+          "p99_ms": 158.2072309999494,
+          "max_ms": 158.2072309999494,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "original_quiet",
+      "start": "2026-11-14T21:03:01.015Z",
+      "seconds": 20,
+      "counters": [
+        {
+          "query_id": "703000873111273164",
+          "calls": 40,
+          "execution_ms": 26.8951760000001,
+          "blocks": 200,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 10,
+          "execution_ms": 26.949607000000015,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3370560422602638696",
+          "calls": 80,
+          "execution_ms": 1.8518320000000017,
+          "blocks": 240,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 80,
+          "completed": 80,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 153.85942100000102,
+          "p95_ms": 155.68247800000245,
+          "p99_ms": 163.45013499999186,
+          "max_ms": 163.45013499999186,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 156.3629700000165,
+          "p95_ms": 158.1017180000199,
+          "p99_ms": 180.16390500002308,
+          "max_ms": 180.16390500002308,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "cycle_end_healthy",
+      "start": "2026-11-14T21:03:21.807Z",
+      "seconds": 18.346031005859373,
+      "counters": [
+        {
+          "query_id": "703000873111273164",
+          "calls": 37,
+          "execution_ms": 2.127596999999909,
+          "blocks": 185,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 9,
+          "execution_ms": 23.882770000000164,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3370560422602638696",
+          "calls": 74,
+          "execution_ms": 1.8063310000000001,
+          "blocks": 222,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 74,
+          "completed": 74,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.033569984503232,
+          "p50_ms": 153.93568800005596,
+          "p95_ms": 156.49223300005542,
+          "p99_ms": 158.82403700001305,
+          "max_ms": 158.82403700001305,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 37,
+          "completed": 37,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.016784992251616,
+          "p50_ms": 156.13933700002963,
+          "p95_ms": 157.17832600005204,
+          "p99_ms": 157.82875100005185,
+          "max_ms": 157.82875100005185,
+          "error_codes": []
+        }
+      }
+    }
+  ],
+  "client_failures": [],
+  "limits": {
+    "procedure_holds": 200,
+    "hold_ms": 80,
+    "elapsed_guard_seconds": 19,
+    "per_lock_timeout_ms": 150,
+    "cycle_seconds": 120,
+    "guard_margin_seconds": 15,
+    "wall_budget_seconds": 1200
+  },
+  "target_calls_per_second": 2,
+  "quiet_target_calls_per_second": 0,
+  "report_path": "/tmp/pooltune-cron-1794689705255.json",
+  "public_indexes_before": {
+    "count": 12,
+    "hash": "f56ad07a58d2b60570ee6b64a8978936"
+  },
+  "unrelated_jobs_before": [],
+  "fixture": {
+    "id": "d8effa98576ae11f4abf0117",
+    "schema": "pooltune_trial_d8effa98576ae11f4abf0117",
+    "enrollment": {
+      "project": "rookery/consumer/d8effa98576ae11f4abf0117",
+      "queries": [
+        {
+          "database_oid": 5,
+          "role_oid": 16388,
+          "query_id": "3370560422602638696",
+          "mean_execution_ms": 3
+        },
+        {
+          "database_oid": 5,
+          "role_oid": 16388,
+          "query_id": "2030624601616570513",
+          "mean_execution_ms": 3
+        }
+      ]
+    }
+  },
+  "enrollment": {
+    "inherited_statement_timeout": "2min",
+    "inherited_lock_timeout": "0",
+    "execution_mode": "off",
+    "target": {
+      "id": 4,
+      "name": "pooltune_target_d8effa98576ae11f4abf0117",
+      "owner": "postgres",
+      "database": "postgres",
+      "command": "CALL \"pooltune_trial_d8effa98576ae11f4abf0117\".\"pooltune_cron_hold\"(200)",
+      "schedule": "*/2 * * * *",
+      "active": false
+    },
+    "witness": {
+      "id": 5,
+      "name": "pooltune_witness_d8effa98576ae11f4abf0117",
+      "owner": "postgres",
+      "database": "postgres",
+      "command": "SELECT 1",
+      "schedule": "2 seconds",
+      "active": false
+    },
+    "read": {
+      "oid": 27082,
+      "owner": 16388,
+      "definition": "CREATE OR REPLACE FUNCTION pooltune_trial_d8effa98576ae11f4abf0117.pooltune_cron_read()\n RETURNS integer\n LANGUAGE plpgsql\n SET search_path TO 'pg_catalog'\nAS $function$ DECLARE answer integer; BEGIN SELECT id INTO STRICT answer FROM ONLY \"pooltune_trial_d8effa98576ae11f4abf0117\".\"candidate\" WHERE id=43; RETURN answer; END $function$\n",
+      "signature": "",
+      "private": true
+    },
+    "procedure": {
+      "oid": 27081,
+      "owner": 16388,
+      "definition": "CREATE OR REPLACE PROCEDURE pooltune_trial_d8effa98576ae11f4abf0117.pooltune_cron_hold(IN holds integer)\n LANGUAGE plpgsql\nAS $procedure$DECLARE started timestamptz := pg_catalog.clock_timestamp(); i integer;\nBEGIN\n IF holds < 1 OR holds > 200 THEN RAISE EXCEPTION 'invalid hold count'; END IF;\n IF EXISTS(SELECT FROM pg_catalog.pg_settings WHERE name='statement_timeout' AND setting::bigint BETWEEN 1 AND 19999) THEN RAISE EXCEPTION 'job session timeout cannot cover required full work'; END IF;\n IF started >= '2026-11-14T21:20:15.752281Z'::timestamptz THEN RAISE EXCEPTION 'fixture lifetime expired'; END IF;\n FOR i IN 1..holds LOOP\n  IF pg_catalog.clock_timestamp()-started >= interval '19 seconds' THEN RAISE EXCEPTION 'cron work budget exceeded'; END IF;\n  PERFORM pg_catalog.set_config('lock_timeout','150ms',true);\n  LOCK TABLE ONLY \"pooltune_trial_d8effa98576ae11f4abf0117\".\"candidate\" IN ACCESS EXCLUSIVE MODE;\n  PERFORM pg_catalog.pg_sleep(0.080);\n  COMMIT;\n END LOOP;\n IF pg_catalog.clock_timestamp()-started >= interval '19 seconds' THEN RAISE EXCEPTION 'cron work budget exceeded'; END IF;\nEND$procedure$\n",
+      "signature": "IN holds integer",
+      "private": true
+    },
+    "generation": {
+      "pid": 6864,
+      "started": "2026-11-13T06:32:09.921085Z",
+      "postmaster": "2026-11-13T06:32:09.8816Z"
+    },
+    "created": "2026-11-14T20:55:15.752281Z",
+    "expires": "2026-11-14T21:20:15.752281Z",
+    "activation_started": "0001-01-01T00:00:00Z",
+    "activated": "0001-01-01T00:00:00Z",
+    "first_cycle": "0001-01-01T00:00:00Z"
+  },
+  "target_query_id": "2030624601616570513",
+  "healthy_calibration_ms": [
+    0.08768100000000001,
+    0.08763100000000001,
+    0.08613100000000007,
+    0.08748099999999992,
+    0.08588200000000012,
+    0.08887099999999992,
+    0.08437099999999997,
+    0.08823099999999995,
+    0.08582100000000015,
+    0.08877099999999993
+  ],
+  "objective_ms": 3,
+  "benefit_gates": {
+    "minimum_fraction": 0.2,
+    "minimum_ms": 5,
+    "noise_multiple": 3,
+    "original_extra_fraction": 0.3,
+    "original_extra_ms": 20
+  },
+  "spike_database_mean_ms": 3.136989675,
+  "spike_jobs": [],
+  "activation": {
+    "activation_witness": [
+      {
+        "id": 369,
+        "job_id": 5,
+        "pid": 178805,
+        "start": "2026-11-14T20:55:38.047331Z",
+        "end": "2026-11-14T20:55:38.048497Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 370,
+        "job_id": 5,
+        "pid": 178806,
+        "start": "2026-11-14T20:55:40.062514Z",
+        "end": "2026-11-14T20:55:40.06367Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 371,
+        "job_id": 5,
+        "pid": 178807,
+        "start": "2026-11-14T20:55:42.076546Z",
+        "end": "2026-11-14T20:55:42.077641Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 372,
+        "job_id": 5,
+        "pid": 178808,
+        "start": "2026-11-14T20:55:44.091026Z",
+        "end": "2026-11-14T20:55:44.092186Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 373,
+        "job_id": 5,
+        "pid": 178810,
+        "start": "2026-11-14T20:55:46.105464Z",
+        "end": "2026-11-14T20:55:46.106567Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 374,
+        "job_id": 5,
+        "pid": 178811,
+        "start": "2026-11-14T20:55:48.120612Z",
+        "end": "2026-11-14T20:55:48.121696Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 375,
+        "job_id": 5,
+        "pid": 178812,
+        "start": "2026-11-14T20:55:50.134393Z",
+        "end": "2026-11-14T20:55:50.136775Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 376,
+        "job_id": 5,
+        "pid": 178813,
+        "start": "2026-11-14T20:55:52.149033Z",
+        "end": "2026-11-14T20:55:52.150114Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 377,
+        "job_id": 5,
+        "pid": 178814,
+        "start": "2026-11-14T20:55:54.163721Z",
+        "end": "2026-11-14T20:55:54.1648Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 378,
+        "job_id": 5,
+        "pid": 178816,
+        "start": "2026-11-14T20:55:56.178466Z",
+        "end": "2026-11-14T20:55:56.179589Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 379,
+        "job_id": 5,
+        "pid": 178817,
+        "start": "2026-11-14T20:55:58.192761Z",
+        "end": "2026-11-14T20:55:58.19393Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 380,
+        "job_id": 5,
+        "pid": 178818,
+        "start": "2026-11-14T20:56:00.207575Z",
+        "end": "2026-11-14T20:56:00.208653Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 381,
+        "job_id": 5,
+        "pid": 178820,
+        "start": "2026-11-14T20:56:02.221686Z",
+        "end": "2026-11-14T20:56:02.222914Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 382,
+        "job_id": 5,
+        "pid": 178821,
+        "start": "2026-11-14T20:56:04.236207Z",
+        "end": "2026-11-14T20:56:04.237338Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 383,
+        "job_id": 5,
+        "pid": 178822,
+        "start": "2026-11-14T20:56:06.250792Z",
+        "end": "2026-11-14T20:56:06.251969Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 384,
+        "job_id": 5,
+        "pid": 178823,
+        "start": "2026-11-14T20:56:08.266527Z",
+        "end": "2026-11-14T20:56:08.267675Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 385,
+        "job_id": 5,
+        "pid": 178828,
+        "start": "2026-11-14T20:56:10.280618Z",
+        "end": "2026-11-14T20:56:10.281738Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 386,
+        "job_id": 5,
+        "pid": 178829,
+        "start": "2026-11-14T20:56:12.295023Z",
+        "end": "2026-11-14T20:56:12.296157Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 387,
+        "job_id": 5,
+        "pid": 178830,
+        "start": "2026-11-14T20:56:14.30936Z",
+        "end": "2026-11-14T20:56:14.310559Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 388,
+        "job_id": 5,
+        "pid": 178832,
+        "start": "2026-11-14T20:56:16.323583Z",
+        "end": "2026-11-14T20:56:16.324708Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 389,
+        "job_id": 5,
+        "pid": 178833,
+        "start": "2026-11-14T20:56:18.337977Z",
+        "end": "2026-11-14T20:56:18.339152Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 390,
+        "job_id": 5,
+        "pid": 178834,
+        "start": "2026-11-14T20:56:20.352336Z",
+        "end": "2026-11-14T20:56:20.353501Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 391,
+        "job_id": 5,
+        "pid": 178836,
+        "start": "2026-11-14T20:56:22.3666Z",
+        "end": "2026-11-14T20:56:22.367742Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 392,
+        "job_id": 5,
+        "pid": 178837,
+        "start": "2026-11-14T20:56:24.37999Z",
+        "end": "2026-11-14T20:56:24.381106Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 393,
+        "job_id": 5,
+        "pid": 178838,
+        "start": "2026-11-14T20:56:26.3948Z",
+        "end": "2026-11-14T20:56:26.395988Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 394,
+        "job_id": 5,
+        "pid": 178839,
+        "start": "2026-11-14T20:56:28.409171Z",
+        "end": "2026-11-14T20:56:28.410298Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 395,
+        "job_id": 5,
+        "pid": 178841,
+        "start": "2026-11-14T20:56:30.428912Z",
+        "end": "2026-11-14T20:56:30.430058Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 396,
+        "job_id": 5,
+        "pid": 178842,
+        "start": "2026-11-14T20:56:32.443186Z",
+        "end": "2026-11-14T20:56:32.44435Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 397,
+        "job_id": 5,
+        "pid": 178843,
+        "start": "2026-11-14T20:56:34.457596Z",
+        "end": "2026-11-14T20:56:34.458747Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 398,
+        "job_id": 5,
+        "pid": 178844,
+        "start": "2026-11-14T20:56:36.472058Z",
+        "end": "2026-11-14T20:56:36.473201Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 399,
+        "job_id": 5,
+        "pid": 178846,
+        "start": "2026-11-14T20:56:38.486757Z",
+        "end": "2026-11-14T20:56:38.487955Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 400,
+        "job_id": 5,
+        "pid": 178847,
+        "start": "2026-11-14T20:56:40.501296Z",
+        "end": "2026-11-14T20:56:40.502525Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 401,
+        "job_id": 5,
+        "pid": 178848,
+        "start": "2026-11-14T20:56:42.515852Z",
+        "end": "2026-11-14T20:56:42.517016Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 402,
+        "job_id": 5,
+        "pid": 178849,
+        "start": "2026-11-14T20:56:44.530319Z",
+        "end": "2026-11-14T20:56:44.531493Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 403,
+        "job_id": 5,
+        "pid": 178851,
+        "start": "2026-11-14T20:56:46.544677Z",
+        "end": "2026-11-14T20:56:46.545804Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 404,
+        "job_id": 5,
+        "pid": 178852,
+        "start": "2026-11-14T20:56:48.559034Z",
+        "end": "2026-11-14T20:56:48.560178Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 405,
+        "job_id": 5,
+        "pid": 178853,
+        "start": "2026-11-14T20:56:50.573375Z",
+        "end": "2026-11-14T20:56:50.574509Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 406,
+        "job_id": 5,
+        "pid": 178854,
+        "start": "2026-11-14T20:56:52.58768Z",
+        "end": "2026-11-14T20:56:52.588861Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 407,
+        "job_id": 5,
+        "pid": 178856,
+        "start": "2026-11-14T20:56:54.604737Z",
+        "end": "2026-11-14T20:56:54.605914Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 408,
+        "job_id": 5,
+        "pid": 178857,
+        "start": "2026-11-14T20:56:56.618686Z",
+        "end": "2026-11-14T20:56:56.619855Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 409,
+        "job_id": 5,
+        "pid": 178858,
+        "start": "2026-11-14T20:56:58.633263Z",
+        "end": "2026-11-14T20:56:58.634527Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 410,
+        "job_id": 5,
+        "pid": 178860,
+        "start": "2026-11-14T20:57:00.648334Z",
+        "end": "2026-11-14T20:57:00.649507Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 411,
+        "job_id": 5,
+        "pid": 178861,
+        "start": "2026-11-14T20:57:02.662922Z",
+        "end": "2026-11-14T20:57:02.664113Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 412,
+        "job_id": 5,
+        "pid": 178862,
+        "start": "2026-11-14T20:57:04.677319Z",
+        "end": "2026-11-14T20:57:04.678484Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 413,
+        "job_id": 5,
+        "pid": 178863,
+        "start": "2026-11-14T20:57:06.691911Z",
+        "end": "2026-11-14T20:57:06.693104Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 414,
+        "job_id": 5,
+        "pid": 178864,
+        "start": "2026-11-14T20:57:08.706407Z",
+        "end": "2026-11-14T20:57:08.707568Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 415,
+        "job_id": 5,
+        "pid": 178865,
+        "start": "2026-11-14T20:57:10.720874Z",
+        "end": "2026-11-14T20:57:10.722029Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 416,
+        "job_id": 5,
+        "pid": 178866,
+        "start": "2026-11-14T20:57:12.7354Z",
+        "end": "2026-11-14T20:57:12.736558Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 417,
+        "job_id": 5,
+        "pid": 178883,
+        "start": "2026-11-14T20:57:14.84906Z",
+        "end": "2026-11-14T20:57:14.852401Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 418,
+        "job_id": 5,
+        "pid": 178886,
+        "start": "2026-11-14T20:57:16.862121Z",
+        "end": "2026-11-14T20:57:16.862711Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 419,
+        "job_id": 5,
+        "pid": 178887,
+        "start": "2026-11-14T20:57:18.875886Z",
+        "end": "2026-11-14T20:57:18.876684Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 420,
+        "job_id": 5,
+        "pid": 178888,
+        "start": "2026-11-14T20:57:20.890651Z",
+        "end": "2026-11-14T20:57:20.891692Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 421,
+        "job_id": 5,
+        "pid": 178890,
+        "start": "2026-11-14T20:57:22.904418Z",
+        "end": "2026-11-14T20:57:22.905483Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 422,
+        "job_id": 5,
+        "pid": 178891,
+        "start": "2026-11-14T20:57:24.919295Z",
+        "end": "2026-11-14T20:57:24.92037Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 423,
+        "job_id": 5,
+        "pid": 178892,
+        "start": "2026-11-14T20:57:26.933727Z",
+        "end": "2026-11-14T20:57:26.934834Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 424,
+        "job_id": 5,
+        "pid": 178893,
+        "start": "2026-11-14T20:57:28.948158Z",
+        "end": "2026-11-14T20:57:28.949297Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 425,
+        "job_id": 5,
+        "pid": 178895,
+        "start": "2026-11-14T20:57:30.96248Z",
+        "end": "2026-11-14T20:57:30.963628Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 426,
+        "job_id": 5,
+        "pid": 178896,
+        "start": "2026-11-14T20:57:32.977001Z",
+        "end": "2026-11-14T20:57:32.978141Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 427,
+        "job_id": 5,
+        "pid": 178897,
+        "start": "2026-11-14T20:57:34.991905Z",
+        "end": "2026-11-14T20:57:34.993104Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 428,
+        "job_id": 5,
+        "pid": 178898,
+        "start": "2026-11-14T20:57:37.005598Z",
+        "end": "2026-11-14T20:57:37.006771Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 429,
+        "job_id": 5,
+        "pid": 178899,
+        "start": "2026-11-14T20:57:39.02023Z",
+        "end": "2026-11-14T20:57:39.021387Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 430,
+        "job_id": 5,
+        "pid": 178900,
+        "start": "2026-11-14T20:57:41.034899Z",
+        "end": "2026-11-14T20:57:41.036034Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 431,
+        "job_id": 5,
+        "pid": 178901,
+        "start": "2026-11-14T20:57:43.052972Z",
+        "end": "2026-11-14T20:57:43.054132Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 432,
+        "job_id": 5,
+        "pid": 178902,
+        "start": "2026-11-14T20:57:45.067811Z",
+        "end": "2026-11-14T20:57:45.068955Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 433,
+        "job_id": 5,
+        "pid": 178904,
+        "start": "2026-11-14T20:57:47.08191Z",
+        "end": "2026-11-14T20:57:47.083107Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 434,
+        "job_id": 5,
+        "pid": 178905,
+        "start": "2026-11-14T20:57:49.095968Z",
+        "end": "2026-11-14T20:57:49.097112Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 435,
+        "job_id": 5,
+        "pid": 178906,
+        "start": "2026-11-14T20:57:51.110427Z",
+        "end": "2026-11-14T20:57:51.111568Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 436,
+        "job_id": 5,
+        "pid": 178907,
+        "start": "2026-11-14T20:57:53.124794Z",
+        "end": "2026-11-14T20:57:53.125972Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 437,
+        "job_id": 5,
+        "pid": 178909,
+        "start": "2026-11-14T20:57:55.139205Z",
+        "end": "2026-11-14T20:57:55.140449Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 438,
+        "job_id": 5,
+        "pid": 178910,
+        "start": "2026-11-14T20:57:57.153748Z",
+        "end": "2026-11-14T20:57:57.154967Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 439,
+        "job_id": 5,
+        "pid": 178911,
+        "start": "2026-11-14T20:57:59.168976Z",
+        "end": "2026-11-14T20:57:59.170148Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 440,
+        "job_id": 5,
+        "pid": 178913,
+        "start": "2026-11-14T20:58:01.183264Z",
+        "end": "2026-11-14T20:58:01.184425Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 441,
+        "job_id": 5,
+        "pid": 178914,
+        "start": "2026-11-14T20:58:03.19775Z",
+        "end": "2026-11-14T20:58:03.198959Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 442,
+        "job_id": 5,
+        "pid": 178915,
+        "start": "2026-11-14T20:58:05.211862Z",
+        "end": "2026-11-14T20:58:05.213062Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 443,
+        "job_id": 5,
+        "pid": 178916,
+        "start": "2026-11-14T20:58:07.226182Z",
+        "end": "2026-11-14T20:58:07.227413Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 444,
+        "job_id": 5,
+        "pid": 178917,
+        "start": "2026-11-14T20:58:09.240324Z",
+        "end": "2026-11-14T20:58:09.241515Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 445,
+        "job_id": 5,
+        "pid": 178918,
+        "start": "2026-11-14T20:58:11.255319Z",
+        "end": "2026-11-14T20:58:11.257211Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 446,
+        "job_id": 5,
+        "pid": 178919,
+        "start": "2026-11-14T20:58:13.269317Z",
+        "end": "2026-11-14T20:58:13.270495Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 447,
+        "job_id": 5,
+        "pid": 178920,
+        "start": "2026-11-14T20:58:15.283808Z",
+        "end": "2026-11-14T20:58:15.284955Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 448,
+        "job_id": 5,
+        "pid": 178922,
+        "start": "2026-11-14T20:58:17.298263Z",
+        "end": "2026-11-14T20:58:17.299512Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 449,
+        "job_id": 5,
+        "pid": 178923,
+        "start": "2026-11-14T20:58:19.312676Z",
+        "end": "2026-11-14T20:58:19.313872Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 450,
+        "job_id": 5,
+        "pid": 178924,
+        "start": "2026-11-14T20:58:21.328507Z",
+        "end": "2026-11-14T20:58:21.329718Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 451,
+        "job_id": 5,
+        "pid": 178926,
+        "start": "2026-11-14T20:58:23.34413Z",
+        "end": "2026-11-14T20:58:23.345317Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 452,
+        "job_id": 5,
+        "pid": 178927,
+        "start": "2026-11-14T20:58:25.358911Z",
+        "end": "2026-11-14T20:58:25.360095Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 453,
+        "job_id": 5,
+        "pid": 178928,
+        "start": "2026-11-14T20:58:27.373514Z",
+        "end": "2026-11-14T20:58:27.374662Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 454,
+        "job_id": 5,
+        "pid": 178929,
+        "start": "2026-11-14T20:58:29.388165Z",
+        "end": "2026-11-14T20:58:29.389342Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 455,
+        "job_id": 5,
+        "pid": 178931,
+        "start": "2026-11-14T20:58:31.402723Z",
+        "end": "2026-11-14T20:58:31.403938Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 456,
+        "job_id": 5,
+        "pid": 178932,
+        "start": "2026-11-14T20:58:33.417277Z",
+        "end": "2026-11-14T20:58:33.418453Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 457,
+        "job_id": 5,
+        "pid": 178933,
+        "start": "2026-11-14T20:58:35.431903Z",
+        "end": "2026-11-14T20:58:35.43313Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 458,
+        "job_id": 5,
+        "pid": 178934,
+        "start": "2026-11-14T20:58:37.44652Z",
+        "end": "2026-11-14T20:58:37.447703Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 459,
+        "job_id": 5,
+        "pid": 178935,
+        "start": "2026-11-14T20:58:39.461064Z",
+        "end": "2026-11-14T20:58:39.462243Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 460,
+        "job_id": 5,
+        "pid": 178936,
+        "start": "2026-11-14T20:58:41.475045Z",
+        "end": "2026-11-14T20:58:41.476229Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 461,
+        "job_id": 5,
+        "pid": 178937,
+        "start": "2026-11-14T20:58:43.489003Z",
+        "end": "2026-11-14T20:58:43.490113Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 462,
+        "job_id": 5,
+        "pid": 178939,
+        "start": "2026-11-14T20:58:45.503747Z",
+        "end": "2026-11-14T20:58:45.50494Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 463,
+        "job_id": 5,
+        "pid": 178940,
+        "start": "2026-11-14T20:58:47.518546Z",
+        "end": "2026-11-14T20:58:47.519769Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 464,
+        "job_id": 5,
+        "pid": 178942,
+        "start": "2026-11-14T20:58:49.532899Z",
+        "end": "2026-11-14T20:58:49.534051Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 465,
+        "job_id": 5,
+        "pid": 178943,
+        "start": "2026-11-14T20:58:51.547072Z",
+        "end": "2026-11-14T20:58:51.548274Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 466,
+        "job_id": 5,
+        "pid": 178944,
+        "start": "2026-11-14T20:58:53.561556Z",
+        "end": "2026-11-14T20:58:53.562684Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 467,
+        "job_id": 5,
+        "pid": 178946,
+        "start": "2026-11-14T20:58:55.576481Z",
+        "end": "2026-11-14T20:58:55.577674Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 468,
+        "job_id": 5,
+        "pid": 178947,
+        "start": "2026-11-14T20:58:57.590328Z",
+        "end": "2026-11-14T20:58:57.591514Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 469,
+        "job_id": 5,
+        "pid": 178948,
+        "start": "2026-11-14T20:58:59.604935Z",
+        "end": "2026-11-14T20:58:59.606131Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 470,
+        "job_id": 5,
+        "pid": 178950,
+        "start": "2026-11-14T20:59:01.619982Z",
+        "end": "2026-11-14T20:59:01.621148Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 471,
+        "job_id": 5,
+        "pid": 178951,
+        "start": "2026-11-14T20:59:03.634396Z",
+        "end": "2026-11-14T20:59:03.635573Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 472,
+        "job_id": 5,
+        "pid": 178952,
+        "start": "2026-11-14T20:59:05.649063Z",
+        "end": "2026-11-14T20:59:05.650202Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 473,
+        "job_id": 5,
+        "pid": 178953,
+        "start": "2026-11-14T20:59:07.664604Z",
+        "end": "2026-11-14T20:59:07.665785Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 474,
+        "job_id": 5,
+        "pid": 178954,
+        "start": "2026-11-14T20:59:09.678179Z",
+        "end": "2026-11-14T20:59:09.679284Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 475,
+        "job_id": 5,
+        "pid": 178955,
+        "start": "2026-11-14T20:59:11.692787Z",
+        "end": "2026-11-14T20:59:11.69405Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 476,
+        "job_id": 5,
+        "pid": 178956,
+        "start": "2026-11-14T20:59:13.706901Z",
+        "end": "2026-11-14T20:59:13.708041Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 477,
+        "job_id": 5,
+        "pid": 178974,
+        "start": "2026-11-14T20:59:15.729896Z",
+        "end": "2026-11-14T20:59:15.731294Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 478,
+        "job_id": 5,
+        "pid": 178975,
+        "start": "2026-11-14T20:59:17.74355Z",
+        "end": "2026-11-14T20:59:17.744366Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 479,
+        "job_id": 5,
+        "pid": 178976,
+        "start": "2026-11-14T20:59:19.757808Z",
+        "end": "2026-11-14T20:59:19.758857Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 480,
+        "job_id": 5,
+        "pid": 178977,
+        "start": "2026-11-14T20:59:21.772633Z",
+        "end": "2026-11-14T20:59:21.773746Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 481,
+        "job_id": 5,
+        "pid": 178979,
+        "start": "2026-11-14T20:59:23.787319Z",
+        "end": "2026-11-14T20:59:23.788487Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 482,
+        "job_id": 5,
+        "pid": 178980,
+        "start": "2026-11-14T20:59:25.801703Z",
+        "end": "2026-11-14T20:59:25.802882Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 483,
+        "job_id": 5,
+        "pid": 178981,
+        "start": "2026-11-14T20:59:27.817035Z",
+        "end": "2026-11-14T20:59:27.818185Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 484,
+        "job_id": 5,
+        "pid": 178982,
+        "start": "2026-11-14T20:59:29.831618Z",
+        "end": "2026-11-14T20:59:29.83279Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 485,
+        "job_id": 5,
+        "pid": 178984,
+        "start": "2026-11-14T20:59:31.845937Z",
+        "end": "2026-11-14T20:59:31.847098Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 486,
+        "job_id": 5,
+        "pid": 178985,
+        "start": "2026-11-14T20:59:33.86038Z",
+        "end": "2026-11-14T20:59:33.861514Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 487,
+        "job_id": 5,
+        "pid": 178986,
+        "start": "2026-11-14T20:59:35.875135Z",
+        "end": "2026-11-14T20:59:35.876246Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 488,
+        "job_id": 5,
+        "pid": 178987,
+        "start": "2026-11-14T20:59:37.889454Z",
+        "end": "2026-11-14T20:59:37.890603Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 489,
+        "job_id": 5,
+        "pid": 178988,
+        "start": "2026-11-14T20:59:39.903726Z",
+        "end": "2026-11-14T20:59:39.904884Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 490,
+        "job_id": 5,
+        "pid": 178989,
+        "start": "2026-11-14T20:59:41.917733Z",
+        "end": "2026-11-14T20:59:41.918915Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 491,
+        "job_id": 5,
+        "pid": 178990,
+        "start": "2026-11-14T20:59:43.931261Z",
+        "end": "2026-11-14T20:59:43.932411Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 492,
+        "job_id": 5,
+        "pid": 178992,
+        "start": "2026-11-14T20:59:45.946041Z",
+        "end": "2026-11-14T20:59:45.947187Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 493,
+        "job_id": 5,
+        "pid": 178993,
+        "start": "2026-11-14T20:59:47.960449Z",
+        "end": "2026-11-14T20:59:47.961541Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 494,
+        "job_id": 5,
+        "pid": 178994,
+        "start": "2026-11-14T20:59:49.974863Z",
+        "end": "2026-11-14T20:59:49.976018Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 495,
+        "job_id": 5,
+        "pid": 178995,
+        "start": "2026-11-14T20:59:51.988193Z",
+        "end": "2026-11-14T20:59:51.989387Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 496,
+        "job_id": 5,
+        "pid": 178996,
+        "start": "2026-11-14T20:59:54.002754Z",
+        "end": "2026-11-14T20:59:54.003961Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 497,
+        "job_id": 5,
+        "pid": 178998,
+        "start": "2026-11-14T20:59:56.01713Z",
+        "end": "2026-11-14T20:59:56.018309Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 498,
+        "job_id": 5,
+        "pid": 178999,
+        "start": "2026-11-14T20:59:58.031735Z",
+        "end": "2026-11-14T20:59:58.033Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 499,
+        "job_id": 5,
+        "pid": 179000,
+        "start": "2026-11-14T21:00:00.047415Z",
+        "end": "2026-11-14T21:00:00.048622Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 500,
+        "job_id": 5,
+        "pid": 179009,
+        "start": "2026-11-14T21:00:02.062434Z",
+        "end": "2026-11-14T21:00:02.063517Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 501,
+        "job_id": 5,
+        "pid": 179010,
+        "start": "2026-11-14T21:00:04.076499Z",
+        "end": "2026-11-14T21:00:04.077717Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 502,
+        "job_id": 5,
+        "pid": 179011,
+        "start": "2026-11-14T21:00:06.091053Z",
+        "end": "2026-11-14T21:00:06.092131Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 503,
+        "job_id": 5,
+        "pid": 179012,
+        "start": "2026-11-14T21:00:08.105935Z",
+        "end": "2026-11-14T21:00:08.107081Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 504,
+        "job_id": 5,
+        "pid": 179013,
+        "start": "2026-11-14T21:00:10.119618Z",
+        "end": "2026-11-14T21:00:10.120771Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 505,
+        "job_id": 5,
+        "pid": 179014,
+        "start": "2026-11-14T21:00:12.134062Z",
+        "end": "2026-11-14T21:00:12.135203Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 506,
+        "job_id": 5,
+        "pid": 179015,
+        "start": "2026-11-14T21:00:14.148283Z",
+        "end": "2026-11-14T21:00:14.149438Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 507,
+        "job_id": 5,
+        "pid": 179017,
+        "start": "2026-11-14T21:00:16.162968Z",
+        "end": "2026-11-14T21:00:16.164056Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 508,
+        "job_id": 5,
+        "pid": 179018,
+        "start": "2026-11-14T21:00:18.176706Z",
+        "end": "2026-11-14T21:00:18.177929Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 509,
+        "job_id": 5,
+        "pid": 179019,
+        "start": "2026-11-14T21:00:20.191494Z",
+        "end": "2026-11-14T21:00:20.192624Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 510,
+        "job_id": 5,
+        "pid": 179021,
+        "start": "2026-11-14T21:00:22.206287Z",
+        "end": "2026-11-14T21:00:22.207452Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 511,
+        "job_id": 5,
+        "pid": 179022,
+        "start": "2026-11-14T21:00:24.220965Z",
+        "end": "2026-11-14T21:00:24.222118Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 512,
+        "job_id": 5,
+        "pid": 179023,
+        "start": "2026-11-14T21:00:26.235056Z",
+        "end": "2026-11-14T21:00:26.236174Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 513,
+        "job_id": 5,
+        "pid": 179024,
+        "start": "2026-11-14T21:00:28.249698Z",
+        "end": "2026-11-14T21:00:28.250908Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 514,
+        "job_id": 5,
+        "pid": 179025,
+        "start": "2026-11-14T21:00:30.263745Z",
+        "end": "2026-11-14T21:00:30.264924Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 515,
+        "job_id": 5,
+        "pid": 179027,
+        "start": "2026-11-14T21:00:32.277827Z",
+        "end": "2026-11-14T21:00:32.279024Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 516,
+        "job_id": 5,
+        "pid": 179028,
+        "start": "2026-11-14T21:00:34.29319Z",
+        "end": "2026-11-14T21:00:34.294361Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 517,
+        "job_id": 5,
+        "pid": 179029,
+        "start": "2026-11-14T21:00:36.307858Z",
+        "end": "2026-11-14T21:00:36.309034Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 518,
+        "job_id": 5,
+        "pid": 179030,
+        "start": "2026-11-14T21:00:38.321854Z",
+        "end": "2026-11-14T21:00:38.323024Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 519,
+        "job_id": 5,
+        "pid": 179031,
+        "start": "2026-11-14T21:00:40.336414Z",
+        "end": "2026-11-14T21:00:40.337496Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 520,
+        "job_id": 5,
+        "pid": 179032,
+        "start": "2026-11-14T21:00:42.350759Z",
+        "end": "2026-11-14T21:00:42.351911Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 521,
+        "job_id": 5,
+        "pid": 179033,
+        "start": "2026-11-14T21:00:44.36465Z",
+        "end": "2026-11-14T21:00:44.365775Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 522,
+        "job_id": 5,
+        "pid": 179035,
+        "start": "2026-11-14T21:00:46.379641Z",
+        "end": "2026-11-14T21:00:46.3807Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 523,
+        "job_id": 5,
+        "pid": 179036,
+        "start": "2026-11-14T21:00:48.393795Z",
+        "end": "2026-11-14T21:00:48.395015Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 524,
+        "job_id": 5,
+        "pid": 179037,
+        "start": "2026-11-14T21:00:50.40869Z",
+        "end": "2026-11-14T21:00:50.409831Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 525,
+        "job_id": 5,
+        "pid": 179038,
+        "start": "2026-11-14T21:00:52.422654Z",
+        "end": "2026-11-14T21:00:52.423807Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 526,
+        "job_id": 5,
+        "pid": 179039,
+        "start": "2026-11-14T21:00:54.436671Z",
+        "end": "2026-11-14T21:00:54.437803Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 527,
+        "job_id": 5,
+        "pid": 179041,
+        "start": "2026-11-14T21:00:56.450749Z",
+        "end": "2026-11-14T21:00:56.451902Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 528,
+        "job_id": 5,
+        "pid": 179042,
+        "start": "2026-11-14T21:00:58.464546Z",
+        "end": "2026-11-14T21:00:58.465644Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 529,
+        "job_id": 5,
+        "pid": 179044,
+        "start": "2026-11-14T21:01:00.478699Z",
+        "end": "2026-11-14T21:01:00.4799Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 530,
+        "job_id": 5,
+        "pid": 179045,
+        "start": "2026-11-14T21:01:02.493067Z",
+        "end": "2026-11-14T21:01:02.494202Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 531,
+        "job_id": 5,
+        "pid": 179046,
+        "start": "2026-11-14T21:01:04.507906Z",
+        "end": "2026-11-14T21:01:04.509019Z",
+        "status": "succeeded"
+      },
+      {
+        "id": 532,
+        "job_id": 5,
+        "pid": 179047,
+        "start": "2026-11-14T21:01:06.523471Z",
+        "end": "2026-11-14T21:01:06.5246Z",
+        "status": "succeeded"
+      }
+    ],
+    "inherited_statement_timeout": "2min",
+    "inherited_lock_timeout": "0",
+    "execution_mode": "off",
+    "target": {
+      "id": 4,
+      "name": "pooltune_target_d8effa98576ae11f4abf0117",
+      "owner": "postgres",
+      "database": "postgres",
+      "command": "CALL \"pooltune_trial_d8effa98576ae11f4abf0117\".\"pooltune_cron_hold\"(200)",
+      "schedule": "*/2 * * * *",
+      "active": false
+    },
+    "witness": {
+      "id": 5,
+      "name": "pooltune_witness_d8effa98576ae11f4abf0117",
+      "owner": "postgres",
+      "database": "postgres",
+      "command": "SELECT 1",
+      "schedule": "2 seconds",
+      "active": false
+    },
+    "read": {
+      "oid": 27082,
+      "owner": 16388,
+      "definition": "CREATE OR REPLACE FUNCTION pooltune_trial_d8effa98576ae11f4abf0117.pooltune_cron_read()\n RETURNS integer\n LANGUAGE plpgsql\n SET search_path TO 'pg_catalog'\nAS $function$ DECLARE answer integer; BEGIN SELECT id INTO STRICT answer FROM ONLY \"pooltune_trial_d8effa98576ae11f4abf0117\".\"candidate\" WHERE id=43; RETURN answer; END $function$\n",
+      "signature": "",
+      "private": true
+    },
+    "procedure": {
+      "oid": 27081,
+      "owner": 16388,
+      "definition": "CREATE OR REPLACE PROCEDURE pooltune_trial_d8effa98576ae11f4abf0117.pooltune_cron_hold(IN holds integer)\n LANGUAGE plpgsql\nAS $procedure$DECLARE started timestamptz := pg_catalog.clock_timestamp(); i integer;\nBEGIN\n IF holds < 1 OR holds > 200 THEN RAISE EXCEPTION 'invalid hold count'; END IF;\n IF EXISTS(SELECT FROM pg_catalog.pg_settings WHERE name='statement_timeout' AND setting::bigint BETWEEN 1 AND 19999) THEN RAISE EXCEPTION 'job session timeout cannot cover required full work'; END IF;\n IF started >= '2026-11-14T21:20:15.752281Z'::timestamptz THEN RAISE EXCEPTION 'fixture lifetime expired'; END IF;\n FOR i IN 1..holds LOOP\n  IF pg_catalog.clock_timestamp()-started >= interval '19 seconds' THEN RAISE EXCEPTION 'cron work budget exceeded'; END IF;\n  PERFORM pg_catalog.set_config('lock_timeout','150ms',true);\n  LOCK TABLE ONLY \"pooltune_trial_d8effa98576ae11f4abf0117\".\"candidate\" IN ACCESS EXCLUSIVE MODE;\n  PERFORM pg_catalog.pg_sleep(0.080);\n  COMMIT;\n END LOOP;\n IF pg_catalog.clock_timestamp()-started >= interval '19 seconds' THEN RAISE EXCEPTION 'cron work budget exceeded'; END IF;\nEND$procedure$\n",
+      "signature": "IN holds integer",
+      "private": true
+    },
+    "generation": {
+      "pid": 6864,
+      "started": "2026-11-13T06:32:09.921085Z",
+      "postmaster": "2026-11-13T06:32:09.8816Z"
+    },
+    "created": "2026-11-14T20:55:15.752281Z",
+    "expires": "2026-11-14T21:20:15.752281Z",
+    "activation_started": "2026-11-14T21:01:10.030645Z",
+    "activated": "2026-11-14T21:01:10.676497Z",
+    "first_cycle": "2026-11-14T21:02:00Z"
+  },
+  "slowdown_at": "2026-11-14T21:02:00.000Z",
+  "passed": false,
+  "error": "fixture command exited 1",
+  "worker_failures": [],
+  "worker_diagnostics": [],
+  "detector_windows": [
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T20:56:32.153451Z",
+      "end": "2026-11-14T20:56:36.156057Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02150824999999995,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T20:56:32.153451Z",
+      "end": "2026-11-14T20:56:36.156057Z",
+      "calls": 8,
+      "mean_execution_ms": 0.08721237499999979,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T20:56:36.156057Z",
+      "end": "2026-11-14T20:56:40.158808Z",
+      "calls": 16,
+      "mean_execution_ms": 0.0191376875,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T20:56:36.156057Z",
+      "end": "2026-11-14T20:56:40.158808Z",
+      "calls": 8,
+      "mean_execution_ms": 0.09442887499999997,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T20:56:40.158808Z",
+      "end": "2026-11-14T20:56:44.160363Z",
+      "calls": 16,
+      "mean_execution_ms": 0.021145250000000115,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T20:56:40.158808Z",
+      "end": "2026-11-14T20:56:44.160363Z",
+      "calls": 8,
+      "mean_execution_ms": 0.08896474999999993,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T20:56:44.160363Z",
+      "end": "2026-11-14T20:56:48.162354Z",
+      "calls": 16,
+      "mean_execution_ms": 0.021074624999999958,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T20:56:44.160363Z",
+      "end": "2026-11-14T20:56:48.162354Z",
+      "calls": 8,
+      "mean_execution_ms": 0.10940887499999996,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T20:56:48.162354Z",
+      "end": "2026-11-14T20:56:52.16368Z",
+      "calls": 13,
+      "mean_execution_ms": 0.01903176923076922,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T20:56:48.162354Z",
+      "end": "2026-11-14T20:56:52.16368Z",
+      "calls": 6,
+      "mean_execution_ms": 0.08651100000000007,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T20:56:52.16368Z",
+      "end": "2026-11-14T20:56:56.166474Z",
+      "calls": 16,
+      "mean_execution_ms": 0.022777562499999904,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T20:56:52.16368Z",
+      "end": "2026-11-14T20:56:56.166474Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T20:56:56.166474Z",
+      "end": "2026-11-14T20:57:00.170565Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02426668750000005,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T20:56:56.166474Z",
+      "end": "2026-11-14T20:57:00.170565Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T20:57:00.170565Z",
+      "end": "2026-11-14T20:57:04.172424Z",
+      "calls": 13,
+      "mean_execution_ms": 0.02503784615384613,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T20:57:00.170565Z",
+      "end": "2026-11-14T20:57:04.172424Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T20:57:04.172424Z",
+      "end": "2026-11-14T20:57:08.174662Z",
+      "calls": 16,
+      "mean_execution_ms": 0.022760312499999935,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T20:57:04.172424Z",
+      "end": "2026-11-14T20:57:08.174662Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T20:57:08.174662Z",
+      "end": "2026-11-14T20:57:12.176792Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02326206250000007,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T20:57:08.174662Z",
+      "end": "2026-11-14T20:57:12.176792Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T20:57:12.176792Z",
+      "end": "2026-11-14T20:57:16.178655Z",
+      "calls": 13,
+      "mean_execution_ms": 0.023485538461538377,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T20:57:12.176792Z",
+      "end": "2026-11-14T20:57:16.178655Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T20:57:16.178655Z",
+      "end": "2026-11-14T20:57:20.179361Z",
+      "calls": 16,
+      "mean_execution_ms": 0.022609624999999856,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T20:57:16.178655Z",
+      "end": "2026-11-14T20:57:20.179361Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T20:57:20.179361Z",
+      "end": "2026-11-14T20:57:24.181454Z",
+      "calls": 13,
+      "mean_execution_ms": 0.022996538461538416,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T20:57:20.179361Z",
+      "end": "2026-11-14T20:57:24.181454Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T20:57:24.181454Z",
+      "end": "2026-11-14T20:57:28.183206Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02221462499999982,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T20:57:24.181454Z",
+      "end": "2026-11-14T20:57:28.183206Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T20:57:28.183206Z",
+      "end": "2026-11-14T20:57:32.184563Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02254081249999984,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T20:57:28.183206Z",
+      "end": "2026-11-14T20:57:32.184563Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T20:57:32.184563Z",
+      "end": "2026-11-14T20:57:36.187683Z",
+      "calls": 13,
+      "mean_execution_ms": 0.022865000000000153,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T20:57:32.184563Z",
+      "end": "2026-11-14T20:57:36.187683Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T20:57:36.187683Z",
+      "end": "2026-11-14T20:57:40.190043Z",
+      "calls": 16,
+      "mean_execution_ms": 0.022608437500000078,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T20:57:36.187683Z",
+      "end": "2026-11-14T20:57:40.190043Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T20:57:40.190043Z",
+      "end": "2026-11-14T20:57:44.192309Z",
+      "calls": 16,
+      "mean_execution_ms": 0.022652875000000017,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T20:57:40.190043Z",
+      "end": "2026-11-14T20:57:44.192309Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T20:57:44.192309Z",
+      "end": "2026-11-14T20:57:48.194602Z",
+      "calls": 13,
+      "mean_execution_ms": 0.022251153846154007,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T20:57:44.192309Z",
+      "end": "2026-11-14T20:57:48.194602Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T20:57:48.194602Z",
+      "end": "2026-11-14T20:57:52.197112Z",
+      "calls": 16,
+      "mean_execution_ms": 0.0224539374999998,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T20:57:48.194602Z",
+      "end": "2026-11-14T20:57:52.197112Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T20:57:52.197112Z",
+      "end": "2026-11-14T20:57:56.199305Z",
+      "calls": 14,
+      "mean_execution_ms": 0.02308978571428558,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T20:57:52.197112Z",
+      "end": "2026-11-14T20:57:56.199305Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T20:57:56.199305Z",
+      "end": "2026-11-14T20:58:00.201776Z",
+      "calls": 15,
+      "mean_execution_ms": 0.024450133333333093,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T20:57:56.199305Z",
+      "end": "2026-11-14T20:58:00.201776Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T20:58:00.201776Z",
+      "end": "2026-11-14T20:58:04.203249Z",
+      "calls": 13,
+      "mean_execution_ms": 0.02359476923076925,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T20:58:00.201776Z",
+      "end": "2026-11-14T20:58:04.203249Z",
+      "calls": 7,
+      "mean_execution_ms": 0.12706442857142822,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T20:58:04.203249Z",
+      "end": "2026-11-14T20:58:08.205588Z",
+      "calls": 16,
+      "mean_execution_ms": 0.019842687500000067,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T20:58:04.203249Z",
+      "end": "2026-11-14T20:58:08.205588Z",
+      "calls": 8,
+      "mean_execution_ms": 0.1089287499999998,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T20:58:08.205588Z",
+      "end": "2026-11-14T20:58:12.207311Z",
+      "calls": 16,
+      "mean_execution_ms": 0.021534437499999948,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T20:58:08.205588Z",
+      "end": "2026-11-14T20:58:12.207311Z",
+      "calls": 8,
+      "mean_execution_ms": 0.09676612500000004,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T20:58:12.207311Z",
+      "end": "2026-11-14T20:58:16.210013Z",
+      "calls": 16,
+      "mean_execution_ms": 0.01925462499999997,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T20:58:12.207311Z",
+      "end": "2026-11-14T20:58:16.210013Z",
+      "calls": 8,
+      "mean_execution_ms": 0.09304975000000004,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T20:58:16.210013Z",
+      "end": "2026-11-14T20:58:20.211918Z",
+      "calls": 16,
+      "mean_execution_ms": 0.019659500000000052,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T20:58:16.210013Z",
+      "end": "2026-11-14T20:58:20.211918Z",
+      "calls": 8,
+      "mean_execution_ms": 0.0930612500000001,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T20:58:20.211918Z",
+      "end": "2026-11-14T20:58:24.215425Z",
+      "calls": 13,
+      "mean_execution_ms": 0.022889461538461556,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T20:58:20.211918Z",
+      "end": "2026-11-14T20:58:24.215425Z",
+      "calls": 1,
+      "mean_execution_ms": 0.0717010000000009,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T20:58:24.215425Z",
+      "end": "2026-11-14T20:58:28.218444Z",
+      "calls": 16,
+      "mean_execution_ms": 0.026225500000000013,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T20:58:24.215425Z",
+      "end": "2026-11-14T20:58:28.218444Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T20:58:28.218444Z",
+      "end": "2026-11-14T20:58:52.804987Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T20:58:28.218444Z",
+      "end": "2026-11-14T20:58:52.804987Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T20:58:52.804987Z",
+      "end": "2026-11-14T20:58:56.807737Z",
+      "calls": 16,
+      "mean_execution_ms": 0.022265937500000055,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T20:58:52.804987Z",
+      "end": "2026-11-14T20:58:56.807737Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T20:58:56.807737Z",
+      "end": "2026-11-14T20:59:00.809611Z",
+      "calls": 16,
+      "mean_execution_ms": 0.024507812500000004,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T20:58:56.807737Z",
+      "end": "2026-11-14T20:59:00.809611Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T20:59:00.809611Z",
+      "end": "2026-11-14T20:59:04.811272Z",
+      "calls": 13,
+      "mean_execution_ms": 0.022596384615384525,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T20:59:00.809611Z",
+      "end": "2026-11-14T20:59:04.811272Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T20:59:04.811272Z",
+      "end": "2026-11-14T20:59:08.813266Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02317199999999997,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T20:59:04.811272Z",
+      "end": "2026-11-14T20:59:08.813266Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T20:59:08.813266Z",
+      "end": "2026-11-14T20:59:12.814566Z",
+      "calls": 15,
+      "mean_execution_ms": 0.022615733333333547,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T20:59:08.813266Z",
+      "end": "2026-11-14T20:59:12.814566Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T20:59:12.814566Z",
+      "end": "2026-11-14T20:59:16.81688Z",
+      "calls": 14,
+      "mean_execution_ms": 0.02309299999999987,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T20:59:12.814566Z",
+      "end": "2026-11-14T20:59:16.81688Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T20:59:16.81688Z",
+      "end": "2026-11-14T20:59:20.819222Z",
+      "calls": 16,
+      "mean_execution_ms": 0.032294062499999665,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T20:59:16.81688Z",
+      "end": "2026-11-14T20:59:20.819222Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T20:59:20.819222Z",
+      "end": "2026-11-14T20:59:24.820352Z",
+      "calls": 12,
+      "mean_execution_ms": 0.022595916666667232,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T20:59:20.819222Z",
+      "end": "2026-11-14T20:59:24.820352Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T20:59:24.820352Z",
+      "end": "2026-11-14T20:59:28.821945Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02871099999999971,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T20:59:24.820352Z",
+      "end": "2026-11-14T20:59:28.821945Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T20:59:28.821945Z",
+      "end": "2026-11-14T20:59:32.824684Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02265518749999984,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T20:59:28.821945Z",
+      "end": "2026-11-14T20:59:32.824684Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T20:59:32.824684Z",
+      "end": "2026-11-14T20:59:36.827258Z",
+      "calls": 13,
+      "mean_execution_ms": 0.025363461538461526,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T20:59:32.824684Z",
+      "end": "2026-11-14T20:59:36.827258Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T20:59:36.827258Z",
+      "end": "2026-11-14T20:59:40.829056Z",
+      "calls": 16,
+      "mean_execution_ms": 0.022722687499999727,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T20:59:36.827258Z",
+      "end": "2026-11-14T20:59:40.829056Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T20:59:40.829056Z",
+      "end": "2026-11-14T20:59:44.832222Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02456412500000016,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T20:59:40.829056Z",
+      "end": "2026-11-14T20:59:44.832222Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T20:59:44.832222Z",
+      "end": "2026-11-14T20:59:48.834263Z",
+      "calls": 13,
+      "mean_execution_ms": 0.023457923076923164,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T20:59:44.832222Z",
+      "end": "2026-11-14T20:59:48.834263Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T20:59:48.834263Z",
+      "end": "2026-11-14T20:59:52.839731Z",
+      "calls": 16,
+      "mean_execution_ms": 0.024088375000000273,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T20:59:48.834263Z",
+      "end": "2026-11-14T20:59:52.839731Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T20:59:52.839731Z",
+      "end": "2026-11-14T20:59:56.842918Z",
+      "calls": 13,
+      "mean_execution_ms": 0.022517076923076473,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T20:59:52.839731Z",
+      "end": "2026-11-14T20:59:56.842918Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T20:59:56.842918Z",
+      "end": "2026-11-14T21:00:00.846206Z",
+      "calls": 14,
+      "mean_execution_ms": 0.02250671428571392,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T20:59:56.842918Z",
+      "end": "2026-11-14T21:00:00.846206Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:00:00.846206Z",
+      "end": "2026-11-14T21:00:04.848912Z",
+      "calls": 15,
+      "mean_execution_ms": 0.020666333333333616,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:00:00.846206Z",
+      "end": "2026-11-14T21:00:04.848912Z",
+      "calls": 8,
+      "mean_execution_ms": 15.305327625,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:00:04.848912Z",
+      "end": "2026-11-14T21:00:08.851387Z",
+      "calls": 16,
+      "mean_execution_ms": 0.020857625000000102,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:00:04.848912Z",
+      "end": "2026-11-14T21:00:08.851387Z",
+      "calls": 8,
+      "mean_execution_ms": 0.10314737499999538,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:00:08.851387Z",
+      "end": "2026-11-14T21:00:12.853762Z",
+      "calls": 16,
+      "mean_execution_ms": 0.020177749999999994,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:00:08.851387Z",
+      "end": "2026-11-14T21:00:12.853762Z",
+      "calls": 8,
+      "mean_execution_ms": 0.09685974999999658,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:00:12.853762Z",
+      "end": "2026-11-14T21:00:16.856502Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02118018750000017,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:00:12.853762Z",
+      "end": "2026-11-14T21:00:16.856502Z",
+      "calls": 8,
+      "mean_execution_ms": 0.0907498750000002,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:00:16.856502Z",
+      "end": "2026-11-14T21:00:20.858617Z",
+      "calls": 16,
+      "mean_execution_ms": 0.021680249999999512,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:00:16.856502Z",
+      "end": "2026-11-14T21:00:20.858617Z",
+      "calls": 8,
+      "mean_execution_ms": 0.08886374999999802,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:00:20.858617Z",
+      "end": "2026-11-14T21:00:24.860026Z",
+      "calls": 13,
+      "mean_execution_ms": 0.022699461538461644,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:00:20.858617Z",
+      "end": "2026-11-14T21:00:24.860026Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:00:24.860026Z",
+      "end": "2026-11-14T21:00:28.864007Z",
+      "calls": 16,
+      "mean_execution_ms": 0.022631499999999916,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:00:24.860026Z",
+      "end": "2026-11-14T21:00:28.864007Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:00:28.864007Z",
+      "end": "2026-11-14T21:00:32.866959Z",
+      "calls": 13,
+      "mean_execution_ms": 0.022399538461538252,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:00:28.864007Z",
+      "end": "2026-11-14T21:00:32.866959Z",
+      "calls": 4,
+      "mean_execution_ms": 0.08777349999999728,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:00:32.866959Z",
+      "end": "2026-11-14T21:00:36.870252Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02096143749999979,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:00:32.866959Z",
+      "end": "2026-11-14T21:00:36.870252Z",
+      "calls": 8,
+      "mean_execution_ms": 0.09007850000000062,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:00:36.870252Z",
+      "end": "2026-11-14T21:00:40.871322Z",
+      "calls": 16,
+      "mean_execution_ms": 0.0190758124999999,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:00:36.870252Z",
+      "end": "2026-11-14T21:00:40.871322Z",
+      "calls": 8,
+      "mean_execution_ms": 0.08922112500000168,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:00:40.871322Z",
+      "end": "2026-11-14T21:00:44.874013Z",
+      "calls": 16,
+      "mean_execution_ms": 0.019129062499999794,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:00:40.871322Z",
+      "end": "2026-11-14T21:00:44.874013Z",
+      "calls": 8,
+      "mean_execution_ms": 0.10525237500000273,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:00:44.874013Z",
+      "end": "2026-11-14T21:00:48.876395Z",
+      "calls": 16,
+      "mean_execution_ms": 0.018871375000000246,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:00:44.874013Z",
+      "end": "2026-11-14T21:00:48.876395Z",
+      "calls": 8,
+      "mean_execution_ms": 0.09272612500000221,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:00:48.876395Z",
+      "end": "2026-11-14T21:00:52.879341Z",
+      "calls": 13,
+      "mean_execution_ms": 0.020354769230769475,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:00:48.876395Z",
+      "end": "2026-11-14T21:00:52.879341Z",
+      "calls": 4,
+      "mean_execution_ms": 0.09203600000000023,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:00:52.879341Z",
+      "end": "2026-11-14T21:00:56.882374Z",
+      "calls": 16,
+      "mean_execution_ms": 0.022509062500000176,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:00:52.879341Z",
+      "end": "2026-11-14T21:00:56.882374Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:00:56.882374Z",
+      "end": "2026-11-14T21:01:00.885641Z",
+      "calls": 16,
+      "mean_execution_ms": 0.023240124999999612,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:00:56.882374Z",
+      "end": "2026-11-14T21:01:00.885641Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:01:00.885641Z",
+      "end": "2026-11-14T21:01:04.888458Z",
+      "calls": 13,
+      "mean_execution_ms": 0.02262646153846121,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:01:00.885641Z",
+      "end": "2026-11-14T21:01:04.888458Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:01:04.888458Z",
+      "end": "2026-11-14T21:01:08.889877Z",
+      "calls": 13,
+      "mean_execution_ms": 0.02510023076923072,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:01:04.888458Z",
+      "end": "2026-11-14T21:01:08.889877Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:01:08.889877Z",
+      "end": "2026-11-14T21:01:12.891247Z",
+      "calls": 13,
+      "mean_execution_ms": 0.023250230769231068,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:01:08.889877Z",
+      "end": "2026-11-14T21:01:12.891247Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:01:12.891247Z",
+      "end": "2026-11-14T21:01:16.893951Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02302906250000003,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:01:12.891247Z",
+      "end": "2026-11-14T21:01:16.893951Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:01:16.893951Z",
+      "end": "2026-11-14T21:01:20.896048Z",
+      "calls": 16,
+      "mean_execution_ms": 0.024291750000000167,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:01:16.893951Z",
+      "end": "2026-11-14T21:01:20.896048Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:01:20.896048Z",
+      "end": "2026-11-14T21:01:24.899354Z",
+      "calls": 13,
+      "mean_execution_ms": 0.022699461538461644,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:01:20.896048Z",
+      "end": "2026-11-14T21:01:24.899354Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:01:24.899354Z",
+      "end": "2026-11-14T21:01:28.901576Z",
+      "calls": 16,
+      "mean_execution_ms": 0.024754375000000106,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:01:24.899354Z",
+      "end": "2026-11-14T21:01:28.901576Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:01:28.901576Z",
+      "end": "2026-11-14T21:01:32.904227Z",
+      "calls": 15,
+      "mean_execution_ms": 0.024715666666666417,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:01:28.901576Z",
+      "end": "2026-11-14T21:01:32.904227Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:01:32.904227Z",
+      "end": "2026-11-14T21:01:36.907421Z",
+      "calls": 14,
+      "mean_execution_ms": 0.022582428571428385,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:01:32.904227Z",
+      "end": "2026-11-14T21:01:36.907421Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:01:36.907421Z",
+      "end": "2026-11-14T21:01:40.910582Z",
+      "calls": 16,
+      "mean_execution_ms": 0.024862812499999887,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:01:36.907421Z",
+      "end": "2026-11-14T21:01:40.910582Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:01:40.910582Z",
+      "end": "2026-11-14T21:01:44.911736Z",
+      "calls": 13,
+      "mean_execution_ms": 0.022804000000000164,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:01:40.910582Z",
+      "end": "2026-11-14T21:01:44.911736Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:01:44.911736Z",
+      "end": "2026-11-14T21:01:48.915247Z",
+      "calls": 16,
+      "mean_execution_ms": 0.022549812499999877,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:01:44.911736Z",
+      "end": "2026-11-14T21:01:48.915247Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:01:48.915247Z",
+      "end": "2026-11-14T21:01:52.916316Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02308650000000001,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:01:48.915247Z",
+      "end": "2026-11-14T21:01:52.916316Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:01:52.916316Z",
+      "end": "2026-11-14T21:01:56.919228Z",
+      "calls": 13,
+      "mean_execution_ms": 0.02298092307692201,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:01:52.916316Z",
+      "end": "2026-11-14T21:01:56.919228Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:01:56.919228Z",
+      "end": "2026-11-14T21:02:00.92242Z",
+      "calls": 13,
+      "mean_execution_ms": 0.02260638461538469,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:01:56.919228Z",
+      "end": "2026-11-14T21:02:00.92242Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:02:00.92242Z",
+      "end": "2026-11-14T21:02:04.923516Z",
+      "calls": 16,
+      "mean_execution_ms": 0.021782125000000097,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:02:00.92242Z",
+      "end": "2026-11-14T21:02:04.923516Z",
+      "calls": 8,
+      "mean_execution_ms": 51.91188762499999,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:02:04.923516Z",
+      "end": "2026-11-14T21:02:08.924905Z",
+      "calls": 16,
+      "mean_execution_ms": 0.022475124999999707,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:02:04.923516Z",
+      "end": "2026-11-14T21:02:08.924905Z",
+      "calls": 8,
+      "mean_execution_ms": 31.01762174999999,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:02:08.924905Z",
+      "end": "2026-11-14T21:02:12.927494Z",
+      "calls": 16,
+      "mean_execution_ms": 0.030900499999999997,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:02:08.924905Z",
+      "end": "2026-11-14T21:02:12.927494Z",
+      "calls": 8,
+      "mean_execution_ms": 40.89894687499999,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:02:12.927494Z",
+      "end": "2026-11-14T21:02:16.929417Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02245906249999985,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:02:12.927494Z",
+      "end": "2026-11-14T21:02:16.929417Z",
+      "calls": 8,
+      "mean_execution_ms": 45.01350912500001,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:02:16.929417Z",
+      "end": "2026-11-14T21:02:20.93171Z",
+      "calls": 16,
+      "mean_execution_ms": 0.019563999999999915,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:02:16.929417Z",
+      "end": "2026-11-14T21:02:20.93171Z",
+      "calls": 8,
+      "mean_execution_ms": 0.10047124999999824,
+      "decision": "investigate"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:02:20.93171Z",
+      "end": "2026-11-14T21:02:24.932812Z",
+      "calls": 12,
+      "mean_execution_ms": 0.023778583333333714,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:02:20.93171Z",
+      "end": "2026-11-14T21:02:24.932812Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:02:24.932812Z",
+      "end": "2026-11-14T21:02:28.935331Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02452268750000064,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:02:24.932812Z",
+      "end": "2026-11-14T21:02:28.935331Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:02:28.935331Z",
+      "end": "2026-11-14T21:02:32.937723Z",
+      "calls": 13,
+      "mean_execution_ms": 0.024065538461537875,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:02:28.935331Z",
+      "end": "2026-11-14T21:02:32.937723Z",
+      "calls": 4,
+      "mean_execution_ms": 0.70221650000002,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:02:32.937723Z",
+      "end": "2026-11-14T21:02:36.940391Z",
+      "calls": 16,
+      "mean_execution_ms": 0.021503999999999746,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:02:32.937723Z",
+      "end": "2026-11-14T21:02:36.940391Z",
+      "calls": 8,
+      "mean_execution_ms": 0.22069037500000377,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:02:36.940391Z",
+      "end": "2026-11-14T21:02:40.943379Z",
+      "calls": 16,
+      "mean_execution_ms": 0.020062062499999644,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:02:36.940391Z",
+      "end": "2026-11-14T21:02:40.943379Z",
+      "calls": 8,
+      "mean_execution_ms": 0.17256962499996575,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:02:40.943379Z",
+      "end": "2026-11-14T21:02:44.945536Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02449337500000004,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:02:40.943379Z",
+      "end": "2026-11-14T21:02:44.945536Z",
+      "calls": 8,
+      "mean_execution_ms": 0.12999275000004218,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:02:44.945536Z",
+      "end": "2026-11-14T21:02:48.948259Z",
+      "calls": 16,
+      "mean_execution_ms": 0.021790312500000297,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:02:44.945536Z",
+      "end": "2026-11-14T21:02:48.948259Z",
+      "calls": 8,
+      "mean_execution_ms": 0.12563412500000481,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:02:48.948259Z",
+      "end": "2026-11-14T21:02:52.950501Z",
+      "calls": 13,
+      "mean_execution_ms": 0.0211656923076929,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:02:48.948259Z",
+      "end": "2026-11-14T21:02:52.950501Z",
+      "calls": 4,
+      "mean_execution_ms": 0.11792400000001635,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:02:52.950501Z",
+      "end": "2026-11-14T21:02:56.953137Z",
+      "calls": 16,
+      "mean_execution_ms": 0.024903562500000476,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:02:52.950501Z",
+      "end": "2026-11-14T21:02:56.953137Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:02:56.953137Z",
+      "end": "2026-11-14T21:03:00.955445Z",
+      "calls": 14,
+      "mean_execution_ms": 0.02290942857142905,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:02:56.953137Z",
+      "end": "2026-11-14T21:03:00.955445Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:03:00.955445Z",
+      "end": "2026-11-14T21:03:04.956401Z",
+      "calls": 15,
+      "mean_execution_ms": 0.02289260000000013,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:03:00.955445Z",
+      "end": "2026-11-14T21:03:04.956401Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:03:04.956401Z",
+      "end": "2026-11-14T21:03:08.958577Z",
+      "calls": 16,
+      "mean_execution_ms": 0.023148937500000688,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:03:04.956401Z",
+      "end": "2026-11-14T21:03:08.958577Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:03:08.958577Z",
+      "end": "2026-11-14T21:03:12.95973Z",
+      "calls": 16,
+      "mean_execution_ms": 0.022732249999999787,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:03:08.958577Z",
+      "end": "2026-11-14T21:03:12.95973Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:03:12.95973Z",
+      "end": "2026-11-14T21:03:16.960651Z",
+      "calls": 16,
+      "mean_execution_ms": 0.022473562499999655,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:03:12.95973Z",
+      "end": "2026-11-14T21:03:16.960651Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:03:16.960651Z",
+      "end": "2026-11-14T21:03:20.961678Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02456725000000004,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:03:16.960651Z",
+      "end": "2026-11-14T21:03:20.961678Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:03:20.961678Z",
+      "end": "2026-11-14T21:03:24.962914Z",
+      "calls": 13,
+      "mean_execution_ms": 0.022923230769231067,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:03:20.961678Z",
+      "end": "2026-11-14T21:03:24.962914Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:03:24.962914Z",
+      "end": "2026-11-14T21:03:28.963209Z",
+      "calls": 16,
+      "mean_execution_ms": 0.024344812500000312,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:03:24.962914Z",
+      "end": "2026-11-14T21:03:28.963209Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:03:28.963209Z",
+      "end": "2026-11-14T21:03:32.966611Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02610943750000061,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:03:28.963209Z",
+      "end": "2026-11-14T21:03:32.966611Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3370560422602638696",
+      "start": "2026-11-14T21:03:32.966611Z",
+      "end": "2026-11-14T21:03:36.971799Z",
+      "calls": 16,
+      "mean_execution_ms": 0.022650937499999912,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "2030624601616570513",
+      "start": "2026-11-14T21:03:32.966611Z",
+      "end": "2026-11-14T21:03:36.971799Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    }
+  ],
+  "process_results": [
+    {
+      "job_id": 101,
+      "attempt": 1,
+      "outcome": "awaiting_evidence",
+      "elapsed_ms": 2903.153455,
+      "cron": {
+        "fixture": "d8effa98576ae11f4abf0117",
+        "job_id": 101,
+        "outcome": "awaiting_evidence",
+        "reason": "",
+        "before": null,
+        "after": null,
+        "evidence": {
+          "run_id": "",
+          "observed_at": "0001-01-01T00:00:00Z",
+          "decision": "",
+          "table_oid": 0,
+          "column_number": 0,
+          "covering_index": false,
+          "plan": {
+            "node": "",
+            "examined_rows": 0,
+            "returned_rows": 0,
+            "shared_blocks": 0
+          },
+          "lookup_column": ""
+        },
+        "proposal": {
+          "outcome": "",
+          "run_id": "",
+          "table_oid": 0,
+          "column_number": 0,
+          "reason": ""
+        },
+        "intent_at": "0001-01-01T00:00:00Z",
+        "commit_at": "0001-01-01T00:00:00Z",
+        "first_future_cycle": "0001-01-01T00:00:00Z",
+        "verify_after": "0001-01-01T00:00:00Z",
+        "pre_witness": null,
+        "post_witness": null,
+        "history": null,
+        "investigation_wall_ms": 0,
+        "action_wall_ms": 0,
+        "cycle_wait_ms": 0
+      }
+    }
+  ],
+  "jobs": [
+    {
+      "id": "101",
+      "created_at": "2026-11-14T21:02:20.932Z",
+      "finished_at": "2026-11-14T21:02:25.128Z",
+      "result": {
+        "cron": {
+          "after": null,
+          "before": null,
+          "job_id": 101,
+          "reason": "",
+          "fixture": "d8effa98576ae11f4abf0117",
+          "history": null,
+          "outcome": "awaiting_evidence",
+          "evidence": {
+            "plan": {
+              "node": "",
+              "examined_rows": 0,
+              "returned_rows": 0,
+              "shared_blocks": 0
+            },
+            "run_id": "",
+            "decision": "",
+            "table_oid": 0,
+            "observed_at": "0001-01-01T00:00:00Z",
+            "column_number": 0,
+            "lookup_column": "",
+            "covering_index": false
+          },
+          "proposal": {
+            "reason": "",
+            "run_id": "",
+            "outcome": "",
+            "table_oid": 0,
+            "column_number": 0
+          },
+          "commit_at": "0001-01-01T00:00:00Z",
+          "intent_at": "0001-01-01T00:00:00Z",
+          "pre_witness": null,
+          "post_witness": null,
+          "verify_after": "0001-01-01T00:00:00Z",
+          "cycle_wait_ms": 0,
+          "action_wall_ms": 0,
+          "first_future_cycle": "0001-01-01T00:00:00Z",
+          "investigation_wall_ms": 0
+        },
+        "job_id": 101,
+        "attempt": 1,
+        "outcome": "awaiting_evidence",
+        "elapsed_ms": 2714.973329
+      },
+      "attempts": 1,
+      "not_before": "2026-11-14T21:02:20.932Z",
+      "parent_id": null
+    },
+    {
+      "id": "102",
+      "created_at": "2026-11-14T21:02:24.955Z",
+      "finished_at": null,
+      "result": null,
+      "attempts": 0,
+      "not_before": "2026-11-14T21:07:22.000Z",
+      "parent_id": "101"
+    }
+  ],
+  "initial_queue_delay_seconds": 1.4810266710000002,
+  "detection_seconds": 20.932,
+  "repair_seconds": 4.196,
+  "final_outcome": "awaiting_evidence",
+  "traffic_errors": 0,
+  "missed_requests": 0,
+  "cleanup_verified": true,
+  "fixture_removed": true,
+  "owned_jobs_remaining": 0,
+  "unrelated_jobs_after": [],
+  "public_indexes_after": {
+    "count": 12,
+    "hash": "f56ad07a58d2b60570ee6b64a8978936"
+  },
+  "total_seconds": 523.7245063810001,
+  "source_commit": "fc3d781",
+  "deployment_id": "4d001521-03b6-409d-8d80-652b1cfdc141",
+  "controller_observations": {
+    "target_run_seconds": 16.458,
+    "model_requests": 0,
+    "schedule_repairs": 0,
+    "note": "The driver reported only fixture command exited 1. Saved original_control and original_quiet starts exceed the unchanged one-second period boundary limit. This independently establishes invalid windows, without recovering the discarded command stderr."
+  }
+}
