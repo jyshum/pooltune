@@ -18,12 +18,12 @@
 
 - Design conflict mode **ask**. Jared selected “Ask me first” in the November 13 interactive reply.
 - Human review mode **milestones**. Jared selected “Pause at agreed milestones” in the same reply. [Handoff](HANDOFF.md).
-- Authorized scope is M1 in the existing checkout, on a local branch, with isolated synthetic work in authorized Rookery. Routine internal interfaces and lab parameters are delegated. Approved architecture and customer-facing boundaries require a ruling if they conflict with evidence.
-- M1 acceptance is pending. The canceled worktree request stays canceled. No push, merge, publication or customer deployment.
+- Authorized scope includes the automatic index slice after the accepted Rookery milestone, on a local branch, with isolated synthetic work in authorized Rookery. Routine internal interfaces and lab parameters are delegated. Approved architecture and customer-facing boundaries require a ruling if they conflict with evidence.
+- M1 acceptance is recorded in progress.md. The canceled worktree request stays canceled. No push, merge, publication or customer deployment.
 
 ## Human milestones
 
-- [ ] **M1 acceptance.** Review Tasks 1–3, including the isolated local and Rookery setup, healthy/no-change and investigate decisions, actual measurements, state readback, cleanup, source and limitations. Obtain explicit acceptance before enabling agent-driven index changes.
+- [x] **M1 acceptance.** Review Tasks 1–3, including the isolated local and Rookery setup, healthy/no-change and investigate decisions, actual measurements, state readback, cleanup, source and limitations. Obtain explicit acceptance before enabling agent-driven index changes.
 - [ ] **Index slice review.** After M1, demonstrate investigation through verified outcome and recovery, including refusal of unsupported actions. Record actual live model evidence and explicit review before any later integration decision.
 
 ## Global constraints
@@ -82,13 +82,23 @@
 - [x] Verify with `go test ./...`, `go test -tags=integration ./internal/hostedquery -v`, `go vet ./cmd/pooltune-query-lab ./internal/hostedquery`, and `git diff --check`. Document actual limitations of the old gateway suite if any. Run the CLI on Rookery once, independently verify state readback and absence of the fixture and changes to existing app indexes, and preserve measured results in progress. If native access is unavailable, demonstrate the local implementation and report any separately measured Rookery evidence as such.
 - [x] Obtain a fresh review, address material findings and commit verified work locally. See the M1 evidence in progress.md. Human acceptance is tracked separately above.
 
-### Task 4: Investigate and qualify a nonunique index (after M1)
+### Task 4: Qualify an index against the enrolled fixture
 
-Consume an enrolled query identity, comparable observation IDs, catalog identities and evidence freshness from Go. The investigator has checkpointed LangGraph state and structured evidence/recommendation tools. A candidate carries project and enrollment IDs, table OID, ordered column numbers, intended mechanism and evidence IDs. Go resolves/quotes catalog identifiers and rejects stale, unenrolled, duplicate or unsupported targets. The first contract is an ordinary nonpartitioned table and B-tree over up to three approved plain columns; no raw SQL, unique/partial/expression indexes, or model-provided identifiers. Implement one per-project mutation lease and a durable action ID before execution. Before any implementation here, pin the exact grants, credential lifecycle, pressure/lock/storage limits, timeout, evidence freshness, queue, model budgets, and secure Anthropic configuration. Qualify Go denial independently of model output.
+Files: `internal/hostedquery/index_policy.go`, `index_policy_test.go`, `investigator/`. Decisions: d-language r2, d-workflow r1, d-reuse r1. M1 accepted. The index slice remains restricted to the developer-enrolled synthetic fixture.
 
-### Task 5: Execute, verify and recover (after M1 and Task 4)
+- [ ] Test `qualifyIndex(Evidence, Proposal, now)` on healthy, skewed, stale, existing equivalent and unknown-authority cases. Proposals carry an evidence ID and catalog table/column numbers. Match a single enrolled plain integer equality column in this slice. V1 compound indexes remain in scope for later qualification. The executor supplies the generated object name and quotes catalog identifiers; the proposal cannot provide SQL.
+- [ ] Build a single TypeScript LangGraph workflow with an evidence node, one bounded Anthropic selection of plan or catalog tools, and a structured recommendation. Use `langgraph.json` for development inspection in Studio. Pass only synthetic evidence and the Pooltune state connection to the local investigator process. Keep the Anthropic key in its environment; require an explicit model name. Use a scripted investigator only in labeled development evaluation. Test the graph with a deterministic model double and assert evidence access, healthy/no-change and misleading scan behavior. Correlate its checkpoint with the Go run ID.
+- [ ] Run Go policy tests, TypeScript typecheck/tests and review the cross-language contract.
 
-Go admits only a fresh qualified candidate and executes a bounded concurrent build. Record intent, expected catalog definition and backend identity before execution. On uncertain completion, reconcile identity, validity/readiness and ownership before retry or cleanup; collisions and ambiguous ownership require a stop. Cancel only identified Pooltune work. Observe normal traffic first, use a gap-driven experiment only under grant and compare benefit and protection separately. Cover noisy input-mix shifts, reset/missing guards, interrupted action, existing valid/invalid indexes and repeated delivery. Record outcome, measured benefit, write/error/storage guards and recovery behavior. Complete concrete contracts and tests before enabling mutation.
+### Task 5: Execute, verify and recover automatically
+
+Files: `internal/hostedquery/index_trial.go`, `index_journal.go`, `index_trial_integration_test.go` and the existing lab entry point. Decisions: d-reuse; implementation details within d-trials and d-durability. Depends on the qualification rules and index scope in Task 4.
+
+- [ ] Add `RunIndexTrial(ctx, target, state, investigate, identity)`. Use a dedicated session and project/database advisory lock. Persist a target-scoped run ID before creating a unique private schema. Create fixture and exact ownership marker atomically. Reject collision, standby, missing activity visibility, lock waits and more than two other active client backends. Caps: 100,000 rows per table, 24 MiB relation data per table, 8 MiB index, 16 MiB maintenance memory, 250 ms lock wait and 5-second build timeout. Rookery uses the pinned authenticated route. This bounded envelope is for disposable fixtures; customer disk/pressure checks and credentials remain unqualified.
+- [ ] Reuse the M1 data pattern and objective. Measure real healthy/candidate plans, a paired write guard, and exact row results using 10 sequential iterations on preselected inputs before and after. Batch round trips; report database and wall timings separately. Require controlled v0 latency route (20% and 5 ms plus noise check), 30% less target shared-block work, improved plan, and measured healthy/read and write/error coverage. Distinguish tested-input improvement from production qualification.
+- [ ] Journal the authorized target and intended name before issuing one `CREATE INDEX CONCURRENTLY`. Check validity, definition and size afterward. On cancellation or lost acknowledgement, use the durable record and exact ownership marker to inspect target state before cleanup. Restart reconciles unfinished fixture runs with the same supplied target identity. Leave ambiguous/unowned objects intact. Cleanup removes the exact owned fixture objects only. Concurrent duplicate invocation defers under the session lock.
+- [ ] Test the normal path, healthy no-change, misleading/duplicate proposal, missing verification, interruption after the build, restart reconciliation, refusal of unowned objects, and fixture cleanup. Run `go test -count=1 ./...`, focused PostgreSQL integration, investigator tests, and one bounded Rookery trial. Check the public catalog fingerprint before/after. Document measured timings and distinguish deterministic evaluation from live Anthropic evidence.
+- [ ] Record the technical choices, strongest alternatives and results. Publish a source-grounded learning view for the slice, review and present the index milestone. Any broader enablement requires a new qualification.
 
 ## Candidate test application inspection (historical)
 

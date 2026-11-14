@@ -1,0 +1,46 @@
+package hostedquery
+
+import (
+	"errors"
+	"time"
+)
+
+// IndexEvidence is a bounded snapshot of an enrolled synthetic lookup.
+type IndexEvidence struct {
+	RunID    string       `json:"run_id"`
+	At       time.Time    `json:"observed_at"`
+	Decision Decision     `json:"decision"`
+	TableOID uint32       `json:"table_oid"`
+	Column   int16        `json:"column_number"`
+	Existing bool         `json:"covering_index"`
+	Plan     PlanEvidence `json:"plan"`
+	Label    string       `json:"lookup_column"`
+}
+
+// IndexProposal refers to evidence by identity. Only Go resolves identifiers.
+type IndexProposal struct {
+	Outcome  string `json:"outcome"`
+	RunID    string `json:"run_id"`
+	TableOID uint32 `json:"table_oid"`
+	Column   int16  `json:"column_number"`
+	Reason   string `json:"reason"`
+}
+
+func qualifyIndex(e IndexEvidence, p IndexProposal, now time.Time) error {
+	switch {
+	case e.Decision != Investigate:
+		return errors.New("lookup did not trigger investigation")
+	case e.At.IsZero() || e.At.After(now) || now.Sub(e.At) > 30*time.Second:
+		return errors.New("index evidence expired")
+	case p.Outcome != "propose" || e.RunID == "" || p.RunID != e.RunID ||
+		e.TableOID == 0 || p.TableOID != e.TableOID || e.Column <= 0 || p.Column != e.Column ||
+		len(p.Reason) == 0 || len(p.Reason) > 1000:
+		return errors.New("proposal does not match the enrolled lookup and evidence")
+	case e.Existing:
+		return errors.New("a covering index is already present")
+	case e.Plan.Node != "Seq Scan" || e.Plan.ExaminedRows < 10_000 ||
+		e.Plan.ReturnedRows <= 0 || e.Plan.ExaminedRows/e.Plan.ReturnedRows < 10:
+		return errors.New("plan does not show a selective sequential scan")
+	}
+	return nil
+}

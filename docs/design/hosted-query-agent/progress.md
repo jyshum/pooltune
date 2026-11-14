@@ -1,6 +1,10 @@
 # Design progress
 
-## M1 implementation and review, November 13, 2026
+## Automatic index slice, November 13, 2026
+
+Jared accepted the Rookery milestone in this implementation chat: “Yeah, I said that's recreatus. Let's proceed to building actually implementing, actually detecting an index build, and then actually isolating it and fixing it and improving the outcome and making the repair automatic.” This authorizes automatic test repair in the isolated fixture. Design conflict mode remains **ask** and human review mode remains **milestones**. The index-slice review is pending. No publication or customer rollout.
+
+## M1 implementation and review, November 13, 2026 (historical)
 
 M1 evidence is available. Explicit human acceptance is pending. Design conflict mode remains **ask** (“Ask me first”). Human review mode remains **milestones** (“Pause at agreed milestones”). Both were selected by Jared on November 13. Authorized work includes the bounded synthetic fixture on Rookery and local feature-branch implementation. Automatic index changes require acceptance of M1. Tasks 4–5 remain gated. [Authority and scope](HANDOFF.md).
 

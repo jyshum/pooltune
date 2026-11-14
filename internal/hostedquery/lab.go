@@ -135,8 +135,16 @@ func setupFixture(ctx context.Context, tx pgx.Tx) error {
 	if _, err := tx.Exec(ctx, "CREATE SCHEMA pooltune_m1"); err != nil {
 		return fmt.Errorf("create fixture schema: %w", err)
 	}
+	if err := seedFixtureTables(ctx, tx, "pooltune_m1"); err != nil {
+		return err
+	}
+	_, err := tx.Exec(ctx, "SET LOCAL statement_timeout = '750ms'")
+	return err
+}
+
+func seedFixtureTables(ctx context.Context, tx pgx.Tx, schema string) error {
 	for _, table := range []string{"healthy", "candidate"} {
-		qualified := pgx.Identifier{"pooltune_m1", table}.Sanitize()
+		qualified := qualified(schema, table)
 		if _, err := tx.Exec(ctx, "CREATE TABLE "+qualified+
 			" (id integer PRIMARY KEY, lookup integer NOT NULL, padding text NOT NULL)"); err != nil {
 			return fmt.Errorf("create fixture table: %w", err)
@@ -149,8 +157,7 @@ func setupFixture(ctx context.Context, tx pgx.Tx) error {
 			return fmt.Errorf("analyze fixture table: %w", err)
 		}
 	}
-	_, err := tx.Exec(ctx, "SET LOCAL statement_timeout = '750ms'")
-	return err
+	return nil
 }
 
 type labCase struct {

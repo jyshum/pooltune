@@ -1,0 +1,5 @@
+{
+  "dependencies": ["."],
+  "graphs": {"pooltune_index": "./model.ts:graph"},
+  "env": ".env"
+}
