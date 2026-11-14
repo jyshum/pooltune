@@ -1,0 +1,194 @@
+{
+  "source_commit": "a0d02a9799dc3a23d7a0365a613eca1299a85138",
+  "classification": "Prespecified three repeated saved real positive cases and six synthetic healthy/unsupported direct model controls; no database actions; all outcomes retained",
+  "model": "claude-haiku-5-5",
+  "results": [
+    {
+      "name": "saved-positive-1",
+      "expected": "propose",
+      "proposal": {
+        "outcome": "propose",
+        "run_id": "worker-108-1",
+        "table_oid": 27126,
+        "column_number": 1,
+        "repair": "cron",
+        "reason": "Job 10 busy periods show a large, repeated foreground slowdown (target ExecutionMS rises ~20-50x vs control) with pinned blocking by PIDs 185976/185939 on each cycle. Proposing the owner-approved schedule 1-59/2 to avoid the even-minute overlap; identity is verified.",
+        "model_call": {
+          "model": "claude-haiku-5-5",
+          "duration_ms": 3987.201709,
+          "requests": 1,
+          "input_tokens": 13217,
+          "output_tokens": 263
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "saved-positive-2",
+      "expected": "propose",
+      "proposal": {
+        "outcome": "propose",
+        "run_id": "worker-108-1",
+        "table_oid": 27126,
+        "column_number": 1,
+        "repair": "cron",
+        "reason": "Job 10 busy periods show ~4-5x foreground target execution time versus matched control windows, with 40 target calls per window and blocking attribution pinned to run 1408/1468/1529. Schedule pair matches the approved alternate; identity verified.",
+        "model_call": {
+          "model": "claude-haiku-5-5",
+          "duration_ms": 1500.9471669999994,
+          "requests": 1,
+          "input_tokens": 13217,
+          "output_tokens": 237
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "saved-positive-3",
+      "expected": "propose",
+      "proposal": {
+        "outcome": "propose",
+        "run_id": "worker-108-1",
+        "table_oid": 27126,
+        "column_number": 1,
+        "repair": "cron",
+        "reason": "Job 10 busy periods show ~4-5x target execution time versus matched quiet controls, with live blocking attribution and identity verified. Moving to odd-minute schedule 1-59/2 keeps one run per 120s cycle within the deadline and the owner-allowed quiet window.",
+        "model_call": {
+          "model": "claude-haiku-5-5",
+          "duration_ms": 1477.414667,
+          "requests": 1,
+          "input_tokens": 13217,
+          "output_tokens": 248
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "vacuum-healthy",
+      "expected": "no_change",
+      "screened_outcome": "no_change",
+      "screen_model_calls": 0,
+      "proposal": {
+        "outcome": "no_change",
+        "run_id": "vacuum-healthy",
+        "table_oid": 42,
+        "column_number": 2,
+        "reason": "Vacuum evidence shows 0 heap fetches over 50000 scan rows, below the 1000-fetch threshold, and the index-only scan returns all rows as expected. No stats, index, memory, or cron signal indicates a problem.",
+        "model_call": {
+          "model": "claude-haiku-5-5",
+          "duration_ms": 2403.972417000001,
+          "requests": 1,
+          "input_tokens": 2482,
+          "output_tokens": 212
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "vacuum-blocked",
+      "expected": "no_change",
+      "screened_outcome": "no_change",
+      "screen_model_calls": 0,
+      "proposal": {
+        "outcome": "no_change",
+        "run_id": "vacuum-blocked",
+        "table_oid": 42,
+        "column_number": 2,
+        "reason": "Heap fetches (56831) and fetch ratio exceed vacuum thresholds, but conditions_clear is false, so cleanup is not currently eligible. Vacuum is unsupported now; no other repair shows clear causal evidence.",
+        "model_call": {
+          "model": "claude-haiku-5-5",
+          "duration_ms": 1252.6561249999995,
+          "requests": 1,
+          "input_tokens": 2483,
+          "output_tokens": 212
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "memory-healthy",
+      "expected": "no_change",
+      "screened_outcome": "no_change",
+      "screen_model_calls": 0,
+      "proposal": {
+        "outcome": "no_change",
+        "run_id": "memory-healthy",
+        "table_oid": 42,
+        "column_number": 2,
+        "reason": "Memory evidence shows zero temp bytes and zero internal sort temp writes, so no spill is present. The function is healthy, and raising work_mem is not justified.",
+        "model_call": {
+          "model": "claude-haiku-5-5",
+          "duration_ms": 1089.462958,
+          "requests": 1,
+          "input_tokens": 2560,
+          "output_tokens": 185
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "memory-over-budget",
+      "expected": "no_change",
+      "screened_outcome": "no_change",
+      "screen_model_calls": 0,
+      "proposal": {
+        "outcome": "no_change",
+        "run_id": "memory-over-budget",
+        "table_oid": 42,
+        "column_number": 2,
+        "reason": "Memory repair requires at most three admitted calls and a 96 MiB aggregate allowance; here max_concurrent_calls is 4 and aggregate_bytes is 100663296 (96 MiB), so the budget is exceeded. Declining the work_mem change.",
+        "model_call": {
+          "model": "claude-haiku-5-5",
+          "duration_ms": 1309.5884999999998,
+          "requests": 1,
+          "input_tokens": 2565,
+          "output_tokens": 220
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "cron-healthy",
+      "expected": "no_change",
+      "screened_outcome": "no_change",
+      "screen_model_calls": 0,
+      "proposal": {
+        "outcome": "no_change",
+        "run_id": "cron-healthy",
+        "table_oid": 42,
+        "column_number": 1,
+        "reason": "Cron job 9 shows no blocking attribution: busy-period target execution (80 ms) equals control, with no blocks in any period, so the cron schedule is not causing foreground latency. Enrolled decision is no_change; no repair is supported.",
+        "model_call": {
+          "model": "claude-haiku-5-5",
+          "duration_ms": 1532.4609579999997,
+          "requests": 1,
+          "input_tokens": 9486,
+          "output_tokens": 211
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "cron-unapproved-window",
+      "expected": "no_change",
+      "screened_outcome": "no_change",
+      "screen_model_calls": 0,
+      "proposal": {
+        "outcome": "no_change",
+        "run_id": "cron-unapproved-window",
+        "table_oid": 42,
+        "column_number": 1,
+        "reason": "Cron evidence shows the job blocks target work in all three periods, but the proposed schedule \"* * * * *\" is not the owner-approved alternate pair (1-59/2). Proposing a different schedule is not permitted.",
+        "model_call": {
+          "model": "claude-haiku-5-5",
+          "duration_ms": 1529.4330840000002,
+          "requests": 1,
+          "input_tokens": 9796,
+          "output_tokens": 206
+        }
+      },
+      "passed": true
+    }
+  ],
+  "passed": true
+}

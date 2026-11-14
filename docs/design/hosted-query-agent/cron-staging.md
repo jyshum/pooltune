@@ -52,6 +52,14 @@ A second separate saved-evidence replay returned valid `no_change` in **1.863 se
 
 The next step is to inspect how the existing enrollment permission is represented to the model. Keep refusal for weak or unauthorized evidence and all independent Go checks. Repeated unchanged calls until a proposal appears would not establish reliability. Scheduling remains unqualified.
 
+## Clarified schedule meanings: bounded decision checks passed
+
+Commit `a0d02a9` explicitly defines the current schedule, the exact owner-approved alternate and the unchanged execution/deadline requirements. No schema, evidence, Go guard, permission or model budget changed. A focused regression verifies delivery, preserves a model decline, and screens unsupported schedules even when identity is verified. All 64 TypeScript tests and typecheck passed.
+
+A prespecified nine-request check retained every outcome: **3/3** repetitions of the same saved positive evidence proposed `cron`; **6/6** healthy/unsupported controls across cleanup, memory and scheduling declined. Positive model calls took **3.987, 1.501 and 1.477 seconds**. Negative calls took **1.089–2.404 seconds**. The normal graph screened all six controls without a model call; separate direct model requests tested the prompt itself. These were offline evidence replays with real Claude, not new database observations or actions. Three repetitions are a bounded check, not a production reliability estimate. [Complete decision-check results](evidence/mixed-traffic/cron-decision-clarity-matrix.json).
+
+The prior incorrect decline and invalid output remain above. The next required qualification is an actual hosted schedule change, consumer restart and three future executions under the same workload and deadlines.
+
 ## Problems found
 
 A follow-up check also reproduced an activation failure under `TZ=UTC`, matching Railway, while the local default timezone passed. The scheduler-generation comparison used `time.Time` values whose location representation changed after JSON persistence. Commit `7b88d99` compares actual instants while preserving exact process/start identity. UTC regression and race tests passed; final narrow review is recorded in progress. The original driver saved a generic command failure, so its report alone does not identify which activation guard refused first.
