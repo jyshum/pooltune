@@ -1,0 +1,3363 @@
+{
+  "repair": "cron",
+  "phases": [
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T19:53:19.999Z",
+      "seconds": 10,
+      "counters": [
+        {
+          "query_id": "3721139584530605746",
+          "calls": 40,
+          "execution_ms": 0.956056,
+          "blocks": 120,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-2507622837125904623",
+          "calls": 20,
+          "execution_ms": 1.192704,
+          "blocks": 100,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 150.56088499999896,
+          "p95_ms": 150.99843899999905,
+          "p99_ms": 152.14177700000073,
+          "max_ms": 152.14177700000073,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 142.38267300000007,
+          "p95_ms": 143.42513400000098,
+          "p99_ms": 143.46151199999804,
+          "max_ms": 143.46151199999804,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T19:53:30.718Z",
+      "seconds": 10,
+      "counters": [
+        {
+          "query_id": "3721139584530605746",
+          "calls": 40,
+          "execution_ms": 0.9933660000000002,
+          "blocks": 120,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-2507622837125904623",
+          "calls": 20,
+          "execution_ms": 1.2124199999999998,
+          "blocks": 100,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 150.47533800000383,
+          "p95_ms": 151.17952100000548,
+          "p99_ms": 152.69829000000027,
+          "max_ms": 152.69829000000027,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 142.48523299999943,
+          "p95_ms": 143.30687100000068,
+          "p99_ms": 143.78266599999915,
+          "max_ms": 143.78266599999915,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T19:53:41.457Z",
+      "seconds": 10,
+      "counters": [
+        {
+          "query_id": "3721139584530605746",
+          "calls": 40,
+          "execution_ms": 1.0743669999999996,
+          "blocks": 120,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-2507622837125904623",
+          "calls": 20,
+          "execution_ms": 1.4402210000000002,
+          "blocks": 100,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 150.4698669999998,
+          "p95_ms": 151.5978080000059,
+          "p99_ms": 151.67614800000592,
+          "max_ms": 151.67614800000592,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 142.58752800000366,
+          "p95_ms": 143.73829800000385,
+          "p99_ms": 144.22567700000218,
+          "max_ms": 144.22567700000218,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T19:53:52.241Z",
+      "seconds": 7.8989560546875,
+      "counters": [
+        {
+          "query_id": "3721139584530605746",
+          "calls": 32,
+          "execution_ms": 7.191055,
+          "blocks": 96,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-2507622837125904623",
+          "calls": 16,
+          "execution_ms": 3.550182,
+          "blocks": 81,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 32,
+          "completed": 32,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.051168252925037,
+          "p50_ms": 150.4327259999991,
+          "p95_ms": 157.1612729999979,
+          "p99_ms": 190.31150699999853,
+          "max_ms": 190.31150699999853,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 16,
+          "completed": 16,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.0255841264625185,
+          "p50_ms": 142.50994899999932,
+          "p95_ms": 159.29467899999872,
+          "p99_ms": 159.29467899999872,
+          "max_ms": 159.29467899999872,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "monitor_off",
+      "start": "2026-11-14T19:54:00.969Z",
+      "seconds": 20,
+      "counters": [
+        {
+          "query_id": "3721139584530605746",
+          "calls": 80,
+          "execution_ms": 1.7018939999999994,
+          "blocks": 240,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-2507622837125904623",
+          "calls": 40,
+          "execution_ms": 3.1122650000000007,
+          "blocks": 200,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "6397319786376541367",
+          "calls": 40,
+          "execution_ms": 95.37621,
+          "blocks": 241,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 155.64703700000246,
+          "p95_ms": 157.73557900000014,
+          "p99_ms": 259.52559499999916,
+          "max_ms": 259.52559499999916,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 80,
+          "completed": 80,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 150.41693599999417,
+          "p95_ms": 151.4647549999936,
+          "p99_ms": 153.27213500000653,
+          "max_ms": 153.27213500000653,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 142.35124499999802,
+          "p95_ms": 143.35424200000125,
+          "p99_ms": 144.4347240000061,
+          "max_ms": 144.4347240000061,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T19:54:21.690Z",
+      "seconds": 8.45064404296875,
+      "counters": [
+        {
+          "query_id": "3721139584530605746",
+          "calls": 34,
+          "execution_ms": 0.7890510000000006,
+          "blocks": 102,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-2507622837125904623",
+          "calls": 17,
+          "execution_ms": 1.6929839999999992,
+          "blocks": 85,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 34,
+          "completed": 34,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.023361986035758,
+          "p50_ms": 150.38271199999144,
+          "p95_ms": 151.4412799999991,
+          "p99_ms": 151.6189299999969,
+          "max_ms": 151.6189299999969,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 17,
+          "completed": 17,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.011680993017879,
+          "p50_ms": 142.48210599999584,
+          "p95_ms": 148.9230499999976,
+          "p99_ms": 148.9230499999976,
+          "max_ms": 148.9230499999976,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "monitor_on",
+      "start": "2026-11-14T19:54:30.865Z",
+      "seconds": 20,
+      "counters": [
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 10,
+          "execution_ms": 46.06062599999996,
+          "blocks": 18,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3721139584530605746",
+          "calls": 80,
+          "execution_ms": 1.8280849999999997,
+          "blocks": 240,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-2507622837125904623",
+          "calls": 40,
+          "execution_ms": 2.5130459999999992,
+          "blocks": 200,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "6397319786376541367",
+          "calls": 40,
+          "execution_ms": 3.2082719999999085,
+          "blocks": 120,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 143.38506900001084,
+          "p95_ms": 156.9009500000102,
+          "p99_ms": 158.10087900000508,
+          "max_ms": 158.10087900000508,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 80,
+          "completed": 80,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 150.41760800000338,
+          "p95_ms": 151.10515600000508,
+          "p99_ms": 151.74927100000787,
+          "max_ms": 151.74927100000787,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 142.26747700000124,
+          "p95_ms": 142.9930100000056,
+          "p99_ms": 144.0100850000017,
+          "max_ms": 144.0100850000017,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T19:54:51.582Z",
+      "seconds": 10,
+      "counters": [
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 5,
+          "execution_ms": 12.883890000000065,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3721139584530605746",
+          "calls": 40,
+          "execution_ms": 0.9242329999999992,
+          "blocks": 120,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-2507622837125904623",
+          "calls": 20,
+          "execution_ms": 199.695907,
+          "blocks": 100,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 150.34934899999644,
+          "p95_ms": 150.76475299999584,
+          "p99_ms": 151.82343800000672,
+          "max_ms": 151.82343800000672,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 142.292180000004,
+          "p95_ms": 143.35842299999786,
+          "p99_ms": 339.846212000004,
+          "max_ms": 339.846212000004,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T19:55:02.303Z",
+      "seconds": 10,
+      "counters": [
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 5,
+          "execution_ms": 12.773290000000088,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3721139584530605746",
+          "calls": 40,
+          "execution_ms": 0.8767029999999991,
+          "blocks": 120,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-2507622837125904623",
+          "calls": 20,
+          "execution_ms": 1.2658790000000124,
+          "blocks": 100,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 150.12698100000853,
+          "p95_ms": 150.6239399999904,
+          "p99_ms": 151.65521799999988,
+          "max_ms": 151.65521799999988,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 141.6441909999994,
+          "p95_ms": 142.87460499998997,
+          "p99_ms": 143.43838599999435,
+          "max_ms": 143.43838599999435,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T19:55:13.020Z",
+      "seconds": 10,
+      "counters": [
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 5,
+          "execution_ms": 12.776119000000108,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3721139584530605746",
+          "calls": 40,
+          "execution_ms": 0.9073360000000008,
+          "blocks": 120,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-2507622837125904623",
+          "calls": 20,
+          "execution_ms": 1.1946669999999813,
+          "blocks": 100,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 150.14666399999987,
+          "p95_ms": 150.64166799999657,
+          "p99_ms": 151.07157800000277,
+          "max_ms": 151.07157800000277,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 141.90228599999682,
+          "p95_ms": 142.46753799999715,
+          "p99_ms": 142.8655349999899,
+          "max_ms": 142.8655349999899,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T19:55:23.738Z",
+      "seconds": 10,
+      "counters": [
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 5,
+          "execution_ms": 12.819249000000127,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3721139584530605746",
+          "calls": 40,
+          "execution_ms": 0.8787340000000015,
+          "blocks": 120,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-2507622837125904623",
+          "calls": 20,
+          "execution_ms": 1.2821300000000235,
+          "blocks": 100,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 150.2380880000128,
+          "p95_ms": 150.7022200000065,
+          "p99_ms": 150.89022200001637,
+          "max_ms": 150.89022200001637,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 142.09161400000448,
+          "p95_ms": 143.10274699999718,
+          "p99_ms": 143.4134840000188,
+          "max_ms": 143.4134840000188,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T19:55:34.456Z",
+      "seconds": 10,
+      "counters": [
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 5,
+          "execution_ms": 12.93273100000033,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3721139584530605746",
+          "calls": 40,
+          "execution_ms": 0.8870289999999983,
+          "blocks": 120,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-2507622837125904623",
+          "calls": 20,
+          "execution_ms": 1.229344999999995,
+          "blocks": 100,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 150.19815599999856,
+          "p95_ms": 150.60930199999711,
+          "p99_ms": 150.7086479999998,
+          "max_ms": 150.7086479999998,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 142.05273699999088,
+          "p95_ms": 143.01201199999196,
+          "p99_ms": 143.1520099999907,
+          "max_ms": 143.1520099999907,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T19:55:45.174Z",
+      "seconds": 10,
+      "counters": [
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 5,
+          "execution_ms": 13.053012999999737,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3721139584530605746",
+          "calls": 40,
+          "execution_ms": 0.8788560000000025,
+          "blocks": 120,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-2507622837125904623",
+          "calls": 20,
+          "execution_ms": 1.2569000000000017,
+          "blocks": 100,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 150.18011200000183,
+          "p95_ms": 150.79272100000526,
+          "p99_ms": 151.1775220000127,
+          "max_ms": 151.1775220000127,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 142.11902300000656,
+          "p95_ms": 142.93305399999372,
+          "p99_ms": 144.73650400000042,
+          "max_ms": 144.73650400000042,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T19:55:55.895Z",
+      "seconds": 4.247032958984375,
+      "counters": [
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 3,
+          "execution_ms": 7.853990999999951,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3721139584530605746",
+          "calls": 17,
+          "execution_ms": 0.3691059999999986,
+          "blocks": 51,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-2507622837125904623",
+          "calls": 9,
+          "execution_ms": 0.5744449999999972,
+          "blocks": 45,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 17,
+          "completed": 17,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.0027944600800405,
+          "p50_ms": 150.26513799998793,
+          "p95_ms": 151.14383699998143,
+          "p99_ms": 151.14383699998143,
+          "max_ms": 151.14383699998143,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 9,
+          "completed": 9,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.119126478865904,
+          "p50_ms": 142.2035840000026,
+          "p95_ms": 142.92027599998983,
+          "p99_ms": 142.92027599998983,
+          "max_ms": 142.92027599998983,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "monitor_on",
+      "start": "2026-11-14T19:56:00.869Z",
+      "seconds": 20,
+      "counters": [
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 10,
+          "execution_ms": 26.310246000000006,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3721139584530605746",
+          "calls": 80,
+          "execution_ms": 1.6744309999999984,
+          "blocks": 240,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-2507622837125904623",
+          "calls": 40,
+          "execution_ms": 6.507817999999986,
+          "blocks": 200,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "6397319786376541367",
+          "calls": 40,
+          "execution_ms": 3.0756130000000894,
+          "blocks": 120,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 143.12321799999336,
+          "p95_ms": 156.56432200002018,
+          "p99_ms": 156.82163399999263,
+          "max_ms": 156.82163399999263,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 80,
+          "completed": 80,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 150.22600799999782,
+          "p95_ms": 151.19106300000567,
+          "p99_ms": 152.030242000008,
+          "max_ms": 152.030242000008,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 142.23446199999307,
+          "p95_ms": 142.8627400000114,
+          "p99_ms": 145.7901300000085,
+          "max_ms": 145.7901300000085,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T19:56:21.596Z",
+      "seconds": 8.5454970703125,
+      "counters": [
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 5,
+          "execution_ms": 12.819390000000112,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3721139584530605746",
+          "calls": 35,
+          "execution_ms": 0.7993890000000015,
+          "blocks": 105,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-2507622837125904623",
+          "calls": 18,
+          "execution_ms": 1.0531050000000164,
+          "blocks": 90,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 35,
+          "completed": 35,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.0957242992443135,
+          "p50_ms": 150.19537800000398,
+          "p95_ms": 151.00110700001824,
+          "p99_ms": 151.24879599999986,
+          "max_ms": 151.24879599999986,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 18,
+          "completed": 18,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.1063724967542186,
+          "p50_ms": 142.28861400001915,
+          "p95_ms": 143.1441679999989,
+          "p99_ms": 143.1441679999989,
+          "max_ms": 143.1441679999989,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "monitor_off",
+      "start": "2026-11-14T19:56:30.976Z",
+      "seconds": 20,
+      "counters": [
+        {
+          "query_id": "3721139584530605746",
+          "calls": 80,
+          "execution_ms": 1.6793820000000004,
+          "blocks": 240,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-2507622837125904623",
+          "calls": 40,
+          "execution_ms": 2.4843620000000044,
+          "blocks": 200,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "6397319786376541367",
+          "calls": 40,
+          "execution_ms": 3.0371210000000133,
+          "blocks": 120,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 146.37408199999481,
+          "p95_ms": 157.33358299999963,
+          "p99_ms": 157.53966599999694,
+          "max_ms": 157.53966599999694,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 80,
+          "completed": 80,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 149.96413599999505,
+          "p95_ms": 151.2043489999778,
+          "p99_ms": 153.47510399998282,
+          "max_ms": 153.47510399998282,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 142.0959069999808,
+          "p95_ms": 142.72339499997906,
+          "p99_ms": 146.06690499998513,
+          "max_ms": 146.06690499998513,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T19:56:51.709Z",
+      "seconds": 10,
+      "counters": [
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 5,
+          "execution_ms": 18.365364000000227,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3721139584530605746",
+          "calls": 40,
+          "execution_ms": 0.9144830000000006,
+          "blocks": 120,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-2507622837125904623",
+          "calls": 20,
+          "execution_ms": 1.1947359999999776,
+          "blocks": 100,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 150.2017310000083,
+          "p95_ms": 150.66326500001014,
+          "p99_ms": 151.13474300000235,
+          "max_ms": 151.13474300000235,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 142.03554599999916,
+          "p95_ms": 142.65995199998724,
+          "p99_ms": 143.0448969999852,
+          "max_ms": 143.0448969999852,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T19:57:02.435Z",
+      "seconds": 10,
+      "counters": [
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 5,
+          "execution_ms": 13.233934999999747,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3721139584530605746",
+          "calls": 40,
+          "execution_ms": 0.9577099999999987,
+          "blocks": 120,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-2507622837125904623",
+          "calls": 20,
+          "execution_ms": 1.2319570000000226,
+          "blocks": 100,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 150.28757000001497,
+          "p95_ms": 151.31078600001638,
+          "p99_ms": 159.05088600001181,
+          "max_ms": 159.05088600001181,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 142.09611700000823,
+          "p95_ms": 143.32200400001602,
+          "p99_ms": 151.41144900000654,
+          "max_ms": 151.41144900000654,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T19:57:13.163Z",
+      "seconds": 10,
+      "counters": [
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 5,
+          "execution_ms": 13.143955000000005,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3721139584530605746",
+          "calls": 40,
+          "execution_ms": 0.9160199999999996,
+          "blocks": 120,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-2507622837125904623",
+          "calls": 20,
+          "execution_ms": 1.2100089999999852,
+          "blocks": 100,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 150.07276300000376,
+          "p95_ms": 150.61056300002383,
+          "p99_ms": 150.67357499999343,
+          "max_ms": 150.67357499999343,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 142.1453010000405,
+          "p95_ms": 142.62329000001773,
+          "p99_ms": 142.62904900001013,
+          "max_ms": 142.62904900001013,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T19:57:23.888Z",
+      "seconds": 10,
+      "counters": [
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 5,
+          "execution_ms": 12.866617000000133,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3721139584530605746",
+          "calls": 40,
+          "execution_ms": 0.9281100000000002,
+          "blocks": 120,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-2507622837125904623",
+          "calls": 20,
+          "execution_ms": 1.1738459999999975,
+          "blocks": 100,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 150.0631890000077,
+          "p95_ms": 150.60219599999255,
+          "p99_ms": 151.11462400003802,
+          "max_ms": 151.11462400003802,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 142.05171800003154,
+          "p95_ms": 142.80175500002224,
+          "p99_ms": 142.9829889999819,
+          "max_ms": 142.9829889999819,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T19:57:34.613Z",
+      "seconds": 10,
+      "counters": [
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 6,
+          "execution_ms": 15.43853399999989,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3721139584530605746",
+          "calls": 40,
+          "execution_ms": 0.8575680000000006,
+          "blocks": 120,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-2507622837125904623",
+          "calls": 20,
+          "execution_ms": 1.2780290000000036,
+          "blocks": 100,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 150.05822900001658,
+          "p95_ms": 150.58231800002977,
+          "p99_ms": 152.1003609999898,
+          "max_ms": 152.1003609999898,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 142.1164989999961,
+          "p95_ms": 142.8027240000083,
+          "p99_ms": 142.9666440000292,
+          "max_ms": 142.9666440000292,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T19:57:45.339Z",
+      "seconds": 10,
+      "counters": [
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 5,
+          "execution_ms": 14.49554100000023,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3721139584530605746",
+          "calls": 40,
+          "execution_ms": 0.8775109999999984,
+          "blocks": 120,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-2507622837125904623",
+          "calls": 20,
+          "execution_ms": 1.210534999999993,
+          "blocks": 100,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 150.10424800001783,
+          "p95_ms": 151.24563100002706,
+          "p99_ms": 151.37129800004186,
+          "max_ms": 151.37129800004186,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 141.87637300003553,
+          "p95_ms": 143.19189800001914,
+          "p99_ms": 144.06398400000762,
+          "max_ms": 144.06398400000762,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T19:57:56.065Z",
+      "seconds": 4.076781005859375,
+      "counters": [
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 2,
+          "execution_ms": 5.169811999999638,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3721139584530605746",
+          "calls": 17,
+          "execution_ms": 0.37351500000000115,
+          "blocks": 51,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-2507622837125904623",
+          "calls": 9,
+          "execution_ms": 0.5600990000000081,
+          "blocks": 45,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 17,
+          "completed": 17,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.169956633816401,
+          "p50_ms": 150.02227800001856,
+          "p95_ms": 151.42699300003005,
+          "p99_ms": 151.42699300003005,
+          "max_ms": 151.42699300003005,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 9,
+          "completed": 9,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.207624100255742,
+          "p50_ms": 142.10852499998873,
+          "p95_ms": 142.42684400000144,
+          "p99_ms": 142.42684400000144,
+          "max_ms": 142.42684400000144,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "manual_brief_spike",
+      "start": "2026-11-14T19:58:00.941Z",
+      "seconds": 20,
+      "counters": [
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 10,
+          "execution_ms": 25.965607999999975,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "1668061203586072621",
+          "calls": 1,
+          "execution_ms": 2507.975188,
+          "blocks": 251,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3721139584530605746",
+          "calls": 80,
+          "execution_ms": 1.632076999999999,
+          "blocks": 240,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-2507622837125904623",
+          "calls": 40,
+          "execution_ms": 2.3198170000000005,
+          "blocks": 200,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "6397319786376541367",
+          "calls": 40,
+          "execution_ms": 252.40321699999998,
+          "blocks": 120,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 155.649356000009,
+          "p95_ms": 198.14512699999614,
+          "p99_ms": 211.82970900001237,
+          "max_ms": 211.82970900001237,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 80,
+          "completed": 80,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 150.25670999998692,
+          "p95_ms": 151.87466799997492,
+          "p99_ms": 153.84081199998036,
+          "max_ms": 153.84081199998036,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 142.32181100000162,
+          "p95_ms": 144.17129899997963,
+          "p99_ms": 147.24239700002363,
+          "max_ms": 147.24239700002363,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T19:58:21.667Z",
+      "seconds": 8.475220947265624,
+      "counters": [
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 4,
+          "execution_ms": 10.24820099999988,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3721139584530605746",
+          "calls": 34,
+          "execution_ms": 0.7528970000000008,
+          "blocks": 102,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-2507622837125904623",
+          "calls": 17,
+          "execution_ms": 0.9798649999999895,
+          "blocks": 85,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 34,
+          "completed": 34,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.011694823244635,
+          "p50_ms": 150.1313080000109,
+          "p95_ms": 151.1849720000173,
+          "p99_ms": 151.4216829999932,
+          "max_ms": 151.4216829999932,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 17,
+          "completed": 17,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.0058474116223177,
+          "p50_ms": 142.0801260000444,
+          "p95_ms": 143.90366700000595,
+          "p99_ms": 143.90366700000595,
+          "max_ms": 143.90366700000595,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "spike_recovery",
+      "start": "2026-11-14T19:58:30.867Z",
+      "seconds": 20,
+      "counters": [
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 10,
+          "execution_ms": 26.026108000000022,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3721139584530605746",
+          "calls": 80,
+          "execution_ms": 1.6437590000000029,
+          "blocks": 240,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-2507622837125904623",
+          "calls": 40,
+          "execution_ms": 2.4595659999999953,
+          "blocks": 200,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "6397319786376541367",
+          "calls": 40,
+          "execution_ms": 3.012972999999988,
+          "blocks": 120,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 144.44539799995255,
+          "p95_ms": 156.6489189999993,
+          "p99_ms": 156.89482499996666,
+          "max_ms": 156.89482499996666,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 80,
+          "completed": 80,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 150.06477199995425,
+          "p95_ms": 150.9448609999963,
+          "p99_ms": 151.21939099999145,
+          "max_ms": 151.21939099999145,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 142.00533899996663,
+          "p95_ms": 143.18666700000176,
+          "p99_ms": 144.50197799998568,
+          "max_ms": 144.50197799998568,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T19:58:51.593Z",
+      "seconds": 10,
+      "counters": [
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 5,
+          "execution_ms": 12.931880000000092,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3721139584530605746",
+          "calls": 40,
+          "execution_ms": 0.8477519999999998,
+          "blocks": 120,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-2507622837125904623",
+          "calls": 20,
+          "execution_ms": 1.20175500000002,
+          "blocks": 100,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 150.06163000001106,
+          "p95_ms": 151.1980329999933,
+          "p99_ms": 151.31619500002125,
+          "max_ms": 151.31619500002125,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 141.9502700000303,
+          "p95_ms": 142.8337060000049,
+          "p99_ms": 143.66746299999068,
+          "max_ms": 143.66746299999068,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_between_periods",
+      "start": "2026-11-14T19:59:02.321Z",
+      "seconds": 2.82110205078125,
+      "counters": [
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 2,
+          "execution_ms": 5.358064000000013,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3721139584530605746",
+          "calls": 12,
+          "execution_ms": 0.2962050000000005,
+          "blocks": 36,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-2507622837125904623",
+          "calls": 6,
+          "execution_ms": 0.34977499999999395,
+          "blocks": 30,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 12,
+          "completed": 12,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.253656827719802,
+          "p50_ms": 150.1482669999823,
+          "p95_ms": 150.68106999999145,
+          "p99_ms": 150.68106999999145,
+          "max_ms": 150.68106999999145,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 6,
+          "completed": 6,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.126828413859901,
+          "p50_ms": 141.8345969999791,
+          "p95_ms": 142.9601360000088,
+          "p99_ms": 142.9601360000088,
+          "max_ms": 142.9601360000088,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "activation_healthy",
+      "start": "2026-11-14T19:59:05.950Z",
+      "seconds": 5,
+      "counters": [
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 3,
+          "execution_ms": 7.807966999999735,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3721139584530605746",
+          "calls": 20,
+          "execution_ms": 0.41364199999999585,
+          "blocks": 60,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-2507622837125904623",
+          "calls": 10,
+          "execution_ms": 0.6914999999999907,
+          "blocks": 50,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 0,
+          "completed": 0,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4,
+          "p50_ms": 150.0154249999905,
+          "p95_ms": 150.41072099999292,
+          "p99_ms": 150.51186900003813,
+          "max_ms": 150.51186900003813,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 10,
+          "completed": 10,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2,
+          "p50_ms": 141.75861499999883,
+          "p95_ms": 142.92594799998915,
+          "p99_ms": 142.92594799998915,
+          "max_ms": 142.92594799998915,
+          "error_codes": []
+        }
+      }
+    }
+  ],
+  "limits": {
+    "procedure_holds": 200,
+    "hold_ms": 80,
+    "elapsed_guard_seconds": 19,
+    "per_lock_timeout_ms": 150,
+    "cycle_seconds": 120,
+    "guard_margin_seconds": 15,
+    "wall_budget_seconds": 1200
+  },
+  "target_calls_per_second": 2,
+  "quiet_target_calls_per_second": 0,
+  "report_path": "/tmp/pooltune-cron-1794685973502.json",
+  "public_indexes_before": {
+    "count": 12,
+    "hash": "f56ad07a58d2b60570ee6b64a8978936"
+  },
+  "unrelated_jobs_before": [],
+  "fixture": {
+    "id": "b443166365c328e71e6333f7",
+    "schema": "pooltune_trial_b443166365c328e71e6333f7",
+    "enrollment": {
+      "project": "rookery/consumer/b443166365c328e71e6333f7",
+      "queries": [
+        {
+          "database_oid": 5,
+          "role_oid": 16388,
+          "query_id": "3721139584530605746",
+          "mean_execution_ms": 3
+        },
+        {
+          "database_oid": 5,
+          "role_oid": 16388,
+          "query_id": "6397319786376541367",
+          "mean_execution_ms": 3
+        }
+      ]
+    }
+  },
+  "enrollment": {
+    "inherited_statement_timeout": "2min",
+    "inherited_lock_timeout": "0",
+    "execution_mode": "off",
+    "target": {
+      "id": 1,
+      "name": "pooltune_target_b443166365c328e71e6333f7",
+      "owner": "postgres",
+      "database": "postgres",
+      "command": "CALL \"pooltune_trial_b443166365c328e71e6333f7\".\"pooltune_cron_hold\"(200)",
+      "schedule": "*/2 * * * *",
+      "active": false
+    },
+    "witness": {
+      "id": 2,
+      "name": "pooltune_witness_b443166365c328e71e6333f7",
+      "owner": "postgres",
+      "database": "postgres",
+      "command": "SELECT 1",
+      "schedule": "2 seconds",
+      "active": false
+    },
+    "read": {
+      "oid": 27064,
+      "owner": 16388,
+      "definition": "CREATE OR REPLACE FUNCTION pooltune_trial_b443166365c328e71e6333f7.pooltune_cron_read()\n RETURNS integer\n LANGUAGE plpgsql\n SET search_path TO 'pg_catalog'\nAS $function$ DECLARE answer integer; BEGIN SELECT id INTO STRICT answer FROM ONLY \"pooltune_trial_b443166365c328e71e6333f7\".\"candidate\" WHERE id=43; RETURN answer; END $function$\n",
+      "signature": "",
+      "private": true
+    },
+    "procedure": {
+      "oid": 27063,
+      "owner": 16388,
+      "definition": "CREATE OR REPLACE PROCEDURE pooltune_trial_b443166365c328e71e6333f7.pooltune_cron_hold(IN holds integer)\n LANGUAGE plpgsql\nAS $procedure$DECLARE started timestamptz := pg_catalog.clock_timestamp(); i integer;\nBEGIN\n IF holds < 1 OR holds > 200 THEN RAISE EXCEPTION 'invalid hold count'; END IF;\n IF EXISTS(SELECT FROM pg_catalog.pg_settings WHERE name='statement_timeout' AND setting::bigint BETWEEN 1 AND 19999) THEN RAISE EXCEPTION 'job session timeout cannot cover required full work'; END IF;\n IF started >= '2026-11-14T20:18:01.45583Z'::timestamptz THEN RAISE EXCEPTION 'fixture lifetime expired'; END IF;\n FOR i IN 1..holds LOOP\n  IF pg_catalog.clock_timestamp()-started >= interval '19 seconds' THEN RAISE EXCEPTION 'cron work budget exceeded'; END IF;\n  PERFORM pg_catalog.set_config('lock_timeout','150ms',true);\n  LOCK TABLE ONLY \"pooltune_trial_b443166365c328e71e6333f7\".\"candidate\" IN ACCESS EXCLUSIVE MODE;\n  PERFORM pg_catalog.pg_sleep(0.080);\n  COMMIT;\n END LOOP;\n IF pg_catalog.clock_timestamp()-started >= interval '19 seconds' THEN RAISE EXCEPTION 'cron work budget exceeded'; END IF;\nEND$procedure$\n",
+      "signature": "IN holds integer",
+      "private": true
+    },
+    "generation": {
+      "pid": 6864,
+      "started": "2026-11-13T06:32:09.921085Z",
+      "postmaster": "2026-11-13T06:32:09.8816Z"
+    },
+    "created": "2026-11-14T19:53:01.45583Z",
+    "expires": "2026-11-14T20:18:01.45583Z",
+    "activation_started": "0001-01-01T00:00:00Z",
+    "activated": "0001-01-01T00:00:00Z",
+    "first_cycle": "0001-01-01T00:00:00Z"
+  },
+  "target_query_id": "6397319786376541367",
+  "healthy_calibration_ms": [
+    0.09018199999999998,
+    0.08923100000000006,
+    0.08530099999999996,
+    0.088831,
+    0.08724200000000004,
+    0.09102099999999991,
+    0.09164100000000008,
+    0.09087099999999992,
+    0.08560100000000004,
+    0.09712199999999993
+  ],
+  "objective_ms": 3,
+  "benefit_gates": {
+    "minimum_fraction": 0.2,
+    "minimum_ms": 5,
+    "noise_multiple": 3,
+    "original_extra_fraction": 0.3,
+    "original_extra_ms": 20
+  },
+  "spike_database_mean_ms": 6.310080425,
+  "spike_jobs": [],
+  "passed": false,
+  "error": "fixture command exited 1",
+  "worker_failures": [],
+  "worker_diagnostics": [],
+  "detector_windows": [
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:54:32.061071Z",
+      "end": "2026-11-14T19:54:36.064494Z",
+      "calls": 15,
+      "mean_execution_ms": 0.025619466666666688,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:54:32.061071Z",
+      "end": "2026-11-14T19:54:36.064494Z",
+      "calls": 7,
+      "mean_execution_ms": 0.07288671428571344,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:54:36.064494Z",
+      "end": "2026-11-14T19:54:40.064728Z",
+      "calls": 16,
+      "mean_execution_ms": 0.021027624999999772,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:54:36.064494Z",
+      "end": "2026-11-14T19:54:40.064728Z",
+      "calls": 8,
+      "mean_execution_ms": 0.08604612499999753,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:54:40.064728Z",
+      "end": "2026-11-14T19:54:44.066465Z",
+      "calls": 16,
+      "mean_execution_ms": 0.023256499999999902,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:54:40.064728Z",
+      "end": "2026-11-14T19:54:44.066465Z",
+      "calls": 8,
+      "mean_execution_ms": 0.07937237500000016,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:54:44.066465Z",
+      "end": "2026-11-14T19:54:48.069099Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02225631250000004,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:54:44.066465Z",
+      "end": "2026-11-14T19:54:48.069099Z",
+      "calls": 8,
+      "mean_execution_ms": 0.07926349999999616,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:54:48.069099Z",
+      "end": "2026-11-14T19:54:52.071896Z",
+      "calls": 14,
+      "mean_execution_ms": 0.022960500000000193,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:54:48.069099Z",
+      "end": "2026-11-14T19:54:52.071896Z",
+      "calls": 6,
+      "mean_execution_ms": 0.07951433333333331,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:54:52.071896Z",
+      "end": "2026-11-14T19:54:56.074981Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02389243750000014,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:54:52.071896Z",
+      "end": "2026-11-14T19:54:56.074981Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:54:56.074981Z",
+      "end": "2026-11-14T19:55:00.078091Z",
+      "calls": 16,
+      "mean_execution_ms": 0.021210750000000167,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:54:56.074981Z",
+      "end": "2026-11-14T19:55:00.078091Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:55:00.078091Z",
+      "end": "2026-11-14T19:55:04.079379Z",
+      "calls": 13,
+      "mean_execution_ms": 0.023748692307692318,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:55:00.078091Z",
+      "end": "2026-11-14T19:55:04.079379Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:55:04.079379Z",
+      "end": "2026-11-14T19:55:08.082098Z",
+      "calls": 16,
+      "mean_execution_ms": 0.021532875000000007,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:55:04.079379Z",
+      "end": "2026-11-14T19:55:08.082098Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:55:08.082098Z",
+      "end": "2026-11-14T19:55:12.083316Z",
+      "calls": 16,
+      "mean_execution_ms": 0.022481562500000107,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:55:08.082098Z",
+      "end": "2026-11-14T19:55:12.083316Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:55:12.083316Z",
+      "end": "2026-11-14T19:55:16.085854Z",
+      "calls": 13,
+      "mean_execution_ms": 0.02487192307692309,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:55:12.083316Z",
+      "end": "2026-11-14T19:55:16.085854Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:55:16.085854Z",
+      "end": "2026-11-14T19:55:20.088053Z",
+      "calls": 16,
+      "mean_execution_ms": 0.021409187500000426,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:55:16.085854Z",
+      "end": "2026-11-14T19:55:20.088053Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:55:20.088053Z",
+      "end": "2026-11-14T19:55:24.090993Z",
+      "calls": 13,
+      "mean_execution_ms": 0.021764230769230918,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:55:20.088053Z",
+      "end": "2026-11-14T19:55:24.090993Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:55:24.090993Z",
+      "end": "2026-11-14T19:55:28.094197Z",
+      "calls": 16,
+      "mean_execution_ms": 0.021658375000000563,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:55:24.090993Z",
+      "end": "2026-11-14T19:55:28.094197Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:55:28.094197Z",
+      "end": "2026-11-14T19:55:32.095121Z",
+      "calls": 16,
+      "mean_execution_ms": 0.022686687500000025,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:55:28.094197Z",
+      "end": "2026-11-14T19:55:32.095121Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:55:32.095121Z",
+      "end": "2026-11-14T19:55:36.097342Z",
+      "calls": 13,
+      "mean_execution_ms": 0.02125246153846141,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:55:32.095121Z",
+      "end": "2026-11-14T19:55:36.097342Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:55:36.097342Z",
+      "end": "2026-11-14T19:55:40.099758Z",
+      "calls": 16,
+      "mean_execution_ms": 0.021840937499999935,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:55:36.097342Z",
+      "end": "2026-11-14T19:55:40.099758Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:55:40.099758Z",
+      "end": "2026-11-14T19:55:44.101649Z",
+      "calls": 16,
+      "mean_execution_ms": 0.023014562499999558,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:55:40.099758Z",
+      "end": "2026-11-14T19:55:44.101649Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:55:44.101649Z",
+      "end": "2026-11-14T19:55:48.104078Z",
+      "calls": 13,
+      "mean_execution_ms": 0.02264138461538405,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:55:44.101649Z",
+      "end": "2026-11-14T19:55:48.104078Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:55:48.104078Z",
+      "end": "2026-11-14T19:55:52.107026Z",
+      "calls": 16,
+      "mean_execution_ms": 0.021474750000000098,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:55:48.104078Z",
+      "end": "2026-11-14T19:55:52.107026Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:55:52.107026Z",
+      "end": "2026-11-14T19:55:56.109351Z",
+      "calls": 13,
+      "mean_execution_ms": 0.021807923076923048,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:55:52.107026Z",
+      "end": "2026-11-14T19:55:56.109351Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:55:56.109351Z",
+      "end": "2026-11-14T19:56:00.111012Z",
+      "calls": 16,
+      "mean_execution_ms": 0.021727875000000063,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:55:56.109351Z",
+      "end": "2026-11-14T19:56:00.111012Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:56:00.111012Z",
+      "end": "2026-11-14T19:56:04.113699Z",
+      "calls": 14,
+      "mean_execution_ms": 0.019673071428571425,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:56:00.111012Z",
+      "end": "2026-11-14T19:56:04.113699Z",
+      "calls": 7,
+      "mean_execution_ms": 0.07833671428571368,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:56:04.113699Z",
+      "end": "2026-11-14T19:56:08.116368Z",
+      "calls": 16,
+      "mean_execution_ms": 0.020352250000000183,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:56:04.113699Z",
+      "end": "2026-11-14T19:56:08.116368Z",
+      "calls": 8,
+      "mean_execution_ms": 0.0779723749999981,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:56:08.116368Z",
+      "end": "2026-11-14T19:56:12.118994Z",
+      "calls": 16,
+      "mean_execution_ms": 0.022095874999999987,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:56:08.116368Z",
+      "end": "2026-11-14T19:56:12.118994Z",
+      "calls": 8,
+      "mean_execution_ms": 0.07208724999999916,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:56:12.118994Z",
+      "end": "2026-11-14T19:56:16.12159Z",
+      "calls": 16,
+      "mean_execution_ms": 0.019863874999999975,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:56:12.118994Z",
+      "end": "2026-11-14T19:56:16.12159Z",
+      "calls": 8,
+      "mean_execution_ms": 0.08352999999999966,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:56:16.12159Z",
+      "end": "2026-11-14T19:56:20.123457Z",
+      "calls": 16,
+      "mean_execution_ms": 0.022017249999999988,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:56:16.12159Z",
+      "end": "2026-11-14T19:56:20.123457Z",
+      "calls": 8,
+      "mean_execution_ms": 0.07321725000000079,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:56:20.123457Z",
+      "end": "2026-11-14T19:56:24.126104Z",
+      "calls": 13,
+      "mean_execution_ms": 0.022741000000000174,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:56:20.123457Z",
+      "end": "2026-11-14T19:56:24.126104Z",
+      "calls": 1,
+      "mean_execution_ms": 0.07280099999999834,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:56:24.126104Z",
+      "end": "2026-11-14T19:56:28.128066Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02248393750000033,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:56:24.126104Z",
+      "end": "2026-11-14T19:56:28.128066Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:56:28.128066Z",
+      "end": "2026-11-14T19:56:52.783815Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:56:28.128066Z",
+      "end": "2026-11-14T19:56:52.783815Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:56:52.783815Z",
+      "end": "2026-11-14T19:56:56.786988Z",
+      "calls": 16,
+      "mean_execution_ms": 0.023240999999999845,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:56:52.783815Z",
+      "end": "2026-11-14T19:56:56.786988Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:56:56.786988Z",
+      "end": "2026-11-14T19:57:00.789733Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02318106249999996,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:56:56.786988Z",
+      "end": "2026-11-14T19:57:00.789733Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:57:00.789733Z",
+      "end": "2026-11-14T19:57:04.792201Z",
+      "calls": 13,
+      "mean_execution_ms": 0.02218015384615358,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:57:00.789733Z",
+      "end": "2026-11-14T19:57:04.792201Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:57:04.792201Z",
+      "end": "2026-11-14T19:57:08.794986Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02409656250000003,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:57:04.792201Z",
+      "end": "2026-11-14T19:57:08.794986Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:57:08.794986Z",
+      "end": "2026-11-14T19:57:12.797587Z",
+      "calls": 15,
+      "mean_execution_ms": 0.0244355333333336,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:57:08.794986Z",
+      "end": "2026-11-14T19:57:12.797587Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:57:12.797587Z",
+      "end": "2026-11-14T19:57:16.79963Z",
+      "calls": 14,
+      "mean_execution_ms": 0.024085500000000235,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:57:12.797587Z",
+      "end": "2026-11-14T19:57:16.79963Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:57:16.79963Z",
+      "end": "2026-11-14T19:57:20.802299Z",
+      "calls": 16,
+      "mean_execution_ms": 0.023795562499999923,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:57:16.79963Z",
+      "end": "2026-11-14T19:57:20.802299Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:57:20.802299Z",
+      "end": "2026-11-14T19:57:24.804057Z",
+      "calls": 13,
+      "mean_execution_ms": 0.019934230769231058,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:57:20.802299Z",
+      "end": "2026-11-14T19:57:24.804057Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:57:24.804057Z",
+      "end": "2026-11-14T19:57:28.806212Z",
+      "calls": 16,
+      "mean_execution_ms": 0.022915312500000118,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:57:24.804057Z",
+      "end": "2026-11-14T19:57:28.806212Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:57:28.806212Z",
+      "end": "2026-11-14T19:57:32.808688Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02276706250000049,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:57:28.806212Z",
+      "end": "2026-11-14T19:57:32.808688Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:57:32.808688Z",
+      "end": "2026-11-14T19:57:36.810256Z",
+      "calls": 13,
+      "mean_execution_ms": 0.023521923076923364,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:57:32.808688Z",
+      "end": "2026-11-14T19:57:36.810256Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:57:36.810256Z",
+      "end": "2026-11-14T19:57:40.812136Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02220981249999987,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:57:36.810256Z",
+      "end": "2026-11-14T19:57:40.812136Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:57:40.812136Z",
+      "end": "2026-11-14T19:57:44.814844Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02078543750000006,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:57:40.812136Z",
+      "end": "2026-11-14T19:57:44.814844Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:57:44.814844Z",
+      "end": "2026-11-14T19:57:48.816715Z",
+      "calls": 14,
+      "mean_execution_ms": 0.020210928571428508,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:57:44.814844Z",
+      "end": "2026-11-14T19:57:48.816715Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:57:48.816715Z",
+      "end": "2026-11-14T19:57:52.819Z",
+      "calls": 16,
+      "mean_execution_ms": 0.023307062499999587,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:57:48.816715Z",
+      "end": "2026-11-14T19:57:52.819Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:57:52.819Z",
+      "end": "2026-11-14T19:57:56.821409Z",
+      "calls": 13,
+      "mean_execution_ms": 0.02166730769230741,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:57:52.819Z",
+      "end": "2026-11-14T19:57:56.821409Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:57:56.821409Z",
+      "end": "2026-11-14T19:58:00.823078Z",
+      "calls": 14,
+      "mean_execution_ms": 0.022391785714285715,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:57:56.821409Z",
+      "end": "2026-11-14T19:58:00.823078Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:58:00.823078Z",
+      "end": "2026-11-14T19:58:04.823311Z",
+      "calls": 15,
+      "mean_execution_ms": 0.019819466666666584,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:58:00.823078Z",
+      "end": "2026-11-14T19:58:04.823311Z",
+      "calls": 8,
+      "mean_execution_ms": 31.24136149999999,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:58:04.823311Z",
+      "end": "2026-11-14T19:58:08.823542Z",
+      "calls": 16,
+      "mean_execution_ms": 0.020409875000000133,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:58:04.823311Z",
+      "end": "2026-11-14T19:58:08.823542Z",
+      "calls": 8,
+      "mean_execution_ms": 0.07831725000000489,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:58:08.823542Z",
+      "end": "2026-11-14T19:58:12.824568Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02069512500000026,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:58:08.823542Z",
+      "end": "2026-11-14T19:58:12.824568Z",
+      "calls": 8,
+      "mean_execution_ms": 0.07604125000001005,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:58:12.824568Z",
+      "end": "2026-11-14T19:58:16.824911Z",
+      "calls": 16,
+      "mean_execution_ms": 0.020894562500000102,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:58:12.824568Z",
+      "end": "2026-11-14T19:58:16.824911Z",
+      "calls": 8,
+      "mean_execution_ms": 0.07257850000000587,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:58:16.824911Z",
+      "end": "2026-11-14T19:58:20.826563Z",
+      "calls": 16,
+      "mean_execution_ms": 0.020059499999999897,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:58:16.824911Z",
+      "end": "2026-11-14T19:58:20.826563Z",
+      "calls": 8,
+      "mean_execution_ms": 0.08210362500000201,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:58:20.826563Z",
+      "end": "2026-11-14T19:58:24.828391Z",
+      "calls": 13,
+      "mean_execution_ms": 0.02072861538461596,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:58:20.826563Z",
+      "end": "2026-11-14T19:58:24.828391Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:58:24.828391Z",
+      "end": "2026-11-14T19:58:28.831008Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02177331250000014,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:58:24.828391Z",
+      "end": "2026-11-14T19:58:28.831008Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:58:28.831008Z",
+      "end": "2026-11-14T19:58:32.832129Z",
+      "calls": 14,
+      "mean_execution_ms": 0.022809499999999514,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:58:28.831008Z",
+      "end": "2026-11-14T19:58:32.832129Z",
+      "calls": 4,
+      "mean_execution_ms": 0.07177850000000774,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:58:32.832129Z",
+      "end": "2026-11-14T19:58:36.833953Z",
+      "calls": 16,
+      "mean_execution_ms": 0.020263187500000335,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:58:32.832129Z",
+      "end": "2026-11-14T19:58:36.833953Z",
+      "calls": 8,
+      "mean_execution_ms": 0.07271349999998478,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:58:36.833953Z",
+      "end": "2026-11-14T19:58:40.836421Z",
+      "calls": 16,
+      "mean_execution_ms": 0.020087000000000632,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:58:36.833953Z",
+      "end": "2026-11-14T19:58:40.836421Z",
+      "calls": 8,
+      "mean_execution_ms": 0.07946737500001433,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:58:40.836421Z",
+      "end": "2026-11-14T19:58:44.836834Z",
+      "calls": 16,
+      "mean_execution_ms": 0.019360999999999517,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:58:40.836421Z",
+      "end": "2026-11-14T19:58:44.836834Z",
+      "calls": 8,
+      "mean_execution_ms": 0.07439987500000456,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:58:44.836834Z",
+      "end": "2026-11-14T19:58:48.838727Z",
+      "calls": 16,
+      "mean_execution_ms": 0.020347250000000372,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:58:44.836834Z",
+      "end": "2026-11-14T19:58:48.838727Z",
+      "calls": 8,
+      "mean_execution_ms": 0.0787298749999934,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:58:48.838727Z",
+      "end": "2026-11-14T19:58:52.840086Z",
+      "calls": 13,
+      "mean_execution_ms": 0.02308569230769236,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:58:48.838727Z",
+      "end": "2026-11-14T19:58:52.840086Z",
+      "calls": 4,
+      "mean_execution_ms": 0.07084349999999517,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:58:52.840086Z",
+      "end": "2026-11-14T19:58:56.841217Z",
+      "calls": 16,
+      "mean_execution_ms": 0.021439624999998852,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:58:52.840086Z",
+      "end": "2026-11-14T19:58:56.841217Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:58:56.841217Z",
+      "end": "2026-11-14T19:59:00.843004Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02147537499999963,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:58:56.841217Z",
+      "end": "2026-11-14T19:59:00.843004Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:59:00.843004Z",
+      "end": "2026-11-14T19:59:04.844855Z",
+      "calls": 13,
+      "mean_execution_ms": 0.024237384615384137,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:59:00.843004Z",
+      "end": "2026-11-14T19:59:04.844855Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3721139584530605746",
+      "start": "2026-11-14T19:59:04.844855Z",
+      "end": "2026-11-14T19:59:08.84743Z",
+      "calls": 13,
+      "mean_execution_ms": 0.020783846153845566,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "6397319786376541367",
+      "start": "2026-11-14T19:59:04.844855Z",
+      "end": "2026-11-14T19:59:08.84743Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    }
+  ],
+  "process_results": [],
+  "jobs": [],
+  "traffic_errors": 0,
+  "missed_requests": 0,
+  "cleanup_verified": false,
+  "cleanup_last_error": "fixture command exited null",
+  "cleanup_failed": true,
+  "recovery_fixture_id": "b443166365c328e71e6333f7",
+  "total_seconds": 558.270452317,
+  "qualification_source": {
+    "commit": "73e07a0",
+    "deployment": "e82d97cc-31aa-4e1a-a977-7aa356f8d146"
+  },
+  "controller_recovery": {
+    "target_was_inactive": true,
+    "target_run_count": 0,
+    "unschedule_parameter_type_without_cast": "text",
+    "native_role": "postgres",
+    "cron_job_select": true,
+    "cron_job_update": false,
+    "action": "Compared exact owned job and routine identities, removed only job IDs 1 and 2 with explicit bigint arguments, then ran existing fixture cleanup",
+    "remaining_cron_jobs": 0,
+    "remaining_fixture_schemas": 0,
+    "public_index_count": 12,
+    "public_index_fingerprint": "f56ad07a58d2b60570ee6b64a8978936",
+    "permission_changed": false
+  }
+}

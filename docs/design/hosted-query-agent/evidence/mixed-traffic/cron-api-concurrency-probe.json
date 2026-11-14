@@ -1,0 +1,24 @@
+{
+  "name": "pooltune_guard_probe_f4409c022dd831da",
+  "id": "3",
+  "before": {
+    "jobid": "3",
+    "jobname": "pooltune_guard_probe_f4409c022dd831da",
+    "schedule": "*/2 * * * *",
+    "command": "SELECT 1",
+    "active": false
+  },
+  "action": "rejected",
+  "sqlstate": "40001",
+  "error": "could not serialize access due to concurrent update",
+  "after": {
+    "jobid": "3",
+    "jobname": "pooltune_guard_probe_f4409c022dd831da",
+    "schedule": "*/3 * * * *",
+    "command": "SELECT 1",
+    "active": false
+  },
+  "runs": 0,
+  "passed": true,
+  "removed": true
+}

@@ -288,6 +288,7 @@ Depends on Task 25's shared interfaces. First inspect pg_cron availability and p
 - [ ] Test job identity, three-period evidence and attribution, frequency/deadline/window refusal, changed schedule/command/owner, declines and provider errors before implementing mutation.
 - [ ] Implement durable action intent, guarded schedule-only mutation, atomic delayed verification scheduling, restart recovery and conditional reconciliation. Never mark an applied schedule verified before observing its required future executions.
 - [ ] Extend the shared graph/prompt and traffic harness. Preserve real Claude, short-spike rejection, matched requests, independent healthy writes, actual scheduled execution history and measured contention.
+- [ ] Qualify the supported Supabase job API under REPEATABLE READ as the target-row concurrency guard, following [cron-provider-guard.md](cron-provider-guard.md). Native direct catalog row-lock authority is unavailable. Preserve identity checks, witnesses, deadlines and pending-action recovery; test concurrent target edits abort without overwrite or blind retry. No privilege grant or new customer power is authorized by this internal implementation choice.
 - [ ] Verify three future cycles, missed/duplicated execution refusal, owned cleanup and unchanged unrelated jobs. Run local tests, fresh review and one complete hosted qualification with separate action and cycle-wait timings. Commit the measured results and limits on revamp.
 
 ## Candidate test application inspection (historical)
