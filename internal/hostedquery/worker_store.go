@@ -104,6 +104,10 @@ func PrepareWorkerState(ctx context.Context, state *pgx.Conn) error {
 				finished_at timestamptz,
 				evidence jsonb NOT NULL
 			);
+			ALTER TABLE pooltune_worker.investigations
+				ADD COLUMN IF NOT EXISTS attempts integer NOT NULL DEFAULT 0,
+				ADD COLUMN IF NOT EXISTS lease_until timestamptz,
+				ADD COLUMN IF NOT EXISTS result jsonb;
 			CREATE UNIQUE INDEX IF NOT EXISTS one_open_investigation
 				ON pooltune_worker.investigations (project_id, database_oid, role_oid, query_id)
 				WHERE finished_at IS NULL;
@@ -193,17 +197,28 @@ func enqueueInvestigation(ctx context.Context, tx pgx.Tx, project string, object
 		means = append(means, window.observation(*history.Last).MeanMS)
 	}
 	evidence, err := json.Marshal(struct {
+		Generation  [3]time.Time `json:"counter_generation"`
 		ObjectiveMS float64      `json:"objective_ms"`
 		RecentMS    []float64    `json:"recent_window_mean_ms"`
 		Latest      WindowResult `json:"latest_window"`
-	}{objective.MeanMS, means, latest})
+	}{[3]time.Time{history.Last.Boot.UTC(), history.Last.Reset.UTC(), history.Last.Entry.UTC()}, objective.MeanMS, means, latest})
 	if err != nil {
 		return nil, err
 	}
 	job := InvestigationJob{queryKey: objective.key()}
 	err = tx.QueryRow(ctx, `
 		INSERT INTO pooltune_worker.investigations (project_id,database_oid,role_oid,query_id,evidence)
-		VALUES ($1,$2,$3,$4,$5::jsonb)
+		SELECT $1,$2,$3,$4,$5::jsonb
+		WHERE NOT EXISTS (
+			SELECT FROM pooltune_worker.investigations
+			WHERE project_id=$1 AND database_oid=$2 AND role_oid=$3 AND query_id=$4
+			  AND finished_at > statement_timestamp()-CASE
+			    WHEN result->>'outcome' IN ('propose','no_change') THEN interval '60 minutes'
+			    ELSE interval '5 minutes'
+			  END
+			  AND evidence->'objective_ms'=($5::jsonb)->'objective_ms'
+			  AND evidence->'counter_generation'=($5::jsonb)->'counter_generation'
+		)
 		ON CONFLICT (project_id,database_oid,role_oid,query_id) WHERE finished_at IS NULL
 		DO NOTHING RETURNING id
 	`, project, objective.Database, objective.Role, objective.Query, string(evidence)).Scan(&job.ID)

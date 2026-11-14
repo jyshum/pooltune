@@ -1,5 +1,13 @@
 # Design progress
 
+## Queued investigation handoff, November 13, 2026
+
+At Jared's request the local development branch was renamed from `feat/hosted-query-worker` to `feat/pooltune-revamp-dev` for broader revamp work. The accepted index milestone remains on `feat/pooltune-revamp`.
+
+Task 8 connects the synthetic traffic job to the existing one-call LangGraph investigator. The [handoff record](worker-investigation.md) explains the queue, retry and process choices in plain language. On the final two live Rookery runs, Claude recommended the expected index and the saved result took 2.037–2.163 seconds from claim. The healthy lookup opened zero jobs. Local PostgreSQL readback confirmed the proposal and four graph checkpoints per run, and fresh Rookery connections confirmed fixture cleanup. The development Studio API replayed the same evidence successfully.
+
+Review reproduced a race between job completion and the producer's cooldown check. The fix uses a shared project lock for both writes, while graph work runs outside the lock. Race-enabled Go integration, Go vet, investigator tests and type checking passed. Production work still needs a supervised consumer and an evidence adapter that can retry against durable enrolled inputs. The current synthetic fixture ends before the model call. Its recommendation has no execution path.
+
 ## Background worker intake, November 13, 2026
 
 Jared authorized building the worker and testing with isolated synthetic data on Rookery. Tasks 6–7 were implemented on the local `feat/hosted-query-worker` branch. A dedicated traffic connection issued real reads while the Go worker collected only enrolled statement counters. Pooltune's own PostgreSQL keeps recent evidence and atomically queues one open investigation per query. We chose the existing state database for this first producer so the evidence and job can commit together. The production queue decision remains open.

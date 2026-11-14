@@ -30,6 +30,7 @@ type TrafficReport struct {
 	PollP95MS     float64           `json:"worker_poll_p95_ms"`
 	DetectionMS   float64           `json:"first_job_after_traffic_start_ms"`
 	Jobs          int               `json:"jobs"`
+	Investigation *DispatchResult   `json:"investigation,omitempty"`
 }
 
 type TrafficCaseReport struct {
@@ -42,7 +43,7 @@ type TrafficCaseReport struct {
 
 // RunWorkerTraffic generates bounded reads on a dedicated session while a separate
 // session observes only their statement counters. Fixture objects never commit.
-func RunWorkerTraffic(ctx context.Context, traffic, target, state *pgx.Conn, identity string) (report TrafficReport, err error) {
+func RunWorkerTraffic(ctx context.Context, traffic, target, state *pgx.Conn, identity string, investigate IndexInvestigator) (report TrafficReport, err error) {
 	if traffic == target || traffic == state || target == state || identity == "" {
 		return report, errors.New("traffic trial requires separate traffic, target and Pooltune state sessions")
 	}
@@ -59,7 +60,9 @@ func RunWorkerTraffic(ctx context.Context, traffic, target, state *pgx.Conn, ide
 	defer func() {
 		cleanup, stop := context.WithTimeout(context.Background(), 3*time.Second)
 		defer stop()
-		err = errors.Join(err, tx.Rollback(cleanup))
+		if rollbackErr := tx.Rollback(cleanup); !errors.Is(rollbackErr, pgx.ErrTxClosed) {
+			err = errors.Join(err, rollbackErr)
+		}
 	}()
 	for _, setting := range []string{
 		"SET LOCAL search_path='pg_catalog'",
@@ -206,6 +209,23 @@ func RunWorkerTraffic(ctx context.Context, traffic, target, state *pgx.Conn, ide
 	report.Polls = len(pollTimes)
 	report.TargetP95MS = percentileMS(targetTimes, 95)
 	report.PollP95MS = percentileMS(pollTimes, 95)
+	if investigate != nil {
+		if report.Jobs != 1 || report.Healthy.Decision != NoChange || report.Candidate.Decision != Investigate {
+			return report, errors.New("expected one job for the slow fixture lookup")
+		}
+		report.Investigation, err = DispatchInvestigation(ctx, state, report.Project,
+			func(attempt context.Context, job InvestigationJob) (IndexEvidence, error) {
+				evidence, err := trafficEvidence(attempt, tx, report.Schema, queries[1], before[1], job)
+				// End the fixture transaction before waiting on the model.
+				return evidence, errors.Join(err, tx.Rollback(attempt))
+			}, investigate)
+		if err != nil {
+			return report, err
+		}
+		if report.Investigation == nil {
+			return report, errors.New("the queued fixture job could not be claimed")
+		}
+	}
 	return report, nil
 }
 

@@ -124,9 +124,15 @@ Files: `internal/hostedquery/worker_store.go`, `internal/hostedquery/worker_stor
 - [x] Store the latest counter, partial window and recent completed windows in Pooltune's PostgreSQL. Commit each evidence update and its investigation insert together. Use a database-backed uniqueness rule for one open investigation per project, database, role and query. The proposed local implementation uses PostgreSQL for both jobs and evidence. That keeps intake consistent in one transaction and makes Pooltune responsible for the later job claim and recovery logic. The production queue decision remains open.
 - [x] Run the local integration scenario with healthy traffic and sustained breaches. Verify the healthy query creates zero jobs and the slow query creates one job even after a worker restart. Run `go test -tags=integration -count=1 ./internal/hostedquery ./cmd/pooltune-worker` and save the [local and Rookery traffic timings](worker-traffic.md).
 
-### Investigation handoff after worker intake
+### Task 8: Deliver a queued investigation to LangGraph
 
-A follow-up consumer will claim jobs with an expiring reservation and bounded retries. It will send validated query-plan and existing-index evidence to the current one-call LangGraph investigator, or record that evidence is missing. An integration test will show a queued investigation reaching the graph with measured evidence from an isolated fixture. The automatic index repair remains on the qualified fixture path until target-specific evidence collection, grants and capacity checks are ready.
+Depends on Tasks 4 and 7. Decisions: d-workflow r1, d-reuse r1 and proposed d-durability r1.
+
+The Go consumer uses the same PostgreSQL queue as the worker. It reserves a job briefly, gathers a measured plan and checks existing indexes, then sends that evidence through the existing one-call graph. A finished attempt records the recommendation or why the job could not proceed.
+
+- [x] Add PostgreSQL job claims and guarded completion in `internal/hostedquery/worker_dispatch.go`. Test overlapping consumers, expired claims, stale completions, bounded retries and missing evidence. Reserve for 30 seconds and limit the whole attempt to 25 seconds. Preserve the current producer's job identity and suppress new jobs for an unchanged objective breach during the v0 evidence reuse window.
+- [x] In `internal/hostedquery/worker_traffic.go`, pass the existing lab investigator through to the consumer. Collect fresh evidence for the exact synthetic query whose durable job was claimed. Verify its plan query ID and catalog identity. Generic enrolled queries need a qualified evidence source before they can reach the model.
+- [x] Measure claim-to-result latency and verify the saved job and LangGraph checkpoints. Keep a record of the fastest production alternatives and their trade-offs in [Investigation handoff](worker-investigation.md).
 
 ## Candidate test application inspection (historical)
 

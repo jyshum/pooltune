@@ -102,4 +102,25 @@ func TestWorkerQueueSurvivesRestartAndConcurrentPolls(t *testing.T) {
 	if err != nil || total != 2 || distinctProjects != 2 || healthy != 0 {
 		t.Fatalf("jobs=%d projects=%d healthy=%d error=%v", total, distinctProjects, healthy, err)
 	}
+	if _, err := primary.Exec(ctx, `UPDATE pooltune_worker.investigations
+		SET finished_at=now(), result='{"outcome":"propose"}' WHERE project_id=$1`, enrollment.Project); err != nil {
+		t.Fatal(err)
+	}
+	for _, tick := range []int{11, 12} {
+		result, err := record(primary, enrollment, tick)
+		if err != nil || len(result.Jobs) != 0 {
+			t.Fatalf("cooldown allowed a duplicate: %+v, %v", result, err)
+		}
+	}
+	if _, err := primary.Exec(ctx, `UPDATE pooltune_worker.investigations
+		SET finished_at=now()-interval '61 minutes' WHERE project_id=$1`, enrollment.Project); err != nil {
+		t.Fatal(err)
+	}
+	for _, tick := range []int{13, 14} {
+		result, err := record(primary, enrollment, tick)
+		if err != nil || (tick == 14 && len(result.Jobs) != 1) {
+			t.Fatalf("expired cooldown did not allow new evidence: %+v, %v", result, err)
+		}
+	}
+
 }

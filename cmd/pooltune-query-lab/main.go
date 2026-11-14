@@ -24,9 +24,14 @@ func main() {
 	trial := flag.String("index-trial", "", "automatic index fixture: anthropic or scripted")
 	recoverOnly := flag.Bool("recover-index-trials", false, "reconcile interrupted fixture runs")
 	trafficTrial := flag.Bool("worker-traffic", false, "observe a bounded read-only traffic stream from another session")
+	investigation := flag.String("worker-investigation", "", "investigate the queued traffic job: anthropic or scripted")
 	flag.Parse()
 	if (*trial != "" && *trial != "anthropic" && *trial != "scripted") || (*recoverOnly && *trial != "") || (*trafficTrial && (*recoverOnly || *trial != "")) {
 		fmt.Fprintln(os.Stderr, "choose an explicit index trial mode or recovery")
+		os.Exit(2)
+	}
+	if *investigation != "" && (!*trafficTrial || (*investigation != "scripted" && *investigation != "anthropic")) {
+		fmt.Fprintln(os.Stderr, "choose scripted or anthropic worker investigation with -worker-traffic")
 		os.Exit(2)
 	}
 	if flag.NArg() != 0 || (*route != "local" && *route != "rookery") {
@@ -34,7 +39,7 @@ func main() {
 		os.Exit(2)
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 65*time.Second)
-	err := run(ctx, *route == "rookery", *trial, *recoverOnly, *trafficTrial)
+	err := run(ctx, *route == "rookery", *trial, *recoverOnly, *trafficTrial, *investigation)
 	cancel()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -42,7 +47,7 @@ func main() {
 	}
 }
 
-func run(ctx context.Context, rookery bool, trial string, recoverOnly, trafficTrial bool) error {
+func run(ctx context.Context, rookery bool, trial string, recoverOnly, trafficTrial bool, investigation string) error {
 	stateConfig, err := labdb.Config(os.Getenv("POOLTUNE_LAB_STATE_DSN"), false)
 	if err != nil {
 		return fmt.Errorf("state configuration: %w", err)
@@ -56,8 +61,8 @@ func run(ctx context.Context, rookery bool, trial string, recoverOnly, trafficTr
 		return errors.New("state and target must use separate databases")
 	}
 	var investigator hostedquery.IndexInvestigator
-	if trial != "" {
-		investigator, err = processInvestigator(trial)
+	if mode := trial + investigation; mode != "" {
+		investigator, err = processInvestigator(mode)
 		if err != nil {
 			return err
 		}
@@ -90,7 +95,7 @@ func run(ctx context.Context, rookery bool, trial string, recoverOnly, trafficTr
 			return labdb.Diagnostic("connect traffic observer", err)
 		}
 		defer labdb.Close(observer)
-		report, err := hostedquery.RunWorkerTraffic(ctx, target, observer, state, identity)
+		report, err := hostedquery.RunWorkerTraffic(ctx, target, observer, state, identity, investigator)
 		if err != nil {
 			return labdb.Diagnostic("run worker traffic", err)
 		}

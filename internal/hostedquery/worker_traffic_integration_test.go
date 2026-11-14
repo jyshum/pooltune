@@ -3,6 +3,7 @@
 package hostedquery
 
 import (
+	"context"
 	"testing"
 
 	"pooltune/internal/testpg"
@@ -35,7 +36,14 @@ func TestWorkerTrafficFromAnotherSession(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer state.Close(ctx)
-	report, err := RunWorkerTraffic(ctx, traffic, target, state, "local")
+	calls := 0
+	report, err := RunWorkerTraffic(ctx, traffic, target, state, "local", func(ctx context.Context, evidence IndexEvidence) (IndexProposal, error) {
+		calls++
+		if evidence.Existing || evidence.Plan.Node != "Seq Scan" || evidence.Plan.ExaminedRows != fixtureRows {
+			t.Fatalf("wrong claimed evidence: %+v", evidence)
+		}
+		return ScriptedInvestigator(ctx, evidence)
+	})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -49,12 +57,15 @@ func TestWorkerTrafficFromAnotherSession(t *testing.T) {
 			t.Fatalf("no measured latency for %+v", caseReport)
 		}
 	}
+	if calls != 1 || report.Investigation == nil || report.Investigation.Outcome != "propose" {
+		t.Fatalf("expected one queued graph invocation: %+v / %d", report.Investigation, calls)
+	}
 	var exists bool
 	if err := target.QueryRow(ctx, "SELECT to_regnamespace($1) IS NOT NULL", report.Schema).Scan(&exists); err != nil || exists {
 		t.Fatalf("traffic fixture remains: exists=%v err=%v", exists, err)
 	}
 	var count int
-	err = state.QueryRow(ctx, "SELECT count(*) FROM pooltune_worker.investigations WHERE project_id=$1", report.Project).Scan(&count)
+	err = state.QueryRow(ctx, "SELECT count(*) FROM pooltune_worker.investigations WHERE project_id=$1 AND finished_at IS NOT NULL AND result->>'outcome'='propose'", report.Project).Scan(&count)
 	if err != nil || count != 1 {
 		t.Fatalf("expected 1 persisted job, got %d, err=%v", count, err)
 	}
