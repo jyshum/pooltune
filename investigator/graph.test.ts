@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { buildGraph, type Evidence } from "./graph.ts";
-import { buildSingleCallInvestigator } from "./model.ts";
+import { buildSingleCallInvestigator, anthropicInvestigator } from "./model.ts";
 
 const evidence: Evidence = {
   run_id: "fixture", observed_at: "2026-11-13T07:00:00Z", decision: "investigate",
@@ -56,4 +56,39 @@ test("single-call path sends both evidence fields together and skips healthy que
     assert.deepEqual(skipped.tools, []);
   }
   assert.equal(calls.length, 1);
+});
+
+test("the default graph makes one request containing both pieces of evidence", async (t) => {
+  const previousKey = process.env.ANTHROPIC_API_KEY;
+  const previousModel = process.env.POOLTUNE_ANTHROPIC_MODEL;
+  process.env.ANTHROPIC_API_KEY = "fixture-key";
+  process.env.POOLTUNE_ANTHROPIC_MODEL = "claude-haiku-5-5";
+  t.after(() => {
+    if (previousKey === undefined) delete process.env.ANTHROPIC_API_KEY;
+    else process.env.ANTHROPIC_API_KEY = previousKey;
+    if (previousModel === undefined) delete process.env.POOLTUNE_ANTHROPIC_MODEL;
+    else process.env.POOLTUNE_ANTHROPIC_MODEL = previousModel;
+  });
+  const requests: string[] = [];
+  t.mock.method(globalThis, "fetch", async (_input: unknown, init?: RequestInit) => {
+    requests.push(String(init?.body));
+    const body = JSON.parse(requests.at(-1)!);
+    const toolName = body.tools[0].name;
+    assert.equal(toolName, "index_recommendation");
+    return Response.json({
+      id: "msg_fixture", type: "message", role: "assistant", model: "claude-haiku-5-5",
+      content: [{ type: "tool_use", id: "toolu_fixture", name: toolName,
+        input: { outcome: "propose", run_id: "fixture", table_oid: 42, column_number: 2, reason: "Selective scan" } }],
+      stop_reason: "tool_use", stop_sequence: null, usage: { input_tokens: 1, output_tokens: 1 },
+    });
+  });
+
+  const result = await buildGraph(anthropicInvestigator).invoke({ evidence });
+  assert.equal(result.proposal?.outcome, "propose");
+  assert.equal(requests.length, 1);
+  const request = JSON.parse(requests[0]);
+  const content = request.messages[0].content;
+  const payload = JSON.parse(typeof content === "string" ? content : content[0].text);
+  assert.deepEqual(payload.plan, evidence.plan);
+  assert.deepEqual(payload.indexes, { covering_index: false });
 });

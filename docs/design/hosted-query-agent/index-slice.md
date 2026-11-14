@@ -57,7 +57,20 @@ Go already had the query plan and the existing-index check. We tested sending bo
 
 The single request saved **0.94 s at the median (37% lower latency)** and was faster in all six pairs. A correct proposal matched the original investigation and the exact expected table and column. In both versions, the healthy lookup, an already-covered lookup, and a scan returning many rows all ended with `no_change` and zero Claude requests. The graph handled those decisions before invoking the model.
 
-This was a replay of one known repair, with three control cases. It provides a speed comparison for this workflow. Recommendation quality on unfamiliar cases and overall repair time need separate measurements. The experiment ran on `feat/single-call-index-eval`. The normal repair command still selects the two-request path.
+This was a replay of one known repair, with three control cases. It provides a speed comparison for this workflow. Recommendation quality on unfamiliar cases and overall repair time need separate measurements. The initial comparison ran on `feat/single-call-index-eval`. It informed the new-query check below.
+
+## Default after testing new queries
+
+We repeated the comparison on three new synthetic PostgreSQL queries. They looked up an event, found a customer's queued jobs with an extra filter, and retrieved readings for one device. Their lookup columns were in different positions. The unindexed plans examined **56,000**, **84,000**, and **108,000** rows and returned **1**, **3**, and **24**, respectively. On a disposable local database, we independently added the expected index for each case, verified that PostgreSQL used it and accessed fewer blocks, and confirmed that the results stayed the same. Then we rolled back the fixtures and replayed the evidence to Claude.
+
+| Approach | Median investigation time | Range | Correct table and column | Claude requests per run |
+| --- | ---: | ---: | ---: | ---: |
+| Request evidence, then recommend | 2.08 s | 2.01–2.28 s | 6/6 | 2 |
+| Send both pieces of evidence up front | 1.57 s | 1.33–2.21 s | 6/6 | 1 |
+
+Both versions used Claude Haiku 5.5 and had two runs per query. One call was faster in **5 of 6 paired runs**. The median dropped by **0.51 s (24%)**. Both versions returned `no_change` with zero Claude calls on all five controls: three healthy plans, a case with an existing covering index, and a broad scan that returned the entire table.
+
+The investigator now sends the measured plan and existing-index check in one request by default. LangGraph still screens cases before calling Claude. Go still verifies the proposed identity and eligibility before any database changes. The timing compares investigation only. These cases all fit the current single-column equality-index scope. They provide no quality measurement for compound indexes, unfamiliar repair types or customer workloads.
 
 ## Reproduce and inspect
 

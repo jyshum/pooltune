@@ -90,6 +90,8 @@ Files: `internal/hostedquery/index_policy.go`, `index_policy_test.go`, `investig
 - [x] Build a single TypeScript LangGraph workflow with an evidence node, one bounded Anthropic selection of plan or catalog tools, and a structured recommendation. Use `langgraph.json` for development inspection in Studio. Pass only synthetic evidence and the Pooltune state connection to the local investigator process. Keep the Anthropic key in its environment; require an explicit model name. Use a scripted investigator only in labeled development evaluation. Test the graph with a deterministic model double and assert evidence access, healthy/no-change and misleading scan behavior. Correlate its checkpoint with the Go run ID.
 - [x] Run Go policy tests, TypeScript typecheck/tests and review the cross-language contract.
 
+- [x] Follow-up requested by Jared. Compare one call with two on three new queries, verify the exact index and the zero-call healthy path, then make one call the default. [Results](index-slice.md#default-after-testing-new-queries).
+
 ### Task 5: Execute, verify and recover automatically
 
 Files: `internal/hostedquery/index_trial.go`, `index_journal.go`, `index_trial_integration_test.go` and the existing lab entry point. Decisions: d-reuse; implementation details within d-trials and d-durability. Depends on the qualification rules and index scope in Task 4.
