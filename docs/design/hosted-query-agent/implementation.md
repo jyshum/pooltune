@@ -249,6 +249,46 @@ Jared requested sustained-slowdown detection, brief-spike rejection and Pooltune
 
 The bounded traffic qualification passed after fixing healthy-table lock interference. All three final runs used live Claude and completed 5,922 total requests without errors or missed slots. [Results, timings and open production limits](mixed-traffic.md). Same-table committed-write qualification and higher-load calibration remain open.
 
+### Task 24: Bounded plain VACUUM through the same live traffic harness
+
+**Authority and boundary:** Jared accepted continuation after Task 23 with “lets keep building the next repairs with this same harness.” This authorizes the remaining three repair families in their existing order and private staging scope. Existing ask/milestones settings persist. No automatic stop between these already requested repair tasks is introduced. Present the combined evidence for human review, and stop for an actual approved-design conflict. No customer rollout, customer data mutations, public-schema changes or push to GitHub.
+
+**Files:** new `internal/hostedquery/vacuum_*.go` and tests; modify the shared evidence/proposal/dispatch types, fixture lifecycle, consumer/lab CLI, `investigator/graph.ts`, `model.ts`, their tests, and `traffic.ts`.
+
+**Interfaces:** `CreateVacuumFixture(ctx, target, state, route) (ConsumerFixture,error)`; `DispatchFixtureVacuum(ctx,state,config,route,fixture,investigate) (*DispatchResult,error)`; `IndexEvidence.Vacuum *VacuumEvidence`; typed proposal `repair=vacuum`; `DispatchResult.Vacuum *VacuumReport`; `-vacuum-fixture` and `-vacuum-staging-fixture`. The driver command is `node investigator/traffic.ts vacuum`.
+
+- [ ] Write and run failing local tests for positive visibility-loss evidence, healthy/no-change, wrong repair/identity, changed objects, active cleanup/blocker deferral, and interrupted-action reconciliation without blind repeat.
+- [ ] Create an isolated fixture within the existing table/connection/time/space budgets. Use a covering index and a bounded aggregate or range with measured index-only heap fetches. The existing index fixture is the lifecycle base. Plain VACUUM is the only repair power added. No FULL, ANALYZE side effect, threshold tuning, customer transaction cancellation or table rewrite. Detect visibility work using the v0 alternative clue: at least 1,000 heap fetches and at least 0.5 per returned scan row. Record the exact test query, inputs, settings and objective before the hosted run.
+- [ ] Persist intent before execution, recheck exact enrolled object identities and current conditions, execute bounded plain VACUUM outside a transaction, then verify actual outcome. VACUUM cannot be undone. An uncertain completion must inspect state and report uncertainty rather than automatically repeat. Preserve no-change and inconclusive outcomes when causal or benefit evidence fails. Preserve healthy-write concurrency.
+- [ ] Extend the shared prompt and graph so qualified cleanup evidence reaches real Claude and unsupported or healthy cases do not. Go must validate the typed recommendation independently. Add tests for weak evidence, declines, provider failure and mismatched proposals.
+- [ ] Extend the same traffic driver with operation-specific setup/short fault/recovery/sustained fault, expected results and objective. Reuse fixed offered demand, errors/misses, monitoring-off/on comparisons, live model timing and cleanup checks. Faults alter only owned test data. Prespecify benefit gates and do not lower them after observing a disappointing result.
+- [ ] Run local integration/race tests, TypeScript tests/checks, fresh review, and one final complete Railway/Rookery traffic run. Record before/after, per-stage time, interference, skipped spikes and limits. Commit only this task's files on the revamp branch.
+
+### Task 25: Enrolled function memory with attributed spill evidence
+
+Depends on Task 24's shared graph/driver extension. Build an explicitly enrolled, private, read-only synthetic function with fixed definition/identity, a bounded input set and measured internal sort spill. Adjust only that function's `work_mem`, preserve and restore its prior setting, and verify its definition/settings before action and on recovery. Predeclare tested concurrent calls, sort-node count and aggregate memory budget. Unknown real-project headroom cannot establish production memory safety. Use the same driver and live Claude; require lower latency plus at least 50% less attributed temporary writes, successful healthy traffic, no changed results, rollback/recovery and no-change controls. Record separate implementation details before coding this task. Do not tune a role, session default or whole database as the repair.
+
+**Files:** new `internal/hostedquery/memory_*.go` and tests; shared evidence/dispatch/fixture cleanup, lab and consumer flags, graph/model/tests and traffic driver.
+
+**Interfaces:** `CreateMemoryFixture`, `DispatchFixtureMemory`, `MemoryEvidence`, `MemoryReport`, `IndexEvidence.Memory`, `DispatchResult.Memory`, typed `repair=memory`, `-memory-fixture`, `-memory-staging-fixture`, driver mode `memory`. Exact context/config arguments match the VACUUM adapter. Source of bounded values: [function-memory.md](function-memory.md).
+
+- [ ] Test internal spill attribution, result preservation, budget/concurrency refusal, changed function body/owner/settings, invalid model selection, no-change and provider failure before implementing the action.
+- [ ] Build and enroll a private function with the documented 4 MiB original and 32 MiB candidate, known single-sort body and 96 MiB maximum test allowance for at most three calls. Record exact function identity and original setting durably. Preserve current shared source interfaces and ownership cleanup.
+- [ ] Implement action, measured verification and conditional restoration/reconciliation. Do not claim production headroom from a fixture allowance. Keep independent newer settings untouched.
+- [ ] Extend the same graph/Claude prompt and traffic harness with the prescribed one-call-per-second target rate, unchanged healthy traffic, frozen healthy-based objective, short and sustained faults, real model call and before/after temporary-write evidence.
+- [ ] Run local race/integration/graph tests, fresh review, hosted traffic qualification and documented results. Commit verified local work on revamp. A failed benefit or missing resource observation stays visible.
+
+### Task 26: Enrolled Cron schedule with deadline-preserving traffic verification
+
+Depends on Task 25's shared interfaces. First inspect pg_cron availability and privileges read-only. Use only explicitly created/enrolled test jobs with a stored original schedule, owner-defined allowed windows/frequency/deadline and known command identity. Jared explicitly approved enabling pg_cron on Rookery after the prerequisite probe (see progress). No other extension/server-configuration changes, existing-job rescheduling, running-job cancellation or invented customer deadlines are authorized. Match at least three affected/control periods and three future executions, show resource/lock contention rather than overlap alone, and preserve required completion counts and deadlines. Reuse the traffic driver and real Claude. If a real prerequisite is missing, implement and test the bounded contract locally, report the hosted block accurately, and continue independent authorized work. Record exact test schedule and safety limits before execution.
+
+**Prespecified contract:** [enrolled-cron.md](enrolled-cron.md). `CreateCronFixture`, `DispatchFixtureCron`, typed `CronEvidence`/`CronReport`, `repair=cron`, `-cron-fixture`, `-cron-staging-fixture`, and driver mode `cron` extend the existing shared interfaces. Record owned procedure/job identity and only the permitted alternate window. Keep the 25-second claim timeout; introduce an immediately-defaulted queue not-before time and an atomic, uniquely linked delayed verification continuation.
+
+- [ ] Test job identity, three-period evidence and attribution, frequency/deadline/window refusal, changed schedule/command/owner, declines and provider errors before implementing mutation.
+- [ ] Implement durable action intent, guarded schedule-only mutation, atomic delayed verification scheduling, restart recovery and conditional reconciliation. Never mark an applied schedule verified before observing its required future executions.
+- [ ] Extend the shared graph/prompt and traffic harness. Preserve real Claude, short-spike rejection, matched requests, independent healthy writes, actual scheduled execution history and measured contention.
+- [ ] Verify three future cycles, missed/duplicated execution refusal, owned cleanup and unchanged unrelated jobs. Run local tests, fresh review and one complete hosted qualification with separate action and cycle-wait timings. Commit the measured results and limits on revamp.
+
 ## Candidate test application inspection (historical)
 
 

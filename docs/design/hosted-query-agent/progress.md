@@ -1,5 +1,21 @@
 # Design progress
 
+## Remaining repairs authorized, November 14, 2026
+
+Cron setup approval: after the read-only probe found pg_cron 1.6.4 available/preloaded but not installed, Jared explicitly selected “Enable Cron on Rookery.” This authorizes adding the extension/catalog and creating/removing only Pooltune-owned test jobs. The approved setup is separate from arbitrary customer-job authority. Supabase migration `enable_pooltune_staging_cron` installs the extension with its documented postgres access. Readback confirms version and an initially empty job catalog.
+
+Jared responded to Task 23's results with “lets keep building the next repairs with this same harness.” This accepts proceeding beyond the mixed-traffic milestone and authorizes bounded VACUUM, enrolled function memory and enrolled Cron scheduling using the same live-Claude qualification flow. Existing ask/milestones settings and all product exclusions remain. Routine implementation interfaces and test parameters remain delegated. No new between-task human stops are implied. Local commits stay on `feat/pooltune-revamp-dev`; legacy user edits remain outside this work.
+
+Preflight: the shared graph currently supports three repair kinds and consumes `IndexEvidence`, which all queue adapters validate. Each new adapter must add a distinct optional evidence object and explicit expected repair, with no overlapping or fabricated cause. The fixture creator, removal journal, consumer flags and traffic driver currently enumerate three modes, so each must be extended together. The v0 VACUUM clue supports an index-only visibility fixture, whereas function memory needs attributed internal spill and Cron needs three actual scheduled cycles and deadlines. Existing index/statistics lookup cases cannot substitute for those tests. The current fixture samplers still block candidate writes; this known limitation cannot silently become production qualification.
+
+Ruling: preserve one shared investigator and queue; add operation-specific fixture adapters and traffic cases | each repair needs distinct causal evidence while retaining common timing/error checks | a wrong fixture assumption invalidates qualification and must be reported rather than relaxing success gates after the run. Next human review is the requested remaining-repairs evidence bundle or an actual design/prerequisite conflict.
+
+Task 24 local implementation passed its initial unit/integration/race and TypeScript checks. Fresh review found two Important/P2 gaps: committed preparation failures were outside automatic cleanup discovery, and an old assigned transaction ID without a current snapshot could escape cleanup admission. Both are assigned to the implementer for focused regressions and correction before hosted qualification. Review artifact: `.superpowers/staging/vacuum-fresh-review.md`. The local mechanism measurement was 7.374 to 1.474 ms with heap fetches 56,831 to zero. This is not hosted qualification.
+
+Two direct live Claude controls with the four-repair prompt declined correctly: healthy visibility (1.873 seconds) and blocked cleanup (1.976 seconds). The normal graph screened both without requesting the model; the direct requests deliberately checked the prompt separately using synthetic evidence. No database action was taken by these controls.
+
+Tasks 25 and 26 have operation-specific contracts in [function-memory.md](function-memory.md) and [enrolled-cron.md](enrolled-cron.md). The function test caps concurrent sort allowance and reports attributed temporary writes. Cron retains short worker claims and schedules durable future verification rather than treating a schedule change as a verified outcome. These are internal test/implementation choices within the accepted architecture, not production defaults or new customer powers.
+
 ## Mixed traffic qualification, November 14, 2026
 
 Jared authorized realistic traffic checks for the three existing repairs with Claude, documentation and a local commit on the revamp branch, before expanding to the remaining repair families. Existing workflow selections and repair authority remain unchanged. A reusable bounded synthetic workload now tests concurrent reads, healthy-table writes, short spikes, sustained slowdowns and reversed monitoring-off/on comparisons.
