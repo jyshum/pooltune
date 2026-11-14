@@ -46,6 +46,19 @@ Mean lookup time changed from **16.209 ms to 0.026 ms**. PostgreSQL switched fro
 
 Total wall time was **8.08 s**, including **2.72 s** for the investigation and its checkpoint writes and **0.46 s** for the index build. These timings are for one synthetic run. The live round used Anthropic with cloud tracing disabled. The developer Studio replay is separate.
 
+## One Claude request versus two
+
+Go already had the query plan and the existing-index check. We tested sending both in the first Claude request, saving the round trip where Claude asks for them. Both versions used the same Claude Haiku 5.5 model, saved Rookery evidence, graph screening rules, and recommendation format. We ran six pairs and alternated which version went first. The timer covered the graph investigation and API requests, with PostgreSQL and checkpoint writes outside this replay.
+
+| Approach | Median investigation time | Range | Correct index proposals | Claude requests per investigation |
+| --- | ---: | ---: | ---: | ---: |
+| Request evidence, then recommend | 2.56 s | 2.28–5.64 s | 6/6 | 2 |
+| Send both pieces of evidence up front | 1.61 s | 1.49–2.17 s | 6/6 | 1 |
+
+The single request saved **0.94 s at the median (37% lower latency)** and was faster in all six pairs. A correct proposal matched the original investigation and the exact expected table and column. In both versions, the healthy lookup, an already-covered lookup, and a scan returning many rows all ended with `no_change` and zero Claude requests. The graph handled those decisions before invoking the model.
+
+This was a replay of one known repair, with three control cases. It provides a speed comparison for this workflow. Recommendation quality on unfamiliar cases and overall repair time need separate measurements. The experiment ran on `feat/single-call-index-eval`. The normal repair command still selects the two-request path.
+
 ## Reproduce and inspect
 
 From this repo, install the pinned investigator dependencies with `npm --prefix investigator ci`. Use PostgreSQL 17 and Go 1.27.3 or newer.

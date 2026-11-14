@@ -14,14 +14,20 @@ const selectEvidence = tool(() => "", {
   schema: evidenceRequest,
 });
 
-export const anthropicInvestigator: Investigator = async (read, enrollment) => {
+const investigationInstructions = "Investigate one enrolled synthetic PostgreSQL lookup. Propose a nonunique B-tree on the enrolled column only when a selective scan and absence of a covering index support it. Otherwise return no_change. Preserve the supplied identifiers and cite observed evidence. Do not supply SQL.";
+
+function createAnthropicModel() {
   const modelName = process.env.POOLTUNE_ANTHROPIC_MODEL;
   if (!process.env.ANTHROPIC_API_KEY || !modelName) {
     throw new Error("Configure ANTHROPIC_API_KEY and POOLTUNE_ANTHROPIC_MODEL.");
   }
-  const model = new ChatAnthropic({ model: modelName, maxTokens: 600, maxRetries: 0, clientOptions: { timeout: 8500 } });
+  return new ChatAnthropic({ model: modelName, maxTokens: 600, maxRetries: 0, clientOptions: { timeout: 8500 } });
+}
+
+export const anthropicInvestigator: Investigator = async (read, enrollment) => {
+  const model = createAnthropicModel();
   const messages = [
-    new SystemMessage("Investigate one enrolled synthetic PostgreSQL lookup. Select the evidence you need. Propose a nonunique B-tree on the enrolled column only when a selective scan and absence of a covering index support it. Otherwise return no_change. Preserve the supplied identifiers and cite observed evidence. Do not supply SQL."),
+    new SystemMessage(investigationInstructions + " Select the evidence you need."),
     new HumanMessage(JSON.stringify(enrollment)),
   ];
   const response = await model.bindTools([selectEvidence], { tool_choice: selectEvidence.name }).invoke(messages);
@@ -37,6 +43,18 @@ export const anthropicInvestigator: Investigator = async (read, enrollment) => {
     ...messages, response, new ToolMessage({ content: JSON.stringify(observed), tool_call_id: request.id }),
   ]);
 };
+
+// Both inputs are already in graph state. Pass them together for the bounded index evaluation.
+export function buildSingleCallInvestigator(recommend: (messages: [SystemMessage, HumanMessage]) => Promise<unknown>): Investigator {
+  return (read, enrollment) => recommend([
+    new SystemMessage(investigationInstructions),
+    new HumanMessage(JSON.stringify({ enrollment, plan: read("plan"), indexes: read("indexes") })),
+  ]);
+}
+
+export const singleCallAnthropicInvestigator = buildSingleCallInvestigator((messages) =>
+  createAnthropicModel().withStructuredOutput(proposalSchema, { name: "index_recommendation" }).invoke(messages)
+);
 
 export const scriptedInvestigator: Investigator = async (read, evidence) => {
   read("plan");
