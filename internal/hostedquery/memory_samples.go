@@ -52,14 +52,29 @@ func sampleMemory(ctx context.Context, target *pgx.Conn, id string, objects fixt
 	}
 	const measured = "EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON, TIMING OFF) "
 	batch := &pgx.Batch{}
+	// Reuse one internal plan only within this guarded phase. Definition and
+	// settings are checked on both sides; the table lock pins data and input.
+	batch.Queue(measured + memoryInternalQuery(schema))
 	for round := range 10 {
 		batch.Queue(measured + memoryQuery(schema))
-		batch.Queue(measured + memoryInternalQuery(schema))
 		batch.Queue(measured+"SELECT id FROM ONLY "+qualified(schema, "healthy")+" WHERE id=$1", int32(43))
 		batch.Queue(measured+"UPDATE ONLY "+qualified(schema, "healthy")+" SET padding=CASE padding WHEN 'a' THEN 'b' ELSE 'a' END WHERE id=$1 RETURNING id", int32(80001+round))
 	}
 	res := tx.SendBatch(ctx, batch)
 	defer func() { err = errors.Join(err, res.Close()) }()
+	p, err := scanTrialPlan(res.QueryRow())
+	if err != nil {
+		return sample, err
+	}
+	n, err := memorySort(p)
+	if err != nil {
+		return sample, err
+	}
+	sample.Plan = n.Type
+	sample.PlanReturned = n.Rows
+	sample.PlanExamined = n.Rows
+	sample.SortRows = n.Rows
+	sample.InternalTempBytes = float64(p.Node.TempWritten) * 8192
 	var reads, healthy, writes []float64
 	for range 10 {
 		p, err := scanTrialPlan(res.QueryRow())
@@ -73,19 +88,7 @@ func sampleMemory(ctx context.Context, target *pgx.Conn, id string, objects fixt
 		sample.Blocks += float64(p.Node.Hit + p.Node.Read)
 		reads = append(reads, *p.ExecutionMS)
 		sample.Reads++
-		p, err = scanTrialPlan(res.QueryRow())
-		if err != nil {
-			return sample, err
-		}
-		n, err := memorySort(p)
-		if err != nil {
-			return sample, err
-		}
-		sample.Plan = n.Type
-		sample.PlanReturned = n.Rows
-		sample.PlanExamined = n.Rows
-		sample.SortRows = n.Rows
-		sample.InternalTempBytes += float64(p.Node.TempWritten) * 8192
+
 		for _, times := range []*[]float64{&healthy, &writes} {
 			p, err := scanTrialPlan(res.QueryRow())
 			if err != nil {
@@ -110,7 +113,6 @@ func sampleMemory(ctx context.Context, target *pgx.Conn, id string, objects fixt
 	}
 	sample.ResultsCorrect = true
 	sample.TempBytes /= 10
-	sample.InternalTempBytes /= 10
 	sample.Blocks /= 10
 	sample.ReadMS, sample.ReadMAD = meanMAD(reads)
 	sample.HealthyMS, sample.HealthyMAD = meanMAD(healthy)
