@@ -1,0 +1,1932 @@
+{
+  "repair": "memory",
+  "phases": [
+    {
+      "name": "monitor_off",
+      "start": "2026-11-14T19:45:25.702Z",
+      "seconds": 11.999347567999997,
+      "counters": [
+        {
+          "query_id": "-2053040015267302011",
+          "calls": 48,
+          "execution_ms": 1.330238,
+          "blocks": 144,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "8168659414440198910",
+          "calls": 24,
+          "execution_ms": 2.332295,
+          "blocks": 120,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8869119035934973544",
+          "calls": 12,
+          "execution_ms": 1777.967815,
+          "blocks": 25876,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 12,
+          "completed": 12,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 1.0000543722895188,
+          "p50_ms": 301.3912089999976,
+          "p95_ms": 308.02113899999677,
+          "p99_ms": 308.02113899999677,
+          "max_ms": 308.02113899999677,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 48,
+          "completed": 48,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.000217489158075,
+          "p50_ms": 139.5296899999994,
+          "p95_ms": 140.3564899999983,
+          "p99_ms": 141.11549000000014,
+          "max_ms": 141.11549000000014,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 24,
+          "completed": 24,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.0001087445790375,
+          "p50_ms": 141.07258099999672,
+          "p95_ms": 142.79284299999927,
+          "p99_ms": 144.87254399999802,
+          "max_ms": 144.87254399999802,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "monitor_on",
+      "start": "2026-11-14T19:45:39.013Z",
+      "seconds": 11.999563541000002,
+      "counters": [
+        {
+          "query_id": "-2053040015267302011",
+          "calls": 48,
+          "execution_ms": 1.1449259999999999,
+          "blocks": 144,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "8168659414440198910",
+          "calls": 24,
+          "execution_ms": 1.5367330000000003,
+          "blocks": 120,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 6,
+          "execution_ms": 30.962435999999798,
+          "blocks": 18,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8869119035934973544",
+          "calls": 12,
+          "execution_ms": 1799.9488760000002,
+          "blocks": 25536,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 12,
+          "completed": 12,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 1.0000363729062733,
+          "p50_ms": 302.16545100000076,
+          "p95_ms": 311.3303599999999,
+          "p99_ms": 311.3303599999999,
+          "max_ms": 311.3303599999999,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 48,
+          "completed": 48,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.000145491625093,
+          "p50_ms": 139.62896000000183,
+          "p95_ms": 140.33127899999818,
+          "p99_ms": 141.36506100000406,
+          "max_ms": 141.36506100000406,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 24,
+          "completed": 24,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.0000727458125467,
+          "p50_ms": 140.86061300000438,
+          "p95_ms": 141.70889600000373,
+          "p99_ms": 142.12007699999958,
+          "max_ms": 142.12007699999958,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "monitor_on",
+      "start": "2026-11-14T19:45:51.320Z",
+      "seconds": 11.999466090999995,
+      "counters": [
+        {
+          "query_id": "-2053040015267302011",
+          "calls": 48,
+          "execution_ms": 1.1261330000000003,
+          "blocks": 144,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "8168659414440198910",
+          "calls": 24,
+          "execution_ms": 1.4980839999999995,
+          "blocks": 121,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 6,
+          "execution_ms": 19.458240999999816,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8869119035934973544",
+          "calls": 12,
+          "execution_ms": 1770.81642,
+          "blocks": 25582,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 12,
+          "completed": 12,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 1.0000444943963303,
+          "p50_ms": 298.8377099999998,
+          "p95_ms": 310.74842799999897,
+          "p99_ms": 310.74842799999897,
+          "max_ms": 310.74842799999897,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 48,
+          "completed": 48,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.000177977585321,
+          "p50_ms": 139.53628300000128,
+          "p95_ms": 140.319653999999,
+          "p99_ms": 140.52581199999986,
+          "max_ms": 140.52581199999986,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 24,
+          "completed": 24,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.0000889887926605,
+          "p50_ms": 140.80863699999463,
+          "p95_ms": 141.54599899999448,
+          "p99_ms": 141.65448099999776,
+          "max_ms": 141.65448099999776,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "monitor_off",
+      "start": "2026-11-14T19:46:03.625Z",
+      "seconds": 11.999289858000004,
+      "counters": [
+        {
+          "query_id": "-2053040015267302011",
+          "calls": 48,
+          "execution_ms": 1.105978,
+          "blocks": 144,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "8168659414440198910",
+          "calls": 24,
+          "execution_ms": 1.8991600000000002,
+          "blocks": 120,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8869119035934973544",
+          "calls": 12,
+          "execution_ms": 1775.2184809999999,
+          "blocks": 25536,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 12,
+          "completed": 12,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 1.0000591820023017,
+          "p50_ms": 303.67670299999736,
+          "p95_ms": 309.68970199999603,
+          "p99_ms": 309.68970199999603,
+          "max_ms": 309.68970199999603,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 48,
+          "completed": 48,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.000236728009207,
+          "p50_ms": 139.5923299999995,
+          "p95_ms": 140.23710199999914,
+          "p99_ms": 140.88045399999828,
+          "max_ms": 140.88045399999828,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 24,
+          "completed": 24,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.0001183640046034,
+          "p50_ms": 140.88376199999766,
+          "p95_ms": 141.7528269999966,
+          "p99_ms": 141.9457489999986,
+          "max_ms": 141.9457489999986,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_history",
+      "start": "2026-11-14T19:46:15.931Z",
+      "seconds": 23.999636970000008,
+      "counters": [
+        {
+          "query_id": "-2053040015267302011",
+          "calls": 96,
+          "execution_ms": 2.2223040000000003,
+          "blocks": 288,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "8168659414440198910",
+          "calls": 48,
+          "execution_ms": 2.9408070000000004,
+          "blocks": 240,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 12,
+          "execution_ms": 41.615388000000166,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8869119035934973544",
+          "calls": 24,
+          "execution_ms": 3585.6520149999997,
+          "blocks": 51072,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 24,
+          "completed": 24,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 1.0000151264788066,
+          "p50_ms": 302.9304059999995,
+          "p95_ms": 318.64657300000545,
+          "p99_ms": 320.0788509999984,
+          "max_ms": 320.0788509999984,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 96,
+          "completed": 96,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.0000605059152265,
+          "p50_ms": 139.45042300000205,
+          "p95_ms": 140.45138500000758,
+          "p99_ms": 141.48741500001051,
+          "max_ms": 141.48741500001051,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 48,
+          "completed": 48,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.0000302529576133,
+          "p50_ms": 140.56027699999686,
+          "p95_ms": 142.43863099999726,
+          "p99_ms": 142.9027150000038,
+          "max_ms": 142.9027150000038,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "brief_spike",
+      "start": "2026-11-14T19:46:40.379Z",
+      "seconds": 2.999882626999999,
+      "counters": [
+        {
+          "query_id": "-2053040015267302011",
+          "calls": 12,
+          "execution_ms": 0.3607249999999995,
+          "blocks": 36,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "8168659414440198910",
+          "calls": 6,
+          "execution_ms": 0.37756599999999985,
+          "blocks": 30,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 2,
+          "execution_ms": 6.335493999999926,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8869119035934973544",
+          "calls": 3,
+          "execution_ms": 619.0654240000003,
+          "blocks": 6396,
+          "temp_bytes": 44064768
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 3,
+          "completed": 3,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 1.000039125864107,
+          "p50_ms": 358.2073209999944,
+          "p95_ms": 371.76896000000124,
+          "p99_ms": 371.76896000000124,
+          "max_ms": 371.76896000000124,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 12,
+          "completed": 12,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.000156503456428,
+          "p50_ms": 139.2675339999987,
+          "p95_ms": 140.61125399998855,
+          "p99_ms": 140.61125399998855,
+          "max_ms": 140.61125399998855,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 6,
+          "completed": 6,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.000078251728214,
+          "p50_ms": 140.58291699999245,
+          "p95_ms": 141.34699499999988,
+          "p99_ms": 141.34699499999988,
+          "max_ms": 141.34699499999988,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "spike_recovery",
+      "start": "2026-11-14T19:46:43.828Z",
+      "seconds": 23.999865529999994,
+      "counters": [
+        {
+          "query_id": "-2053040015267302011",
+          "calls": 96,
+          "execution_ms": 2.2267360000000105,
+          "blocks": 288,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "8168659414440198910",
+          "calls": 48,
+          "execution_ms": 3.688912,
+          "blocks": 240,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 12,
+          "execution_ms": 52.42533600000024,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8869119035934973544",
+          "calls": 24,
+          "execution_ms": 3530.3012799999997,
+          "blocks": 51084,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 24,
+          "completed": 24,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 1.0000056029480597,
+          "p50_ms": 300.84534699999494,
+          "p95_ms": 307.444015999994,
+          "p99_ms": 307.9486659999966,
+          "max_ms": 307.9486659999966,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 96,
+          "completed": 96,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.000022411792239,
+          "p50_ms": 139.44772999999986,
+          "p95_ms": 140.52140900000813,
+          "p99_ms": 142.518253000002,
+          "max_ms": 142.518253000002,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 48,
+          "completed": 48,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.0000112058961195,
+          "p50_ms": 140.7903010000009,
+          "p95_ms": 141.8967319999938,
+          "p99_ms": 142.37493200000608,
+          "max_ms": 142.37493200000608,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "sustained",
+      "start": "2026-11-14T19:47:08.270Z",
+      "seconds": 9.99954767700001,
+      "counters": [
+        {
+          "query_id": "-2053040015267302011",
+          "calls": 40,
+          "execution_ms": 1.002335999999989,
+          "blocks": 120,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "8168659414440198910",
+          "calls": 20,
+          "execution_ms": 1.2968279999999996,
+          "blocks": 100,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 5,
+          "execution_ms": 15.932885999999598,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8869119035934973544",
+          "calls": 10,
+          "execution_ms": 2149.0231110000004,
+          "blocks": 21292,
+          "temp_bytes": 146882560
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 10,
+          "completed": 10,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 1.0000452343460526,
+          "p50_ms": 353.65545399999246,
+          "p95_ms": 458.47246299999824,
+          "p99_ms": 458.47246299999824,
+          "max_ms": 458.47246299999824,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.0001809373842105,
+          "p50_ms": 139.4666890000226,
+          "p95_ms": 140.12090699998953,
+          "p99_ms": 140.58051299999352,
+          "max_ms": 140.58051299999352,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.0000904686921053,
+          "p50_ms": 140.79323999999906,
+          "p95_ms": 141.80611599999247,
+          "p99_ms": 142.75346799999534,
+          "max_ms": 142.75346799999534,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "sustained",
+      "start": "2026-11-14T19:47:18.568Z",
+      "seconds": 9.999895388999983,
+      "counters": [
+        {
+          "query_id": "-2053040015267302011",
+          "calls": 40,
+          "execution_ms": 0.9235680000000013,
+          "blocks": 126,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "2415528067341696515",
+          "calls": 9,
+          "execution_ms": 1.441492,
+          "blocks": 55,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "8168659414440198910",
+          "calls": 20,
+          "execution_ms": 1.2527869999999997,
+          "blocks": 100,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-6070501606614465102",
+          "calls": 1,
+          "execution_ms": 208.894872,
+          "blocks": 2128,
+          "temp_bytes": 14688256
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 5,
+          "execution_ms": 16.67897700000003,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "1354892552274303617",
+          "calls": 1,
+          "execution_ms": 3.0956859999999997,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8869119035934973544",
+          "calls": 11,
+          "execution_ms": 2544.055114999999,
+          "blocks": 23536,
+          "temp_bytes": 161570816
+        },
+        {
+          "query_id": "5095590173149429702",
+          "calls": 1,
+          "execution_ms": 0.04162,
+          "blocks": 3,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-66130075777162276",
+          "calls": 1,
+          "execution_ms": 0.03952,
+          "blocks": 3,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8604582017732534542",
+          "calls": 9,
+          "execution_ms": 2.334743,
+          "blocks": 111,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-6526451936197425532",
+          "calls": 9,
+          "execution_ms": 2003.339433,
+          "blocks": 19152,
+          "temp_bytes": 132194304
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 10,
+          "completed": 10,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 1.0000104612094374,
+          "p50_ms": 352.74680100000114,
+          "p95_ms": 485.8986220000079,
+          "p99_ms": 485.8986220000079,
+          "max_ms": 485.8986220000079,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.0000418448377495,
+          "p50_ms": 139.49012999999104,
+          "p95_ms": 140.0958699999901,
+          "p99_ms": 140.19128500000807,
+          "max_ms": 140.19128500000807,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.0000209224188747,
+          "p50_ms": 141.1225179999892,
+          "p95_ms": 142.84036499998183,
+          "p99_ms": 143.2560479999811,
+          "max_ms": 143.2560479999811,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "sustained",
+      "start": "2026-11-14T19:47:28.872Z",
+      "seconds": 9.999628758000005,
+      "counters": [
+        {
+          "query_id": "8500551937857662487",
+          "calls": 1,
+          "execution_ms": 0.861192,
+          "blocks": 27,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-2053040015267302011",
+          "calls": 40,
+          "execution_ms": 1.0015719999999995,
+          "blocks": 160,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "2415528067341696515",
+          "calls": 11,
+          "execution_ms": 1.5947539999999998,
+          "blocks": 44,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "8168659414440198910",
+          "calls": 20,
+          "execution_ms": 1.1928669999999997,
+          "blocks": 100,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-6070501606614465102",
+          "calls": 1,
+          "execution_ms": 145.84453800000003,
+          "blocks": 2128,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 5,
+          "execution_ms": 33.336321000000225,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8869119035934973544",
+          "calls": 13,
+          "execution_ms": 2584.282701,
+          "blocks": 27679,
+          "temp_bytes": 102817792
+        },
+        {
+          "query_id": "5095590173149429702",
+          "calls": 2,
+          "execution_ms": 0.022061000000000004,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-66130075777162276",
+          "calls": 2,
+          "execution_ms": 0.04302,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8604582017732534542",
+          "calls": 11,
+          "execution_ms": 3.4811720000000004,
+          "blocks": 152,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-6526451936197425532",
+          "calls": 11,
+          "execution_ms": 1832.8354129999998,
+          "blocks": 23408,
+          "temp_bytes": 14688256
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 10,
+          "completed": 10,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 1.0000371255782567,
+          "p50_ms": 350.7963989999844,
+          "p95_ms": 420.775358999992,
+          "p99_ms": 420.775358999992,
+          "max_ms": 420.775358999992,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.000148502313027,
+          "p50_ms": 139.29367700000876,
+          "p95_ms": 140.19007399998372,
+          "p99_ms": 140.44479499998852,
+          "max_ms": 140.44479499998852,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.0000742511565135,
+          "p50_ms": 141.1790359999868,
+          "p95_ms": 142.27787900000112,
+          "p99_ms": 145.11712300000363,
+          "max_ms": 145.11712300000363,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "after_repair",
+      "start": "2026-11-14T19:47:39.174Z",
+      "seconds": 11.999710929000022,
+      "counters": [
+        {
+          "query_id": "-2053040015267302011",
+          "calls": 48,
+          "execution_ms": 1.1989490000000007,
+          "blocks": 192,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "8168659414440198910",
+          "calls": 24,
+          "execution_ms": 1.5522410000000022,
+          "blocks": 120,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 6,
+          "execution_ms": 19.181982000000062,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8869119035934973544",
+          "calls": 12,
+          "execution_ms": 1786.4187190000011,
+          "blocks": 25536,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 12,
+          "completed": 12,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 1.000024089830304,
+          "p50_ms": 303.2263700000185,
+          "p95_ms": 313.9330750000081,
+          "p99_ms": 313.9330750000081,
+          "max_ms": 313.9330750000081,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 48,
+          "completed": 48,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.000096359321216,
+          "p50_ms": 139.46123600000283,
+          "p95_ms": 140.03999400002067,
+          "p99_ms": 140.23308100001304,
+          "max_ms": 140.23308100001304,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 24,
+          "completed": 24,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.000048179660608,
+          "p50_ms": 140.76402100000996,
+          "p95_ms": 141.92963800000143,
+          "p99_ms": 142.1911170000094,
+          "max_ms": 142.1911170000094,
+          "error_codes": []
+        }
+      }
+    }
+  ],
+  "public_indexes_before": {
+    "count": 12,
+    "hash": "f56ad07a58d2b60570ee6b64a8978936"
+  },
+  "fixture": "b9e3cafb4229236b5069b00f",
+  "target_query_id": "-8869119035934973544",
+  "healthy_calibration_ms": [
+    148.561,
+    145.419,
+    144.783,
+    144.066,
+    143.402,
+    144.901,
+    143.98,
+    144.835,
+    143.99,
+    143.895
+  ],
+  "benefit_gates": {
+    "minimum_ms": 5,
+    "minimum_fraction": 0.2,
+    "noise_multiple": 3,
+    "minimum_temp_write_reduction": 0.5
+  },
+  "memory_budget": {
+    "per_sort_bytes": 33554432,
+    "sort_nodes": 1,
+    "max_concurrent_calls": 3,
+    "aggregate_bytes": 100663296,
+    "production_headroom": "unknown"
+  },
+  "target_calls_per_second": 1,
+  "objective_ms": 180.979,
+  "spike_database_mean_ms": 206.35514133333345,
+  "spike_jobs": [],
+  "slowdown_at": "2026-11-14T19:47:08.121Z",
+  "jobs": [
+    {
+      "id": "96",
+      "created_at": "2026-11-14T19:47:20.953Z",
+      "finished_at": "2026-11-14T19:47:38.518Z",
+      "result": {
+        "job_id": 96,
+        "memory": {
+          "after": {
+            "plan": "Sort",
+            "sort_rows": 100000,
+            "read_calls": 10,
+            "temp_bytes": 0,
+            "read_mad_ms": 7.626500000000007,
+            "write_calls": 10,
+            "read_mean_ms": 162.8051,
+            "write_mad_ms": 0.0345,
+            "examined_rows": 100000,
+            "returned_rows": 100000,
+            "write_mean_ms": 0.2088,
+            "estimated_rows": 0,
+            "healthy_mad_ms": 0.0010000000000000009,
+            "blocks_per_read": 2128,
+            "healthy_mean_ms": 0.03490000000000001,
+            "results_correct": true,
+            "healthy_read_calls": 10,
+            "internal_temp_bytes": 0,
+            "estimate_error_ratio": 0
+          },
+          "before": {
+            "plan": "Sort",
+            "sort_rows": 100000,
+            "read_calls": 10,
+            "temp_bytes": 14688256,
+            "read_mad_ms": 3.4480000000000075,
+            "write_calls": 10,
+            "read_mean_ms": 220.69640000000004,
+            "write_mad_ms": 0.006000000000000005,
+            "examined_rows": 100000,
+            "returned_rows": 100000,
+            "write_mean_ms": 0.16430000000000003,
+            "estimated_rows": 0,
+            "healthy_mad_ms": 0.0010000000000000009,
+            "blocks_per_read": 2128,
+            "healthy_mean_ms": 0.03670000000000001,
+            "results_correct": true,
+            "healthy_read_calls": 10,
+            "internal_temp_bytes": 14688256,
+            "estimate_error_ratio": 0
+          },
+          "job_id": 96,
+          "reason": "attributed spill and measured latency improved with no sampled regression",
+          "fixture": "b9e3cafb4229236b5069b00f",
+          "outcome": "improved_tested_inputs",
+          "evidence": {
+            "plan": {
+              "node": "Sort",
+              "examined_rows": 100000,
+              "returned_rows": 100000,
+              "shared_blocks": 2128
+            },
+            "memory": {
+              "sort_nodes": 1,
+              "temp_bytes": 14688256,
+              "function_oid": 27046,
+              "aggregate_bytes": 100663296,
+              "candidate_bytes": 33554432,
+              "current_work_mem": "4MB",
+              "identity_verified": true,
+              "candidate_work_mem": "32MB",
+              "internal_temp_bytes": 14688256,
+              "max_concurrent_calls": 3
+            },
+            "run_id": "worker-96-1",
+            "decision": "investigate",
+            "table_oid": 27034,
+            "observed_at": "2026-11-14T19:47:29.876188635Z",
+            "column_number": 2,
+            "lookup_column": "lookup",
+            "covering_index": false
+          },
+          "function": {
+            "oid": 27046,
+            "owner": 16388,
+            "private": true,
+            "work_mem": "4MB",
+            "signature": "",
+            "definition": "CREATE OR REPLACE FUNCTION pooltune_trial_b9e3cafb4229236b5069b00f.pooltune_memory_sum()\n RETURNS bigint\n LANGUAGE plpgsql\n SET search_path TO 'pg_catalog'\n SET work_mem TO '4MB'\n SET max_parallel_workers_per_gather TO '0'\n SET jit TO 'off'\nAS $function$DECLARE slot integer; admitted boolean := false; answer bigint;\nBEGIN\n FOR slot IN 1..3 LOOP\n  IF pg_catalog.pg_try_advisory_xact_lock(27026,slot) THEN admitted := true; EXIT; END IF;\n END LOOP;\n IF NOT admitted THEN RAISE EXCEPTION 'memory concurrency limit' USING ERRCODE='53300'; END IF;\n SELECT sum(lookup) FROM (SELECT lookup FROM ONLY \"pooltune_trial_b9e3cafb4229236b5069b00f\".\"candidate\" ORDER BY padding,lookup OFFSET 0) AS sorted INTO answer;\n RETURN answer;\nEND$function$\n",
+            "other_settings": [
+              "jit=off",
+              "max_parallel_workers_per_gather=0",
+              "search_path=pg_catalog"
+            ]
+          },
+          "proposal": {
+            "reason": "Memory evidence binds function_oid 27046 with identity_verified=true and internal sort attribution: internal_temp_bytes equals temp_bytes at 14,688,256 (about 14 MiB) per run, which exceeds the 8 MiB per-call threshold. One sort node, no parallel workers indicated, max_concurrent_calls=3 (within the limit of three), and the candidate 32MB setting fits the explicit 96 MiB aggregate allowance (aggregate_bytes 100663296 is the stated fixture budget; candidate_bytes 33554432). No covering index is present and the plan is a Sort over 100,000 examined and returned rows, consistent with a spill-prone sort rather than a scan or estimate problem. Uncertainty: the measured latency benefit is not yet established, and the 96 MiB budget is a known test allowance rather than proof of production RAM headroom; Go verification should confirm the spill reduction.",
+            "repair": "memory",
+            "run_id": "worker-96-1",
+            "outcome": "propose",
+            "table_oid": 27034,
+            "model_call": {
+              "model": "claude-haiku-5-5",
+              "requests": 1,
+              "duration_ms": 2608.521409,
+              "input_tokens": 2115,
+              "output_tokens": 466
+            },
+            "column_number": 2
+          },
+          "restored": false,
+          "memory_wall_ms": 1254.827924,
+          "verify_wall_ms": 4184.705569,
+          "applied_work_mem": "32MB",
+          "baseline_wall_ms": 4993.545414,
+          "original_work_mem": "4MB",
+          "investigation_wall_ms": 3060.962762
+        },
+        "attempt": 1,
+        "outcome": "improved_tested_inputs",
+        "evidence": {
+          "plan": {
+            "node": "Sort",
+            "examined_rows": 100000,
+            "returned_rows": 100000,
+            "shared_blocks": 2128
+          },
+          "memory": {
+            "sort_nodes": 1,
+            "temp_bytes": 14688256,
+            "function_oid": 27046,
+            "aggregate_bytes": 100663296,
+            "candidate_bytes": 33554432,
+            "current_work_mem": "4MB",
+            "identity_verified": true,
+            "candidate_work_mem": "32MB",
+            "internal_temp_bytes": 14688256,
+            "max_concurrent_calls": 3
+          },
+          "run_id": "worker-96-1",
+          "decision": "investigate",
+          "table_oid": 27034,
+          "observed_at": "2026-11-14T19:47:29.876188635Z",
+          "column_number": 2,
+          "lookup_column": "lookup",
+          "covering_index": false
+        },
+        "graph_ms": 3060.962762,
+        "proposal": {
+          "reason": "Memory evidence binds function_oid 27046 with identity_verified=true and internal sort attribution: internal_temp_bytes equals temp_bytes at 14,688,256 (about 14 MiB) per run, which exceeds the 8 MiB per-call threshold. One sort node, no parallel workers indicated, max_concurrent_calls=3 (within the limit of three), and the candidate 32MB setting fits the explicit 96 MiB aggregate allowance (aggregate_bytes 100663296 is the stated fixture budget; candidate_bytes 33554432). No covering index is present and the plan is a Sort over 100,000 examined and returned rows, consistent with a spill-prone sort rather than a scan or estimate problem. Uncertainty: the measured latency benefit is not yet established, and the 96 MiB budget is a known test allowance rather than proof of production RAM headroom; Go verification should confirm the spill reduction.",
+          "repair": "memory",
+          "run_id": "worker-96-1",
+          "outcome": "propose",
+          "table_oid": 27034,
+          "model_call": {
+            "model": "claude-haiku-5-5",
+            "requests": 1,
+            "duration_ms": 2608.521409,
+            "input_tokens": 2115,
+            "output_tokens": 466
+          },
+          "column_number": 2
+        },
+        "thread_id": "worker-96-1",
+        "elapsed_ms": 16500.449426,
+        "observed_latency": {
+          "objective_ms": 180.979,
+          "observed_through": "2026-11-14T19:47:20.954019Z",
+          "recent_window_calls": [
+            4,
+            4,
+            4,
+            4,
+            4
+          ],
+          "recent_window_mean_ms": [
+            146.89026775000002,
+            165.57970000000068,
+            198.83611799999971,
+            234.1161849999994,
+            195.33753500000057
+          ],
+          "recent_window_shared_block_accesses": [
+            8512,
+            8518,
+            8518,
+            8512,
+            8512
+          ]
+        }
+      },
+      "attempts": 1
+    }
+  ],
+  "before_database_mean_ms": 214.90231110000005,
+  "after_database_mean_ms": 148.86822658333344,
+  "worker_failures": [],
+  "worker_diagnostics": [],
+  "detector_windows": [
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-2053040015267302011",
+      "start": "2026-11-14T19:45:39.055441Z",
+      "end": "2026-11-14T19:45:43.058978Z",
+      "calls": 16,
+      "mean_execution_ms": 0.0235496875,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-8869119035934973544",
+      "start": "2026-11-14T19:45:39.055441Z",
+      "end": "2026-11-14T19:45:43.058978Z",
+      "calls": 4,
+      "mean_execution_ms": 149.97052625000003,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-2053040015267302011",
+      "start": "2026-11-14T19:45:43.058978Z",
+      "end": "2026-11-14T19:45:47.061031Z",
+      "calls": 16,
+      "mean_execution_ms": 0.024410999999999988,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-8869119035934973544",
+      "start": "2026-11-14T19:45:43.058978Z",
+      "end": "2026-11-14T19:45:47.061031Z",
+      "calls": 4,
+      "mean_execution_ms": 151.06238050000002,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-2053040015267302011",
+      "start": "2026-11-14T19:45:47.061031Z",
+      "end": "2026-11-14T19:45:51.062963Z",
+      "calls": 16,
+      "mean_execution_ms": 0.023597187499999978,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-8869119035934973544",
+      "start": "2026-11-14T19:45:47.061031Z",
+      "end": "2026-11-14T19:45:51.062963Z",
+      "calls": 4,
+      "mean_execution_ms": 148.95431225000004,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-2053040015267302011",
+      "start": "2026-11-14T19:45:51.062963Z",
+      "end": "2026-11-14T19:45:55.065845Z",
+      "calls": 15,
+      "mean_execution_ms": 0.023645133333333342,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-8869119035934973544",
+      "start": "2026-11-14T19:45:51.062963Z",
+      "end": "2026-11-14T19:45:55.065845Z",
+      "calls": 4,
+      "mean_execution_ms": 147.7242990000001,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-2053040015267302011",
+      "start": "2026-11-14T19:45:55.065845Z",
+      "end": "2026-11-14T19:45:59.067633Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02461056249999999,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-8869119035934973544",
+      "start": "2026-11-14T19:45:55.065845Z",
+      "end": "2026-11-14T19:45:59.067633Z",
+      "calls": 4,
+      "mean_execution_ms": 146.35832699999992,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-2053040015267302011",
+      "start": "2026-11-14T19:45:59.067633Z",
+      "end": "2026-11-14T19:46:03.069238Z",
+      "calls": 16,
+      "mean_execution_ms": 0.022198562500000046,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-8869119035934973544",
+      "start": "2026-11-14T19:45:59.067633Z",
+      "end": "2026-11-14T19:46:03.069238Z",
+      "calls": 4,
+      "mean_execution_ms": 148.6214789999999,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-2053040015267302011",
+      "start": "2026-11-14T19:46:03.069238Z",
+      "end": "2026-11-14T19:46:16.913575Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-8869119035934973544",
+      "start": "2026-11-14T19:46:03.069238Z",
+      "end": "2026-11-14T19:46:16.913575Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-2053040015267302011",
+      "start": "2026-11-14T19:46:16.913575Z",
+      "end": "2026-11-14T19:46:20.915763Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02240399999999998,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-8869119035934973544",
+      "start": "2026-11-14T19:46:16.913575Z",
+      "end": "2026-11-14T19:46:20.915763Z",
+      "calls": 4,
+      "mean_execution_ms": 146.2996415,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-2053040015267302011",
+      "start": "2026-11-14T19:46:20.915763Z",
+      "end": "2026-11-14T19:46:24.918956Z",
+      "calls": 16,
+      "mean_execution_ms": 0.024012874999999934,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-8869119035934973544",
+      "start": "2026-11-14T19:46:20.915763Z",
+      "end": "2026-11-14T19:46:24.918956Z",
+      "calls": 4,
+      "mean_execution_ms": 159.46173875,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-2053040015267302011",
+      "start": "2026-11-14T19:46:24.918956Z",
+      "end": "2026-11-14T19:46:28.921501Z",
+      "calls": 16,
+      "mean_execution_ms": 0.025012812500000037,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-8869119035934973544",
+      "start": "2026-11-14T19:46:24.918956Z",
+      "end": "2026-11-14T19:46:28.921501Z",
+      "calls": 4,
+      "mean_execution_ms": 145.78643575000024,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-2053040015267302011",
+      "start": "2026-11-14T19:46:28.921501Z",
+      "end": "2026-11-14T19:46:32.923832Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02250650000000004,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-8869119035934973544",
+      "start": "2026-11-14T19:46:28.921501Z",
+      "end": "2026-11-14T19:46:32.923832Z",
+      "calls": 4,
+      "mean_execution_ms": 146.2662365000001,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-2053040015267302011",
+      "start": "2026-11-14T19:46:32.923832Z",
+      "end": "2026-11-14T19:46:36.925623Z",
+      "calls": 16,
+      "mean_execution_ms": 0.022304687500000087,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-8869119035934973544",
+      "start": "2026-11-14T19:46:32.923832Z",
+      "end": "2026-11-14T19:46:36.925623Z",
+      "calls": 4,
+      "mean_execution_ms": 151.00675575000014,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-2053040015267302011",
+      "start": "2026-11-14T19:46:36.925623Z",
+      "end": "2026-11-14T19:46:40.928601Z",
+      "calls": 14,
+      "mean_execution_ms": 0.023038500000000055,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-8869119035934973544",
+      "start": "2026-11-14T19:46:36.925623Z",
+      "end": "2026-11-14T19:46:40.928601Z",
+      "calls": 4,
+      "mean_execution_ms": 166.12857874999963,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-2053040015267302011",
+      "start": "2026-11-14T19:46:40.928601Z",
+      "end": "2026-11-14T19:46:44.93239Z",
+      "calls": 15,
+      "mean_execution_ms": 0.028334333333333402,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-8869119035934973544",
+      "start": "2026-11-14T19:46:40.928601Z",
+      "end": "2026-11-14T19:46:44.93239Z",
+      "calls": 3,
+      "mean_execution_ms": 182.0831396666666,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-2053040015267302011",
+      "start": "2026-11-14T19:46:44.93239Z",
+      "end": "2026-11-14T19:46:48.93455Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02450474999999991,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-8869119035934973544",
+      "start": "2026-11-14T19:46:44.93239Z",
+      "end": "2026-11-14T19:46:48.93455Z",
+      "calls": 4,
+      "mean_execution_ms": 147.0267667500002,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-2053040015267302011",
+      "start": "2026-11-14T19:46:48.93455Z",
+      "end": "2026-11-14T19:46:52.937226Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02350150000000001,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-8869119035934973544",
+      "start": "2026-11-14T19:46:48.93455Z",
+      "end": "2026-11-14T19:46:52.937226Z",
+      "calls": 4,
+      "mean_execution_ms": 147.53274724999983,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-2053040015267302011",
+      "start": "2026-11-14T19:46:52.937226Z",
+      "end": "2026-11-14T19:46:56.939011Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02195981250000012,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-8869119035934973544",
+      "start": "2026-11-14T19:46:52.937226Z",
+      "end": "2026-11-14T19:46:56.939011Z",
+      "calls": 4,
+      "mean_execution_ms": 147.0644585,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-2053040015267302011",
+      "start": "2026-11-14T19:46:56.939011Z",
+      "end": "2026-11-14T19:47:00.941124Z",
+      "calls": 16,
+      "mean_execution_ms": 0.022303312500000172,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-8869119035934973544",
+      "start": "2026-11-14T19:46:56.939011Z",
+      "end": "2026-11-14T19:47:00.941124Z",
+      "calls": 4,
+      "mean_execution_ms": 146.94946075000007,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-2053040015267302011",
+      "start": "2026-11-14T19:47:00.941124Z",
+      "end": "2026-11-14T19:47:04.944086Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02449950000000023,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-8869119035934973544",
+      "start": "2026-11-14T19:47:00.941124Z",
+      "end": "2026-11-14T19:47:04.944086Z",
+      "calls": 4,
+      "mean_execution_ms": 146.89026775000002,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-2053040015267302011",
+      "start": "2026-11-14T19:47:04.944086Z",
+      "end": "2026-11-14T19:47:08.947474Z",
+      "calls": 14,
+      "mean_execution_ms": 0.02246021428571408,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-8869119035934973544",
+      "start": "2026-11-14T19:47:04.944086Z",
+      "end": "2026-11-14T19:47:08.947474Z",
+      "calls": 4,
+      "mean_execution_ms": 165.57970000000068,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-2053040015267302011",
+      "start": "2026-11-14T19:47:08.947474Z",
+      "end": "2026-11-14T19:47:12.948965Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02652225000000008,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-8869119035934973544",
+      "start": "2026-11-14T19:47:08.947474Z",
+      "end": "2026-11-14T19:47:12.948965Z",
+      "calls": 4,
+      "mean_execution_ms": 198.83611799999971,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-2053040015267302011",
+      "start": "2026-11-14T19:47:12.948965Z",
+      "end": "2026-11-14T19:47:16.951945Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02479737500000001,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-8869119035934973544",
+      "start": "2026-11-14T19:47:12.948965Z",
+      "end": "2026-11-14T19:47:16.951945Z",
+      "calls": 4,
+      "mean_execution_ms": 234.1161849999994,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-2053040015267302011",
+      "start": "2026-11-14T19:47:16.951945Z",
+      "end": "2026-11-14T19:47:20.954019Z",
+      "calls": 15,
+      "mean_execution_ms": 0.022534466666666593,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-8869119035934973544",
+      "start": "2026-11-14T19:47:16.951945Z",
+      "end": "2026-11-14T19:47:20.954019Z",
+      "calls": 4,
+      "mean_execution_ms": 195.33753500000057,
+      "decision": "investigate"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-2053040015267302011",
+      "start": "2026-11-14T19:47:20.954019Z",
+      "end": "2026-11-14T19:47:24.95527Z",
+      "calls": 16,
+      "mean_execution_ms": 0.022452312500000016,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-8869119035934973544",
+      "start": "2026-11-14T19:47:20.954019Z",
+      "end": "2026-11-14T19:47:24.95527Z",
+      "calls": 4,
+      "mean_execution_ms": 234.2104419999996,
+      "decision": "investigate"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-2053040015267302011",
+      "start": "2026-11-14T19:47:24.95527Z",
+      "end": "2026-11-14T19:47:28.957757Z",
+      "calls": 15,
+      "mean_execution_ms": 0.024292466666666714,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-8869119035934973544",
+      "start": "2026-11-14T19:47:24.95527Z",
+      "end": "2026-11-14T19:47:28.957757Z",
+      "calls": 4,
+      "mean_execution_ms": 255.43282524999995,
+      "decision": "investigate"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-2053040015267302011",
+      "start": "2026-11-14T19:47:28.957757Z",
+      "end": "2026-11-14T19:47:32.958968Z",
+      "calls": 16,
+      "mean_execution_ms": 0.024809062500000034,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-8869119035934973544",
+      "start": "2026-11-14T19:47:28.957757Z",
+      "end": "2026-11-14T19:47:32.958968Z",
+      "calls": 5,
+      "mean_execution_ms": 225.34357239999954,
+      "decision": "investigate"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-2053040015267302011",
+      "start": "2026-11-14T19:47:32.958968Z",
+      "end": "2026-11-14T19:47:36.96134Z",
+      "calls": 16,
+      "mean_execution_ms": 0.024434000000000178,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-8869119035934973544",
+      "start": "2026-11-14T19:47:32.958968Z",
+      "end": "2026-11-14T19:47:36.96134Z",
+      "calls": 5,
+      "mean_execution_ms": 188.45361439999905,
+      "decision": "investigate"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-2053040015267302011",
+      "start": "2026-11-14T19:47:36.96134Z",
+      "end": "2026-11-14T19:47:40.963043Z",
+      "calls": 14,
+      "mean_execution_ms": 0.026014714285714367,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-8869119035934973544",
+      "start": "2026-11-14T19:47:36.96134Z",
+      "end": "2026-11-14T19:47:40.963043Z",
+      "calls": 5,
+      "mean_execution_ms": 165.14223280000004,
+      "decision": "investigate"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-2053040015267302011",
+      "start": "2026-11-14T19:47:40.963043Z",
+      "end": "2026-11-14T19:47:44.964827Z",
+      "calls": 16,
+      "mean_execution_ms": 0.024910499999999947,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-8869119035934973544",
+      "start": "2026-11-14T19:47:40.963043Z",
+      "end": "2026-11-14T19:47:44.964827Z",
+      "calls": 4,
+      "mean_execution_ms": 148.44238100000075,
+      "decision": "investigate"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-2053040015267302011",
+      "start": "2026-11-14T19:47:44.964827Z",
+      "end": "2026-11-14T19:47:48.966557Z",
+      "calls": 16,
+      "mean_execution_ms": 0.025105812500000102,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-8869119035934973544",
+      "start": "2026-11-14T19:47:44.964827Z",
+      "end": "2026-11-14T19:47:48.966557Z",
+      "calls": 4,
+      "mean_execution_ms": 147.21794449999925,
+      "decision": "no_change"
+    }
+  ],
+  "process_results": [
+    {
+      "job_id": 96,
+      "attempt": 1,
+      "outcome": "improved_tested_inputs",
+      "thread_id": "worker-96-1",
+      "observed_latency": {
+        "objective_ms": 180.979,
+        "recent_window_mean_ms": [
+          146.89026775000002,
+          165.57970000000068,
+          198.83611799999971,
+          234.1161849999994,
+          195.33753500000057
+        ],
+        "recent_window_calls": [
+          4,
+          4,
+          4,
+          4,
+          4
+        ],
+        "observed_through": "2026-11-14T19:47:20.954019Z",
+        "recent_window_shared_block_accesses": [
+          8512,
+          8518,
+          8518,
+          8512,
+          8512
+        ]
+      },
+      "evidence": {
+        "run_id": "worker-96-1",
+        "observed_at": "2026-11-14T19:47:29.876188635Z",
+        "decision": "investigate",
+        "table_oid": 27034,
+        "column_number": 2,
+        "covering_index": false,
+        "memory": {
+          "function_oid": 27046,
+          "temp_bytes": 14688256,
+          "internal_temp_bytes": 14688256,
+          "sort_nodes": 1,
+          "max_concurrent_calls": 3,
+          "candidate_bytes": 33554432,
+          "aggregate_bytes": 100663296,
+          "current_work_mem": "4MB",
+          "candidate_work_mem": "32MB",
+          "identity_verified": true
+        },
+        "plan": {
+          "node": "Sort",
+          "examined_rows": 100000,
+          "returned_rows": 100000,
+          "shared_blocks": 2128
+        },
+        "lookup_column": "lookup"
+      },
+      "proposal": {
+        "model_call": {
+          "model": "claude-haiku-5-5",
+          "duration_ms": 2608.521409,
+          "requests": 1,
+          "input_tokens": 2115,
+          "output_tokens": 466
+        },
+        "repair": "memory",
+        "outcome": "propose",
+        "run_id": "worker-96-1",
+        "table_oid": 27034,
+        "column_number": 2,
+        "reason": "Memory evidence binds function_oid 27046 with identity_verified=true and internal sort attribution: internal_temp_bytes equals temp_bytes at 14,688,256 (about 14 MiB) per run, which exceeds the 8 MiB per-call threshold. One sort node, no parallel workers indicated, max_concurrent_calls=3 (within the limit of three), and the candidate 32MB setting fits the explicit 96 MiB aggregate allowance (aggregate_bytes 100663296 is the stated fixture budget; candidate_bytes 33554432). No covering index is present and the plan is a Sort over 100,000 examined and returned rows, consistent with a spill-prone sort rather than a scan or estimate problem. Uncertainty: the measured latency benefit is not yet established, and the 96 MiB budget is a known test allowance rather than proof of production RAM headroom; Go verification should confirm the spill reduction."
+      },
+      "elapsed_ms": 16503.471329,
+      "memory": {
+        "job_id": 96,
+        "fixture": "b9e3cafb4229236b5069b00f",
+        "function": {
+          "oid": 27046,
+          "owner": 16388,
+          "definition": "CREATE OR REPLACE FUNCTION pooltune_trial_b9e3cafb4229236b5069b00f.pooltune_memory_sum()\n RETURNS bigint\n LANGUAGE plpgsql\n SET search_path TO 'pg_catalog'\n SET work_mem TO '4MB'\n SET max_parallel_workers_per_gather TO '0'\n SET jit TO 'off'\nAS $function$DECLARE slot integer; admitted boolean := false; answer bigint;\nBEGIN\n FOR slot IN 1..3 LOOP\n  IF pg_catalog.pg_try_advisory_xact_lock(27026,slot) THEN admitted := true; EXIT; END IF;\n END LOOP;\n IF NOT admitted THEN RAISE EXCEPTION 'memory concurrency limit' USING ERRCODE='53300'; END IF;\n SELECT sum(lookup) FROM (SELECT lookup FROM ONLY \"pooltune_trial_b9e3cafb4229236b5069b00f\".\"candidate\" ORDER BY padding,lookup OFFSET 0) AS sorted INTO answer;\n RETURN answer;\nEND$function$\n",
+          "signature": "",
+          "work_mem": "4MB",
+          "other_settings": [
+            "jit=off",
+            "max_parallel_workers_per_gather=0",
+            "search_path=pg_catalog"
+          ],
+          "private": true
+        },
+        "before": {
+          "read_mean_ms": 220.69640000000004,
+          "read_mad_ms": 3.4480000000000075,
+          "healthy_mean_ms": 0.03670000000000001,
+          "healthy_mad_ms": 0.0010000000000000009,
+          "write_mean_ms": 0.16430000000000003,
+          "write_mad_ms": 0.006000000000000005,
+          "read_calls": 10,
+          "healthy_read_calls": 10,
+          "write_calls": 10,
+          "blocks_per_read": 2128,
+          "plan": "Sort",
+          "returned_rows": 100000,
+          "examined_rows": 100000,
+          "estimated_rows": 0,
+          "estimate_error_ratio": 0,
+          "temp_bytes": 14688256,
+          "internal_temp_bytes": 14688256,
+          "sort_rows": 100000,
+          "results_correct": true
+        },
+        "after": {
+          "read_mean_ms": 162.8051,
+          "read_mad_ms": 7.626500000000007,
+          "healthy_mean_ms": 0.03490000000000001,
+          "healthy_mad_ms": 0.0010000000000000009,
+          "write_mean_ms": 0.2088,
+          "write_mad_ms": 0.0345,
+          "read_calls": 10,
+          "healthy_read_calls": 10,
+          "write_calls": 10,
+          "blocks_per_read": 2128,
+          "plan": "Sort",
+          "returned_rows": 100000,
+          "examined_rows": 100000,
+          "estimated_rows": 0,
+          "estimate_error_ratio": 0,
+          "temp_bytes": 0,
+          "internal_temp_bytes": 0,
+          "sort_rows": 100000,
+          "results_correct": true
+        },
+        "outcome": "improved_tested_inputs",
+        "reason": "attributed spill and measured latency improved with no sampled regression",
+        "evidence": {
+          "run_id": "worker-96-1",
+          "observed_at": "2026-11-14T19:47:29.876188635Z",
+          "decision": "investigate",
+          "table_oid": 27034,
+          "column_number": 2,
+          "covering_index": false,
+          "memory": {
+            "function_oid": 27046,
+            "temp_bytes": 14688256,
+            "internal_temp_bytes": 14688256,
+            "sort_nodes": 1,
+            "max_concurrent_calls": 3,
+            "candidate_bytes": 33554432,
+            "aggregate_bytes": 100663296,
+            "current_work_mem": "4MB",
+            "candidate_work_mem": "32MB",
+            "identity_verified": true
+          },
+          "plan": {
+            "node": "Sort",
+            "examined_rows": 100000,
+            "returned_rows": 100000,
+            "shared_blocks": 2128
+          },
+          "lookup_column": "lookup"
+        },
+        "proposal": {
+          "model_call": {
+            "model": "claude-haiku-5-5",
+            "duration_ms": 2608.521409,
+            "requests": 1,
+            "input_tokens": 2115,
+            "output_tokens": 466
+          },
+          "repair": "memory",
+          "outcome": "propose",
+          "run_id": "worker-96-1",
+          "table_oid": 27034,
+          "column_number": 2,
+          "reason": "Memory evidence binds function_oid 27046 with identity_verified=true and internal sort attribution: internal_temp_bytes equals temp_bytes at 14,688,256 (about 14 MiB) per run, which exceeds the 8 MiB per-call threshold. One sort node, no parallel workers indicated, max_concurrent_calls=3 (within the limit of three), and the candidate 32MB setting fits the explicit 96 MiB aggregate allowance (aggregate_bytes 100663296 is the stated fixture budget; candidate_bytes 33554432). No covering index is present and the plan is a Sort over 100,000 examined and returned rows, consistent with a spill-prone sort rather than a scan or estimate problem. Uncertainty: the measured latency benefit is not yet established, and the 96 MiB budget is a known test allowance rather than proof of production RAM headroom; Go verification should confirm the spill reduction."
+        },
+        "original_work_mem": "4MB",
+        "applied_work_mem": "32MB",
+        "restored": false,
+        "baseline_wall_ms": 4993.545414,
+        "investigation_wall_ms": 3060.962762,
+        "memory_wall_ms": 1254.827924,
+        "verify_wall_ms": 4184.705569
+      },
+      "graph_ms": 3060.962762
+    }
+  ],
+  "detection_seconds": 12.832,
+  "repair_seconds": 17.565,
+  "repair_verified": true,
+  "traffic_errors": 0,
+  "missed_requests": 0,
+  "passed": true,
+  "fixture_removed": true,
+  "public_indexes_after": {
+    "count": 12,
+    "hash": "f56ad07a58d2b60570ee6b64a8978936"
+  },
+  "qualification_source": {
+    "base_commit": "0fcbed1",
+    "overlay_commit": "fe86aa4",
+    "overlay_files": [
+      "internal/hostedquery/memory_samples.go"
+    ],
+    "deployment": "49ead71c-37b4-4c16-ae7a-ee82d1271402",
+    "note": "Reviewed pre-Cron service plus reviewed memory-only optimization. Five-repair prompt; final six-repair direct controls recorded separately. Initial SSH launch timed out and read-only checks confirmed no fixture/output; second launch ran once."
+  }
+}

@@ -2,6 +2,29 @@
 
 This is repair family five in the accepted plan. The problem is a function whose sort writes temporary files because its memory allowance is too small. The repair changes only that enrolled function's work_mem. It does not change the database default, rewrite customer code, or claim memory is free.
 
+## Follow-up passed with less diagnostic work
+
+The separately recorded follow-up passed on Railway deployment `49ead71c-37b4-4c16-ae7a-ee82d1271402`, job **96**, first attempt. Ongoing query execution fell from **214.902 to 148.868 ms**, a **30.7% reduction**. The controlled ten-call comparison fell from **220.696 to 162.805 ms**. Its 57.891 ms gain exceeded the unchanged 22.880 ms noise threshold, as well as the 20% and 5 ms requirements. Both the actual function and the matched internal diagnostic went from **14,688,256 temporary-write bytes per call to zero**. Go kept the **32 MiB function setting** until owned fixture cleanup. [Full follow-up evidence](evidence/mixed-traffic/final-memory.json)
+
+| Stage | Seconds |
+| --- | ---: |
+| Sustained slowdown to queued investigation | 12.832 |
+| Queue to saved verified outcome | 17.565 |
+| Total slowdown to verified outcome | 30.397 |
+| Before measurement, inside the outcome time | 4.994 |
+| Claude request, inside the graph | 2.609 |
+| Graph including Claude | 3.061 |
+| Setting action and guards | 1.255 |
+| After measurement | 4.185 |
+
+All **987 offered requests** completed without errors or missed slots. The brief spike crossed the fixed 180.979 ms objective but created no job. The two monitoring-on phases used **2.580 and 1.622 ms of collector database execution per elapsed second**; these are not CPU percentages. Target client p95 was **308.02/309.69 ms** with monitoring off and **311.33/310.75 ms** with it on. These short comparisons do not establish a universal overhead bound. Fixture cleanup passed and the 12 public index definitions retained their prior fingerprint.
+
+The source was the reviewed pre-Cron service at `0fcbed1` plus only the reviewed memory sampler from `fe86aa4`. This kept unfinished scheduling code outside the memory deployment. Its five-repair prompt made the real decision; [six-repair direct controls](evidence/mixed-traffic/six-repair-live-controls.json) separately checked healthy/unsupported behavior after adding Cron. An initial SSH launch timed out; read-only inspection found no output or fixture. The successful retry launched one trial. Monitoring connection delays are not included in the saved database/worker timings.
+
+The optimization removed nine repeated internal diagnostic sorts per side while retaining ten actual function samples. Before/after measurement time was 9.178 seconds here versus 13.405 seconds in the initial trial. That comparison also includes workload variation; the old trial restored its setting and this one retained it, so the shorter total outcome time is not a controlled estimate of the optimization alone. The regression test directly establishes the reduced diagnostic execution count. No benefit or noise threshold was relaxed.
+
+**Assessment:** sufficient to continue the remaining bounded repair qualification. This proves one enrolled function with one sort, admitted concurrency and a stated test allowance. Production memory headroom, unbounded callers and more complicated functions still require qualification. The initial inconclusive result below remains part of the record.
+
 ## First hosted observation, November 14
 
 The full live flow ran, but benefit qualification was **inconclusive**. Railway deployment `b4db8387-ce51-49fb-a800-68caf1ef0fae`, Rookery job **89**, used one Claude call (**3.272 seconds**). Go applied 32 MiB and measured temporary writes falling from **14,688,256 bytes per call to zero**. Controlled mean latency fell from **268.210 to 158.488 ms**.
@@ -12,7 +35,7 @@ Detection took **9.040 seconds**, and queue-to-saved-outcome took **24.185 secon
 
 The five-repair prompt separately declined a healthy function and a four-call request exceeding the 96 MiB allowance in **1.831/1.998 seconds**. The graph screened both without a provider call; these direct synthetic provider controls checked the prompt itself. [Control evidence](evidence/mixed-traffic/memory-live-controls.json)
 
-The initial measurement loop repeats the identical internal diagnostic sort ten times alongside ten actual function samples on each side. A follow-up optimization will test reusing one internal plan per side under the same pinned definition, settings, data guard and input. The ten actual function latency/spill measurements and all benefit/noise gates stay unchanged. This reduces diagnostic work; it does not assume the original noisy result becomes a success. Record any follow-up as a separate experiment and retain this result.
+The initial measurement loop repeats the identical internal diagnostic sort ten times alongside ten actual function samples on each side. The follow-up above tested reusing one internal plan per side under the same pinned definition, settings, data guard and input. The ten actual function latency/spill measurements and all benefit/noise gates stay unchanged. This reduces diagnostic work; it does not assume the original noisy result becomes a success. Record any follow-up as a separate experiment and retain this result.
 
 ## Prespecified fixture contract
 

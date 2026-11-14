@@ -50,7 +50,7 @@ The detector, durable queue and continuous consumer run in Railway staging. Queu
 
 The index, statistics refresh, richer statistics and bounded cleanup have passed mixed-traffic qualification on disposable Rookery data. The same harness checks healthy traffic, brief spikes, sustained slowdowns, side effects, monitoring load and cleanup. [First three repairs](mixed-traffic.md) · [Cleanup results](bounded-vacuum.md)
 
-The function-memory tool is implemented and has completed a real hosted Claude/action/verification run. It removed temporary writes, but the latency readings were too variable to pass the noise rule, so it restored the original setting. A measurement-cost follow-up remains open. Cron scheduling is being implemented with delayed verification across actual scheduled runs. [Memory evidence](function-memory.md) · [Scheduling contract](enrolled-cron.md)
+Function memory also passed a separate follow-up after reducing redundant diagnostic work: ongoing query time fell from 214.9 to 148.9 ms and temporary writes fell to zero. The initial noisy trial remains documented; it correctly restored the old setting. Cron scheduling is implemented and undergoing safety fixes before its actual scheduled-run qualification. [Memory evidence](function-memory.md) · [Scheduling contract](enrolled-cron.md)
 
 ## Why we send both pieces of evidence in one Claude call
 
