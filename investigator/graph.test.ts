@@ -169,3 +169,42 @@ test("memory screening requires attributed spill and bounded calls", async () =>
  }
  await assert.rejects(()=>buildGraph(scriptedInvestigator).invoke({evidence:{...input,vacuum:{heap_fetches:1000,scan_rows:1000,conditions_clear:true}}}));
 });
+
+for (const scenario of ["long_reason", "malformed", "identity_schema", "wrong_tool", "missing_tool", "valid_raw_but_null"] as const) {
+  test(`null structured model output rejects ${scenario} with a safe diagnostic`, async () => {
+    const { parseModelProposal } = await import("./model.ts");
+    const { AIMessage } = await import("@langchain/core/messages");
+    const secret = "private-output-must-not-leak";
+    let args: unknown = { outcome: "propose", run_id: "fixture", table_oid: 42, column_number: 2, reason: "Selective scan" };
+    if (scenario === "long_reason") args = { ...args as object, reason: secret.repeat(50) };
+    if (scenario === "malformed") args = secret;
+    if (scenario === "identity_schema") args = { ...args as object, table_oid: secret };
+    const raw = new AIMessage({ content: scenario === "missing_tool" ? secret : [{ type: "tool_use", name: scenario === "wrong_tool" ? secret : "repair_recommendation", id: "tool_fixture", input: args }] });
+    const expected = { long_reason: "reason_limit", malformed: "malformed_arguments", identity_schema: "schema_error", wrong_tool: "unexpected_tool", missing_tool: "missing_tool", valid_raw_but_null: "parse_failure" }[scenario];
+    assert.throws(() => parseModelProposal({ parsed: null, raw }), (error: any) => {
+      assert.equal(error.name, "ModelOutputError");
+      assert.equal(error.message, `Model structured output rejected: ${expected}`);
+      assert(!JSON.stringify({ name: error.name, message: error.message, stack: error.stack }).includes(secret));
+      return true;
+    });
+  });
+}
+
+test("oversized SDK tool output reaches the graph as reason_limit without output disclosure", async (t) => {
+  const previousKey = process.env.ANTHROPIC_API_KEY, previousModel = process.env.POOLTUNE_ANTHROPIC_MODEL;
+  process.env.ANTHROPIC_API_KEY = "fixture-key"; process.env.POOLTUNE_ANTHROPIC_MODEL = "claude-haiku-5-5";
+  t.after(() => {
+    if (previousKey === undefined) delete process.env.ANTHROPIC_API_KEY; else process.env.ANTHROPIC_API_KEY = previousKey;
+    if (previousModel === undefined) delete process.env.POOLTUNE_ANTHROPIC_MODEL; else process.env.POOLTUNE_ANTHROPIC_MODEL = previousModel;
+  });
+  let requests = 0;
+  t.mock.method(globalThis, "fetch", async () => {
+    requests++;
+    return Response.json({ id: "msg_fixture", type: "message", role: "assistant", model: "claude-haiku-5-5",
+      content: [{ type: "tool_use", id: "toolu_fixture", name: "repair_recommendation",
+        input: { outcome: "propose", run_id: "fixture", table_oid: 42, column_number: 2, reason: "s".repeat(1205) } }],
+      stop_reason: "tool_use", stop_sequence: null, usage: { input_tokens: 13045, output_tokens: 600 } });
+  });
+  await assert.rejects(buildGraph(anthropicInvestigator).invoke({ evidence }), { name: "ModelOutputError", message: "Model structured output rejected: reason_limit" });
+  assert.equal(requests, 1);
+});
