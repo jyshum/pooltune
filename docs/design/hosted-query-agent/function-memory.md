@@ -2,6 +2,18 @@
 
 This is repair family five in the accepted plan. The problem is a function whose sort writes temporary files because its memory allowance is too small. The repair changes only that enrolled function's work_mem. It does not change the database default, rewrite customer code, or claim memory is free.
 
+## First hosted observation, November 14
+
+The full live flow ran, but benefit qualification was **inconclusive**. Railway deployment `b4db8387-ce51-49fb-a800-68caf1ef0fae`, Rookery job **89**, used one Claude call (**3.272 seconds**). Go applied 32 MiB and measured temporary writes falling from **14,688,256 bytes per call to zero**. Controlled mean latency fell from **268.210 to 158.488 ms**.
+
+That 109.722 ms gain did not exceed the unchanged noise threshold of **146.336 ms** (three times the larger median absolute deviation). Pooltune therefore restored **4 MiB**. The subsequent ongoing traffic correctly remained slow. This is evidence of a working decision/action/verification/restore path, not a qualified durable performance win. All **1,057 offered requests** completed without errors or missed slots; the brief spike created no job, and fixture cleanup passed. [Full initial evidence](evidence/mixed-traffic/initial-memory-inconclusive.json)
+
+Detection took **9.040 seconds**, and queue-to-saved-outcome took **24.185 seconds**. Inside that outcome time: before measurement **7.541 seconds**, graph including Claude **3.815 seconds**, setting action **1.295 seconds**, and after measurement **5.864 seconds**. Other time includes connection/catalog/state work and restoration. Do not count this failed qualification in a successful-repair speed table.
+
+The five-repair prompt separately declined a healthy function and a four-call request exceeding the 96 MiB allowance in **1.831/1.998 seconds**. The graph screened both without a provider call; these direct synthetic provider controls checked the prompt itself. [Control evidence](evidence/mixed-traffic/memory-live-controls.json)
+
+The initial measurement loop repeats the identical internal diagnostic sort ten times alongside ten actual function samples on each side. A follow-up optimization will test reusing one internal plan per side under the same pinned definition, settings, data guard and input. The ten actual function latency/spill measurements and all benefit/noise gates stay unchanged. This reduces diagnostic work; it does not assume the original noisy result becomes a success. Record any follow-up as a separate experiment and retain this result.
+
 ## Prespecified fixture contract
 
 A local calibration probe used 100,000 rows with lookup=id and 128-byte deterministic padding. The table occupied 17,432,576 bytes, within the existing 24 MiB table bound. A pinned, security-invoker function computes sum(lookup) through a single explicit padding/lookup sort. The result must always be 5000050000. Function-level settings prevent SQL inlining. Measure the exact internal sort under matching settings as well as the actual function call. Check the stored definition, owner, signature and settings before trusting the attribution.

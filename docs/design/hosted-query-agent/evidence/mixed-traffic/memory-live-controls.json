@@ -1,0 +1,109 @@
+{
+  "label": "Local direct live-provider controls with synthetic evidence; no database action",
+  "results": [
+    {
+      "name": "memory-healthy",
+      "evidence": {
+        "observed_at": "2026-11-14T19:03:08.095Z",
+        "decision": "no_change",
+        "table_oid": 42,
+        "column_number": 2,
+        "lookup_column": "lookup",
+        "covering_index": false,
+        "plan": {
+          "node": "Sort",
+          "examined_rows": 100000,
+          "returned_rows": 100000,
+          "shared_blocks": 2200
+        },
+        "run_id": "memory-healthy",
+        "memory": {
+          "function_oid": 45,
+          "temp_bytes": 0,
+          "internal_temp_bytes": 0,
+          "sort_nodes": 1,
+          "max_concurrent_calls": 3,
+          "candidate_bytes": 33554432,
+          "aggregate_bytes": 100663296,
+          "current_work_mem": "32MB",
+          "candidate_work_mem": "32MB",
+          "identity_verified": true
+        }
+      },
+      "screened": {
+        "outcome": "no_change",
+        "run_id": "memory-healthy",
+        "table_oid": 42,
+        "column_number": 2,
+        "reason": "Attributed spill or bounded function-memory evidence is insufficient."
+      },
+      "proposal": {
+        "outcome": "no_change",
+        "run_id": "memory-healthy",
+        "table_oid": 42,
+        "column_number": 2,
+        "reason": "Enrollment shows decision no_change. Memory evidence is healthy: temp_bytes and internal_temp_bytes are 0, so there is no spill to justify raising work_mem. The plan is a Sort returning all 100000 examined rows with no index-only or covering signal, and no index, analyze, or vacuum evidence supports a different repair. Declining to propose any change.",
+        "model_call": {
+          "model": "claude-haiku-5-5",
+          "duration_ms": 1831.402,
+          "requests": 1,
+          "input_tokens": 2107,
+          "output_tokens": 254
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "memory-over-budget",
+      "evidence": {
+        "observed_at": "2026-11-14T19:03:08.095Z",
+        "decision": "investigate",
+        "table_oid": 42,
+        "column_number": 2,
+        "lookup_column": "lookup",
+        "covering_index": false,
+        "plan": {
+          "node": "Sort",
+          "examined_rows": 100000,
+          "returned_rows": 100000,
+          "shared_blocks": 2200
+        },
+        "run_id": "memory-over-budget",
+        "memory": {
+          "function_oid": 45,
+          "temp_bytes": 14688256,
+          "internal_temp_bytes": 14688256,
+          "sort_nodes": 1,
+          "max_concurrent_calls": 4,
+          "candidate_bytes": 33554432,
+          "aggregate_bytes": 100663296,
+          "current_work_mem": "4MB",
+          "candidate_work_mem": "32MB",
+          "identity_verified": true
+        }
+      },
+      "screened": {
+        "outcome": "no_change",
+        "run_id": "memory-over-budget",
+        "table_oid": 42,
+        "column_number": 2,
+        "reason": "Attributed spill or bounded function-memory evidence is insufficient."
+      },
+      "proposal": {
+        "outcome": "no_change",
+        "run_id": "memory-over-budget",
+        "table_oid": 42,
+        "column_number": 2,
+        "reason": "Memory repair declined: the aggregate candidate allowance is 100663296 bytes (96 MiB), but the evidence reports max_concurrent_calls=4 while the admitted limit is at most three calls. The 32MB candidate across four calls exceeds the explicit 96 MiB fixture allowance. Temp writes (14688256 bytes per call, one sort node, internal attribution, identity verified) would otherwise fit the memory pattern, but the budget violation means the change cannot be proposed. No index, analyze, or vacuum evidence is present (no covering-index absence paired with selective scan, no stale-statistics or heap-fetch evidence), so no other operation is supported.",
+        "model_call": {
+          "model": "claude-haiku-5-5",
+          "duration_ms": 1998.1792090000004,
+          "requests": 1,
+          "input_tokens": 2112,
+          "output_tokens": 357
+        }
+      },
+      "passed": true
+    }
+  ]
+}
