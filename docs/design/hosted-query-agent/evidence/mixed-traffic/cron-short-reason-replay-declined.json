@@ -1,0 +1,48 @@
+{
+  "duration_ms": 1862.8653330000002,
+  "parsed_present": true,
+  "stop_reason": "tool_use",
+  "usage": {
+    "input_tokens": 13078,
+    "output_tokens": 250,
+    "total_tokens": 13328,
+    "input_token_details": {
+      "cache_creation": 0,
+      "cache_read": 0
+    }
+  },
+  "tool_calls": [
+    {
+      "name": "repair_recommendation",
+      "args_keys": [
+        "outcome",
+        "run_id",
+        "table_oid",
+        "column_number",
+        "reason"
+      ],
+      "outcome": "no_change",
+      "reason_length": 336,
+      "validation": []
+    }
+  ],
+  "invalid_tool_calls": [],
+  "content_types": [
+    "tool_use"
+  ],
+  "replay_outcome": "no_change",
+  "source_commit": "8e731d6",
+  "classification": "Separate saved-evidence replay after short-explanation prompt; no database action; valid output but incorrect schedule-mismatch rationale",
+  "proposal": {
+    "outcome": "no_change",
+    "run_id": "worker-108-1",
+    "table_oid": 27126,
+    "column_number": 1,
+    "reason": "Cron job 10 shows target-only latency inflation in busy windows versus quiet/control, with pinned blocking, but the proposal cannot be made: the only schedule change the owner allows is 1-59/2, which is not the offered alternate-schedule test requirement. Declining; no indexing, ANALYZE, or vacuum evidence supports a different repair."
+  },
+  "provider_settings": {
+    "max_tokens": 600,
+    "max_retries": 0,
+    "timeout_ms": 8500
+  }
+}

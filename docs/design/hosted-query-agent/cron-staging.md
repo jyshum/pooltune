@@ -34,6 +34,24 @@ The fix must treat the timer as the earliest check, then defer incomplete eviden
 
 Traffic reported zero errors/missed slots, and owned cleanup plus unrelated-job/public-index preservation passed. Total run time was **834.454 seconds**. [Preserved result and recording times](evidence/mixed-traffic/cron-evidence-readiness-failed.json).
 
+## Full evidence reached the investigator; structured output was rejected
+
+Source `4c74d84`, deployment `7be552db-f3f2-4d92-b369-af39ac7e052c`, fixture `01bbe3c5a621ada9ecb0a112`. The brief spike averaged **10.865 ms** and was ignored. Three original scheduled periods and their measurements completed. Busy/control means were **37.129/0.151 ms**, **38.697/0.082 ms**, and **31.884/0.086 ms**, with attributed blocking. The ready-evidence consumer reached the real investigator on thread `worker-108-1`.
+
+The investigator failed before saving a valid recommendation. Three graph checkpoints and its saved error show a Zod schema error: `Invalid input: expected object, received null`. Installed LangChain returns `parsed:null` when structured-output parsing fails; the wrapper then parsed that null and lost the useful cause. No scheduling mutation occurred. The driver's bounded acknowledgement wait correctly expired. Automatic owned cleanup and preservation checks passed; traffic had no errors or missed slots. Total attempt time was **848.236 seconds**. Its 4.530-second result field describes the first awaiting-evidence result, not a repair. [Full failed run](evidence/mixed-traffic/cron-model-output-failed.json).
+
+One separate real Claude replay used the exact saved evidence, prompt, 600-token limit and 8.5-second request timeout, with no database action. It selected `propose` / `cron` in **3.823 seconds**, but its **1,205-character explanation** exceeded the existing **1,000-character schema limit**. Input/output token counts were **13,045/600**. This demonstrates a reproducible response-format defect on actual evidence; the original raw provider response was not retained, so its precise parser failure cannot be reconstructed. [Allowlisted replay metadata](evidence/mixed-traffic/cron-model-output-replay.json).
+
+The correction should request a short explanation and preserve safe schema-error categories. It must not accept invalid output, enlarge the reason limit, alter permissions or increase model/time budgets. A successful replay still does not qualify actual schedule application and three future cycles.
+
+## Short explanation fixed formatting; decision still needs qualification
+
+Commit `8e731d6` asks for a short explanation while retaining the 1,000-character schema limit and the same model/time budgets. It also records safe parser-error categories without accepting invalid raw output. Independent source review passed; 63 TypeScript tests and typecheck passed.
+
+A second separate saved-evidence replay returned valid `no_change` in **1.863 seconds**, using **13,078 input / 250 output tokens**. Its reason incorrectly claimed the owner-approved alternate differed from the offered alternate, although both are `1-59/2 * * * *`. This is a decision failure for the intended positive case, not a successful repair. No database action occurred. [Preserved second replay](evidence/mixed-traffic/cron-short-reason-replay-declined.json).
+
+The next step is to inspect how the existing enrollment permission is represented to the model. Keep refusal for weak or unauthorized evidence and all independent Go checks. Repeated unchanged calls until a proposal appears would not establish reliability. Scheduling remains unqualified.
+
 ## Problems found
 
 A follow-up check also reproduced an activation failure under `TZ=UTC`, matching Railway, while the local default timezone passed. The scheduler-generation comparison used `time.Time` values whose location representation changed after JSON persistence. Commit `7b88d99` compares actual instants while preserving exact process/start identity. UTC regression and race tests passed; final narrow review is recorded in progress. The original driver saved a generic command failure, so its report alone does not identify which activation guard refused first.

@@ -15,6 +15,8 @@ An **index** gives a database a quicker way to find rows. Think of a book index 
 3. **Act.** Go checks the exact target, current conditions, permission and operating limits. It saves its intent, then performs the specific operation. Claude does not send unrestricted SQL to the database.
 4. **Verify and recover.** Go checks the same work afterward and measures protected traffic. A setting change can be restored if the benefit is uncertain. After an interruption, the worker checks what actually happened before deciding what comes next.
 
+Application queries continue using PostgreSQL while the background investigation runs. We measure query response time separately from the time it takes Pooltune to detect and verify a repair. A model request adds to time-to-repair; it is not inserted into each application query. Measurement and repair work still consume database resources, so the tests also check monitoring cost, healthy requests and writes.
+
 The prompt helps interpret evidence. The tools, measurements, saved state and refusal rules turn that interpretation into controlled work. The current fixtures give the investigator evidence for one qualified cause at a time. Letting it investigate competing causes and request additional evidence remains a separate build step.
 
 | Repair family | Problem it addresses | Main trade-off |
@@ -25,6 +27,12 @@ The prompt helps interpret evidence. The tools, measurements, saved state and re
 | Bounded cleanup | Old row versions or visibility checks create avoidable work. | Cleanup consumes resources and cannot be undone. |
 | Function memory | A particular function's sort writes temporary files. | More room per call multiplies across concurrent calls. |
 | Job scheduling | Background work repeatedly competes with important queries. | Moving work must preserve required executions and deadlines. |
+
+## Why the worker remembers unfinished work
+
+A queue is a to-do list saved in a database. Restarting the worker does not erase that list. Pooltune records which investigation owns a change, what it intended to do, and what result it actually observed. After an interruption, it checks the database before repeating an operation.
+
+Some answers arrive later. After moving a scheduled job, Pooltune must watch future executions before calling the repair successful. It saves a follow-up task and releases the current work slot while waiting. The scheduled wake-up time means “check now,” not “the evidence must already be ready.” The worker checks the saved evidence and stays within a deadline. This connects the queue, restart recovery and measured verification into one workflow.
 
 ## Why these pieces fit
 
