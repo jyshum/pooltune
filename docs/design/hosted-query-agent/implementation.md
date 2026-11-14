@@ -277,6 +277,7 @@ Depends on Task 24's shared graph/driver extension. Build an explicitly enrolled
 - [ ] Implement action, measured verification and conditional restoration/reconciliation. Do not claim production headroom from a fixture allowance. Keep independent newer settings untouched.
 - [ ] Extend the same graph/Claude prompt and traffic harness with the prescribed one-call-per-second target rate, unchanged healthy traffic, frozen healthy-based objective, short and sustained faults, real model call and before/after temporary-write evidence.
 - [ ] Run local race/integration/graph tests, fresh review, hosted traffic qualification and documented results. Commit verified local work on revamp. A failed benefit or missing resource observation stays visible.
+- [ ] Follow up the first inconclusive hosted result by reusing one exact internal diagnostic plan per side under the same pinned data/definition/settings/input guards. Retain ten actual function samples, all latency/spill/protection/noise gates and the same workload/budget. Test actual diagnostic execution count (one per sample phase instead of ten), retain attribution and recovery coverage, obtain narrow review, then run one separately documented hosted follow-up. Do not rerun unchanged trials until one happens to pass.
 
 ### Task 26: Enrolled Cron schedule with deadline-preserving traffic verification
 

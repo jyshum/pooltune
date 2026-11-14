@@ -10,35 +10,47 @@ An **index** gives a database a quicker way to find rows. Think of a book index 
 
 ## How a repair works
 
-1. **Measure.** Go collects evidence from PostgreSQL and looks for repeated slowdowns or unusually expensive work. It can compare a query against its own history or a target set for that query.
-2. **Investigate.** A workflow in LangGraph gives Claude the chance to inspect a measured query plan, which shows how PostgreSQL ran the query, and check what indexes already exist. The investigator can propose a specific index or close the case. A good investigation connects the proposal to a cause, such as reading thousands of rows to find one match.
-3. **Decide and act.** Go checks whether the proposal matches the evidence, whether the owner has granted permission, and whether there is room to run it. If the checks pass, Go asks PostgreSQL to create the index and records what it intended to do.
-4. **Verify.** Go compares the same work before and after. It checks that PostgreSQL used the new index, useful reads got faster, and protected operations stayed within limits. If a connection drops mid-build, Go checks what PostgreSQL actually did before trying anything else.
+1. **Measure.** Go collects evidence for enrolled queries and looks for repeated problems. A short spike should not automatically cause a repair.
+2. **Investigate.** One TypeScript/LangGraph workflow gives Claude the measured plan, existing-index information and evidence for the repair being considered. Claude can recommend a supported operation or leave things alone.
+3. **Act.** Go checks the exact target, current conditions, permission and operating limits. It saves its intent, then performs the specific operation. Claude does not send unrestricted SQL to the database.
+4. **Verify and recover.** Go checks the same work afterward and measures protected traffic. A setting change can be restored if the benefit is uncertain. After an interruption, the worker checks what actually happened before deciding what comes next.
 
-The first repair is an index. The same process will support five other repairs, including refreshing the planner's statistics, helping it estimate rows more accurately, cleaning up old row versions, adjusting memory for a specific function, and moving an approved scheduled job.
+The prompt helps interpret evidence. The tools, measurements, saved state and refusal rules turn that interpretation into controlled work. The current fixtures give the investigator evidence for one qualified cause at a time. Letting it investigate competing causes and request additional evidence remains a separate build step.
+
+| Repair family | Problem it addresses | Main trade-off |
+| --- | --- | --- |
+| Add an index | Finding a few matching rows takes too much scanning. | Faster reads cost storage and extra write work. |
+| Refresh statistics | PostgreSQL's description of the data has become stale. | Refreshing helps only if stale information is the cause. |
+| Improve statistics detail | Ordinary summaries miss skew or relationships between columns. | Better summaries take extra analysis work and storage. |
+| Bounded cleanup | Old row versions or visibility checks create avoidable work. | Cleanup consumes resources and cannot be undone. |
+| Function memory | A particular function's sort writes temporary files. | More room per call multiplies across concurrent calls. |
+| Job scheduling | Background work repeatedly competes with important queries. | Moving work must preserve required executions and deadlines. |
 
 ## Why these pieces fit
 
 | Piece | Job | Tradeoff |
 | --- | --- | --- |
 | **Go** | Runs background work and controls what can change. We can test the rules by giving them the same input and checking the outcome. | Rules are predictable and cheap to run. Working out all the possible causes of a slow query this way takes lots of cases. |
-| **TypeScript and LangGraph** | TypeScript gives the tools and recommendations a defined shape. LangGraph organizes the investigation into steps, such as screening evidence, investigating, and closing the case. | The workflow is easier to inspect and can use Claude where evidence needs interpretation. A second runtime adds another service to operate, and model calls add time and variability. |
+| **TypeScript and LangGraph** | TypeScript gives the tools and recommendations a defined shape. LangGraph organizes the investigation into steps, such as screening evidence, investigating, and closing the case. | The workflow is easier to inspect and can use Claude where evidence needs interpretation. Two runtimes add deployment and debugging work; model calls add time and variability. |
 | **PostgreSQL** | The customer's database does the actual work. Pooltune uses a separate database to remember measurements, jobs, and actions. | Recording intent takes extra writes. It gives the worker a way to check for changes that completed just before a crash. |
 | **Studio and the dashboard** | Studio lets developers watch the investigator's steps. The customer dashboard will show connected projects, measured outcomes, and a pause control. | Studio helps build and debug. The dashboard needs its own simpler presentation and account permissions. |
 
 ## The main tests
 
-- **A healthy lookup.** Pooltune should leave an already fast query alone.
-- **A missing index.** A slow, selective lookup should prompt an investigation. Once Go approves the repair, the new index should handle the lookup and reduce the work PostgreSQL does.
-- **A misleading signal.** A query that needs many rows, a stale observation, or a suggestion aimed at the wrong table should lead to no change.
-- **The side effects.** Measure writes and a healthy query alongside the repaired query. A win on one query can carry a cost elsewhere.
-- **An interrupted build.** Start recovery with a fresh connection. Check for an absent, incomplete, or finished index and preserve anything Pooltune cannot identify as its own.
+- **Healthy traffic and brief spikes.** Leave healthy work alone and avoid reacting to a short fluctuation.
+- **A sustained, diagnosed problem.** Real evidence reaches Claude; Go applies only the matching permitted operation and measures the result.
+- **Misleading or incomplete evidence.** Wrong targets, missing authority, changed objects or unknown limits must not become a repair.
+- **Side effects.** Measure healthy reads, writes, errors and missed requests alongside the target. A benefit on one query can carry a cost elsewhere.
+- **Interrupted work.** Recover from saved intent without repeating an uncertain action or overwriting a newer setting.
+- **Required scheduled work.** A moved job must actually finish its future runs by their deadlines before the repair is called successful.
 
 ## Where we are
 
-The first automatic index repair ran on disposable test data in Rookery, a real Supabase project. In the live test, Claude inspected the database evidence and recommended the index. Go approved and applied the repair. The mean lookup time went from about **16 ms to 0.026 ms**, and PostgreSQL went from examining **100,000 rows to one** per lookup. The test fixture was removed afterward. This is evidence that the repair works for those test inputs. The deployed service, dashboard, production permissions, and the other repairs are still ahead.
+The detector, durable queue and continuous consumer run in Railway staging. Queued work has survived a hosted restart. The shared investigator uses real Claude, and Go performs the permitted repair and verifies the outcome. These are implemented components, with controlled staging coverage rather than customer rollout approval.
 
-The background worker now observes synthetic application-like reads from a separate connection. It keeps healthy queries quiet and saves an investigation for sustained breaches. The traffic lab now delivers the investigation to LangGraph and saves its recommendation. The consumer also runs continuously against a journaled synthetic fixture and can recover an unfinished job after a restart. [Worker traffic test](worker-traffic.md) · [Investigation handoff](worker-investigation.md) · [Always-on consumer](always-on-consumer.md)
+The index, statistics refresh, richer statistics and bounded cleanup have passed mixed-traffic qualification on disposable Rookery data. The same harness checks healthy traffic, brief spikes, sustained slowdowns, side effects, monitoring load and cleanup. [First three repairs](mixed-traffic.md) · [Cleanup results](bounded-vacuum.md)
+
+The function-memory tool is implemented and has completed a real hosted Claude/action/verification run. It removed temporary writes, but the latency readings were too variable to pass the noise rule, so it restored the original setting. A measurement-cost follow-up remains open. Cron scheduling is being implemented with delayed verification across actual scheduled runs. [Memory evidence](function-memory.md) · [Scheduling contract](enrolled-cron.md)
 
 ## Why we send both pieces of evidence in one Claude call
 
@@ -48,10 +60,8 @@ On saved Rookery evidence, the median investigation fell from **2.56 s to 1.61 s
 
 ## What to build next
 
-The lab timings are sufficient to continue building. The consumer adds one measured scan per active investigation and checks only Pooltune's queue when idle. A larger traffic test is still needed to measure slow-tail impact reliably. [Consumer overhead results](always-on-consumer.md#what-rookery-measured)
+Finish the remaining repair qualifications, then broaden diagnosis and workload coverage. One passing synthetic case does not cover every index, function, input or maintenance pattern. Compound indexes, column statistics targets, recurring cleanup settings and writes to repaired tables still need their own qualification.
 
-1. **Done.** The private staging deployment recovered the same investigation after a hosted consumer restart. [Hosted restart result](hosted-staging.md#restart-exercise)
-2. Qualify evidence access for real enrolled Supabase queries. Start with observation and saved recommendations, then check that fresh plans and the existing-index check remain accurate under representative traffic.
-3. Measure query latency and database load during spikes, then qualify automatic index changes and recovery under the customer's configured grants.
+The product also needs customer connection and grants, account sign-in, a dashboard, account isolation, operating budgets and rollout checks. The existing staged worker and tools are the foundation for those pieces; they are not the finished hosted service.
 
-[Full V1 roadmap](roadmap.md) · [Implementation plan](implementation.md)
+[Full V1 roadmap](roadmap.md) · [Implementation plan](implementation.md) · [Current progress](progress.md)
