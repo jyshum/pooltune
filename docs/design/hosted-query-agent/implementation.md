@@ -19,12 +19,12 @@
 - Design conflict mode **ask**. Jared selected “Ask me first” in the November 13 interactive reply.
 - Human review mode **milestones**. Jared selected “Pause at agreed milestones” in the same reply. [Handoff](HANDOFF.md).
 - Authorized scope includes the automatic index slice after the accepted Rookery milestone, on a local branch, with isolated synthetic work in authorized Rookery. Routine internal interfaces and lab parameters are delegated. Approved architecture and customer-facing boundaries require a ruling if they conflict with evidence.
-- M1 acceptance is recorded in progress.md. The canceled worktree request stays canceled. No push, merge, publication or customer deployment.
+- [Progress](progress.md) records acceptance of M1 and the index milestone. Jared authorized integrating the index work locally into `feat/pooltune-revamp` and starting the background worker on a separate branch. The canceled worktree request stays canceled. Remote publishing and customer deployment are outside this scope.
 
 ## Human milestones
 
 - [x] **M1 acceptance.** Review Tasks 1–3, including the isolated local and Rookery setup, healthy/no-change and investigate decisions, actual measurements, state readback, cleanup, source and limitations. Obtain explicit acceptance before enabling agent-driven index changes.
-- [ ] **Index slice review.** After M1, demonstrate investigation through verified outcome and recovery, including refusal of unsupported actions. Record actual live model evidence and explicit review before any later integration decision.
+- [x] **Index slice review.** After M1, demonstrate investigation through verified outcome and recovery, including refusal of unsupported actions. Record actual live model evidence and explicit review before any later integration decision.
 
 ## Global constraints
 
@@ -100,7 +100,7 @@ Files: `internal/hostedquery/index_trial.go`, `index_journal.go`, `index_trial_i
 - [x] Reuse the M1 data pattern and objective. Measure real healthy/candidate plans, a paired write guard, and exact row results using 10 sequential iterations on preselected inputs before and after. Batch round trips; report database and wall timings separately. Require controlled v0 latency route (20% and 5 ms plus noise check), 30% less target shared-block work, improved plan, and measured healthy/read and write/error coverage. Distinguish tested-input improvement from production qualification.
 - [x] Journal the authorized target and intended name before issuing one `CREATE INDEX CONCURRENTLY`. Check validity, definition and size afterward. On cancellation or lost acknowledgement, use the durable record and exact ownership marker to inspect target state before cleanup. Restart reconciles unfinished fixture runs with the same supplied target identity. Leave ambiguous/unowned objects intact. Cleanup removes the exact owned fixture objects only. Concurrent duplicate invocation defers under the session lock.
 - [x] Test the normal path, healthy no-change, misleading/duplicate proposal, missing verification, interruption after the build, restart reconciliation, refusal of unowned objects, and fixture cleanup. Run `go test -count=1 ./...`, focused PostgreSQL integration, investigator tests, and one bounded Rookery trial. Check the public catalog fingerprint before/after. Document measured timings and distinguish deterministic evaluation from live Anthropic evidence.
-- [x] Record the technical choices, strongest alternatives and results. Publish a source-grounded learning view for the slice, review and present the index milestone. Any broader enablement requires a new qualification. Live model evidence is recorded. Human index-milestone acceptance remains open. See [measured results and decisions](index-slice.md).
+- [x] Record the technical choices, strongest alternatives and results. Publish a source-grounded learning view for the slice, review and present the index milestone. Any broader enablement requires a new qualification. Live model evidence is recorded. [Jared accepted the index milestone](progress.md#index-milestone-accepted-november-13-2026). See [measured results and decisions](index-slice.md).
 
 ## Candidate test application inspection (historical)
 
