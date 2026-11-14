@@ -64,16 +64,23 @@ func TestEnrolledDispatchReusesDetectorMeasurements(t *testing.T) {
 	now := time.Now().UTC().Truncate(time.Microsecond)
 	policy := SamplingPolicy{Interval: time.Second, Window: 2 * time.Second}
 	for _, tc := range []struct {
-		name        string
-		age         time.Duration
-		existing    bool
-		legacy      bool
-		missingMean bool
-		blocksIssue string
-		planNode    string
-		wantReason  string
+		name         string
+		age          time.Duration
+		existing     bool
+		legacy       bool
+		missingMean  bool
+		blocksIssue  string
+		stageMeasure bool
+		retry        bool
+		wantMeasure  bool
+		planNode     string
+		wantReason   string
 	}{
 		{name: "fresh", wantReason: "missing_measured_plan"},
+		{name: "staging proposal", stageMeasure: true, wantMeasure: true, wantReason: ""},
+		{name: "staging indexed", stageMeasure: true, existing: true, wantReason: "matching_index_exists"},
+		{name: "staging stale", stageMeasure: true, age: 11 * time.Minute, wantReason: "missing_fresh_latency"},
+		{name: "staging retry", stageMeasure: true, retry: true, wantReason: "measurement_already_attempted"},
 		{name: "existing index", existing: true, wantReason: "matching_index_exists"},
 		{name: "stale", age: 11 * time.Minute, wantReason: "missing_fresh_latency"},
 		{name: "legacy", legacy: true, wantReason: "missing_fresh_latency"},
@@ -138,17 +145,50 @@ func TestEnrolledDispatchReusesDetectorMeasurements(t *testing.T) {
 			if node == "" {
 				node = "Seq Scan"
 			}
-			result, err := DispatchEstimatedInvestigation(ctx, state, tc.name, func(_ context.Context, job InvestigationJob) (*EstimatedLookupEvidence, error) {
+			if tc.retry {
+				if _, err := state.Exec(ctx, "UPDATE pooltune_worker.investigations SET attempts=1, lease_until=now()-interval '1 second' WHERE project_id=$1", tc.name); err != nil {
+					t.Fatal(err)
+				}
+			}
+			estimate := &EstimatedLookupEvidence{
+				ObservedAt: now, TableOID: 12, ColumnNumber: 1, CoveringIndex: tc.existing,
+				Estimated: EstimatedPlan{Node: node, OutputRows: 1},
+			}
+			check := func(job InvestigationJob) {
 				if job.Query != 3 || len(job.Generation) != 3 {
 					t.Fatalf("wrong job: %+v", job)
 				}
-				return &EstimatedLookupEvidence{
-					ObservedAt: now, TableOID: 12, ColumnNumber: 1, CoveringIndex: tc.existing,
-					Estimated: EstimatedPlan{Node: node, OutputRows: 1},
-				}, nil
-			})
-			if err != nil || result == nil || result.Outcome != "needs_measured_evidence" || result.Estimate == nil || result.Proposal != nil || result.Evidence != nil {
+			}
+			var result *DispatchResult
+			var err error
+			if tc.stageMeasure {
+				result, err = dispatchEnrolledInvestigation(ctx, state, tc.name,
+					func(_ context.Context, job InvestigationJob, admit func(*EstimatedLookupEvidence) bool) (*EstimatedLookupEvidence, *IndexEvidence, error) {
+						check(job)
+						if !admit(estimate) {
+							return estimate, nil, nil
+						}
+						return estimate, &IndexEvidence{At: now, Decision: Investigate, TableOID: 12, Column: 1, Label: "lookup",
+							Plan: PlanEvidence{Node: "Seq Scan", ExaminedRows: 30000, ReturnedRows: 1, SharedBlocks: 200}, ExecutionMS: 8}, nil
+					},
+					func(_ context.Context, evidence IndexEvidence) (IndexProposal, error) {
+						return IndexProposal{Outcome: "propose", RunID: evidence.RunID, TableOID: evidence.TableOID, Column: evidence.Column, Reason: "selective scan"}, nil
+					})
+			} else {
+				result, err = DispatchEstimatedInvestigation(ctx, state, tc.name, func(_ context.Context, job InvestigationJob) (*EstimatedLookupEvidence, error) {
+					check(job)
+					return estimate, nil
+				})
+			}
+			if err != nil || result == nil || result.Estimate == nil {
 				t.Fatalf("result: %+v, %v", result, err)
+			}
+			if tc.wantMeasure {
+				if result.Outcome != "propose" || result.ThreadID == "" || result.Proposal == nil || result.Evidence == nil || result.TargetPlanMS != 8 {
+					t.Fatalf("measured result: %+v", result)
+				}
+			} else if result.Outcome != "needs_measured_evidence" || result.Proposal != nil || result.Evidence != nil {
+				t.Fatalf("unmeasured result: %+v", result)
 			}
 			var diagnosis string
 			var observed []byte

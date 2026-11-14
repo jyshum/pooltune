@@ -210,6 +210,69 @@ func testDedicatedEvidenceLogin(t *testing.T, config *pgx.ConnConfig, rookery bo
 	}
 	t.Logf("dedicated login collected estimate and index check in %.3f ms", elapsedMS(start))
 	readCalls()
+	if !rookery {
+		value := int32(19)
+		enrollment := LookupEnrollment{Project: "staging/rookery/" + id, Lookup: binding, Input: &value}
+		job := InvestigationJob{queryKey: queryKey{Database: binding.Database, Role: binding.Role, Query: binding.Query}, Generation: generation[:]}
+		only := strings.Replace(statement, "FROM ", "FROM ONLY ", 1)
+		if err := client.QueryRow(ctx, only, value).Scan(&row); err != nil || row != value {
+			t.Fatalf("enrolled measured lookup: %d, %v", row, err)
+		}
+		var measuredQuery int64
+		err = client.QueryRow(ctx, fmt.Sprintf(`
+			SELECT queryid,pg_postmaster_start_time(),stats_reset,stats_since FROM %s CROSS JOIN %s
+			WHERE userid=$1 AND toplevel AND query=$2
+		`, qualified(statsSchema, "pg_stat_statements"), qualified(statsSchema, "pg_stat_statements_info")),
+			binding.Role, only).Scan(&measuredQuery, &generation[0], &generation[1], &generation[2])
+		if err != nil || measuredQuery == binding.Query {
+			t.Fatalf("expected distinct ONLY query identity, got %d: %v", measuredQuery, err)
+		}
+		enrollment.Lookup.Query, job.Query = measuredQuery, measuredQuery
+		measure := func() (*EstimatedLookupEvidence, *IndexEvidence, error) {
+			return enrolledLookupEvidence(ctx, dedicated, enrollment, job, func(*EstimatedLookupEvidence) bool { return true })
+		}
+		_, measured, err := measure()
+		if err != nil || measured != nil {
+			t.Fatalf("unmarked table should not be measured: %+v, %v", measured, err)
+		}
+		if _, err := admin.Exec(ctx, "COMMENT ON TABLE "+table+" IS 'pooltune measured staging fixture "+enrollment.Project+"'"); err != nil {
+			t.Fatal(err)
+		}
+		_, measured, err = measure()
+		if err != nil || measured == nil || measured.Plan.Node != "Seq Scan" ||
+			measured.Plan.ExaminedRows != 30000 || measured.Plan.ReturnedRows != 1 || measured.Plan.SharedBlocks <= 0 {
+			t.Fatalf("measured evidence: %+v, %v", measured, err)
+		}
+		t.Logf("measured lookup: %d rows examined, %d page accesses, %.3f ms server execution", measured.Plan.ExaminedRows, measured.Plan.SharedBlocks, measured.ExecutionMS)
+		if _, err := admin.Exec(ctx, "CREATE INDEX ON "+table+" (lookup)"); err != nil {
+			t.Fatal(err)
+		}
+		estimate, measured, err := measure()
+		if err != nil || estimate == nil || !estimate.CoveringIndex || measured != nil {
+			t.Fatalf("indexed lookup must skip measured execution: estimate=%+v measured=%+v err=%v", estimate, measured, err)
+		}
+		if _, err := admin.Exec(ctx, "DROP INDEX "+qualified(id, "lookup_test_lookup_idx")); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := admin.Exec(ctx, "INSERT INTO "+unrelated+" VALUES (19)"); err != nil {
+			t.Fatal(err)
+		}
+		_, measured, err = enrolledLookupEvidence(ctx, dedicated, enrollment, job, func(*EstimatedLookupEvidence) bool {
+			// Another session can attach a child while the consumer holds ACCESS SHARE.
+			if _, err := admin.Exec(ctx, "ALTER TABLE "+unrelated+" INHERIT "+table); err != nil {
+				t.Fatal(err)
+			}
+			return true
+		})
+		if err != nil || measured == nil || measured.Plan.ExaminedRows != 30000 || measured.Plan.ReturnedRows != 1 {
+			t.Fatalf("concurrent child attachment changed the measured lookup: %+v, %v", measured, err)
+		}
+		if _, err := admin.Exec(ctx, "ALTER TABLE "+unrelated+" NO INHERIT "+table); err != nil {
+			t.Fatal(err)
+		}
+
+	}
+
 	for _, sql := range []string{"SELECT * FROM " + unrelated, "INSERT INTO " + table + " VALUES (0)"} {
 		if _, err := client.Exec(ctx, sql); !isSQLState(err, "42501") {
 			t.Fatalf("expected permission denial, got %v", err)

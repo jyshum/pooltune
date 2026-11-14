@@ -115,56 +115,91 @@ func DispatchInvestigation(ctx context.Context, state *pgx.Conn, project string,
 		if err != nil {
 			return fmt.Errorf("collect investigation evidence: %w", err)
 		}
-		now := time.Now()
-		if evidence.Decision != Investigate || evidence.At.IsZero() || evidence.At.After(now) ||
-			now.Sub(evidence.At) > 30*time.Second || evidence.TableOID == 0 || evidence.Column <= 0 ||
-			evidence.Label != "lookup" || evidence.Plan.Node == "" {
-			result.Outcome = "insufficient_evidence"
-		} else {
-			evidence.RunID = fmt.Sprintf("worker-%d-%d", claim.ID, claim.Attempt)
-			beforeGraph := time.Now()
-			proposal, err := investigate(ctx, evidence)
-			result.GraphMS = elapsedMS(beforeGraph)
-			if err != nil {
-				return fmt.Errorf("invoke investigator: %w", err)
-			}
-			if (proposal.Outcome != "propose" && proposal.Outcome != "no_change") ||
-				proposal.RunID != evidence.RunID || proposal.TableOID != evidence.TableOID ||
-				proposal.Column != evidence.Column || len(proposal.Reason) == 0 || len(proposal.Reason) > 1000 {
-				return errors.New("graph response does not match the claimed investigation")
-			}
-			result.TargetPlanMS = evidence.ExecutionMS
-			result.Outcome, result.ThreadID, result.Evidence, result.Proposal = proposal.Outcome, evidence.RunID, &evidence, &proposal
-		}
-		return nil
+		return runIndexInvestigator(ctx, claim, result, evidence, investigate)
 	})
+}
+
+func runIndexInvestigator(ctx context.Context, claim investigationClaim, result *DispatchResult, evidence IndexEvidence, investigate IndexInvestigator) error {
+	now := time.Now()
+	if evidence.Decision != Investigate || evidence.At.IsZero() || evidence.At.After(now) ||
+		now.Sub(evidence.At) > 30*time.Second || evidence.TableOID == 0 || evidence.Column <= 0 ||
+		evidence.Label != "lookup" || evidence.Plan.Node == "" {
+		result.Outcome = "insufficient_evidence"
+		return nil
+	}
+	evidence.RunID = fmt.Sprintf("worker-%d-%d", claim.ID, claim.Attempt)
+	beforeGraph := time.Now()
+	proposal, err := investigate(ctx, evidence)
+	result.GraphMS = elapsedMS(beforeGraph)
+	if err != nil {
+		return fmt.Errorf("invoke investigator: %w", err)
+	}
+	if (proposal.Outcome != "propose" && proposal.Outcome != "no_change") ||
+		proposal.RunID != evidence.RunID || proposal.TableOID != evidence.TableOID ||
+		proposal.Column != evidence.Column || len(proposal.Reason) == 0 || len(proposal.Reason) > 1000 {
+		return errors.New("graph response does not match the claimed investigation")
+	}
+	result.TargetPlanMS = evidence.ExecutionMS
+	result.Outcome, result.ThreadID, result.Evidence, result.Proposal = proposal.Outcome, evidence.RunID, &evidence, &proposal
+	return nil
 }
 
 // DispatchEstimatedInvestigation stores advisory evidence and cannot invoke the repair graph.
 func DispatchEstimatedInvestigation(ctx context.Context, state *pgx.Conn, project string, collect func(context.Context, InvestigationJob) (*EstimatedLookupEvidence, error)) (*DispatchResult, error) {
-	if project == "" || collect == nil {
-		return nil, errors.New("estimate needs an enrolled project and evidence reader")
+	if collect == nil {
+		return nil, errors.New("estimate needs an evidence reader")
+	}
+	return dispatchEnrolledInvestigation(ctx, state, project,
+		func(ctx context.Context, job InvestigationJob, _ func(*EstimatedLookupEvidence) bool) (*EstimatedLookupEvidence, *IndexEvidence, error) {
+			estimate, err := collect(ctx, job)
+			return estimate, nil, err
+		}, nil)
+}
+
+// DispatchMeasuredStagingLookup can recommend an index for one marked staging fixture.
+func DispatchMeasuredStagingLookup(ctx context.Context, state *pgx.Conn, config *pgx.ConnConfig, enrollment LookupEnrollment, investigate IndexInvestigator) (*DispatchResult, error) {
+	if investigate == nil || !stagingLookup(enrollment) || enrollment.Validate() != nil {
+		return nil, errors.New("measurement needs an enrolled staging fixture and investigator")
+	}
+	return dispatchEnrolledInvestigation(ctx, state, enrollment.Project,
+		func(ctx context.Context, job InvestigationJob, admit func(*EstimatedLookupEvidence) bool) (*EstimatedLookupEvidence, *IndexEvidence, error) {
+			return enrolledLookupEvidence(ctx, config, enrollment, job, admit)
+		}, investigate)
+}
+
+type enrolledEvidenceReader func(context.Context, InvestigationJob, func(*EstimatedLookupEvidence) bool) (*EstimatedLookupEvidence, *IndexEvidence, error)
+
+func dispatchEnrolledInvestigation(ctx context.Context, state *pgx.Conn, project string, collect enrolledEvidenceReader, investigate IndexInvestigator) (*DispatchResult, error) {
+	if project == "" {
+		return nil, errors.New("enrolled investigation needs a project")
 	}
 	return dispatchInvestigation(ctx, state, project, func(ctx context.Context, claim investigationClaim, result *DispatchResult) error {
-		estimate, err := collect(ctx, claim.InvestigationJob)
+		estimate, measured, err := collect(ctx, claim.InvestigationJob, func(estimate *EstimatedLookupEvidence) bool {
+			return investigate != nil && claim.Attempt == 1 && !estimate.CoveringIndex && estimate.Estimated.Node == "Seq Scan" && observedLookupLatency(claim.queueEvidence, estimate.ObservedAt) != nil
+		})
 		if err != nil {
 			return err
 		}
 		result.Outcome = "insufficient_evidence"
-		if estimate != nil {
-			result.Estimate = estimate
-			result.Outcome = "needs_measured_evidence"
-			result.ObservedLatency = observedLookupLatency(claim.queueEvidence, estimate.ObservedAt)
-			switch {
-			case estimate.CoveringIndex:
-				result.DiagnosticReason = "matching_index_exists"
-			case result.ObservedLatency == nil:
-				result.DiagnosticReason = "missing_fresh_latency"
-			case estimate.Estimated.Node != "Seq Scan":
-				result.DiagnosticReason = "no_estimated_sequential_scan"
-			default:
-				result.DiagnosticReason = "missing_measured_plan"
-			}
+		if estimate == nil {
+			return nil
+		}
+		result.Estimate = estimate
+		result.Outcome = "needs_measured_evidence"
+		result.ObservedLatency = observedLookupLatency(claim.queueEvidence, estimate.ObservedAt)
+		switch {
+		case estimate.CoveringIndex:
+			result.DiagnosticReason = "matching_index_exists"
+		case result.ObservedLatency == nil:
+			result.DiagnosticReason = "missing_fresh_latency"
+		case estimate.Estimated.Node != "Seq Scan":
+			result.DiagnosticReason = "no_estimated_sequential_scan"
+		case investigate != nil && claim.Attempt > 1:
+			result.DiagnosticReason = "measurement_already_attempted"
+		case measured == nil:
+			result.DiagnosticReason = "missing_measured_plan"
+		default:
+			return runIndexInvestigator(ctx, claim, result, *measured, investigate)
 		}
 		return nil
 	})

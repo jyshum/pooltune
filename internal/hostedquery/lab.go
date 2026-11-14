@@ -262,6 +262,8 @@ type explain struct {
 
 type explainNode struct {
 	Type     string `json:"Node Type"`
+	Schema   string `json:"Schema"`
+	Relation string `json:"Relation Name"`
 	Rows     int64  `json:"Actual Rows"`
 	Loops    int64  `json:"Actual Loops"`
 	Filtered int64  `json:"Rows Removed by Filter"`
@@ -302,8 +304,12 @@ func integralPlanCount(value json.Number) (int64, error) {
 }
 
 func readPlan(ctx context.Context, tx pgx.Tx, sql string) (explain, error) {
+	return readLookupPlan(ctx, tx, sql, inputIDs[0])
+}
+
+func readLookupPlan(ctx context.Context, tx pgx.Tx, sql string, input int32) (explain, error) {
 	var raw []byte
-	if err := tx.QueryRow(ctx, sql, inputIDs[0]).Scan(&raw); err != nil {
+	if err := tx.QueryRow(ctx, sql, input).Scan(&raw); err != nil {
 		return explain{}, err
 	}
 	var plans []explain

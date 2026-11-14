@@ -2,7 +2,7 @@
 set -eu
 
 case "${POOLTUNE_STAGING_ROLE:?set POOLTUNE_STAGING_ROLE}" in
-    enrolled-detector|enrolled-consumer)
+    enrolled-detector|enrolled-consumer|measured-enrolled-consumer)
         if [ -n "${POOLTUNE_STAGING_ROOKERY_CA:-}" ]; then
             POOLTUNE_LAB_ROOKERY_CA_FILE=$(mktemp)
             printf '%s\n' "$POOLTUNE_STAGING_ROOKERY_CA" > "$POOLTUNE_LAB_ROOKERY_CA_FILE"
@@ -22,11 +22,16 @@ case "${POOLTUNE_STAGING_ROLE:?set POOLTUNE_STAGING_ROLE}" in
         exec pooltune-worker -target "$target" -enrollment "$enrollment" \
             -interval "${POOLTUNE_STAGING_INTERVAL:-1m}" -window "${POOLTUNE_STAGING_WINDOW:-5m}"
         ;;
-    enrolled-consumer)
+    enrolled-consumer|measured-enrolled-consumer)
         enrollment=$(mktemp)
         printf '%s\n' "${POOLTUNE_STAGING_LOOKUP:?set POOLTUNE_STAGING_LOOKUP}" > "$enrollment"
+        if [ "$POOLTUNE_STAGING_ROLE" = measured-enrolled-consumer ]; then
+            set -- -measure-staging-lookup
+        else
+            set --
+        fi
         exec pooltune-consumer -target rookery-enrolled -project "${POOLTUNE_STAGING_PROJECT:?set POOLTUNE_STAGING_PROJECT}" \
-            -enrolled-lookup "$enrollment"
+            -enrolled-lookup "$enrollment" "$@"
         ;;
     consumer)
         exec pooltune-consumer -target staging -project "${POOLTUNE_STAGING_PROJECT:?set POOLTUNE_STAGING_PROJECT}" \

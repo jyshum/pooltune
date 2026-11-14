@@ -1,5 +1,9 @@
 # Design progress
 
+## Measured lookup through the hosted investigator, November 14, 2026
+
+Task 17 took enrolled Rookery traffic through a one-read measured plan into the scripted LangGraph index investigator. Job 18 scanned 100,000 rows to return one and saved a recommendation and four checkpoints. Queue to saved recommendation was 3.829 seconds. The healthy lookup opened no job. The [staging record](measured-lookup-staging.md) covers the one-read limit, the review fix that pins execution to one table, and the remaining work to qualify hosted repair.
+
 ## Measured page accesses in hosted staging, November 14, 2026
 
 Task 16 reused page accesses from the detector’s existing counter reads. A 1 ms test saw brief target breaches in both lookups. A rerun at a 3 ms fixture objective opened only job 15 and preserved 443 shared-page accesses per slow call across its five decision windows. The indexed control used 3 per call. The consumer saved the result in 2.914 seconds with no extra lookup execution. The [staging record](observed-page-access.md) includes both runs, the evidence limit, and the next production qualification step.

@@ -191,6 +191,13 @@ Depends on Task 15 and follows d-workflow r1 and d-reuse r1.
 - [x] Keep shared-page access counts from the same five measured windows. Reuse the detector's existing counter reads. Preserve legacy timings when page data is unavailable or malformed.
 - [x] Verify the normal-traffic counts can distinguish the staging fixtures without another query execution. Keep whole-query counters separate from measured plan work and record the remaining gap for the index recommendation in [Observed page accesses](observed-page-access.md).
 
+### Task 17: Qualify one measured lookup and the index investigator in staging
+
+Depends on Task 16 and follows d-workflow r1, d-reuse r1, and the isolated qualification scope of Tasks 4–5.
+
+- [x] Keep the existing estimate-only mode available. Add an explicit staging mode for at most one bounded measured read per job, using the exact authorized synthetic lookup, only when fresh traffic, the current plan estimate and the index check support it. An interrupted attempt must not replay the measurement on retry.
+- [x] Pass the measured plan and index check to the existing LangGraph investigator. Save the recommendation and timings without applying an index. Verify healthy, stale, already-indexed, and out-of-scope cases skip new work. Record the [staging result and trade-offs](measured-lookup-staging.md).
+
 ## Candidate test application inspection (historical)
 
 
