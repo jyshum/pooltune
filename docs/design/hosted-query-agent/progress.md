@@ -10,11 +10,31 @@ Preflight: the shared graph currently supports three repair kinds and consumes `
 
 Ruling: preserve one shared investigator and queue; add operation-specific fixture adapters and traffic cases | each repair needs distinct causal evidence while retaining common timing/error checks | a wrong fixture assumption invalidates qualification and must be reported rather than relaxing success gates after the run. Next human review is the requested remaining-repairs evidence bundle or an actual design/prerequisite conflict.
 
-Task 24 local implementation passed its initial unit/integration/race and TypeScript checks. Fresh review found two Important/P2 gaps: committed preparation failures were outside automatic cleanup discovery, and an old assigned transaction ID without a current snapshot could escape cleanup admission. Both are assigned to the implementer for focused regressions and correction before hosted qualification. Review artifact: `.superpowers/staging/vacuum-fresh-review.md`. The local mechanism measurement was 7.374 to 1.474 ms with heap fetches 56,831 to zero. This is not hosted qualification.
+Task 24 local implementation passed its initial unit/integration/race and TypeScript checks. Fresh review found two Important/P2 gaps: committed preparation failures were outside automatic cleanup discovery, and an old assigned transaction ID without a current snapshot could escape cleanup admission. Both were reproduced, corrected and cleared in a narrow fresh rereview. Focused regressions and the full post-fix race-enabled integration suite passed (hostedquery 71.916 seconds); hosted qualification remains pending. Review artifact: `.superpowers/staging/vacuum-fresh-review.md`. The local mechanism measurement was 7.374 to 1.474 ms with heap fetches 56,831 to zero. This is not hosted qualification.
 
 Two direct live Claude controls with the four-repair prompt declined correctly: healthy visibility (1.873 seconds) and blocked cleanup (1.976 seconds). The normal graph screened both without requesting the model; the direct requests deliberately checked the prompt separately using synthetic evidence. No database action was taken by these controls.
 
+First hosted VACUUM attempt, deployment `b166fcb4-5b52-4c4b-8f6b-00450b6d5d25`, job 76: Claude selected cleanup in 2.066 seconds, but the action was interrupted and the second attempt inspected without repeating VACUUM. The target did not recover; qualification failed. All offered traffic completed without errors/misses and fixture/public-index cleanup passed. A read-only pooler probe found protocol PID -2115234854 while PostgreSQL reported backend PID 168326. The old guard used the proxy key as a server PID. Commit `17a8d7d` reads the actual backend PID inside the guard transaction; focused local checks passed. Preserve the initial failure in [initial-vacuum-interrupted.json](evidence/mixed-traffic/initial-vacuum-interrupted.json); do not count it as a successful repair or silently replace its timing.
+
+Final hosted VACUUM passed on deployment `86bbdd83-1aea-4fc3-b873-a457d862df0c`, job 85: ongoing target mean 37.344 → 8.737 ms, heap fetches 50,000 → 0, detection 9.044 seconds plus queue-to-result 14.325 seconds (Claude 1.866 seconds inside that). All 1,974 requests completed, no errors or missed slots, brief spike ignored, cleanup and application-index fingerprint passed. Task 24 is technically qualified for this controlled workload. [Results and limits](bounded-vacuum.md).
+
+
 Tasks 25 and 26 have operation-specific contracts in [function-memory.md](function-memory.md) and [enrolled-cron.md](enrolled-cron.md). The function test caps concurrent sort allowance and reports attributed temporary writes. Cron retains short worker claims and schedules durable future verification rather than treating a schedule change as a verified outcome. These are internal test/implementation choices within the accepted architecture, not production defaults or new customer powers.
+
+| Shared interface inspected | Producer and consumer | Required extension |
+| --- | --- | --- |
+| `IndexEvidence`, typed proposal, `expectedRepair`, graph schemas/prompt | Go evidence adapters → TypeScript investigator → Go dispatch | Add one distinct cause per repair across both languages; reject mixed causes and wrong identity/repair. |
+| `ConsumerFixture`, journal ownership and cleanup | Fixture creator → queue adapter and traffic driver → recovery/removal | VACUUM preparation must be recoverable. Memory adds a pinned function; Cron adds a pinned procedure and external job catalog entry. Generic table-only cleanup cannot silently ignore either. |
+| Queue claims and completion | Detector → consumer → saved result | Existing 25-second claims suit query repairs. Cron needs a not-before time and atomic delayed verification; immediate-default migration must preserve existing jobs and uniqueness. |
+| `trafficCase`, phase sampling and report | Driver → actual target calls/counters → acceptance report | Preserve common errors/misses/load comparisons; memory changes declared target rate; Cron requires actual scheduled periods and separate pending/final outcomes. |
+
+| Task | Files, tests and constraints checked before dispatch |
+| --- | --- |
+| 24 | Add VACUUM policy/fixture/samples/queue files, extend shared CLI/graph/driver, test setup recovery and horizon blockers plus nonrepeat recovery; no FULL or threshold tuning. |
+| 25 | Add memory policy/fixture/samples/queue files, extend function ownership and shared CLI/graph/driver, test concurrency admission, attribution and conditional restore; no database-wide setting change. Depends on Task 24 interfaces. |
+| 26 | Add Cron policy/fixture/period evidence/queue files and durable delayed-claim support, extend shared CLI/graph/driver, test actual execution counts/deadlines and restart; no existing-job changes. Depends on Task 25 interfaces. Extension prerequisite explicitly approved. |
+
+The earlier M1/index gates were accepted in the historical records. The latest continuation explicitly authorizes these remaining tasks; none crosses a new unaccepted human checkpoint. Their combined measured outcomes remain for Jared's review.
 
 ## Mixed traffic qualification, November 14, 2026
 

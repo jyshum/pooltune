@@ -2,6 +2,35 @@
 
 Task 24 uses the existing private fixture, shared queue and one investigator. This is a synthetic staging contract, not production authority.
 
+## Hosted result, November 14
+
+The repair passed the shared traffic test. Ordinary target query time fell from **37.344 to 8.737 ms**, a **76.6% reduction**. In plain English, the index was already present, but PostgreSQL still visited table rows to check whether they were visible. Cleanup restored the information that lets it avoid those extra visits. This adds a useful repair without building another index.
+
+Railway deployment `86bbdd83-1aea-4fc3-b873-a457d862df0c`, source `17a8d7d`, Rookery job **85**, attempt **1**. The frozen test objective was **14.43975 ms**. One real Claude request chose `vacuum`; Go independently checked and applied it. The three-second spike averaged **55.225 ms** and created **zero jobs**. All **1,974 offered requests completed**, with **zero errors and missed slots**. Owned fixtures were removed and the 12 application-index definitions remained unchanged. [Complete final evidence](evidence/mixed-traffic/final-vacuum.json)
+
+| Stage | Seconds |
+| --- | ---: |
+| Sustained fault to queued investigation | 9.044 |
+| Queue creation to saved verified result | 14.325 |
+| Total fault to verified result | 23.369 |
+| Matched pre-repair measurements | 2.038 |
+| Investigator, including Claude and graph overhead | 2.313 |
+| Claude request alone, included above | 1.866 |
+| Final guards, cause recheck and VACUUM | 3.883 |
+| Matched post-repair verification | 1.882 |
+
+The last four component measurements sit inside the queue-to-result duration. Connection, catalog, state and queue work account for the remainder. The action measurement includes guards and network round trips; it is not a claim that the VACUUM SQL exceeded its two-second server limit. Fixture construction, healthy-history collection and report download are outside fault-to-result timing.
+
+Ten controlled measurements fell from **41.399 to 9.817 ms**, with heap fetches **50,000 → 0** and shared-page accesses **50,277 → 277**. Sampled healthy reads were **0.0317 → 0.0297 ms**, and healthy-table writes **0.4316 → 0.1916 ms**. These satisfy the unchanged benefit and protection gates. Ongoing-traffic means above are a separate measurement, not interchangeable with these controlled samples.
+
+Steady counter collection used **39.760 ms of database execution over about 24 seconds**, or **1.657 ms per elapsed second**. This is database execution accounting, not CPU utilization. Target client p95 was **149.90/149.18 ms** in monitoring-off phases and **149.34/148.94 ms** in matched on phases. That shows no material measured increase here; it does not establish a universal overhead guarantee.
+
+The first hosted attempt failed after Claude chose the correct action. Recovery inspected without repeating an uncertain VACUUM. A pooler probe exposed the wrong process-identity assumption: the protocol connection ID differed from PostgreSQL's backend PID. The guard now reads the actual PID within its transaction. The final run above passed after that correction; the original failed run remains saved. A separate deployment packaging attempt lost the launch script's executable bit and never reached traffic testing; preserving Git's file mode corrected it. [Initial failed evidence](evidence/mixed-traffic/initial-vacuum-interrupted.json)
+
+Two direct live-provider controls declined healthy visibility and blocked cleanup in **1.873/1.976 seconds**. The normal graph screens those cases without calling Claude; these extra requests tested the four-repair prompt separately. [Control evidence](evidence/mixed-traffic/vacuum-live-controls.json)
+
+Engineering judgment: sufficient to continue the remaining bounded repairs. Production expansion still needs the coverage listed below, especially writes to the repaired table, customer credentials, resource headroom and longer operating periods. A single successful run is not a latency guarantee.
+
 ## Prespecified workload and gates
 
 The final workload is fixed before repair qualification: 100,000 candidate rows, `lookup=id`, 64-byte padding, fixed physical insertion permutation `(n * 7919) % 100003`, existing nonunique B-tree `(lookup)`. The target is `SELECT sum(lookup) FROM ONLY <owned candidate> WHERE lookup >= $1 AND lookup <= $2`, inputs `1,50000`, result `1250025000`. No forced planner method is used. All target sessions use `random_page_cost=1` and `max_parallel_workers_per_gather=0` for a matched warm-cache context. Initial fixture validation at default random_page_cost=4 chose a sequential scan and correctly failed before measuring benefit; the session context was then fixed before qualification. The full range still became a sequential scan after table growth from updates, so eligibility was narrowed to the fixed lower half before measuring any repair benefit. The measured fully consumed index-only scan must return 50,000 scan rows. Padding-only updates clear visibility without changing the result. Plain VACUUM restores the baseline between the short and sustained faults. Autovacuum is disabled only for this disposable table during setup.

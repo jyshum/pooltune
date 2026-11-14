@@ -1,0 +1,95 @@
+{
+  "label": "Local direct live-provider controls with synthetic evidence; no database action",
+  "results": [
+    {
+      "name": "vacuum-healthy",
+      "evidence": {
+        "observed_at": "2026-11-14T18:34:57.432Z",
+        "decision": "no_change",
+        "table_oid": 42,
+        "column_number": 2,
+        "lookup_column": "lookup",
+        "covering_index": true,
+        "plan": {
+          "node": "Index Only Scan",
+          "examined_rows": 50000,
+          "returned_rows": 50000,
+          "shared_blocks": 58000
+        },
+        "run_id": "vacuum-healthy",
+        "vacuum": {
+          "heap_fetches": 0,
+          "scan_rows": 50000,
+          "conditions_clear": true
+        }
+      },
+      "screened": {
+        "outcome": "no_change",
+        "run_id": "vacuum-healthy",
+        "table_oid": 42,
+        "column_number": 2,
+        "reason": "Measured visibility work does not justify VACUUM."
+      },
+      "proposal": {
+        "outcome": "no_change",
+        "run_id": "vacuum-healthy",
+        "table_oid": 42,
+        "column_number": 2,
+        "reason": "Evidence is healthy: the fully consumed index-only scan recorded 0 heap fetches across 50,000 scan rows (0 per row), below the 1000-fetch and 0.5-per-row thresholds for a visibility-driven vacuum. The plan examined and returned the same 50,000 rows via a covering index scan, so no selectivity or row-estimate problem is shown. No analyze error or multi-column statistics evidence was supplied. No repair is supported.",
+        "model_call": {
+          "model": "claude-haiku-5-5",
+          "duration_ms": 1873.3959579999998,
+          "requests": 1,
+          "input_tokens": 1812,
+          "output_tokens": 287
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "vacuum-blocked",
+      "evidence": {
+        "observed_at": "2026-11-14T18:34:57.432Z",
+        "decision": "investigate",
+        "table_oid": 42,
+        "column_number": 2,
+        "lookup_column": "lookup",
+        "covering_index": true,
+        "plan": {
+          "node": "Index Only Scan",
+          "examined_rows": 50000,
+          "returned_rows": 50000,
+          "shared_blocks": 58000
+        },
+        "run_id": "vacuum-blocked",
+        "vacuum": {
+          "heap_fetches": 56831,
+          "scan_rows": 50000,
+          "conditions_clear": false
+        }
+      },
+      "screened": {
+        "outcome": "no_change",
+        "run_id": "vacuum-blocked",
+        "table_oid": 42,
+        "column_number": 2,
+        "reason": "Measured visibility work does not justify VACUUM."
+      },
+      "proposal": {
+        "outcome": "no_change",
+        "run_id": "vacuum-blocked",
+        "table_oid": 42,
+        "column_number": 2,
+        "reason": "Vacuum evidence shows heap_fetches 56831 and 1.14 heap fetches per scan row (above the 1000 and 0.5 thresholds), which would normally support bounded VACUUM. However conditions_clear is false, so cleanup is not currently eligible and the vacuum repair cannot be proposed. The plan is an index-only scan over a covering index with all 50000 rows examined and returned, so there is no selective sequential scan case for a new index, and no analyze or statistics evidence (no row-estimate error or sampled lookup fraction) is supplied to justify a statistics refresh. Recommend no change until cleanup conditions clear and the vacuum evidence is re-collected.",
+        "model_call": {
+          "model": "claude-haiku-5-5",
+          "duration_ms": 1975.6680830000005,
+          "requests": 1,
+          "input_tokens": 1813,
+          "output_tokens": 362
+        }
+      },
+      "passed": true
+    }
+  ]
+}
