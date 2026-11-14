@@ -54,4 +54,4 @@ The lab timings are sufficient to continue building. The consumer adds one measu
 2. Qualify evidence access for real enrolled Supabase queries. Start with observation and saved recommendations, then check that fresh plans and the existing-index check remain accurate under representative traffic.
 3. Measure query latency and database load during spikes, then qualify automatic index changes and recovery under the customer's configured grants.
 
-[Implementation plan](implementation.md)
+[Full V1 roadmap](roadmap.md) · [Implementation plan](implementation.md)

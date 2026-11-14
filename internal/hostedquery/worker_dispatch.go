@@ -23,15 +23,16 @@ type investigationClaim struct {
 }
 
 type DispatchResult struct {
-	JobID        int64          `json:"job_id"`
-	Attempt      int            `json:"attempt"`
-	Outcome      string         `json:"outcome"`
-	ThreadID     string         `json:"thread_id,omitempty"`
-	Evidence     *IndexEvidence `json:"evidence,omitempty"`
-	Proposal     *IndexProposal `json:"proposal,omitempty"`
-	ElapsedMS    float64        `json:"elapsed_ms"`
-	TargetPlanMS float64        `json:"target_plan_ms,omitempty"`
-	GraphMS      float64        `json:"graph_ms,omitempty"`
+	JobID        int64                    `json:"job_id"`
+	Attempt      int                      `json:"attempt"`
+	Outcome      string                   `json:"outcome"`
+	ThreadID     string                   `json:"thread_id,omitempty"`
+	Estimate     *EstimatedLookupEvidence `json:"estimated_evidence,omitempty"`
+	Evidence     *IndexEvidence           `json:"evidence,omitempty"`
+	Proposal     *IndexProposal           `json:"proposal,omitempty"`
+	ElapsedMS    float64                  `json:"elapsed_ms"`
+	TargetPlanMS float64                  `json:"target_plan_ms,omitempty"`
+	GraphMS      float64                  `json:"graph_ms,omitempty"`
 }
 
 // InvestigationEvidence supplies fresh evidence for this exact enrolled job.
@@ -106,6 +107,56 @@ func DispatchInvestigation(ctx context.Context, state *pgx.Conn, project string,
 	if project == "" || collect == nil || investigate == nil {
 		return nil, errors.New("investigation needs a project, evidence source and graph")
 	}
+	return dispatchInvestigation(ctx, state, project, func(ctx context.Context, claim investigationClaim, result *DispatchResult) error {
+		evidence, err := collect(ctx, claim.InvestigationJob)
+		if err != nil {
+			return fmt.Errorf("collect investigation evidence: %w", err)
+		}
+		now := time.Now()
+		if evidence.Decision != Investigate || evidence.At.IsZero() || evidence.At.After(now) ||
+			now.Sub(evidence.At) > 30*time.Second || evidence.TableOID == 0 || evidence.Column <= 0 ||
+			evidence.Label != "lookup" || evidence.Plan.Node == "" {
+			result.Outcome = "insufficient_evidence"
+		} else {
+			evidence.RunID = fmt.Sprintf("worker-%d-%d", claim.ID, claim.Attempt)
+			beforeGraph := time.Now()
+			proposal, err := investigate(ctx, evidence)
+			result.GraphMS = elapsedMS(beforeGraph)
+			if err != nil {
+				return fmt.Errorf("invoke investigator: %w", err)
+			}
+			if (proposal.Outcome != "propose" && proposal.Outcome != "no_change") ||
+				proposal.RunID != evidence.RunID || proposal.TableOID != evidence.TableOID ||
+				proposal.Column != evidence.Column || len(proposal.Reason) == 0 || len(proposal.Reason) > 1000 {
+				return errors.New("graph response does not match the claimed investigation")
+			}
+			result.TargetPlanMS = evidence.ExecutionMS
+			result.Outcome, result.ThreadID, result.Evidence, result.Proposal = proposal.Outcome, evidence.RunID, &evidence, &proposal
+		}
+		return nil
+	})
+}
+
+// DispatchEstimatedInvestigation stores advisory evidence and cannot invoke the repair graph.
+func DispatchEstimatedInvestigation(ctx context.Context, state *pgx.Conn, project string, collect func(context.Context, InvestigationJob) (*EstimatedLookupEvidence, error)) (*DispatchResult, error) {
+	if project == "" || collect == nil {
+		return nil, errors.New("estimate needs an enrolled project and evidence reader")
+	}
+	return dispatchInvestigation(ctx, state, project, func(ctx context.Context, claim investigationClaim, result *DispatchResult) error {
+		estimate, err := collect(ctx, claim.InvestigationJob)
+		if err != nil {
+			return err
+		}
+		result.Outcome = "insufficient_evidence"
+		if estimate != nil {
+			result.Estimate = estimate
+			result.Outcome = "needs_measured_evidence"
+		}
+		return nil
+	})
+}
+
+func dispatchInvestigation(ctx context.Context, state *pgx.Conn, project string, evaluate func(context.Context, investigationClaim, *DispatchResult) error) (*DispatchResult, error) {
 	started := time.Now()
 	ctx, cancel := context.WithTimeout(ctx, investigationTimeout)
 	defer cancel()
@@ -114,30 +165,8 @@ func DispatchInvestigation(ctx context.Context, state *pgx.Conn, project string,
 		return nil, err
 	}
 	result := DispatchResult{JobID: claim.ID, Attempt: claim.Attempt}
-	evidence, err := collect(ctx, claim.InvestigationJob)
-	if err != nil {
-		return nil, fmt.Errorf("collect investigation evidence: %w", err)
-	}
-	now := time.Now()
-	if evidence.Decision != Investigate || evidence.At.IsZero() || evidence.At.After(now) ||
-		now.Sub(evidence.At) > 30*time.Second || evidence.TableOID == 0 || evidence.Column <= 0 ||
-		evidence.Label != "lookup" || evidence.Plan.Node == "" {
-		result.Outcome = "insufficient_evidence"
-	} else {
-		evidence.RunID = fmt.Sprintf("worker-%d-%d", claim.ID, claim.Attempt)
-		beforeGraph := time.Now()
-		proposal, err := investigate(ctx, evidence)
-		result.GraphMS = elapsedMS(beforeGraph)
-		if err != nil {
-			return nil, fmt.Errorf("invoke investigator: %w", err)
-		}
-		if (proposal.Outcome != "propose" && proposal.Outcome != "no_change") ||
-			proposal.RunID != evidence.RunID || proposal.TableOID != evidence.TableOID ||
-			proposal.Column != evidence.Column || len(proposal.Reason) == 0 || len(proposal.Reason) > 1000 {
-			return nil, errors.New("graph response does not match the claimed investigation")
-		}
-		result.TargetPlanMS = evidence.ExecutionMS
-		result.Outcome, result.ThreadID, result.Evidence, result.Proposal = proposal.Outcome, evidence.RunID, &evidence, &proposal
+	if err := evaluate(ctx, *claim, &result); err != nil {
+		return nil, err
 	}
 	result.ElapsedMS = elapsedMS(started)
 	if err := finishInvestigation(ctx, state, *claim, result); err != nil {

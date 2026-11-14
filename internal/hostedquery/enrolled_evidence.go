@@ -11,10 +11,13 @@ import (
 )
 
 type EnrolledLookup struct {
-	Schema, Table, Column string
-	TableOID              uint32
-	Database, Role        uint32
-	Query                 int64
+	Schema   string `json:"schema"`
+	Table    string `json:"table"`
+	Column   string `json:"column"`
+	TableOID uint32 `json:"table_oid"`
+	Database uint32 `json:"database_oid"`
+	Role     uint32 `json:"role_oid"`
+	Query    int64  `json:"query_id,string"`
 }
 
 // EstimatedLookupEvidence stays separate from the measured IndexEvidence accepted by the graph.
@@ -140,4 +143,52 @@ func currentLookupCounters(ctx context.Context, tx pgx.Tx, binding EnrolledLooku
 	`, qualified(schema, "pg_stat_statements"), qualified(schema, "pg_stat_statements_info")),
 		binding.Database, binding.Role, binding.Query, generation[0], generation[1], generation[2]).Scan(&matches)
 	return matches, err
+}
+
+// LookupEnrollment binds an operator-selected query and representative value to one job.
+type LookupEnrollment struct {
+	Project string         `json:"project"`
+	Lookup  EnrolledLookup `json:"lookup"`
+	Input   *int32         `json:"input"`
+}
+
+func (e LookupEnrollment) Validate() error {
+	b := e.Lookup
+	if e.Project == "" || len(e.Project) > 128 || e.Input == nil ||
+		b.Schema == "" || b.Table == "" || b.Column == "" || b.TableOID == 0 || b.Database == 0 || b.Role == 0 || b.Query == 0 {
+		return errors.New("incomplete enrolled lookup")
+	}
+	return nil
+}
+
+func EnrolledEstimate(config *pgx.ConnConfig, enrollment LookupEnrollment) func(context.Context, InvestigationJob) (*EstimatedLookupEvidence, error) {
+	return func(ctx context.Context, job InvestigationJob) (*EstimatedLookupEvidence, error) {
+		b := enrollment.Lookup
+		if job.Database != b.Database || job.Role != b.Role || job.Query != b.Query || len(job.Generation) != 3 {
+			return nil, nil
+		}
+		ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+		defer cancel()
+		target, err := pgx.ConnectConfig(ctx, config)
+		if err != nil {
+			return nil, err
+		}
+		defer func() {
+			cleanup, stop := context.WithTimeout(context.Background(), time.Second)
+			defer stop()
+			target.Close(cleanup)
+		}()
+		var result *EstimatedLookupEvidence
+		err = pgx.BeginTxFunc(ctx, target, pgx.TxOptions{AccessMode: pgx.ReadOnly, IsoLevel: pgx.RepeatableRead}, func(tx pgx.Tx) error {
+			if _, err := tx.Exec(ctx, `SET LOCAL search_path=pg_catalog;
+				SET LOCAL statement_timeout='1500ms';
+				SET LOCAL idle_in_transaction_session_timeout='2500ms'`); err != nil {
+				return err
+			}
+			var err error
+			result, err = collectEnrolledLookup(ctx, tx, b, [3]time.Time(job.Generation), *enrollment.Input)
+			return err
+		})
+		return result, err
+	}
 }

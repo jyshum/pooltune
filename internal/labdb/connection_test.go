@@ -106,3 +106,22 @@ func TestStagingRoutes(t *testing.T) {
 		t.Fatal("state database accepted as staging target")
 	}
 }
+
+func TestDedicatedRookeryRoute(t *testing.T) {
+	t.Setenv("POOLTUNE_LAB_ROOKERY_CA_FILE", testCA(t))
+	const login = "postgresql://pt_login_0123456789abcdef.osdjqwpzgyzwfaxyufze:secret@aws-0-us-west-2.pooler.supabase.com:5432/postgres?sslmode=verify-full"
+	got, err := TargetConfig(login, "rookery-enrolled")
+	if err != nil || got.TLSConfig == nil || got.TLSConfig.InsecureSkipVerify || got.TLSConfig.ServerName != RookeryHost || len(got.Fallbacks) != 0 {
+		t.Fatal("dedicated route did not retain verified TLS")
+	}
+	for _, bad := range []string{
+		strings.Replace(login, "pt_login_0123456789abcdef", "postgres", 1),
+		strings.Replace(login, "osdjqwpzgyzwfaxyufze", "another-project", 1),
+		strings.Replace(login, "verify-full", "require", 1),
+		strings.Replace(login, ":5432", ":6543", 1),
+	} {
+		if _, err := TargetConfig(bad, "rookery-enrolled"); err == nil {
+			t.Fatal("dedicated route accepted an unrelated or unverified credential")
+		}
+	}
+}

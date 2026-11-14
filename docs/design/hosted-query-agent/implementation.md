@@ -163,6 +163,13 @@ Depends on Task 11. Records evidence for proposed d-identity r1.
 - [x] Use a separate, short-lived test login to collect the enrolled estimate and index check through the verified Supabase session pooler. Verify session identity and table grants using the login itself.
 - [x] Revoke the enrolled table grant on a separate administrative connection. Verify the open session loses access on its next statement. Disable login and test a new connection. Remove the test schema and role, then record the observed pooler behavior and trade-offs in [Dedicated login](dedicated-login.md).
 
+### Task 13: Connect enrolled Supabase evidence to the hosted consumer
+
+Follows d-workflow r1, d-reuse r1 and d-onboarding r1. The dedicated login qualification informs proposed d-identity r1.
+
+- [x] Run a queued lookup through the consumer using a dedicated login and one explicit enrollment. Save the estimated plan and index check separately from measured evidence. Gate on the enrolled query identity and current grants. Test mismatched jobs and revoked access.
+- [x] Verify the path in Railway staging against a bounded synthetic Supabase fixture and record the [hosted test result](enrolled-staging.md). Keep the existing measured fixture path available.
+
 ## Candidate test application inspection (historical)
 
 

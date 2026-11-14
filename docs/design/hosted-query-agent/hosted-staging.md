@@ -1,6 +1,6 @@
 # Hosted detector and consumer staging
 
-Railway was selected by the implementer for the previous staging exercise. The product decision is to operate Pooltune as a hosted service. The hosting provider remains open.
+Jared confirmed Railway for continued staging on November 14, 2026. The product decision remains a fully hosted service. Production hosting can be evaluated separately against uptime, recovery, operations and cost.
 
 [Pooltune Staging](https://railway.com/project/a32a2ecd-2d0f-43d0-b473-3d43cff623e0?environmentId=0541335c-4db7-40cf-a75d-761ad418e816) runs three services in a private Railway environment. One Go process detects a sustained slow query and adds a job. Another claims it and asks the scripted LangGraph investigator for a recommendation. A persistent PostgreSQL volume stores measurements, jobs and graph checkpoints.
 

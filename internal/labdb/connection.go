@@ -66,8 +66,14 @@ func config(dsn, route string) (*pgx.ConnConfig, error) {
 
 	mode := query.Get("sslmode")
 	var tlsConfig *tls.Config
-	if route == "rookery" {
-		if u.Hostname() != RookeryHost || port != 5432 || u.User.Username() != RookeryUser ||
+	if route == "rookery" || route == "rookery-enrolled" {
+		userOK := u.User.Username() == RookeryUser
+		if route == "rookery-enrolled" {
+			role, suffix, ok := strings.Cut(u.User.Username(), ".")
+			userOK = ok && suffix == "osdjqwpzgyzwfaxyufze" && strings.HasPrefix(role, "pt_login_") &&
+				len(role) == 25 && strings.Trim(role[9:], "0123456789abcdef") == ""
+		}
+		if u.Hostname() != RookeryHost || port != 5432 || !userOK ||
 			db != "postgres" || mode != "verify-full" {
 			return nil, errors.New("expected the Rookery session pooler with verify-full")
 		}

@@ -1,5 +1,9 @@
 # Design progress
 
+## Enrolled evidence in hosted staging, November 14, 2026
+
+Jared confirmed Railway for continued staging. Task 13 passed through the hosted queue and a dedicated Rookery connection. The consumer saved an estimated plan and matching-index check for job 9 and recorded insufficient evidence for a mismatched job and a revoked grant. Statement counters confirmed one foreground lookup. The graph did not run in this mode. The [staging test](enrolled-staging.md) records the results. The [V1 build sequence](roadmap.md) connects this slice to the six repair types, onboarding, dashboard, and rollout.
+
 ## Dedicated Rookery login, November 14, 2026
 
 Task 12 authenticated to Rookery over the verified session pooler using a temporary dedicated login. It collected the enrolled plan estimate and index check in 221.179 ms in the final test. The statement counter stayed at one execution. Revoking the table grant stopped evidence collection and denied the next lookup on the open session. Disabling the login and clearing the password blocked a fresh connection. The existing session could still run a statement requiring no table access. The test removed the temporary role and schema and verified cleanup. [Results and trade-offs](dedicated-login.md)
