@@ -105,7 +105,11 @@ func applyFixtureVacuum(ctx context.Context, target *pgx.Conn, config *pgx.ConnC
 	if err := validateVacuumFixture(ctx, tx, id, objects, index); err != nil {
 		return false, err
 	}
-	clear, err := vacuumConditions(ctx, target, objects.Candidate, guard.PgConn().PID())
+	guardPID, err := vacuumGuardPID(ctx, tx)
+	if err != nil {
+		return false, err
+	}
+	clear, err := vacuumConditions(ctx, target, objects.Candidate, guardPID)
 	if err != nil || !clear {
 		return false, err
 	}
@@ -127,7 +131,7 @@ func applyFixtureVacuum(ctx context.Context, target *pgx.Conn, config *pgx.ConnC
 	if err := validateVacuumFixture(ctx, tx, id, objects, index); err != nil {
 		return false, err
 	}
-	clear, err = vacuumConditions(ctx, target, objects.Candidate, guard.PgConn().PID())
+	clear, err = vacuumConditions(ctx, target, objects.Candidate, guardPID)
 	if err != nil || !clear {
 		return false, err
 	}
@@ -148,4 +152,12 @@ func recoverVacuumPreparations(ctx context.Context, target, state *pgx.Conn, rou
 	}
 	defer func() { err = errors.Join(err, releaseTrialLock(target)) }()
 	return reconcileTrialStatuses(ctx, target, state, journalTarget(target, route), []string{"vacuum_preparing"})
+}
+
+// Session poolers may replace the protocol backend key. Only the server PID
+// returned on this transaction's connection identifies its pg_stat_activity row.
+func vacuumGuardPID(ctx context.Context, db trialReader) (uint32, error) {
+	var pid uint32
+	err := db.QueryRow(ctx, "SELECT pg_backend_pid()").Scan(&pid)
+	return pid, err
 }
