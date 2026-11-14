@@ -1,5 +1,13 @@
 # Design progress
 
+## Background worker intake, November 13, 2026
+
+Jared authorized building the worker and testing with isolated synthetic data on Rookery. Tasks 6–7 were implemented on the local `feat/hosted-query-worker` branch. A dedicated traffic connection issued real reads while the Go worker collected only enrolled statement counters. Pooltune's own PostgreSQL keeps recent evidence and atomically queues one open investigation per query. We chose the existing state database for this first producer so the evidence and job can commit together. The production queue decision remains open.
+
+The [traffic test record](worker-traffic.md) includes the trade-offs, reproduction steps, and three local plus three Rookery runs. All six produced one job for the slow case and zero for the healthy case. Rookery created its first saved job in 5.024–5.045 seconds with one-second test windows. Fresh sessions verified the job, fixture rollback, and matching public index fingerprints. The result measures initial evidence collection for an already-slow lookup. The driver did not invoke Claude or apply a repair.
+
+Independent review caught early window closure when overlapping workers polled before schedule. The added regression test reproduced it, and the fixed worker checks elapsed time as well as the number of samples. Race-enabled integration tests, the investigator tests and TypeScript checks passed. An external supervisor must restart the worker after a poll error. The next step is an investigation consumer that gathers a plan and existing-index evidence for LangGraph.
+
 ## Index milestone accepted, November 13, 2026
 
 Jared said, “Yeah, that looks good. I accept the index milestone. Let’s merge this into the Pooltune revamp branch locally, then start the background worker on its own branch. Give me a quick rundown before building.”

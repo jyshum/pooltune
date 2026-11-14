@@ -112,17 +112,17 @@ Start with one project and one kind of signal, an enrolled mean-latency objectiv
 
 Files: `cmd/pooltune-worker/main.go`, `internal/hostedquery/worker.go`, `internal/hostedquery/evidence.go` and their tests. Depends on Task 1. Decisions: d-language r2 and d-reuse r1. Use the objective path in [detection and verification](detection-verification-v0.md).
 
-- [ ] Write tests for healthy queries, one spike, sustained breaches, no calls and counter resets. Include distinct query objectives and missing samples.
-- [ ] Add a bounded, cancellable polling loop. Read only enrolled top-level PostgreSQL counter entries and their generation, with a timeout. Calculate interval deltas and combine them into comparable windows by total execution time and total calls. Share counter validation and `DetectObjective` with the lab while preserving the fixture's exact-count test. The worker emits a result for each finished window, including insufficient evidence when readings cannot be compared.
-- [ ] Verify with `go test -count=1 ./internal/hostedquery ./cmd/pooltune-worker` and commit the standalone sampler.
+- [x] Write tests for healthy queries, one spike, sustained breaches, no calls and counter resets. Include distinct query objectives and missing samples.
+- [x] Add a bounded, cancellable polling loop. Read only enrolled top-level PostgreSQL counter entries and their generation, with a timeout. Calculate interval deltas and combine them into comparable windows by total execution time and total calls. Share counter validation and `DetectObjective` with the lab while preserving the fixture's exact-count test. The worker emits a result for each finished window, including insufficient evidence when readings cannot be compared.
+- [x] Verify with `go test -count=1 ./internal/hostedquery ./cmd/pooltune-worker` on the worker branch. The sampler, state store and command landed together so the command can resume partial windows.
 
 ### Task 7: Persist evidence and queue one investigation
 
 Files: `internal/hostedquery/worker_store.go`, `internal/hostedquery/worker_store_integration_test.go` and the worker command. Depends on Task 6. Decisions: d-hosting r1, d-reuse r1 and the proposed d-durability r1.
 
-- [ ] Write PostgreSQL tests for overlapping worker ticks, replay of the same window, separate project identities and restart with a partially collected history.
-- [ ] Store the latest counter, partial window and recent completed windows in Pooltune's PostgreSQL. Commit each evidence update and its investigation insert together. Use a database-backed uniqueness rule for one open investigation per project, database, role and query. The proposed local implementation uses PostgreSQL for both jobs and evidence. That keeps intake consistent in one transaction and makes Pooltune responsible for the later job claim and recovery logic. The production queue decision remains open.
-- [ ] Run the local integration scenario with healthy traffic and sustained breaches. Verify the healthy query creates zero jobs and the slow query creates one job even after a worker restart. Run `go test -tags=integration -count=1 ./internal/hostedquery ./cmd/pooltune-worker` and commit the durable queue producer.
+- [x] Write PostgreSQL tests for overlapping worker ticks, replay of the same window, separate project identities and restart with a partially collected history.
+- [x] Store the latest counter, partial window and recent completed windows in Pooltune's PostgreSQL. Commit each evidence update and its investigation insert together. Use a database-backed uniqueness rule for one open investigation per project, database, role and query. The proposed local implementation uses PostgreSQL for both jobs and evidence. That keeps intake consistent in one transaction and makes Pooltune responsible for the later job claim and recovery logic. The production queue decision remains open.
+- [x] Run the local integration scenario with healthy traffic and sustained breaches. Verify the healthy query creates zero jobs and the slow query creates one job even after a worker restart. Run `go test -tags=integration -count=1 ./internal/hostedquery ./cmd/pooltune-worker` and save the [local and Rookery traffic timings](worker-traffic.md).
 
 ### Investigation handoff after worker intake
 

@@ -44,26 +44,48 @@ const (
 
 // Measure requires exactly the executions the fixture issued in this batch.
 func Measure(before, after Counter, expectedCalls int64) (Observation, error) {
+	delta, err := counterDelta(before, after)
+	if err != nil {
+		return Observation{}, err
+	}
+	if expectedCalls <= 0 || delta.Calls != expectedCalls {
+		return Observation{}, errors.New("incomplete or invalid counter interval")
+	}
+	return delta.observation(after), nil
+}
+
+type counterChange struct {
+	Calls, Blocks int64
+	ExecutionMS   float64
+}
+
+func (c counterChange) observation(identity Counter) Observation {
+	return Observation{
+		Calls: c.Calls, MeanMS: c.ExecutionMS / float64(c.Calls),
+		BlocksPerCall: float64(c.Blocks) / float64(c.Calls),
+		context:       observationContext{identity.Database, identity.Role, identity.Query, identity.Boot, identity.Reset, identity.Entry},
+	}
+}
+
+func counterDelta(before, after Counter) (counterChange, error) {
 	if before.Database == 0 || before.Role == 0 || before.Query == 0 ||
 		before.Database != after.Database || before.Role != after.Role || before.Query != after.Query {
-		return Observation{}, errors.New("statement identity changed or missing")
+		return counterChange{}, errors.New("statement identity changed or missing")
 	}
 	if before.Boot.IsZero() || before.Reset.IsZero() || before.Entry.IsZero() ||
 		!before.Boot.Equal(after.Boot) || !before.Reset.Equal(after.Reset) || !before.Entry.Equal(after.Entry) {
-		return Observation{}, errors.New("counter epoch changed or missing")
+		return counterChange{}, errors.New("counter epoch changed or missing")
 	}
-	if expectedCalls <= 0 || before.Calls < 0 || after.Calls < before.Calls ||
-		after.Calls-before.Calls != expectedCalls || before.Blocks < 0 || after.Blocks < before.Blocks ||
+	if before.Calls < 0 || after.Calls < before.Calls || before.Blocks < 0 || after.Blocks < before.Blocks ||
 		!nonnegativeFinite(before.ExecutionMS) || !nonnegativeFinite(after.ExecutionMS) ||
 		after.ExecutionMS < before.ExecutionMS {
-		return Observation{}, errors.New("incomplete or invalid counter interval")
+		return counterChange{}, errors.New("incomplete or invalid counter interval")
 	}
-	calls := float64(expectedCalls)
-	return Observation{
-		Calls: expectedCalls, MeanMS: (after.ExecutionMS - before.ExecutionMS) / calls,
-		BlocksPerCall: float64(after.Blocks-before.Blocks) / calls,
-		context:       observationContext{before.Database, before.Role, before.Query, before.Boot, before.Reset, before.Entry},
-	}, nil
+	change := counterChange{after.Calls - before.Calls, after.Blocks - before.Blocks, after.ExecutionMS - before.ExecutionMS}
+	if change.Calls == 0 && (change.Blocks != 0 || change.ExecutionMS != 0) {
+		return counterChange{}, errors.New("counters changed without a completed call")
+	}
+	return change, nil
 }
 
 // DetectObjective requires the latest five measurements from the same counter context.

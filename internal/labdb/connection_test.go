@@ -1,4 +1,4 @@
-package main
+package labdb
 
 import (
 	"crypto/ecdsa"
@@ -17,17 +17,17 @@ func TestConnectionRoutes(t *testing.T) {
 	t.Setenv("POOLTUNE_LAB_ROOKERY_CA_FILE", testCA(t))
 	local := "postgres://lab:test@127.0.0.1:5432/state?sslmode=disable"
 	remote := "postgres://postgres.osdjqwpzgyzwfaxyufze:test@aws-0-us-west-2.pooler.supabase.com:5432/postgres?sslmode=verify-full"
-	if config, err := labConfig(local, false); err != nil || config.Host != "127.0.0.1" ||
+	if config, err := Config(local, false); err != nil || config.Host != "127.0.0.1" ||
 		config.Database != "state" || config.Password != "test" || len(config.Fallbacks) != 0 {
 		t.Fatal("local fixture route is unavailable")
 	}
 
-	config, err := labConfig(remote, true)
+	config, err := Config(remote, true)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if config.Host != rookeryHost || config.User != rookeryUser || config.Port != 5432 ||
-		config.TLSConfig == nil || config.TLSConfig.ServerName != rookeryHost ||
+	if config.Host != RookeryHost || config.User != RookeryUser || config.Port != 5432 ||
+		config.TLSConfig == nil || config.TLSConfig.ServerName != RookeryHost ||
 		config.TLSConfig.InsecureSkipVerify || config.TLSConfig.RootCAs == nil || len(config.Fallbacks) != 0 {
 		t.Fatal("Rookery must use hostname and certificate validation with no fallback")
 	}
@@ -51,7 +51,7 @@ func TestConnectionRoutes(t *testing.T) {
 		{"missing password", strings.Replace(local, "lab:test", "lab", 1), false},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			if _, err := labConfig(test.dsn, test.rookery); err == nil {
+			if _, err := Config(test.dsn, test.rookery); err == nil {
 				t.Fatal("accepted invalid lab route")
 			} else if strings.Contains(err.Error(), "lab:test") || strings.Contains(err.Error(), ":test@") {
 				t.Fatal("error included a DSN")
