@@ -1,6 +1,6 @@
 # Pooltune automatic index trial
 
-November 13, 2026. This record covers the first automatic repair on an isolated synthetic PostgreSQL fixture. The full [hosted design](design.md) and all six V1 repair types remain in scope. The index milestone is ready for review of the database path. Live model evaluation still needs Pooltune's provider configuration.
+November 13, 2026. This record covers the first automatic repair on an isolated synthetic PostgreSQL fixture. The full [hosted design](design.md) and all six V1 repair types remain in scope. The scripted and live Anthropic runs are ready for review.
 
 ## Follow a run
 
@@ -37,6 +37,14 @@ Trial `7f8cfd49289e311477d21cf5` returned `improved_tested_inputs`. The detector
 PostgreSQL switched from a sequential scan to an index scan. The index used 2,260,992 bytes. The healthy table still had exactly its original primary-key index. All 12 Rookery public index definitions matched the pre-run fingerprint `f429d87200ade1a2faa649fa438e8cbe`; the independent post-run check found zero trial schemas. The local action journal recorded `complete` and graph thread ID matched the recorded run with four checkpoints.
 
 Wall time was 3.89 s including fixture setup and cleanup. Detection sampling took 1.00 s, scripted investigation and checkpointing 0.34 s, index creation 0.23 s and verification sampling 0.40 s. These numbers describe one controlled run and exclude real model inference. The earlier local test changed the plan and blocks but remained inconclusive because it did not meet the preset 5 ms absolute benefit floor.
+
+## Live Anthropic check
+
+Trial `c9a0c0400c550434c5d086e4` used Claude Haiku 5.5 (`claude-haiku-5-5`). This model was chosen for the short, structured investigation. The run does not compare models. The saved graph checkpoint confirms Claude requested the plan and index evidence and returned an index proposal. Go accepted the proposal and built a valid index.
+
+Mean lookup time changed from **16.209 ms to 0.026 ms**. PostgreSQL switched from a sequential scan to an index scan and logical blocks per lookup fell from **1,334 to 3**. Forty target reads, forty healthy reads and forty value-changing writes were measured on each side, with zero errors. The healthy table kept its original index. The journal recorded a completed run with four graph checkpoints. An independent catalog check found zero trial schemas and matched all 12 public indexes to the pre-run fingerprint.
+
+Total wall time was **8.08 s**, including **2.72 s** for the investigation and its checkpoint writes and **0.46 s** for the index build. These timings are for one synthetic run. The live round used Anthropic with cloud tracing disabled. The developer Studio replay is separate.
 
 ## Reproduce and inspect
 
