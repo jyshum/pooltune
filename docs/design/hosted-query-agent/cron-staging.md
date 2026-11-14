@@ -1,6 +1,51 @@
-# Enrolled scheduling: staging result and remaining setup
+# Enrolled scheduling: staging results and remaining qualification
 
-## What happened
+## Current status: bounded hosted qualification passed
+
+Source `bc833c5`, deployment `753674b3-67f7-4ac3-b581-1f72c0afc2ad`, fixture `67de7231e86353727df62e2f`. The shared detector created investigation **109**; child **111** used one real Claude call, proposed Cron and applied the allowed future schedule. Verification child **112** survived an actual consumer restart and finished `improved_tested_inputs`. All three original and three future executions succeeded before their next-even-minute deadlines. The test removed its owned jobs and schema; unrelated jobs and public index definitions were unchanged. Independent readback confirmed zero Cron jobs and zero Pooltune trial schemas. The copied temporary remote report and temporary Railway SSH registration were removed, and the key was unloaded from the local agent. [Complete final run](evidence/mixed-traffic/final-cron.json).
+
+The problem was a background job repeatedly making an important query wait. Moving the same work into the owner's allowed quiet minute removed that overlap. This qualifies one controlled scheduling case. It does not establish arbitrary customer schedules, production load limits or general diagnosis across competing causes.
+
+| Measurement | Before | After |
+| --- | ---: | ---: |
+| Target database mean, 120 busy-window reads per side | 33.641 ms | 0.0897 ms |
+| Target client p95, range across three busy windows | 219.49–225.04 ms | 150.71–151.18 ms |
+| Quiet-window healthy-read database mean, 240 reads per side | 0.02469 ms | 0.02430 ms |
+| Quiet-window write database mean, 120 writes per side | 0.10251 ms | 0.08504 ms |
+| Required completed scheduled executions | 3 of 3 | 3 of 3 |
+
+The database mean improved **99.73%** in the deliberately induced contention case. Client response time includes network and request scheduling, so its improvement is smaller; the database percentage must not be presented as end-user speedup. All **7,663 offered requests** completed with **zero errors and zero missed requests**. The **9.633 ms** manual spike exceeded the frozen **3 ms** objective but opened no investigation. Blocking observations were **6/7/7** in original busy periods and zero in future busy periods. Both sides retained the same target demand; the odd quiet minute had zero target demand by the original contract, with healthy reads/writes continuing.
+
+## Where the time went
+
+| Boundary or stage | Measured time |
+| --- | ---: |
+| First sustained slowdown to investigation queued | 19.807 s |
+| First claim's initial queue delay | 1.788 s |
+| End of third original measurement period, from first cycle | 320.334 s |
+| One Claude request | 2.048 s |
+| Graph investigation including Claude | 2.471 s |
+| Guarded action including scheduler-progress proof | 5.193 s |
+| First slowdown to actual schedule commit | 332.144 s |
+| Recorded future-cycle wait | 392.728 s |
+| First slowdown to saved verified result | 726.069 s |
+| Whole harness including setup, alignment and cleanup | 1,203.025 s |
+
+These rows are overlapping stages and elapsed boundaries, not values to add together. The final queue-to-result field is **706.262 seconds**; adding detection gives **726.069 seconds**, about **12 minutes 6 seconds**. Setup and cleanup are not agent decision time. This repair deliberately observes two-minute cycles. The model took about two seconds, but reliable scheduling verification requires actual future work to happen. Shortening those observations trades away evidence; it is not a model-latency optimization.
+
+The schedule committed at **23:05:32.144425 UTC**, within the unchanged handoff deadline. The first moved execution ran at **23:07**, followed by **23:09** and **23:11**. All finished about 16.46 seconds after starting, with no missing or duplicate target executions. The final follow-up was due at **23:12:02 UTC** and saved its result at **23:12:06.069 UTC**. The restart retained that exact child and parent; no additional model call or repeated mutation was needed.
+
+## Added load and engineering judgment
+
+The two monitoring-on counter windows measured **2.121 and 1.416 ms of collector database execution per elapsed second**, calculated using their actual snapshot durations. Target client p95 was **151.40/151.17 ms** with monitoring off and **150.50/151.01 ms** with it on. This small comparison did not show a client latency penalty, but it is not a universal overhead bound. Collector execution is not CPU utilization or full Pooltune cost. Attribution sampling, scheduler witnesses, evidence collection, model cost and action/verification work are additional; the fixed diagnostic witness ran in both comparison conditions.
+
+Technical judgment: sufficient to finish this bounded six-repair evaluation batch. All six implemented families now have a real-Claude staging case, with their individual limits preserved. It is not sufficient for customer-wide autonomous rollout. Broader competing-cause diagnosis, writes to repaired tables, richer operation variants, connection/grants, account isolation and operating budgets remain in the [roadmap](roadmap.md). Cleanup of failed fixtures also does not terminalize every old pending investigation row; that lifecycle gap remains open for customer-readiness work.
+
+The trade-off is explicit: one model call saves round trips, independent Go checks constrain what it can change, and durable follow-ups allow verification after a restart. The cost is more implementation and recovery logic. Earlier failures below are retained because they explain that work and bound the success claim. Combined human milestone acceptance is still separate from this technical result.
+
+## First attempt
+
+The following entries preserve the status and decisions at each earlier attempt. Their pending statements describe that point in the sequence; the current result is above.
 
 The first Railway/Rookery attempt stopped before activating its target job. It made **zero scheduling repairs and zero Claude calls**. Scheduling is implemented, but its actual repair and future-cycle qualification remain open. Source `73e07a0`, deployment `e82d97cc-31aa-4e1a-a977-7aa356f8d146`, fixture `b443166365c328e71e6333f7`. [Full failed attempt and recovery](evidence/mixed-traffic/initial-cron-prerequisite-failed.json)
 

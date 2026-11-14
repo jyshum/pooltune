@@ -58,7 +58,7 @@ The detector, durable queue and continuous consumer run in Railway staging. Queu
 
 The index, statistics refresh, richer statistics and bounded cleanup have passed mixed-traffic qualification on disposable Rookery data. The same harness checks healthy traffic, brief spikes, sustained slowdowns, side effects, monitoring load and cleanup. [First three repairs](mixed-traffic.md) · [Cleanup results](bounded-vacuum.md)
 
-Function memory also passed a separate follow-up after reducing redundant diagnostic work: ongoing query time fell from 214.9 to 148.9 ms and temporary writes fell to zero. The initial noisy trial remains documented; it correctly restored the old setting. Cron scheduling is implemented, but its first hosted attempt stopped before activation. Follow-up checks found a UTC timestamp-comparison bug and a missing row-lock permission. The provider-compatible guard then passed activation without extra permissions. A follow-up stopped because measurement windows started late; cleanup passed. Both attempts are documented, and the full scheduling qualification remains open. [Memory evidence](function-memory.md) · [Scheduling result and remaining setup](cron-staging.md)
+Function memory passed after reducing redundant diagnostic work: ongoing query time fell from 214.9 to 148.9 ms and temporary writes fell to zero. Scheduling now also passed the full hosted flow: Claude chose the allowed move, Go applied it, the consumer restarted, and three future job runs completed on time. Target database mean fell from 33.64 to 0.090 ms; client p95 fell from roughly 219–225 to 151 ms. All six families now have a bounded live-Claude staging case. Earlier failed/inconclusive trials remain documented, and broader customer coverage is still open. [Memory evidence](function-memory.md) · [Scheduling results and timing](cron-staging.md)
 
 ## Why we send both pieces of evidence in one Claude call
 
@@ -68,7 +68,7 @@ On saved Rookery evidence, the median investigation fell from **2.56 s to 1.61 s
 
 ## What to build next
 
-Finish the remaining repair qualifications, then broaden diagnosis and workload coverage. One passing synthetic case does not cover every index, function, input or maintenance pattern. Compound indexes, column statistics targets, recurring cleanup settings and writes to repaired tables still need their own qualification.
+The six bounded repair cases are qualified. Next, broaden diagnosis and workload coverage. One passing synthetic case does not cover every index, function, input or maintenance pattern. Compound indexes, column statistics targets, recurring cleanup settings and writes to repaired tables still need their own qualification.
 
 The product also needs customer connection and grants, account sign-in, a dashboard, account isolation, operating budgets and rollout checks. The existing staged worker and tools are the foundation for those pieces; they are not the finished hosted service.
 
