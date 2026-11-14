@@ -154,7 +154,7 @@ func sampleAnalyze(ctx context.Context, target *pgx.Conn, fixture string, expect
 
 func lockAnalyzeFixture(ctx context.Context, tx pgx.Tx, fixture string, expected fixtureObjects) error {
 	schema := trialSchema(fixture)
-	if _, err := tx.Exec(ctx, "LOCK TABLE ONLY "+qualified(schema, "candidate")+", ONLY "+qualified(schema, "healthy")+" IN SHARE ROW EXCLUSIVE MODE NOWAIT"); err != nil {
+	if err := lockSampleTables(ctx, tx, schema); err != nil {
 		return err
 	}
 	if err := validateSampleFixture(ctx, tx, fixture, expected); err != nil {

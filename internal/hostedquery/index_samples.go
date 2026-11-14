@@ -36,7 +36,7 @@ func sampleTrial(ctx context.Context, target *pgx.Conn, id string, expected fixt
 		schema := trialSchema(id)
 		candidate := qualified(schema, "candidate")
 		healthyTable := qualified(schema, "healthy")
-		if _, err := tx.Exec(ctx, "LOCK TABLE ONLY "+candidate+", ONLY "+healthyTable+" IN SHARE ROW EXCLUSIVE MODE NOWAIT"); err != nil {
+		if err := lockSampleTables(ctx, tx, schema); err != nil {
 			return err
 		}
 		if err := validateSampleFixture(ctx, tx, id, expected); err != nil {
@@ -133,6 +133,16 @@ func sampleTrial(ctx context.Context, target *pgx.Conn, id string, expected fixt
 		return nil
 	}()
 	return sample, err
+}
+
+// Freeze the candidate distribution while permitting ordinary writes to the
+// unrelated healthy control. Both locks still protect table and index identity.
+func lockSampleTables(ctx context.Context, tx pgx.Tx, schema string) error {
+	if _, err := tx.Exec(ctx, "LOCK TABLE ONLY "+qualified(schema, "candidate")+" IN SHARE ROW EXCLUSIVE MODE NOWAIT"); err != nil {
+		return err
+	}
+	_, err := tx.Exec(ctx, "LOCK TABLE ONLY "+qualified(schema, "healthy")+" IN SHARE UPDATE EXCLUSIVE MODE NOWAIT")
+	return err
 }
 
 func validateSampleFixture(ctx context.Context, tx trialReader, id string, expected fixtureObjects) error {

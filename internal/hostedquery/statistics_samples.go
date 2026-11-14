@@ -85,7 +85,7 @@ func lockStatisticsFixture(ctx context.Context, tx pgx.Tx, fixture string, expec
 		return err
 	}
 	schema := trialSchema(fixture)
-	if _, err := tx.Exec(ctx, "LOCK TABLE ONLY "+qualified(schema, "candidate")+", ONLY "+qualified(schema, "healthy")+" IN SHARE ROW EXCLUSIVE MODE NOWAIT"); err != nil {
+	if err := lockSampleTables(ctx, tx, schema); err != nil {
 		return err
 	}
 	return validateStatisticsFixture(ctx, tx, fixture, expected, withStats)

@@ -1,5 +1,15 @@
 # Design progress
 
+## Mixed traffic qualification, November 14, 2026
+
+Jared authorized realistic traffic checks for the three existing repairs with Claude, documentation and a local commit on the revamp branch, before expanding to the remaining repair families. Existing workflow selections and repair authority remain unchanged. A reusable bounded synthetic workload now tests concurrent reads, healthy-table writes, short spikes, sustained slowdowns and reversed monitoring-off/on comparisons.
+
+The first index and ANALYZE runs repaired their targets but blocked nine and six healthy writes. A shared verification lock caused the interference. The implementation now allows ordinary healthy-table writes while retaining candidate-data and table-definition guards. A concurrent regression test failed before this correction and passed afterward. This internal fixture correction preserves the existing design and repair scope.
+
+Final Railway jobs 63, 68 and 72 used one real Claude request each and produced verified index, ANALYZE and joint-statistics repairs. Slowdown-to-result times were 28.824, 25.034 and 24.675 seconds. All three spikes were ignored. The 5,922 offered requests all completed without errors or missed slots, and fixture cleanup/public-index checks passed. Steady counter collection measured 1.54–1.66 ms of database execution per elapsed second. Full race-enabled Go integration passed on rerun after one older traffic test timed out, and graph tests/typecheck/vet passed. Independent reviews covered driver reporting, cleanup, concurrency safety and measured claims. [Full results and trade-offs](mixed-traffic.md)
+
+Technical assessment: sufficient to continue building the next bounded repair, with human milestone review pending. These are controlled synthetic cases. Concurrent committed writes to the repaired table, broader workloads, customer credentials and production resource budgets remain unqualified. Bounded VACUUM, enrolled function memory and Cron scheduling retain their planned order and require live Claude plus the same traffic evidence. This entry does not claim those repairs are built or approve customer rollout.
+
 ## Live Claude repair integration, November 14, 2026
 
 Jared authorized connecting Claude to all three implemented repairs, testing the full Rookery/Railway flow, documenting results and committing on the revamp branch. He also required live Claude tests for the remaining repair tools. The shared prompt now describes all three implemented operations and their evidence requirements. Qualified statistics cases proceed to the investigator, which may propose a typed operation or decline. Go validates identity and repair eligibility before execution. Model timing and token counts come from the adapter and provider response.

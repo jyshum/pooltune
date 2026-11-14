@@ -238,6 +238,17 @@ Next milestone, ahead of another repair type. Jared identified the missing live 
 
 Results and trade-offs are recorded in [Live Claude repairs](live-repairs.md). Live diagnosis remains bounded by the fixture evidence and Go admission checks.
 
+### Task 23: Qualify mixed traffic for the three live repairs
+
+Jared requested sustained-slowdown detection, brief-spike rejection and Pooltune overhead measurement with Claude, before moving to the remaining three repair families. Reuse the authorized private Rookery fixtures, Railway services and bounded repair tools.
+
+- [x] Add a reusable workload with independent sessions, varied enrolled inputs, healthy reads and committed value-changing writes. Record offered requests, completed throughput, failures, missed request slots and client latency including scheduling delay.
+- [x] Compare matched monitoring-off/on phases in reversed order. Record database execution time, statement counts and shared-page accesses. Distinguish these measurements from CPU, memory and physical disk load.
+- [x] For each implemented repair, establish healthy traffic, induce a short spike, verify zero queued jobs, then induce a sustained slowdown and measure detection, live Claude, execution and verification. Continue traffic through the repair and record interference and cleanup.
+- [x] Document the results and limits. Carry the same workload and live-model requirements forward to bounded VACUUM, enrolled function memory and enrolled Cron scheduling. Extend each fixture with that repair's specific evidence and guards.
+
+The bounded traffic qualification passed after fixing healthy-table lock interference. All three final runs used live Claude and completed 5,922 total requests without errors or missed slots. [Results, timings and open production limits](mixed-traffic.md). Same-table committed-write qualification and higher-load calibration remain open.
+
 ## Candidate test application inspection (historical)
 
 
