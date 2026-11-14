@@ -196,15 +196,18 @@ func recordPoll(ctx context.Context, state *pgx.Conn, enrollment Enrollment, pol
 
 func enqueueInvestigation(ctx context.Context, tx pgx.Tx, project string, objective QueryObjective, history windowState, latest WindowResult) (*InvestigationJob, error) {
 	means := make([]float64, 0, len(history.Recent))
+	calls := make([]int64, 0, len(history.Recent))
 	for _, window := range history.Recent {
 		means = append(means, window.observation(*history.Last).MeanMS)
+		calls = append(calls, window.Calls)
 	}
 	evidence, err := json.Marshal(struct {
 		Generation  [3]time.Time `json:"counter_generation"`
 		ObjectiveMS float64      `json:"objective_ms"`
 		RecentMS    []float64    `json:"recent_window_mean_ms"`
+		RecentCalls []int64      `json:"recent_window_calls"`
 		Latest      WindowResult `json:"latest_window"`
-	}{[3]time.Time{history.Last.Boot.UTC(), history.Last.Reset.UTC(), history.Last.Entry.UTC()}, objective.MeanMS, means, latest})
+	}{[3]time.Time{history.Last.Boot.UTC(), history.Last.Reset.UTC(), history.Last.Entry.UTC()}, objective.MeanMS, means, calls, latest})
 	if err != nil {
 		return nil, err
 	}

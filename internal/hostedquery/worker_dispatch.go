@@ -18,21 +18,24 @@ var errClaimLost = errors.New("investigation claim expired or was replaced")
 
 type investigationClaim struct {
 	InvestigationJob
-	Attempt int
-	Project string
+	Attempt       int
+	Project       string
+	queueEvidence []byte
 }
 
 type DispatchResult struct {
-	JobID        int64                    `json:"job_id"`
-	Attempt      int                      `json:"attempt"`
-	Outcome      string                   `json:"outcome"`
-	ThreadID     string                   `json:"thread_id,omitempty"`
-	Estimate     *EstimatedLookupEvidence `json:"estimated_evidence,omitempty"`
-	Evidence     *IndexEvidence           `json:"evidence,omitempty"`
-	Proposal     *IndexProposal           `json:"proposal,omitempty"`
-	ElapsedMS    float64                  `json:"elapsed_ms"`
-	TargetPlanMS float64                  `json:"target_plan_ms,omitempty"`
-	GraphMS      float64                  `json:"graph_ms,omitempty"`
+	JobID            int64                    `json:"job_id"`
+	Attempt          int                      `json:"attempt"`
+	Outcome          string                   `json:"outcome"`
+	ThreadID         string                   `json:"thread_id,omitempty"`
+	Estimate         *EstimatedLookupEvidence `json:"estimated_evidence,omitempty"`
+	ObservedLatency  *ObservedLookupLatency   `json:"observed_latency,omitempty"`
+	DiagnosticReason string                   `json:"diagnostic_reason,omitempty"`
+	Evidence         *IndexEvidence           `json:"evidence,omitempty"`
+	Proposal         *IndexProposal           `json:"proposal,omitempty"`
+	ElapsedMS        float64                  `json:"elapsed_ms"`
+	TargetPlanMS     float64                  `json:"target_plan_ms,omitempty"`
+	GraphMS          float64                  `json:"graph_ms,omitempty"`
 }
 
 // InvestigationEvidence supplies fresh evidence for this exact enrolled job.
@@ -67,9 +70,9 @@ func claimInvestigation(ctx context.Context, state *pgx.Conn, project string) (*
 			SET attempts=jobs.attempts+1, lease_until=clock_timestamp()+make_interval(secs=>$3)
 			FROM available WHERE jobs.id=available.id
 			RETURNING jobs.id,jobs.database_oid,jobs.role_oid,jobs.query_id,jobs.attempts,
-			          jobs.evidence->'counter_generation'
+			          jobs.evidence->'counter_generation',jobs.evidence
 		`, project, maxInvestigationAttempts, investigationLease.Seconds()).
-			Scan(&claim.ID, &claim.Database, &claim.Role, &claim.Query, &claim.Attempt, &claim.Generation)
+			Scan(&claim.ID, &claim.Database, &claim.Role, &claim.Query, &claim.Attempt, &claim.Generation, &claim.queueEvidence)
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil
 		}
@@ -151,6 +154,17 @@ func DispatchEstimatedInvestigation(ctx context.Context, state *pgx.Conn, projec
 		if estimate != nil {
 			result.Estimate = estimate
 			result.Outcome = "needs_measured_evidence"
+			result.ObservedLatency = observedLookupLatency(claim.queueEvidence, estimate.ObservedAt)
+			switch {
+			case estimate.CoveringIndex:
+				result.DiagnosticReason = "matching_index_exists"
+			case result.ObservedLatency == nil:
+				result.DiagnosticReason = "missing_fresh_latency"
+			case estimate.Estimated.Node != "Seq Scan":
+				result.DiagnosticReason = "no_estimated_sequential_scan"
+			default:
+				result.DiagnosticReason = "missing_measured_plan"
+			}
 		}
 		return nil
 	})

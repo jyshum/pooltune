@@ -177,6 +177,13 @@ Depends on Tasks 10 and 13. Follows d-workflow r1, d-reuse r1 and d-onboarding r
 - [x] Run the Go detector with the dedicated Rookery login and matching query enrollment. Restrict the detector to statements executed by that authenticated role. Keep the existing fixture routes.
 - [x] Drive indexed and unindexed synthetic traffic while Railway runs the detector and consumer. Verify the detector alone creates one durable job, the healthy lookup creates zero jobs, and the consumer saves estimate-only evidence. Record checks, cleanup, and trade-offs in [Enrolled Rookery traffic in hosted staging](enrolled-traffic-staging.md).
 
+### Task 15: Carry measured traffic into the enrolled investigation
+
+Depends on Task 14 and follows d-workflow r1 and d-reuse r1.
+
+- [x] Keep the sample counts for the five decision windows already measured by the detector. Read them with the existing queued job and preserve the valid, recent observations separately from the planner estimate.
+- [x] Record why the enrolled missing-index investigation stops here. Cover older jobs without sample counts, stale measurements, healthy traffic, and exact reuse of fresh detector output. Verify the consumer makes no extra lookup, and document the [results and trade-offs](observed-traffic-diagnosis.md).
+
 ## Candidate test application inspection (historical)
 
 

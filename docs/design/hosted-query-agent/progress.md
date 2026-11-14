@@ -1,5 +1,9 @@
 # Design progress
 
+## Measured traffic reuse in hosted staging, November 14, 2026
+
+Jared accepted the preceding detector handoff with “Okay, these tests are good. Then let's continue.” Task 15 reused five traffic windows covering 91 Rookery calls, saved the current estimated plan and index check, and recorded why a measured plan is still needed. Job 12 finished on its first attempt 2.691 seconds after queuing. The healthy lookup created no job. The [diagnosis record](observed-traffic-diagnosis.md) captures exact metrics, the ten-minute freshness choice, and the next evidence gap. Independent review identified test-ordering and missing-value cases. Both now have focused regression coverage.
+
 ## Enrolled traffic in hosted staging, November 14, 2026
 
 Task 14 connected the Railway detector and consumer to the same enrolled Rookery test login. From 240 pairs of reads, the detector created job 11 for the unindexed lookup and reported no change for the indexed lookup. The consumer saved the estimate and index check in 2.841 seconds after queuing. The [traffic test](enrolled-traffic-staging.md) records the timing, design trade-offs, and staging reproduction. Cross-role telemetry and measured evidence for the hosted investigator remain open.
