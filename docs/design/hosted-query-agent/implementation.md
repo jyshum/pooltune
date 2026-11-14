@@ -212,6 +212,13 @@ Depends on Tasks 17–18. Reuses one isolated, journaled fixture and the existin
 - [x] Run detector, durable queue, graph, and guarded repair on the same fixture and queued job. Save the result and timings together. Keep a separate staging switch for authorized fixture mutations.
 - [x] Verify a healthy control, matched before/after reads and writes, and no duplicate build. Record one traffic-to-result timeline and fixture cleanup in [Queued index repair](queued-index-repair.md).
 
+### Task 20: Run targeted ANALYZE through the shared queue
+
+Depends on Task 19. Follows d-workflow r1, d-reuse r1, and repair 2 of the V1 design.
+
+- [x] Reproduce stale lookup-column statistics on a disposable fixture with an existing index. Qualify a worthwhile query with a measured 10x row estimate error. Use the shared graph and exact Go-gated column-scoped ANALYZE.
+- [x] Reuse the matched test-input baseline, measure plan accuracy and reads/writes after, and record a single Railway timeline. Keep pending actions from repeating automatically. Verify a healthy control and fixture cleanup. [Targeted ANALYZE results](targeted-analyze.md)
+
 ## Candidate test application inspection (historical)
 
 

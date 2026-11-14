@@ -36,6 +36,7 @@ type DispatchResult struct {
 	ElapsedMS        float64                  `json:"elapsed_ms"`
 	TargetPlanMS     float64                  `json:"target_plan_ms,omitempty"`
 	RecoveredIndex   string                   `json:"recovered_index,omitempty"`
+	Analyze          *AnalyzeReport           `json:"analyze,omitempty"`
 	Repair           *IndexTrialReport        `json:"repair,omitempty"`
 	GraphMS          float64                  `json:"graph_ms,omitempty"`
 }
@@ -137,6 +138,8 @@ func runIndexInvestigator(ctx context.Context, claim investigationClaim, result 
 		return fmt.Errorf("invoke investigator: %w", err)
 	}
 	if (proposal.Outcome != "propose" && proposal.Outcome != "no_change") ||
+		(proposal.Repair != "" && (proposal.Repair != "analyze" || evidence.Analyze == nil)) ||
+		(evidence.Analyze != nil && proposal.Outcome == "propose" && proposal.Repair != "analyze") ||
 		proposal.RunID != evidence.RunID || proposal.TableOID != evidence.TableOID ||
 		proposal.Column != evidence.Column || len(proposal.Reason) == 0 || len(proposal.Reason) > 1000 {
 		return errors.New("graph response does not match the claimed investigation")

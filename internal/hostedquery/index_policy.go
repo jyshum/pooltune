@@ -7,19 +7,21 @@ import (
 
 // IndexEvidence is a bounded snapshot of an enrolled synthetic lookup.
 type IndexEvidence struct {
-	RunID       string       `json:"run_id"`
-	At          time.Time    `json:"observed_at"`
-	Decision    Decision     `json:"decision"`
-	TableOID    uint32       `json:"table_oid"`
-	Column      int16        `json:"column_number"`
-	Existing    bool         `json:"covering_index"`
-	Plan        PlanEvidence `json:"plan"`
-	ExecutionMS float64      `json:"-"`
-	Label       string       `json:"lookup_column"`
+	RunID       string           `json:"run_id"`
+	At          time.Time        `json:"observed_at"`
+	Decision    Decision         `json:"decision"`
+	TableOID    uint32           `json:"table_oid"`
+	Column      int16            `json:"column_number"`
+	Existing    bool             `json:"covering_index"`
+	Analyze     *AnalyzeEvidence `json:"analyze,omitempty"`
+	Plan        PlanEvidence     `json:"plan"`
+	ExecutionMS float64          `json:"-"`
+	Label       string           `json:"lookup_column"`
 }
 
 // IndexProposal refers to evidence by identity. Only Go resolves identifiers.
 type IndexProposal struct {
+	Repair   string `json:"repair,omitempty"`
 	Outcome  string `json:"outcome"`
 	RunID    string `json:"run_id"`
 	TableOID uint32 `json:"table_oid"`
@@ -33,7 +35,7 @@ func qualifyIndex(e IndexEvidence, p IndexProposal, now time.Time) error {
 		return errors.New("lookup did not trigger investigation")
 	case e.At.IsZero() || e.At.After(now) || now.Sub(e.At) > 30*time.Second:
 		return errors.New("index evidence expired")
-	case p.Outcome != "propose" || e.RunID == "" || p.RunID != e.RunID ||
+	case p.Repair != "" || p.Outcome != "propose" || e.RunID == "" || p.RunID != e.RunID ||
 		e.TableOID == 0 || p.TableOID != e.TableOID || e.Column <= 0 || p.Column != e.Column ||
 		len(p.Reason) == 0 || len(p.Reason) > 1000:
 		return errors.New("proposal does not match the enrolled lookup and evidence")

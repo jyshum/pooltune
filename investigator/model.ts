@@ -21,7 +21,7 @@ export function buildSingleCallInvestigator(recommend: (messages: [SystemMessage
 }
 
 export const anthropicInvestigator = buildSingleCallInvestigator((messages) =>
-  createAnthropicModel().withStructuredOutput(proposalSchema, { name: "index_recommendation" }).invoke(messages)
+  createAnthropicModel().withStructuredOutput(proposalSchema.omit({ repair: true }), { name: "index_recommendation" }).invoke(messages)
 );
 
 export const scriptedInvestigator: Investigator = async (read, evidence) => {

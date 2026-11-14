@@ -1,5 +1,9 @@
 # Design progress
 
+## Targeted ANALYZE in the hosted queue, November 14, 2026
+
+Task 20 refreshed one lookup column from the same Railway queue and shared LangGraph. Rookery job 27 reduced the row estimate from 106,720 to one, used the existing index, and improved the measured lookup from 10.709 ms to 0.023 ms. The complete staging run took 29.245 seconds. The [results and trade-offs](targeted-analyze.md) distinguish the hosted measurements from local recovery and concurrent-refresh checks. The modification-count detection path and customer qualification remain open.
+
 ## One queue-driven index repair in Railway, November 14, 2026
 
 Task 19 connected the prior recommendation path to the guarded index builder on the same synthetic Rookery fixture. Job 23 saved the verified result 35.385 seconds after paired traffic began. The indexed control issued no job. The [combined report](queued-index-repair.md) gives the stage timings, read and write results, and the bounded recovery contract. Disposable PostgreSQL tests exercise verified-result replay and fixture-scoped interruption cleanup.

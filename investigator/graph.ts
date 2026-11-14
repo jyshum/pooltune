@@ -18,6 +18,7 @@ export const evidenceSchema = z.strictObject({
   lookup_column: z.literal("lookup"),
   covering_index: z.boolean(),
   plan: planSchema,
+  analyze: z.strictObject({ estimated_rows: z.number().int().positive(), actual_rows: z.number().int().positive() }).optional(),
 });
 
 export const proposalSchema = z.strictObject({
@@ -25,6 +26,7 @@ export const proposalSchema = z.strictObject({
   run_id: z.string().min(1).max(64),
   table_oid: z.number().int().positive().max(4294967295),
   column_number: z.number().int().positive().max(32767),
+  repair: z.literal("analyze").optional(),
   reason: z.string().min(1).max(1000),
 });
 
@@ -46,6 +48,15 @@ function identity(evidence: Evidence) {
 export function buildGraph(investigate: Investigator, checkpointer?: BaseCheckpointSaver) {
   return new StateGraph(state)
     .addNode("screen_evidence", ({ evidence }) => {
+      if (evidence.analyze) {
+        const { estimated_rows, actual_rows } = evidence.analyze;
+        const strong = evidence.decision === "investigate" && evidence.covering_index && Math.max(estimated_rows, actual_rows) >= 10 * Math.min(estimated_rows, actual_rows);
+        return {
+          proposal: strong
+            ? { ...identity(evidence), outcome: "propose" as const, repair: "analyze" as const, reason: "The measured row estimate is off by at least tenfold on the enrolled column." }
+            : { ...identity(evidence), outcome: "no_change" as const, reason: "The measured row estimate does not warrant a statistics refresh." },
+        };
+      }
       const { plan } = evidence;
       if (evidence.decision === "investigate" && !evidence.covering_index &&
           plan.node === "Seq Scan" && plan.examined_rows >= 10000 &&

@@ -16,7 +16,16 @@ type ConsumerFixture struct {
 }
 
 // CreateConsumerFixture creates a committed synthetic fixture so it can survive a worker restart.
-func CreateConsumerFixture(ctx context.Context, target, state *pgx.Conn, route string) (report ConsumerFixture, err error) {
+func CreateConsumerFixture(ctx context.Context, target, state *pgx.Conn, route string) (ConsumerFixture, error) {
+	return createConsumerFixture(ctx, target, state, route, false)
+}
+
+// CreateAnalyzeFixture prepares one private stale-statistics comparison.
+func CreateAnalyzeFixture(ctx context.Context, target, state *pgx.Conn, route string) (ConsumerFixture, error) {
+	return createConsumerFixture(ctx, target, state, route, true)
+}
+
+func createConsumerFixture(ctx context.Context, target, state *pgx.Conn, route string, analyze bool) (report ConsumerFixture, err error) {
 	if err := prepareJournal(ctx, state); err != nil {
 		return report, err
 	}
@@ -40,13 +49,23 @@ func CreateConsumerFixture(ctx context.Context, target, state *pgx.Conn, route s
 	if err := createTrial(ctx, target, state, report.ID); err != nil {
 		return report, err
 	}
+	status, source := "consumer_ready", ""
+	if analyze {
+		status, source = "analyze_ready", "ONLY "
+		if err := writeTrialStatus(ctx, state, report.ID, "analyze_preparing", nil, nil); err != nil {
+			return report, err
+		}
+		if err := seedStaleLookupStats(ctx, target, report.Schema); err != nil {
+			return report, err
+		}
+	}
 	err = pgx.BeginTxFunc(ctx, target, pgx.TxOptions{AccessMode: pgx.ReadOnly}, func(tx pgx.Tx) error {
 		var database, role uint32
 		if err := tx.QueryRow(ctx, "SELECT oid,current_user::regrole::oid FROM pg_database WHERE datname=current_database()").Scan(&database, &role); err != nil {
 			return err
 		}
 		for _, lookup := range []struct{ table, column string }{{"healthy", "id"}, {"candidate", "lookup"}} {
-			sql := "SELECT id FROM " + qualified(report.Schema, lookup.table) + " WHERE " + lookup.column + "=$1"
+			sql := "SELECT id FROM " + source + qualified(report.Schema, lookup.table) + " WHERE " + lookup.column + "=$1"
 			plan, err := readPlan(ctx, tx, "EXPLAIN (FORMAT JSON, VERBOSE) "+sql)
 			if err != nil {
 				return err
@@ -61,7 +80,7 @@ func CreateConsumerFixture(ctx context.Context, target, state *pgx.Conn, route s
 		return nil
 	})
 	if err == nil {
-		err = writeTrialStatus(ctx, state, report.ID, "consumer_ready", nil, nil)
+		err = writeTrialStatus(ctx, state, report.ID, status, nil, nil)
 	}
 	return report, err
 }

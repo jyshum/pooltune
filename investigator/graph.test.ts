@@ -92,3 +92,14 @@ test("the default graph makes one request containing both pieces of evidence", a
   assert.deepEqual(payload.plan, evidence.plan);
   assert.deepEqual(payload.indexes, { covering_index: false });
 });
+
+test("the shared graph recommends targeted ANALYZE only for a material row estimate error", async () => {
+  const graph = buildGraph(async () => { throw new Error("index model should not be called"); });
+  const stale = { ...evidence, covering_index: true, analyze: { estimated_rows: 100000, actual_rows: 1 } };
+  const proposed = await graph.invoke({ evidence: stale });
+  assert.equal(proposed.proposal?.outcome, "propose");
+  assert.equal(proposed.proposal?.repair, "analyze");
+  assert.equal(proposed.proposal?.table_oid, 42);
+  const current = await graph.invoke({ evidence: { ...stale, analyze: { estimated_rows: 2, actual_rows: 1 } } });
+  assert.equal(current.proposal?.outcome, "no_change");
+});

@@ -264,6 +264,7 @@ type explainNode struct {
 	Type     string `json:"Node Type"`
 	Schema   string `json:"Schema"`
 	Relation string `json:"Relation Name"`
+	EstRows  int64  `json:"Plan Rows"`
 	Rows     int64  `json:"Actual Rows"`
 	Loops    int64  `json:"Actual Loops"`
 	Filtered int64  `json:"Rows Removed by Filter"`
