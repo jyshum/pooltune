@@ -1,0 +1,173 @@
+{
+  "source": "073f6080631a8ca6e6e924c1283830fcfd5776a1",
+  "service": "ca12b248-e7c7-49da-91bc-bd8ec1e42f07",
+  "test_deployment": "e7f98a74-e835-4176-8a0b-68a5c4d11e58",
+  "model": "claude-sonnet-5-5",
+  "test_poll_interval": "2s",
+  "test_window": "4s",
+  "passive_run": {
+    "web_signup_signout_signin": true,
+    "project_id": "bcef56f6a672d4fd",
+    "source": "exact SQL rendered by dashboard",
+    "account_at": "2026-11-15T09:14:11.691397+00:00",
+    "traffic_started_at": "2026-11-15T09:14:20.905242+00:00",
+    "normal_traffic_pairs": 100,
+    "top_level_query_counts": {
+      "healthy": 101,
+      "items": 101
+    },
+    "slow_query_id": "1380026962941221196",
+    "healthy_query_id": "327830586514348776",
+    "job": {
+      "id": 206,
+      "database_oid": 5,
+      "role_oid": 28041,
+      "query_id": "1380026962941221196",
+      "created_at": "2026-11-15T09:14:42.469994Z",
+      "claimed_at": "2026-11-15T09:14:42.696563Z",
+      "finished_at": "2026-11-15T09:14:48.880913Z",
+      "attempts": 1,
+      "outcome": "diagnosed",
+      "reason": "Latency is about 7-9 ms against a 0.5 ms objective. Each call touches roughly all 443 table pages with no leading B-tree, so a full-scan cost is the leading hypothesis. No measured plan exists, so the scan node is unconfirmed.",
+      "plan_node": "",
+      "plan_source": "",
+      "elapsed_ms": 6184.391339,
+      "target_plan_ms": null,
+      "graph_ms": null,
+      "model_ms": 4060.476276
+    },
+    "polls": 23,
+    "windows": 22,
+    "dashboard_readback": true
+  },
+  "passive_cleanup": {
+    "disconnected_at": "2026-11-15T09:15:09.269361+00:00",
+    "pilot_objects_removed": true,
+    "public_indexes_unchanged": true
+  },
+  "measured_run": {
+    "owner_captured_sample": {
+      "node": "Seq Scan",
+      "actual_rows": 1,
+      "execution_ms": 9.106,
+      "filtered_rows": 99999,
+      "estimated_rows": 1,
+      "shared_hit_blocks": 443,
+      "shared_read_blocks": 0
+    },
+    "reconnect_poll_and_persisted_diagnosis": true,
+    "web_signup_signout_signin": true,
+    "project_id": "469aad90410fdac1",
+    "source": "exact SQL rendered by dashboard",
+    "account_at": "2026-11-15T09:20:51.813626+00:00",
+    "traffic_started_at": "2026-11-15T09:21:00.281511+00:00",
+    "normal_traffic_pairs": 100,
+    "top_level_query_counts": {
+      "items": 101,
+      "healthy": 101
+    },
+    "slow_query_id": "1440394374884158558",
+    "healthy_query_id": "8123155479918945847",
+    "job": {
+      "id": 210,
+      "database_oid": 5,
+      "role_oid": 28280,
+      "query_id": "1440394374884158558",
+      "created_at": "2026-11-15T09:21:21.444641Z",
+      "claimed_at": "2026-11-15T09:21:21.646923Z",
+      "finished_at": "2026-11-15T09:21:28.059893Z",
+      "attempts": 1,
+      "outcome": "diagnosed",
+      "reason": "Leading explanation: the lookup is a full table scan with no leading B-tree, reading about every page per call (443 pages, 99,999 rows filtered in the sample, ~9 ms vs 0.5 ms goal). Stale statistics remain uncertain; this is not proof.",
+      "plan_node": "Seq Scan",
+      "plan_source": "measured_lookup",
+      "elapsed_ms": 6415.893507,
+      "target_plan_ms": null,
+      "graph_ms": null,
+      "model_ms": 4233.656408
+    },
+    "polls": 23,
+    "windows": 22,
+    "dashboard_readback": true
+  },
+  "measured_cleanup": {
+    "disconnected_at": "2026-11-15T09:21:53.222773+00:00",
+    "pilot_objects_removed": true,
+    "public_indexes_unchanged": true
+  },
+  "browser": [
+    {
+      "width": 1280,
+      "signup": {
+        "width": 1280,
+        "overflow": false,
+        "heading": "Create an account",
+        "fields": [
+          "email",
+          "password",
+          "invite_code"
+        ],
+        "bg": "rgb(18, 18, 18)"
+      },
+      "sign_in": {
+        "overflow": false,
+        "title": "Sign in",
+        "fields": [
+          "email",
+          "password"
+        ]
+      }
+    },
+    {
+      "width": 390,
+      "signup": {
+        "width": 390,
+        "overflow": false,
+        "heading": "Create an account",
+        "fields": [
+          "email",
+          "password",
+          "invite_code"
+        ],
+        "bg": "rgb(18, 18, 18)"
+      },
+      "sign_in": {
+        "overflow": false,
+        "title": "Sign in",
+        "fields": [
+          "email",
+          "password"
+        ]
+      }
+    }
+  ],
+  "local_checks": {
+    "go_race": true,
+    "go_vet": true,
+    "postgres_integration_race": true,
+    "investigator_typecheck": true,
+    "investigator_tests_passed": 97
+  },
+  "handoff_deployment": "fc201392-34c3-4b2e-800f-ddf652edcdd4",
+  "handoff_health": {
+    "railway_status": "SUCCESS",
+    "http_health": 200,
+    "signup_http": 200,
+    "sign_in_http": 200,
+    "diagnosis_enabled": true,
+    "poll_interval": "1m",
+    "window": "5m",
+    "staged_changes": 0
+  },
+  "rookery_final_readback": {
+    "roles": 0,
+    "schemas": 0,
+    "sessions": 0
+  },
+  "other_staging_deployments": {
+    "Consumer": "c61a85fa-34ab-4876-ae61-fd3473d5da5d",
+    "Detector": "08dc4edd-6be5-4e96-a472-e3389b3d2d8f",
+    "Enrolled Queries": "37144a01-65bf-458c-b02e-97ffcb52fdf0",
+    "Postgres": "5e66d902-c6f6-44ed-80dc-a43ec6cff816"
+  }
+}

@@ -1,7 +1,8 @@
 {
   "sourceRevision": "073f6080631a8ca6e6e924c1283830fcfd5776a1",
-  "summary": "Railway detects slow enrolled Rookery queries and saves Sonnet diagnoses using plans from ordinary app traffic. Two query shapes and six bounded repair cases passed in staging. Broader evidence, repair targeting, and customer setup remain.",
+  "summary": "Pooltune has an invite-only dashboard that connects a manually installed Supabase monitor and shows live query history and Sonnet diagnoses. A Rookery fixture verified the full read-only preview. Broader query evidence, customer repairs and production rollout remain.",
   "next": [
+    "preview-week-pilot",
     "connect-project",
     "activity",
     "repair-coverage",
@@ -57,11 +58,12 @@
     },
     "state": {
       "status": "verified",
-      "scope": "Built in staging: PostgreSQL saves measurements, jobs, action intent and graph checkpoints.",
-      "remaining": "Account isolation, retention, backup/restore qualification and production secret handling remain.",
+      "scope": "PostgreSQL retains enrolled query history, investigations and checkpoints. Preview account separation and bounded history passed local database tests.",
+      "remaining": "Qualify backup and restore, retention under production load and key rotation.",
       "evidence": [
         "internal/hostedquery/worker_store.go",
-        "docs/design/hosted-query-agent/hosted-staging.md"
+        "docs/design/hosted-query-agent/hosted-staging.md",
+        "docs/design/hosted-query-agent/hosted-preview.md"
       ]
     },
     "investigator": {
@@ -207,23 +209,23 @@
     },
     "backend": {
       "status": "partial",
-      "scope": "The preview API has account sessions and owner-scoped project reads and setup routes.",
-      "remaining": "Qualify hosted connection and broader release operations, including credential rotation.",
+      "scope": "An owner-scoped hosted service validates the dedicated Supabase login and controls its worker and saved history.",
+      "remaining": "Add automated credential rotation and qualify production account and deployment operations.",
       "evidence": [
         "docs/design/hosted-query-agent/roadmap.md",
         "docs/design/hosted-query-agent/hosted-preview.md"
       ],
-      "statusLabel": "Owner routes verified locally"
+      "statusLabel": "Hosted owner routes verified"
     },
     "dashboard": {
       "status": "partial",
-      "scope": "The preview has styled account, project and manual setup screens. The local test verified access from the owning account.",
-      "remaining": "Verify a connected Supabase project, saved investigation and disconnect through the hosted dashboard.",
+      "scope": "An invited account connected to Rookery through the dashboard, read a measured-plan Sonnet diagnosis and resumed polling after reconnect.",
+      "remaining": "Public onboarding, account recovery, and a seven-day workload pilot remain.",
       "evidence": [
         "docs/design/hosted-query-agent/roadmap.md",
         "docs/design/hosted-query-agent/hosted-preview.md"
       ],
-      "statusLabel": "Account dashboard verified locally"
+      "statusLabel": "Hosted preview verified"
     },
     "studio": {
       "status": "partial",
@@ -288,18 +290,17 @@
     },
     "connect-project": {
       "status": "partial",
-      "scope": "The private operator path monitors Rookery and saves one approved lookup diagnosis on Railway.",
-      "remaining": "Build: Build the account-owned setup screen and support more query shapes. Verify: Qualify other real projects, models of workload and hosted credential failures.",
+      "scope": "The hosted preview verifies a manually installed Rookery role, activates its worker and shows an enrolled diagnosis.",
+      "remaining": "Qualify the intended pilot project and additional query routes. Expand onboarding beyond the preview.",
       "evidence": [
         "docs/design/hosted-query-agent/supabase-monitoring.md",
         "cmd/pooltune-project/main.go",
         "internal/supabaseproject/install.sql",
         "docs/design/hosted-query-agent/enrolled-diagnosis.md",
-        "docs/design/hosted-query-agent/enrolled-railway.md"
+        "docs/design/hosted-query-agent/enrolled-railway.md",
+        "docs/design/hosted-query-agent/hosted-preview.md"
       ],
-      "statusLabel": "Railway operator path verified",
-      "remainingBuild": "Build the account-owned setup screen and support more query shapes.",
-      "remainingVerification": "Qualify other real projects, models of workload and hosted credential failures."
+      "statusLabel": "Manual connection verified"
     },
     "credential-lifecycle": {
       "status": "partial",
@@ -324,12 +325,14 @@
       "statusLabel": "Preview sign-in tested"
     },
     "activity": {
-      "status": "planned",
-      "scope": "Next: show detection, investigation, applied changes, verification and pause controls.",
-      "remaining": "Join Go worker and LangGraph events into one understandable timeline.",
+      "status": "partial",
+      "scope": "The dashboard showed query windows, a healthy control, monitor checks and a Sonnet diagnosis with a measured plan. The diagnosis remained visible after reconnect.",
+      "remaining": "Qualify a full pilot week and broaden customer-facing repair history and reporting.",
       "evidence": [
-        "docs/design/hosted-query-agent/roadmap.md"
-      ]
+        "docs/design/hosted-query-agent/roadmap.md",
+        "docs/design/hosted-query-agent/hosted-preview.md"
+      ],
+      "statusLabel": "Live read-only activity verified"
     },
     "landing": {
       "status": "planned",
@@ -342,9 +345,10 @@
     "operations": {
       "status": "planned",
       "scope": "Remaining: qualify account separation, operating limits, monitoring and recovery for customer use.",
-      "remaining": "Backups/restore, retention, cost limits, deployment/outage behavior and abandoned jobs remain.",
+      "remaining": "Qualify backup and restore, credential rotation, deploy and outage behavior, and the seven-day pilot.",
       "evidence": [
-        "docs/design/hosted-query-agent/roadmap.md"
+        "docs/design/hosted-query-agent/roadmap.md",
+        "docs/design/hosted-query-agent/hosted-preview.md"
       ]
     },
     "hosted-diagnostic-integration": {
@@ -551,6 +555,27 @@
         "internal/hostedapp/auth/store.go",
         "docs/design/hosted-query-agent/hosted-preview.md"
       ]
+    },
+    "hosted-preview-project": {
+      "status": "verified",
+      "statusLabel": "Railway and Rookery verified",
+      "scope": "An invited account connected to Rookery through the dashboard, read a measured-plan Sonnet diagnosis and resumed polling after reconnect.",
+      "remaining": "An owner can connect a project manually. The wider workload and week-long pilot qualifications remain.",
+      "evidence": [
+        "docs/design/hosted-query-agent/hosted-preview.md",
+        "docs/design/hosted-query-agent/evidence/hosted-preview-railway.json",
+        "internal/hostedapp/supervisor.go"
+      ]
+    },
+    "preview-week-pilot": {
+      "status": "planned",
+      "statusLabel": "Waiting for project connection",
+      "scope": "Connect the intended Supabase project manually and observe a full week of ordinary traffic.",
+      "remaining": "Use the dashboard to review poll gaps, query timings, sustained slowdowns and diagnosis coverage.",
+      "evidence": [
+        "docs/design/hosted-query-agent/hosted-preview.md",
+        "docs/design/hosted-query-agent/roadmap.md"
+      ]
     }
   },
   "colorMeaning": "Green verifies the stated case only. Yellow means the named area still contains concrete missing implementation or verification. It is not a percentage complete; inspect Build next and Verify next.",
@@ -607,6 +632,15 @@
       "nodes": [
         "preview-account-session",
         "dashboard"
+      ]
+    },
+    {
+      "label": "Task 43 · Connect from the hosted dashboard",
+      "summary": "The account flow provisioned an exact Rookery monitoring role. Railway saved and displayed the enrolled diagnosis with a measured scan, kept it through reconnect and cleaned up the fixture.",
+      "nodes": [
+        "hosted-preview-project",
+        "activity",
+        "connect-project"
       ]
     }
   ]

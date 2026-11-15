@@ -3,7 +3,7 @@
   "id": "pooltune-hosted-agent",
   "title": "Maintain Supabase query performance",
   "workType": "Build progress and remaining work",
-  "summary": "Railway detects slow enrolled Rookery queries and saves Sonnet diagnoses using plans from ordinary app traffic. Two query shapes and six bounded repair cases passed in staging. Broader evidence, repair targeting, and customer setup remain.",
+  "summary": "Pooltune has an invite-only dashboard that connects a manually installed Supabase monitor and shows live query history and Sonnet diagnoses. A Rookery fixture verified the full read-only preview. Broader query evidence, customer repairs and production rollout remain.",
   "sourceRevision": {
     "commit": "073f6080631a8ca6e6e924c1283830fcfd5776a1",
     "dirty": false
@@ -30,7 +30,7 @@
       "id": "dashboard",
       "label": "Customer dashboard",
       "type": "interface",
-      "purpose": "The preview has styled account, project and manual setup screens. The local test verified access from the owning account.",
+      "purpose": "An invited account connected to Rookery through the dashboard, read a measured-plan Sonnet diagnosis and resumed polling after reconnect.",
       "decisionIds": [
         "d-hosting",
         "d-onboarding"
@@ -48,15 +48,15 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "The preview has styled account, project and manual setup screens. The local test verified access from the owning account.",
-      "after": "Add project setup, evidence, action history, and stop controls; frontend integration remains open.",
+      "changeSummary": "An invited account connected to Rookery through the dashboard, read a measured-plan Sonnet diagnosis and resumed polling after reconnect.",
+      "after": "An invited account connected to Rookery through the dashboard, read a measured-plan Sonnet diagnosis and resumed polling after reconnect.",
       "expandWhy": "What will a customer use to connect a project and watch Pooltune work?"
     },
     {
       "id": "backend",
       "label": "Hosted API",
       "type": "service",
-      "purpose": "The preview API has account sessions and owner-scoped project reads and setup routes.",
+      "purpose": "An owner-scoped hosted service validates the dedicated Supabase login and controls its worker and saved history.",
       "decisionIds": [
         "d-language",
         "d-hosting",
@@ -76,11 +76,11 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "The preview API has account sessions and owner-scoped project reads and setup routes.",
+      "changeSummary": "An owner-scoped hosted service validates the dedicated Supabase login and controls its worker and saved history.",
       "stack": [
         "Go"
       ],
-      "after": "Authenticate project access and expose configuration and results; auth and credential design remain open.",
+      "after": "An owner-scoped hosted service validates the dedicated Supabase login and controls its worker and saved history.",
       "expandWhy": "What must connect the tested worker to a real customer project?"
     },
     {
@@ -269,7 +269,7 @@
       "id": "state",
       "label": "Pooltune state: staging",
       "type": "data-store",
-      "purpose": "Built in staging: PostgreSQL saves measurements, jobs, action intent and graph checkpoints.",
+      "purpose": "PostgreSQL retains enrolled query history, investigations and checkpoints. Preview account separation and bounded history passed local database tests.",
       "decisionIds": [
         "d-workflow",
         "d-hosting",
@@ -889,7 +889,7 @@
       "id": "connect-project",
       "label": "Connect and enroll a project",
       "type": "service",
-      "purpose": "An operator can verify a direct Supabase connection and monitor exact app-role statements chosen by the database owner.",
+      "purpose": "The hosted preview verifies a manually installed Rookery role, activates its worker and shows an enrolled diagnosis.",
       "decisionIds": [],
       "sources": [
         {
@@ -909,8 +909,8 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "An operator can verify a direct Supabase connection and monitor exact app-role statements chosen by the database owner.",
-      "after": "An operator can verify a direct Supabase connection and monitor exact app-role statements chosen by the database owner.",
+      "changeSummary": "The hosted preview verifies a manually installed Rookery role, activates its worker and shows an enrolled diagnosis.",
+      "after": "The hosted preview verifies a manually installed Rookery role, activates its worker and shows an enrolled diagnosis.",
       "parent": "backend",
       "stack": [
         "Go",
@@ -965,7 +965,7 @@
       "id": "activity",
       "label": "Project activity and controls",
       "type": "service",
-      "purpose": "Next: show detection, investigation, applied changes, verification and pause controls.",
+      "purpose": "The dashboard showed query windows, a healthy control, monitor checks and a Sonnet diagnosis with a measured plan. The diagnosis remained visible after reconnect.",
       "decisionIds": [],
       "sources": [
         {
@@ -975,8 +975,8 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Next: show detection, investigation, applied changes, verification and pause controls.",
-      "after": "Next: show detection, investigation, applied changes, verification and pause controls.",
+      "changeSummary": "The dashboard showed query windows, a healthy control, monitor checks and a Sonnet diagnosis with a measured plan. The diagnosis remained visible after reconnect.",
+      "after": "The dashboard showed query windows, a healthy control, monitor checks and a Sonnet diagnosis with a measured plan. The diagnosis remained visible after reconnect.",
       "parent": "dashboard"
     },
     {
@@ -1949,6 +1949,50 @@
         "Go",
         "PostgreSQL"
       ]
+    },
+    {
+      "id": "hosted-preview-project",
+      "label": "Account to live monitoring",
+      "type": "service",
+      "purpose": "An invited account connected to Rookery through the dashboard, read a measured-plan Sonnet diagnosis and resumed polling after reconnect.",
+      "decisionIds": [],
+      "sources": [
+        {
+          "path": "docs/design/hosted-query-agent/hosted-preview.md",
+          "revision": "073f6080631a8ca6e6e924c1283830fcfd5776a1",
+          "kind": "verified"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "An invited account connected to Rookery through the dashboard, read a measured-plan Sonnet diagnosis and resumed polling after reconnect.",
+      "after": "An invited account connected to Rookery through the dashboard, read a measured-plan Sonnet diagnosis and resumed polling after reconnect.",
+      "parent": "dashboard",
+      "stack": [
+        "Go",
+        "PostgreSQL"
+      ]
+    },
+    {
+      "id": "preview-week-pilot",
+      "label": "Run the seven-day pilot",
+      "type": "service",
+      "purpose": "Connect the intended Supabase project manually and observe a full week of ordinary traffic.",
+      "decisionIds": [],
+      "sources": [
+        {
+          "path": "docs/design/hosted-query-agent/hosted-preview.md",
+          "revision": "073f6080631a8ca6e6e924c1283830fcfd5776a1",
+          "kind": "intended"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Connect the intended Supabase project manually and observe a full week of ordinary traffic.",
+      "after": "Connect the intended Supabase project manually and observe a full week of ordinary traffic.",
+      "parent": "dashboard",
+      "stack": [
+        "Go",
+        "PostgreSQL"
+      ]
     }
   ],
   "edges": [
@@ -2179,6 +2223,18 @@
       "from": "dashboard",
       "to": "preview-account-session",
       "label": "provides this verified behavior"
+    },
+    {
+      "id": "e-hosted-preview-project",
+      "from": "dashboard",
+      "to": "hosted-preview-project",
+      "label": "provides this verified behavior"
+    },
+    {
+      "id": "e-preview-week-pilot",
+      "from": "dashboard",
+      "to": "preview-week-pilot",
+      "label": "pilot qualification"
     }
   ],
   "decisions": [

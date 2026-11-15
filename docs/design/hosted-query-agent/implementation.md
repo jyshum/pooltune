@@ -459,5 +459,7 @@ Tasks 27–29 completed for the explicitly bounded diagnostic slice. Sonnet pass
 
 **Design:** The owner runs the existing setup for a dedicated Supabase monitor login and enters its credentials. Keep project secrets encrypted with a separate runtime key. Share the current worker, diagnosis queue, epoch guard, and disconnect contract. The preview uses one web replica, durable active registrations, and supervised background project workers.
 
-- [ ] Verify connection against an authorized owned fixture, monitor startup, healthy control, saved read-only diagnosis, reconnect and disconnect. Update the map with only the proven scope.
-- [ ] Verify staging and document the real-project handoff. Keep broader evidence shapes, customer repair qualification, public onboarding and the week-long pilot statuses accurate.
+- [x] Verify connection against an authorized owned fixture, monitor startup, healthy control, saved read-only diagnosis, reconnect and disconnect. Update the map with only the proven scope.
+- [x] Verify staging and document the real-project handoff. Keep broader evidence shapes, customer repair qualification, public onboarding and the week-long pilot statuses accurate.
+
+The Railway preview verified two Rookery runs, one with passive evidence and one with a measured lookup plan. The measured run resumed polling after reconnect and preserved the saved diagnosis. The preview is now on one-minute polls and five-minute windows. [Recorded evidence](evidence/hosted-preview-railway.json) · [Manual connection and pilot](hosted-preview.md)
