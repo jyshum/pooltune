@@ -1,11 +1,26 @@
 package hostedquery
 
 import (
+	"context"
+	"errors"
 	"testing"
 	"time"
 
 	"pooltune/internal/supabaseproject"
 )
+
+func TestOwnedIndexRestartProbeOnlyStopsTheExplicitStagingAction(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	var fixture OwnedProjectIndex
+	if err := fixture.waitForRestartProbe(ctx, 1, 2); err != nil {
+		t.Fatalf("ordinary action was interrupted by the test gate: %v", err)
+	}
+	fixture.RestartProbe = true
+	if err := fixture.waitForRestartProbe(ctx, 1, 2); !errors.Is(err, context.Canceled) {
+		t.Fatalf("the test gate did not hand off the pending action on shutdown: %v", err)
+	}
+}
 
 func TestOwnedIndexBindsOnlyTheDiscoveredFixtureClaim(t *testing.T) {
 	now := time.Now().UTC()

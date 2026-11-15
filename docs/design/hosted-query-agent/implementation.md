@@ -514,3 +514,11 @@ Start with stale statistics and use the existing native operation, proposal cont
 ### Task 53: Reconcile interrupted repairs and verify the hosted flow
 
 Inspect a recorded exact action before any new attempt executes. Record what PostgreSQL did in the same state transaction as the dashboard result. Preserve unknown and inconclusive outcomes. Verify restart and pause fencing independently. Run the simple onboarding, ordinary traffic, real diagnosis and verified outcome on Railway. Retain fixture cleanup and healthy traffic evidence. Frontend iteration and Jared's own manual connection follow this backend verification.
+
+### Task 54: Qualify restart after an owned index write
+
+Use the dedicated staging account, existing advanced enrollment and separate Rookery test login. Stop the Railway web worker after PostgreSQL confirms the index and before Pooltune verifies and publishes the result. The explicit fixture setting holds the worker at that boundary within its existing deadline. Confirm the index identity before and after the restart, the original job's next attempt and the recovered catalog outcome. Keep the performance result unverified. Remove the exact owned objects and restore ordinary monitoring.
+
+### Task 55: Qualify the five remaining repairs through the hosted worker
+
+Build and check statistics analysis and settings, table cleanup and function memory, and Cron scheduling in parallel. Reuse the six existing capability names, the native operation limits and the worker's existing queue. Exact project identity, operation permission, evidence and a durable intent must match. A completed change needs observed benefit and protected traffic. Cron also needs durable handoff to subsequent scheduler periods. Record locally tested tooling, joined hosted results and gaps separately.

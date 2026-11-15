@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"regexp"
 	"slices"
 	"strings"
@@ -25,6 +26,7 @@ type OwnedProjectIndex struct {
 	OwnerRoleOID uint32
 	QueryID      int64
 	Discover     bool
+	RestartProbe bool
 	Target       ProjectIndexTarget
 	Columns      []int16
 	Inputs       []int32
@@ -39,7 +41,7 @@ func (f *OwnedProjectIndex) Valid() bool {
 	if f == nil || f.Config == nil || f.Investigate == nil || f.Target.DatabaseOID == 0 ||
 		f.Target.TableOID == 0 || !ownedIndexScope.MatchString(f.Target.Schema) ||
 		f.Target.Schema != "pt_hosted_ix_"+f.Installation || f.Target.Relation != "workload" ||
-		f.OwnerRoleOID == 0 || f.Discover != (f.QueryID == 0) ||
+		f.OwnerRoleOID == 0 || f.Discover != (f.QueryID == 0) || (f.RestartProbe && f.Discover) ||
 		len(f.Columns) != 2 || len(f.Inputs) != 2 || !ValidIndexColumns(f.Columns[0], f.Columns) {
 		return false
 	}
@@ -256,6 +258,9 @@ func (f *OwnedProjectIndex) run(ctx context.Context, state, monitor *pgx.Conn, p
 		return nil
 	}
 	report.IndexValid, report.IndexBytes = true, action.IndexBytes
+	if err := f.waitForRestartProbe(ctx, claim.ID, action.IndexOID); err != nil {
+		return err
+	}
 	started = time.Now()
 	after, err := f.measure(ctx, owner, project, catalog.Keys)
 	report.VerifyWallMS = elapsedMS(started)
@@ -279,6 +284,17 @@ func (f *OwnedProjectIndex) run(ctx context.Context, state, monitor *pgx.Conn, p
 	}
 	result.Outcome, result.DiagnosticReason, result.Repair = report.Outcome, report.Reason, &report
 	return nil
+}
+
+// The explicit owned staging fixture can expose the uncertainty boundary
+// between an acknowledged database action and the first verification read.
+func (f *OwnedProjectIndex) waitForRestartProbe(ctx context.Context, job int64, index uint32) error {
+	if !f.RestartProbe {
+		return nil
+	}
+	slog.Info("owned index awaiting staging restart before verification", "job", job, "index_oid", index)
+	<-ctx.Done()
+	return ctx.Err()
 }
 
 // A committed intent exists before this lock is acquired. Holding the same
