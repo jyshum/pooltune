@@ -62,6 +62,15 @@ func TestAccountDashboardAndProjectOwnership(t *testing.T) {
 			t.Fatalf("%s returned %d", path, got)
 		}
 	}
+	landing := request(http.MethodGet, "/", nil, nil, "").Body.String()
+	for _, want := range []string{`href="/signup">Join the preview`, `href="/signin">Sign in`, `id="how-it-works"`, "Example investigation", "Invite code required"} {
+		if !strings.Contains(landing, want) {
+			t.Errorf("public landing is missing %q", want)
+		}
+	}
+	if strings.Contains(landing, code) {
+		t.Fatal("public landing exposed the invite code")
+	}
 	register := func(email string) *http.Cookie {
 		t.Helper()
 		values := url.Values{"email": {email}, "password": {password}, "invite_code": {code}}
@@ -76,6 +85,10 @@ func TestAccountDashboardAndProjectOwnership(t *testing.T) {
 		return cookies[0]
 	}
 	owner, other := register("pilot@example.com"), register("other@example.com")
+	landing = request(http.MethodGet, "/", nil, owner, "").Body.String()
+	if !strings.Contains(landing, `href="/app">Open workspace`) || strings.Contains(landing, `href="/signup"`) {
+		t.Error("signed-in landing did not route the owner to the workspace")
+	}
 	if w := request(http.MethodPost, "/app/projects/new", nil, owner, "https://another.example.com"); w.Code != 403 {
 		t.Fatal("cross-site project write accepted")
 	}

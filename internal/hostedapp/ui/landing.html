@@ -1,0 +1,48 @@
+{{define "home"}}{{template "header" .}}
+<main class="shell landing" id="main">
+  <section class="landing-hero" aria-labelledby="landing-title">
+    <div class="landing-intro">
+      <p class="landing-provider">Query monitoring for Supabase</p>
+      <h1 id="landing-title">Find out why your queries <em>slow down.</em></h1>
+      <p class="lead">Watch the queries you choose. When they stay slow, Pooltune uses PostgreSQL evidence to explain what might be causing it.</p>
+      <div class="actions">
+        {{if .User}}<a class="button button-primary" href="/app">Open workspace</a>
+        {{else}}<a class="button button-primary" href="/signup">Join the preview</a>{{end}}
+        <a class="button button-quiet" href="#how-it-works">How it works</a>
+      </div>
+      {{if not .User}}<p class="landing-access">Invite code required. Monitoring is read-only.</p>{{end}}
+    </div>
+    <figure class="landing-example">
+      <figcaption>Example investigation</figcaption>
+      <div class="landing-example-body">
+        <h2>Slow lookup</h2>
+        <dl class="landing-metrics">
+          <div><dt>Measured execution</dt><dd>9.1 <span>ms</span></dd></div>
+          <div><dt>Latency objective</dt><dd>0.5 <span>ms</span></dd></div>
+        </dl>
+        <div class="landing-finding">
+          <h3>Sequential scan</h3>
+          <p>PostgreSQL checked almost 100,000 rows to return one. The scan is the leading explanation for the slowdown.</p>
+        </div>
+      </div>
+    </figure>
+  </section>
+
+  <section class="landing-workflow" id="how-it-works" aria-labelledby="workflow-title">
+    <h2 id="workflow-title">From connection to diagnosis</h2>
+    <ol class="landing-steps">
+      <li><h3>Connect Supabase</h3><p>Run the dashboard’s setup SQL as the database owner and create a dedicated monitor login.</p></li>
+      <li><h3>Choose what to watch</h3><p>Enroll queries your app already runs and set a latency objective for each one.</p></li>
+      <li><h3>Review sustained slowdowns</h3><p>See query timings, monitoring gaps, and diagnoses based on the evidence available.</p></li>
+    </ol>
+  </section>
+
+  <section class="landing-questions" aria-labelledby="questions-title">
+    <h2 id="questions-title">Before you connect</h2>
+    <dl>
+      <div><dt>What access does Pooltune need?</dt><dd>A dedicated Supabase login and permission to read evidence for the queries you enroll. You can disconnect from the dashboard.</dd></div>
+      <div><dt>Will it make changes to my database?</dt><dd>The preview monitors and explains slowdowns. Database owners control the setup and any fixes.</dd></div>
+    </dl>
+  </section>
+</main>
+{{template "footer" .}}{{end}}

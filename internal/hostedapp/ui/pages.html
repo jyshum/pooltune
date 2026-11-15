@@ -36,20 +36,6 @@
 
 {{define "status"}}<span class="status{{if eq . "Monitoring"}} status-active{{else if eq . "Pending setup"}} status-pending{{end}}"><span aria-hidden="true"></span>{{.}}</span>{{end}}
 
-{{define "home"}}{{template "header" .}}
-<main class="shell welcome" id="main">
-  <div class="welcome-panel">
-    <p class="eyebrow">Supabase query monitoring</p>
-    <h1>Understand why your <em>queries slow down.</em></h1>
-    <p class="lead">Monitor selected queries from ordinary traffic, review their performance, and see read-only diagnoses when they slow down.</p>
-    <div class="actions">
-      {{if .User}}<a class="button button-primary" href="/app">Open workspace</a>
-      {{else}}<a class="button button-primary" href="/signup">Create account</a><a class="button button-secondary" href="/signin">Sign in</a>{{end}}
-    </div>
-  </div>
-</main>
-{{template "footer" .}}{{end}}
-
 {{define "signup"}}{{template "header" .}}
 <main class="shell auth-page" id="main">
   <section class="form-panel" aria-labelledby="form-title">

@@ -164,7 +164,7 @@ func (a *App) routes() *http.ServeMux {
 	mux.Handle("GET /assets/app.js", files)
 	mux.HandleFunc("GET /{$}", func(w http.ResponseWriter, r *http.Request) {
 		user, _ := a.session(r)
-		a.render(w, http.StatusOK, "home", Page{Title: "Pooltune", User: user.Email})
+		a.render(w, http.StatusOK, "home", Page{Title: "Supabase query monitoring", User: user.Email})
 	})
 	mux.HandleFunc("GET /signup", func(w http.ResponseWriter, r *http.Request) { a.accountPage(w, r, "signup") })
 	mux.HandleFunc("POST /signup", func(w http.ResponseWriter, r *http.Request) { a.signIn(w, r, true) })
