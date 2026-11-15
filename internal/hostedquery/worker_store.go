@@ -250,6 +250,8 @@ func enqueueInvestigation(ctx context.Context, tx pgx.Tx, project string, object
 			    ELSE interval '5 minutes'
 			  END
 			  AND COALESCE(result->>'outcome', '') NOT IN ('query_unenrolled', 'query_objective_changed', 'project_disconnected')
+			  AND NOT (COALESCE(result->>'outcome', '') = 'awaiting_evidence'
+			           AND COALESCE(result->>'diagnostic_reason', '') = 'traffic_plan_unavailable')
 			  AND evidence->'objective_ms'=($5::jsonb)->'objective_ms'
 			  AND evidence->'counter_generation'=($5::jsonb)->'counter_generation'
 		)

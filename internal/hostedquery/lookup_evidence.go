@@ -171,7 +171,7 @@ func diagnoseProjectClaim(ctx context.Context, state, target *pgx.Conn, project 
 		if errors.Is(err, errLookupScope) {
 			// Supabase's log index can lag normal traffic. Give a plan-only
 			// job one delayed read without holding the worker or calling Sonnet.
-			if trafficGrant != nil && claim.ParentID == 0 {
+			if trafficGrant != nil && claim.ParentID == 0 && claim.Attempt == 1 {
 				next := time.Now().Add(20 * time.Second)
 				result.Outcome, result.continuationAt = "awaiting_evidence", &next
 			}

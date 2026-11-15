@@ -87,15 +87,19 @@ func TestTrafficPlanGrantLocal(t *testing.T) {
 		t.Fatal("called model without plan evidence")
 		return nil, nil
 	}
-	for _, parent := range []int64{0, 77} {
+	for _, check := range []struct {
+		parent  int64
+		attempt int
+		delayed bool
+	}{{0, 1, true}, {77, 1, false}, {0, 2, false}} {
 		attempt := claim
-		attempt.ParentID = parent
+		attempt.ParentID, attempt.Attempt = check.parent, check.attempt
 		result := DispatchResult{Outcome: "insufficient_evidence"}
 		err := diagnoseProjectClaim(ctx, nil, monitor, project, 1, attempt,
 			&ObservedLookupLatency{ObjectiveMS: 1, Through: time.Now()}, unexpectedModel, missingLogs, &result)
-		if err != nil || (result.continuationAt != nil) != (parent == 0) ||
-			(result.Outcome == "awaiting_evidence") != (parent == 0) {
-			t.Fatalf("expected a single delayed plan read: parent=%d outcome=%s deferred=%v error=%v", parent, result.Outcome, result.continuationAt != nil, err)
+		if err != nil || (result.continuationAt != nil) != check.delayed ||
+			(result.Outcome == "awaiting_evidence") != check.delayed {
+			t.Fatalf("expected a single delayed plan read: parent=%d attempt=%d outcome=%s deferred=%v error=%v", check.parent, check.attempt, result.Outcome, result.continuationAt != nil, err)
 		}
 	}
 
