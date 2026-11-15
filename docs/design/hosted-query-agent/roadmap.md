@@ -2,6 +2,8 @@
 
 The [V1 product plan](../../product/query-performance-v1.md) defines what we are building. The [interactive design map](design.html) shows how the pieces fit, while the [implementation plan](implementation.md) and [progress log](progress.md) show what has been built and tested. The map now shows verified staging scope, partial work and remaining nodes. It is a source snapshot; Studio shows investigator graph runs or replays.
 
+The approved [MVP build plan](mvp-build-plan.md) is the current execution order. It links each unfinished area to a pass condition in the normal hosted product flow.
+
 ## Where we are
 
 The Go detector, durable queue and consumer run on Railway staging. The TypeScript/LangGraph investigator uses Claude to propose a repair; Go checks, applies and verifies it. A dedicated Rookery login passed evidence and revocation tests. Queued work survived a hosted restart.
@@ -10,7 +12,7 @@ Six bounded repair cases have passed live Claude and mixed-traffic qualification
 
 [Plain-English overview](overview.md) · [Mixed-traffic results](mixed-traffic.md) · [Cleanup results](bounded-vacuum.md) · [Function memory](function-memory.md) · [Scheduling staging status](cron-staging.md)
 
-The existing landing page links to invite signup and sign-in. The hosted preview provides manual Supabase setup and a dashboard with saved poll, query, and diagnosis history. It runs observation and Sonnet diagnosis from the same worker as the operator command. Next, the owner connects the intended project for the seven-day read-only pilot. [Preview signup and pilot guide](hosted-preview.md)
+The existing landing page links to invite signup and sign-in. The hosted preview provides manual Supabase setup and a dashboard with saved poll, query, and diagnosis history. It runs observation and Sonnet diagnosis from the same worker as the operator command. A longer monitoring period belongs to rollout. The next build connects the existing account and project path to approved repairs. [Preview signup and setup guide](hosted-preview.md)
 
 ## Scope clarification
 
@@ -20,12 +22,12 @@ Compound indexes have always been accepted V1 scope. The bounded two-column case
 
 The six-family evaluation batch is technically complete, with combined human review pending. Each has real Claude decisions, short-spike rejection, before/after traffic measurements, recovery checks and owned cleanup. A repair that executes successfully can still fail benefit verification; the memory trial is an example. The diagnostic graph compares causes and requests evidence. Sonnet now passed 18 bounded replay cases. Its index connection passed a hosted repair and queued-job restart. The bounded compound case, ANALYZE, joint statistics, cleanup, function memory and scheduling now passed the diagnostic workflow with real Sonnet and ongoing Rookery traffic. A separate hosted requested-evidence probe exposed a network round-trip deadline. The reviewed fix then passed live: Sonnet requested ANALYZE evidence, Go read it within 1.761 s, and the investigation finished in 8.338 s. Broader workload qualification and concurrent committed writes to the repaired table remain open. [Hosted result](hosted-diagnostic.md).
 
-1. **Connect the pilot Supabase project.** The hosted dashboard guides the owner through direct TLS and exact query enrollment. Verify the intended project's app roles and traffic through a seven-day history, including monitoring gaps and diagnosis outcomes. One [owner-captured plan](enrolled-plans.md) and two [ordinary-traffic plan shapes](traffic-plans.md) reach Sonnet on enrolled staging traffic. Broaden the supported roles and query shapes using pilot evidence. [Preview guide](hosted-preview.md)
+1. **Finish connecting the Supabase project.** Use a one-project setup token, the project certificate and six repair choices. The monitor discovers workload automatically. Next, connect the chosen permissions to verified operation-specific database authority. [Preview guide](hosted-preview.md)
 2. **Finish diagnostic qualification.** Qualify requested evidence across the remaining families, representative mixed causes and hosted mid-model recovery. All six bounded action routes passed; this does not close broader workload gaps. The separate ANALYZE requested-evidence probe passed. Existing execution guards remain unchanged. [Current expansion](repair-expansion.md).
 3. **Qualify the full index path.** Expand beyond the tested single-column and two-equality compound cases to representative enrolled queries. Verify owner grants, current load, execution, protected reads and writes, rollback, and recovery before allowing automatic customer changes.
 4. **Complete the V1 repairs.** Broaden scheduling beyond the one owner-approved quiet-window fixture and qualify cleanup settings beyond the bounded plain VACUUM case. Expand targeted ANALYZE beyond the first measured-error case. Qualify the richer statistics repair on representative traffic and cover the separate column statistics-target operation. Each repair needs its own evidence, grants, resource limits, verification, and recovery. The same investigator uses those tools.
 5. **Finish production onboarding and the hosted product.** The preview already provides account sign-in, owner project access, manual setup, investigation history, and disconnect. Widen onboarding with email verification and account recovery. Expand the dashboard to longer-term reporting and the approved repair lifecycle when those routes are qualified.
-6. **Qualify operations and rollout.** Preview isolation, bounded history, and diagnosis admission were tested. Qualify backup and restore, credential rotation, the behavior of connected projects during deploys and outages, and the full pilot week before broad rollout.
+6. **Qualify operations and rollout.** Preview isolation, bounded history, and diagnosis admission were tested. Qualify backup and restore, credential rotation, and the behavior of connected projects during deploys and outages. Longer workload observation can follow the end-to-end MVP run.
 
 These are build stages within V1. The product plan defines the six capabilities and boundaries. It leaves V2 open.
 

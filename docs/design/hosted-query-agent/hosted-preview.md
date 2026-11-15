@@ -10,6 +10,12 @@ The owner installs the same SQL used for Rookery. For an established enrolled id
 
 ## Connect your Supabase project
 
+The agent setup form uses a one-project Supabase Management API token with Database Write and the project's PostgreSQL root certificate. Choose any of the six repair permissions or select all and start the agent. Pooltune runs its own installation SQL for that project, keeps the generated monitor credential encrypted, and discards the setup token. It starts collecting eligible app counters as traffic arrives. The operation choices and pause state are saved separately from the database privileges needed to run an action. The permissions table shows when execution is still unavailable. [Supabase token scopes](https://supabase.com/docs/guides/platform/personal-access-tokens) · [Project certificate](https://supabase.com/docs/guides/platform/ssl-enforcement)
+
+The automatic monitor tracks up to 20 query identities. Existing manual enrollments take priority. Automatic queries use a one-second mean objective and the normal detector windows. The reader keeps SQL text inside PostgreSQL. A bounded, schema-qualified integer lookup can also obtain catalog evidence after a planning-only identity check. Broader ordinary-traffic plans still follow the existing optional reader below.
+
+### Advanced setup
+
 1. Open the [Pooltune preview](https://pooltune-web-preview-staging.up.railway.app/) and select **Create account**. Use your private invite code, then add a project with your Supabase project reference. Existing account holders select **Sign in**.
 2. Run **Installation SQL** from the dashboard in the project's `postgres` database as the database owner. Use the dashboard's `psql` commands to set a fresh password and enable the dedicated monitor login.
 3. Run the dashboard's discovery query after your application has exercised the queries you want to watch. Enroll the exact app role and query ID with a mean latency objective in milliseconds. Use the optional lookup grant when the statement qualifies. For measured evidence, use the [owner-captured lookup procedure](enrolled-plans.md) or the [ordinary-traffic plan procedure](traffic-plans.md) when the role and workload meet that source's requirements.

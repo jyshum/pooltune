@@ -8,10 +8,34 @@ import (
 //go:embed install.sql
 var installTemplate string
 
+//go:embed snapshot.sql
+var snapshotTemplate string
+
+//go:embed manual_snapshot.sql
+var manualSnapshot string
+
+//go:embed automatic_discovery.sql
+var automaticDiscovery string
+
+//go:embed automatic_snapshot.sql
+var automaticSnapshot string
+
 // InstallSQL is run by the project owner. The derived identifier contains only
 // lowercase ASCII letters, numbers and underscores. The script contains no secret.
 func (p Project) InstallSQL() string {
-	return strings.ReplaceAll(installTemplate, "pooltune_monitor_role", p.Role())
+	return p.snapshotSQL(installTemplate, manualSnapshot, "")
+}
+
+// AutomaticDiscoverySQL opts an existing monitor into bounded workload discovery.
+// The project owner runs it after InstallSQL. It preserves the private reader's grants.
+func (p Project) AutomaticDiscoverySQL() string {
+	return p.snapshotSQL(automaticDiscovery, automaticSnapshot, "OR current_setting('transaction_read_only') <> 'on'")
+}
+
+func (p Project) snapshotSQL(installation, reader, extraGuard string) string {
+	snapshot := strings.NewReplacer("-- POOLTUNE_READER", reader, "-- POOLTUNE_EXTRA_GUARD", extraGuard).Replace(snapshotTemplate)
+	installation = strings.Replace(installation, "-- POOLTUNE_SNAPSHOT", snapshot, 1)
+	return strings.ReplaceAll(installation, "pooltune_monitor_role", p.Role())
 }
 
 //go:embed allow_lookup.sql

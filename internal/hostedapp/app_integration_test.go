@@ -97,13 +97,17 @@ func TestAccountDashboardAndProjectOwnership(t *testing.T) {
 	if w := request(http.MethodGet, projectPath, nil, owner, ""); w.Code != 200 || !strings.Contains(w.Body.String(), "CREATE ROLE pt_monitor_") {
 		t.Fatal("owner setup did not render generated SQL")
 	}
-	for _, route := range []struct{ method, path string }{{"GET", ""}, {"GET", "/activity"}, {"POST", "/connect"}, {"POST", "/disconnect"}} {
+	for _, route := range []struct{ method, path string }{{"GET", ""}, {"GET", "/activity"}, {"POST", "/connect"}, {"POST", "/start"}, {"POST", "/repair-mode"}, {"POST", "/disconnect"}} {
 		if w := request(route.method, projectPath+route.path, nil, other, origin); w.Code != 404 {
 			t.Fatalf("cross-account %s %s allowed: %d", route.method, route.path, w.Code)
 		}
 	}
 	if w := request(http.MethodPost, projectPath+"/connect", url.Values{"password": {"test secret"}}, owner, origin); w.Code != 400 || strings.Contains(w.Body.String(), "test secret") {
 		t.Fatal("invalid connection accepted or credential echoed")
+	}
+	start := url.Values{"setup_token": {"test-secret-token"}, "ca": {"invalid certificate"}, "capability": {"index", "cron"}}
+	if w := request(http.MethodPost, projectPath+"/start", start, owner, origin); w.Code != 400 || strings.Contains(w.Body.String(), "test-secret-token") {
+		t.Fatal("invalid automatic setup accepted or token echoed")
 	}
 	ownerUser, err := app.accounts.UserBySession(ctx, owner.Value)
 	if err != nil {
@@ -116,7 +120,11 @@ func TestAccountDashboardAndProjectOwnership(t *testing.T) {
 	}
 	// The live test exercises the actual target verification. Here we exercise
 	// the local account/worker registration transaction and provider budget.
-	if err := app.projects.activate(ctx, row, []byte("test ciphertext")); err != nil {
+	sealed, err := app.vault.seal(row, projectSecrets{Automatic: true, Capabilities: []string{"index", "analyze"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := app.projects.activate(ctx, row, sealed); err != nil {
 		t.Fatal(err)
 	}
 	row, err = app.projects.find(ctx, ownerUser.ID, projectID)
@@ -133,6 +141,28 @@ func TestAccountDashboardAndProjectOwnership(t *testing.T) {
 	}
 	if err := (projectStore{pool}).admitModel(ctx, projectID, row.Epoch); !errors.Is(err, hostedquery.ErrProjectModelBudget) {
 		t.Fatalf("budget did not survive store reconnect: %v", err)
+	}
+	if got := request(http.MethodPost, projectPath+"/repair-mode", url.Values{"mode": {"pause"}}, owner, origin).Code; got != 303 {
+		t.Fatalf("pause repairs returned %d", got)
+	}
+	paused, err := app.projects.find(ctx, ownerUser.ID, projectID)
+	if err != nil || paused.Epoch <= row.Epoch || !paused.Configured {
+		t.Fatalf("pause did not retain monitoring with a new permission epoch: %v", err)
+	}
+	options, err := app.vault.open(paused, paused.Secret)
+	if err != nil || !options.RepairsPaused {
+		t.Fatalf("pause preference was not persisted: %v", err)
+	}
+	if got := request(http.MethodPost, projectPath+"/repair-mode", url.Values{"mode": {"resume"}}, owner, origin).Code; got != 303 {
+		t.Fatalf("resume repairs returned %d", got)
+	}
+	resumed, err := app.projects.find(ctx, ownerUser.ID, projectID)
+	if err != nil || resumed.Epoch <= paused.Epoch {
+		t.Fatalf("resume did not update permission epoch: %v", err)
+	}
+	options, err = app.vault.open(resumed, resumed.Secret)
+	if err != nil || options.RepairsPaused {
+		t.Fatalf("resume preference was not persisted: %v", err)
 	}
 	if w := request(http.MethodPost, projectPath+"/disconnect", nil, owner, origin); w.Code != 303 {
 		t.Fatalf("disconnect returned %d", w.Code)

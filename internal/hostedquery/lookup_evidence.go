@@ -44,9 +44,10 @@ var ErrProjectModelBudget = errors.New("project model call budget reached")
 var errLookupScope = errors.New("lookup evidence grant or queued observations unavailable")
 
 type lookupGrant struct {
-	id       int64
-	tableOID uint32
-	column   int16
+	id         int64
+	tableOID   uint32
+	column     int16
+	discovered bool
 }
 
 func readProjectLookup(ctx context.Context, target *pgx.Conn, project supabaseproject.Project, claim investigationClaim, windows *ObservedLookupLatency) (lookupGrant, LookupEvidence, error) {
@@ -59,11 +60,18 @@ func readProjectLookup(ctx context.Context, target *pgx.Conn, project supabasepr
 	var evidence LookupEvidence
 	var database uint32
 	var generation [3]time.Time
-	err := target.QueryRow(ctx, "SELECT * FROM "+qualified(project.Role(), "read_lookup")+"($1::oid,$2::bigint)", claim.Role, claim.Query).
-		Scan(&grant.id, &database, &grant.tableOID, &grant.column, &evidence.ObjectiveMS,
-			&generation[0], &generation[1], &generation[2],
-			&evidence.TablePages, &evidence.EstimatedTableRows, &evidence.LeadingBTree, &evidence.ModifiedSinceAnalyze, &evidence.EstimatedDeadRows)
+	read := func(name string) error {
+		return target.QueryRow(ctx, "SELECT * FROM "+qualified(project.Role(), name)+"($1::oid,$2::bigint)", claim.Role, claim.Query).
+			Scan(&grant.id, &database, &grant.tableOID, &grant.column, &evidence.ObjectiveMS,
+				&generation[0], &generation[1], &generation[2],
+				&evidence.TablePages, &evidence.EstimatedTableRows, &evidence.LeadingBTree, &evidence.ModifiedSinceAnalyze, &evidence.EstimatedDeadRows)
+	}
+	err := read("read_lookup")
 	var pgErr *pgconn.PgError
+	if errors.Is(err, pgx.ErrNoRows) || (errors.As(err, &pgErr) && pgErr.Code == "42883") {
+		err = read("read_discovered_lookup")
+		grant.discovered = true
+	}
 	if errors.Is(err, pgx.ErrNoRows) || (errors.As(err, &pgErr) && (pgErr.Code == "42501" || pgErr.Code == "42883")) {
 		return lookupGrant{}, LookupEvidence{}, errLookupScope
 	}
@@ -185,9 +193,11 @@ func diagnoseProjectClaim(ctx context.Context, state, target *pgx.Conn, project 
 		if err != nil {
 			return err
 		}
-		evidence.MeasuredPlan, err = readProjectLookupPlan(ctx, target, project, claim.Role, claim.Query)
-		if err != nil {
-			return err
+		if !grant.discovered {
+			evidence.MeasuredPlan, err = readProjectLookupPlan(ctx, target, project, claim.Role, claim.Query)
+			if err != nil {
+				return err
+			}
 		}
 	}
 

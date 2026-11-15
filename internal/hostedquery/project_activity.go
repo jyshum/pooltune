@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 	"unicode"
@@ -73,22 +74,36 @@ type ProjectWindow struct {
 }
 
 type ProjectJob struct {
-	ID           int64      `json:"id"`
-	Database     uint32     `json:"database_oid"`
-	Role         uint32     `json:"role_oid"`
-	Query        int64      `json:"query_id,string"`
-	CreatedAt    time.Time  `json:"created_at"`
-	ClaimedAt    *time.Time `json:"claimed_at"`
-	FinishedAt   *time.Time `json:"finished_at"`
-	Attempts     int        `json:"attempts"`
-	Outcome      string     `json:"outcome"`
-	Reason       string     `json:"reason"`
-	PlanNode     string     `json:"plan_node"`
-	PlanSource   string     `json:"plan_source"`
-	ElapsedMS    *float64   `json:"elapsed_ms"`
-	TargetPlanMS *float64   `json:"target_plan_ms"`
-	GraphMS      *float64   `json:"graph_ms"`
-	ModelMS      *float64   `json:"model_ms"`
+	ID           int64          `json:"id"`
+	Database     uint32         `json:"database_oid"`
+	Role         uint32         `json:"role_oid"`
+	Query        int64          `json:"query_id,string"`
+	CreatedAt    time.Time      `json:"created_at"`
+	ClaimedAt    *time.Time     `json:"claimed_at"`
+	FinishedAt   *time.Time     `json:"finished_at"`
+	Attempts     int            `json:"attempts"`
+	Outcome      string         `json:"outcome"`
+	Reason       string         `json:"reason"`
+	PlanNode     string         `json:"plan_node"`
+	PlanSource   string         `json:"plan_source"`
+	ElapsedMS    *float64       `json:"elapsed_ms"`
+	TargetPlanMS *float64       `json:"target_plan_ms"`
+	GraphMS      *float64       `json:"graph_ms"`
+	ModelMS      *float64       `json:"model_ms"`
+	Repair       *ProjectRepair `json:"repair,omitempty"`
+}
+
+type ProjectRepair struct {
+	Kind    string                `json:"kind"`
+	Action  string                `json:"action"`
+	Metrics []ProjectRepairMetric `json:"metrics,omitempty"`
+}
+
+type ProjectRepairMetric struct {
+	Label  string  `json:"label"`
+	Unit   string  `json:"unit"`
+	Before float64 `json:"before"`
+	After  float64 `json:"after"`
 }
 
 func projectActivityWindow(objective QueryObjective, window WindowResult) ProjectWindow {
@@ -249,7 +264,8 @@ func readProjectJobs(ctx context.Context, tx pgx.Tx, projectID string, cutoff ti
 				WHEN not_before > transaction_timestamp() THEN 'scheduled'
 				ELSE 'queued'
 			END),
-			LEFT(COALESCE(NULLIF(result->>'diagnostic_reason', ''), result#>>'{lookup_diagnosis,reason}', ''), 500),
+			LEFT(COALESCE(NULLIF(result->>'diagnostic_reason', ''), NULLIF(result#>>'{lookup_diagnosis,reason}', ''),
+				result#>>'{proposal,reason}', ''), 500),
 			LEFT(COALESCE(result#>>'{traffic_plan,node}', result#>>'{lookup_plan,node}', result#>>'{estimated_evidence,estimated,node}', ''), 100),
 			CASE
 				WHEN result#>>'{traffic_plan,node}' IS NOT NULL THEN 'ordinary_traffic'
@@ -260,7 +276,11 @@ func readProjectJobs(ctx context.Context, tx pgx.Tx, projectID string, cutoff ti
 			CASE WHEN jsonb_typeof(result->'elapsed_ms')='number' THEN (result->>'elapsed_ms')::double precision END,
 			CASE WHEN jsonb_typeof(result->'target_plan_ms')='number' THEN (result->>'target_plan_ms')::double precision END,
 			CASE WHEN jsonb_typeof(result->'graph_ms')='number' THEN (result->>'graph_ms')::double precision END,
-			CASE WHEN jsonb_typeof(result#>'{lookup_diagnosis,model_ms}')='number' THEN (result#>>'{lookup_diagnosis,model_ms}')::double precision END
+			CASE WHEN jsonb_typeof(result#>'{lookup_diagnosis,model_ms}')='number' THEN (result#>>'{lookup_diagnosis,model_ms}')::double precision END,
+			CASE WHEN finished_at IS NOT NULL THEN jsonb_strip_nulls(jsonb_build_object(
+				'index', result->'repair', 'analyze', result->'analyze', 'statistics', result->'statistics',
+				'vacuum', result->'vacuum', 'memory', result->'memory', 'cron', result->'cron'
+			)) END
 		FROM pooltune_worker.investigations
 		WHERE project_id=$1 AND created_at >= $2
 		ORDER BY created_at DESC, id DESC LIMIT $3
@@ -270,12 +290,162 @@ func readProjectJobs(ctx context.Context, tx pgx.Tx, projectID string, cutoff ti
 	}
 	return pgx.CollectRows(rows, func(row pgx.CollectableRow) (ProjectJob, error) {
 		var job ProjectJob
+		var reports []byte
 		err := row.Scan(&job.ID, &job.Database, &job.Role, &job.Query, &job.CreatedAt, &job.ClaimedAt, &job.FinishedAt, &job.Attempts,
-			&job.Outcome, &job.Reason, &job.PlanNode, &job.PlanSource, &job.ElapsedMS, &job.TargetPlanMS, &job.GraphMS, &job.ModelMS)
+			&job.Outcome, &job.Reason, &job.PlanNode, &job.PlanSource, &job.ElapsedMS, &job.TargetPlanMS, &job.GraphMS, &job.ModelMS, &reports)
+		if err == nil {
+			readProjectRepair(&job, reports)
+		}
 		job.Reason = activityText(job.Reason)
 		job.PlanNode = activityText(job.PlanNode)
 		return job, err
 	})
+}
+
+// Journaled results carry explicit action witnesses. Reports can also describe
+// declines, which contribute a reason but no repair, and interrupted actions.
+func readProjectRepair(job *ProjectJob, encoded []byte) {
+	var reports map[string]json.RawMessage
+	if json.Unmarshal(encoded, &reports) != nil || len(reports) != 1 {
+		return
+	}
+	for kind, raw := range reports {
+		var report struct {
+			Reason   string          `json:"reason"`
+			Before   json.RawMessage `json:"before"`
+			After    json.RawMessage `json:"after"`
+			IndexOK  bool            `json:"index_valid"`
+			Analyze  float64         `json:"analyze_wall_ms"`
+			Vacuum   float64         `json:"vacuum_wall_ms"`
+			Memory   float64         `json:"memory_wall_ms"`
+			Restored bool            `json:"restored"`
+			Commit   time.Time       `json:"commit_at"`
+		}
+		if json.Unmarshal(raw, &report) != nil {
+			return
+		}
+		if reason := []rune(report.Reason); len(reason) > 0 {
+			job.Reason = string(reason[:min(500, len(reason))])
+		}
+		if job.Outcome == "no_change" || job.Outcome == "propose" {
+			return
+		}
+		if job.Outcome == "repair_interrupted" {
+			job.Repair = &ProjectRepair{Kind: kind, Action: "interrupted"}
+			if kind == "memory" && report.Restored {
+				job.Repair.Action = "restored"
+			}
+			return
+		}
+		summary := ProjectRepair{Kind: kind, Action: "recorded"}
+		switch kind {
+		case "statistics":
+			var before, after struct {
+				Applied  bool                  `json:"applied"`
+				Retained *bool                 `json:"retained"`
+				Samples  []projectRepairSample `json:"samples"`
+			}
+			if json.Unmarshal(report.After, &after) != nil || !after.Applied {
+				return
+			}
+			if after.Retained != nil && !*after.Retained {
+				summary.Action = "removed"
+			}
+			if json.Unmarshal(report.Before, &before) == nil && len(before.Samples) == len(after.Samples) {
+				for i := 0; i < min(4, len(after.Samples)); i++ {
+					summary.Metrics = append(summary.Metrics, before.Samples[i].compare(after.Samples[i], fmt.Sprintf("Input %d · ", i+1))...)
+				}
+			}
+		case "cron":
+			if report.Commit.IsZero() {
+				return
+			}
+			summary.Metrics = projectCronRepairMetrics(report.Before, report.After)
+		case "index", "analyze", "vacuum", "memory":
+			if !(kind == "index" && report.IndexOK || kind == "analyze" && report.Analyze > 0 ||
+				kind == "vacuum" && report.Vacuum > 0 || kind == "memory" && report.Memory > 0) {
+				return
+			}
+			if kind == "memory" && report.Restored {
+				summary.Action = "restored"
+			}
+			var before, after projectRepairSample
+			if json.Unmarshal(report.Before, &before) == nil && json.Unmarshal(report.After, &after) == nil {
+				summary.Metrics = before.compare(after, "")
+			}
+		}
+		job.Repair = &summary
+	}
+}
+
+type projectRepairSample struct {
+	Reads         int      `json:"read_calls"`
+	HealthyReads  int      `json:"healthy_read_calls"`
+	Writes        int      `json:"write_calls"`
+	Errors        int      `json:"errors"`
+	ReadMS        *float64 `json:"read_mean_ms"`
+	HealthyMS     *float64 `json:"healthy_mean_ms"`
+	WriteMS       *float64 `json:"write_mean_ms"`
+	Blocks        *float64 `json:"blocks_per_read"`
+	HeapFetches   *float64 `json:"heap_fetches"`
+	EstimateError *float64 `json:"estimate_error_ratio"`
+	TempBytes     *float64 `json:"temp_bytes"`
+}
+
+func (before projectRepairSample) compare(after projectRepairSample, prefix string) []ProjectRepairMetric {
+	if before.Errors != 0 || after.Errors != 0 {
+		return nil
+	}
+	var metrics []ProjectRepairMetric
+	for _, m := range []struct {
+		label, unit   string
+		before, after *float64
+		matched       bool
+	}{
+		{"Query mean latency", "ms", before.ReadMS, after.ReadMS, before.Reads > 0 && before.Reads == after.Reads},
+		{"Protected read mean latency", "ms", before.HealthyMS, after.HealthyMS, before.HealthyReads > 0 && before.HealthyReads == after.HealthyReads},
+		{"Protected write mean latency", "ms", before.WriteMS, after.WriteMS, before.Writes > 0 && before.Writes == after.Writes},
+		{"Block accesses per read", "", before.Blocks, after.Blocks, before.Reads > 0 && before.Reads == after.Reads},
+		{"Heap fetches", "", before.HeapFetches, after.HeapFetches, before.Reads > 0 && before.Reads == after.Reads},
+		{"Row estimate error ratio", "×", before.EstimateError, after.EstimateError, before.Reads > 0 && before.Reads == after.Reads},
+		{"Temporary storage", "bytes", before.TempBytes, after.TempBytes, before.Reads > 0 && before.Reads == after.Reads},
+	} {
+		if m.matched && m.before != nil && m.after != nil && nonnegativeFinite(*m.before) && nonnegativeFinite(*m.after) {
+			metrics = append(metrics, ProjectRepairMetric{Label: prefix + m.label, Unit: m.unit, Before: *m.before, After: *m.after})
+		}
+	}
+	return metrics
+}
+
+func projectCronRepairMetrics(beforeRaw, afterRaw json.RawMessage) []ProjectRepairMetric {
+	var before, after []CronPeriod
+	if json.Unmarshal(beforeRaw, &before) != nil || json.Unmarshal(afterRaw, &after) != nil ||
+		validateCronPeriods(before, true) != nil || validateCronPeriods(after, false) != nil {
+		return nil
+	}
+	var metrics []ProjectRepairMetric
+	for _, group := range []struct {
+		label   string
+		measure func(CronWindow) CronMeasure
+	}{
+		{"Query mean latency during the busy window", func(w CronWindow) CronMeasure { return w.Target }},
+		{"Protected read mean latency during the busy window", func(w CronWindow) CronMeasure { return w.Healthy }},
+		{"Protected write mean latency during the busy window", func(w CronWindow) CronMeasure { return w.Write }},
+	} {
+		if !sameCronCounter(group.measure(before[0].Busy).Before, group.measure(after[0].Busy).Before) {
+			continue
+		}
+		mean := func(periods []CronPeriod) float64 {
+			var total float64
+			for _, period := range periods {
+				ms, _ := cronMean(group.measure(period.Busy)) // Period validation checked this measurement.
+				total += ms / float64(len(periods))
+			}
+			return total
+		}
+		metrics = append(metrics, ProjectRepairMetric{Label: group.label, Unit: "ms", Before: mean(before), After: mean(after)})
+	}
+	return metrics
 }
 
 func activityText(value string) string {

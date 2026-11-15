@@ -111,7 +111,7 @@
   <div class="panel empty-dashboard">
     <div class="empty-mark" aria-hidden="true"><span class="brand-mark"><i></i><i></i><i></i></span></div>
     <h2>No projects yet</h2>
-    <p>Connect a Supabase project to choose the queries you want to monitor.</p>
+    <p>Connect a Supabase project to start monitoring query performance.</p>
   </div>
   {{end}}
 </main>
@@ -120,7 +120,7 @@
 {{define "new-project"}}{{template "header" .}}
 <main class="shell workspace narrow" id="main">
   <a class="back-link" href="/app">← <span>Projects</span></a>
-  <div class="page-heading"><div><h1>Connect Supabase</h1><p class="lead">Add a project to get its database setup instructions.</p></div></div>
+  <div class="page-heading"><div><h1>Connect Supabase</h1><p class="lead">Add your Supabase project to continue to database setup.</p></div></div>
   <section class="form-panel" aria-label="Project details">
     {{template "error" .}}
     <form class="fields" action="/app/projects/new" method="post">
@@ -151,9 +151,17 @@
   </div>
   {{template "error" .}}
   {{if ne $project.Status "Monitoring"}}
-  {{template "project-setup" $project}}
+    {{if $project.QuickStart}}{{template "agent-setup" $project}}{{end}}
+    <details class="panel advanced-setup"{{if not $project.QuickStart}} open{{end}}>
+      <summary>Advanced read-only setup</summary>
+      {{template "project-setup" $project}}
+    </details>
+  {{else if $project.Capabilities}}
+    {{template "repair-permissions" $project}}
   {{end}}
-  {{template "project-activity" $project}}
+  {{if or (ne $project.Status "Pending setup") (not $project.QuickStart)}}
+    {{template "project-activity" $project}}
+  {{end}}
   {{if eq $project.Status "Monitoring"}}
   <section class="panel disconnect" aria-labelledby="connection-title">
     <div><h2 id="connection-title">Connection</h2><p>Disconnecting stops monitoring and keeps your saved activity.</p></div>
@@ -163,6 +171,82 @@
 </main>
 {{if ne $project.Status "Monitoring"}}<script src="/assets/app.js" defer></script>{{end}}
 {{template "footer" .}}{{end}}
+
+{{define "agent-setup"}}
+<section class="form-panel agent-setup" aria-labelledby="agent-setup-title">
+  <div class="section-intro">
+    <h2 id="agent-setup-title">Set up the Pooltune agent</h2>
+    <p>Pooltune installs a dedicated database login to read workload statistics and discover queries from ordinary traffic. Choose which repairs the agent may consider.</p>
+  </div>
+  <form class="enrollment-form" action="/app/projects/{{.ID}}/start" method="post" autocomplete="off">
+    <fieldset class="enrollment-fields">
+      <legend>Supabase setup access</legend>
+      <div class="fields">
+        <div class="field">
+          <label for="setup-token">Supabase setup token</label>
+          <input type="password" id="setup-token" name="setup_token" autocomplete="off" maxlength="512" aria-describedby="setup-token-help" required>
+          <p class="help" id="setup-token-help">Use a Supabase Management API token limited to this project with <strong>Database Write</strong>. Pooltune uses it to install the monitor and discards it after setup.</p>
+        </div>
+        <div class="field">
+          <label for="setup-ca">Supabase root certificate (PEM)</label>
+          <textarea id="setup-ca" name="ca" rows="4" spellcheck="false" autocomplete="off" autocapitalize="off" maxlength="32768" aria-describedby="setup-ca-help" placeholder="-----BEGIN CERTIFICATE-----" required></textarea>
+          <p class="help" id="setup-ca-help">Paste the certificate from your project’s database connection settings so Pooltune can verify the database’s identity over an encrypted connection.</p>
+        </div>
+      </div>
+    </fieldset>
+    <fieldset class="enrollment-fields" aria-describedby="repair-help">
+      <legend>Repair permissions</legend>
+      <p class="help" id="repair-help">The agent checks database access, target eligibility, and evidence before applying a selected repair.</p>
+      <label class="select-all" hidden>
+        <input type="checkbox" id="select-all-capabilities" aria-controls="capability-options">
+        <span>Select all</span>
+      </label>
+      <div class="capability-options" id="capability-options">
+        {{range .Capabilities}}
+        <label class="capability-option" for="capability-{{.Key}}">
+          <input type="checkbox" id="capability-{{.Key}}" name="capability" value="{{.Key}}" aria-labelledby="capability-{{.Key}}-label" aria-describedby="capability-{{.Key}}-help"{{if .Selected}} checked{{end}}>
+          <span><strong id="capability-{{.Key}}-label">{{.Label}}</strong><span class="help" id="capability-{{.Key}}-help">{{.Description}}</span></span>
+        </label>
+        {{end}}
+      </div>
+    </fieldset>
+    <div class="enrollment-footer">
+      <button class="button button-primary" type="submit">Start agent</button>
+      <noscript><button class="button button-secondary" type="submit" name="all_capabilities" value="1">Start agent with all six permissions</button></noscript>
+    </div>
+  </form>
+</section>
+{{end}}
+
+{{define "repair-permissions"}}
+<section class="panel repair-permissions" aria-labelledby="repair-permissions-title">
+  <div class="panel-heading"><h2 id="repair-permissions-title">Repair permissions</h2></div>
+  <table>
+    <thead><tr><th scope="col">Repair</th><th scope="col">Your selection</th><th scope="col">Availability</th></tr></thead>
+    <tbody>
+      {{range .Capabilities}}
+      <tr>
+        <th scope="row">{{.Label}}</th>
+        <td>{{if .Selected}}Selected{{else}}Unselected{{end}}</td>
+        <td>{{if .Selected}}{{if .Availability}}{{.Availability}}{{else}}Pending verification{{end}}{{else}}Needs permission{{end}}</td>
+      </tr>
+      {{end}}
+    </tbody>
+  </table>
+  {{if .RepairsSelected}}
+  <div class="disconnect">
+    <p>Monitoring continues while repairs are paused.</p>
+    <form action="/app/projects/{{.ID}}/repair-mode" method="post">
+      {{if .RepairsPaused}}
+      <button class="button button-secondary" type="submit" name="mode" value="resume">Resume repairs</button>
+      {{else}}
+      <button class="button button-secondary" type="submit" name="mode" value="pause">Pause repairs</button>
+      {{end}}
+    </form>
+  </div>
+  {{end}}
+</section>
+{{end}}
 
 {{define "project-setup"}}
 <section class="setup-grid" aria-labelledby="setup-title">
@@ -260,8 +344,20 @@ ALTER ROLE {{.Role}} LOGIN;</textarea>
           {{if .Queue}}<div><dt>Queue time</dt><dd>{{.Queue}}</dd></div>{{end}}
           {{if .Model}}<div><dt>Model time</dt><dd>{{.Model}}</dd></div>{{end}}
           {{if .Plan}}<div><dt>Plan</dt><dd>{{.Plan}}</dd></div>{{end}}
+          {{if .Repair}}<div><dt>Repair</dt><dd>{{.Repair}}</dd></div>{{end}}
+          {{if .RepairStatus}}<div><dt>Action status</dt><dd>{{.RepairStatus}}</dd></div>{{end}}
         </dl>
         {{if .Reason}}<p class="record-reason">{{.Reason}}</p>{{end}}
+        {{if .Measurements}}
+        <div class="repair-measurements">
+          <table aria-label="Before and after measurements for run {{.ID}}">
+            <thead><tr><th scope="col">Measurement</th><th scope="col">Before</th><th scope="col">After</th></tr></thead>
+            <tbody>{{range .Measurements}}
+              <tr><th scope="row">{{.Label}}</th><td>{{.Before}}</td><td>{{.After}}</td></tr>
+            {{end}}</tbody>
+          </table>
+        </div>
+        {{end}}
       </li>{{end}}
     </ul>
     {{else}}<p class="panel-empty">No investigations recorded yet.</p>{{end}}

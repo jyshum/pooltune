@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -23,13 +24,21 @@ type Page struct {
 type ProjectView struct {
 	ID, Name, Ref, Status, Role, LastPoll string
 	SetupSQL, QuerySQL                    string
+	QuickStart                            bool
+	Capabilities                          []CapabilityView
+	RepairsSelected, RepairsPaused        bool
 	Queries                               []QueryView
 	Runs                                  []RunView
 	Polls                                 []PollView
 }
 
 type QueryView struct{ ID, Calls, Mean, Target, Blocks, Decision, At string }
-type RunView struct{ ID, Query, Outcome, Started, Finished, Queue, Model, Reason, Plan string }
+type RunView struct {
+	ID, Query, Outcome, Started, Finished, Queue, Model, Reason, Plan string
+	Repair, RepairStatus                                              string
+	Measurements                                                      []RepairMeasurementView
+}
+type RepairMeasurementView struct{ Label, Before, After string }
 type PollView struct{ At, Status string }
 
 const historyRange = 7 * 24 * time.Hour
@@ -88,7 +97,7 @@ func (a *App) downloadActivity(w http.ResponseWriter, r *http.Request, user auth
 	_ = json.NewEncoder(w).Encode(activity)
 }
 
-func (a *App) showProject(w http.ResponseWriter, r *http.Request, user auth.User, row projectRecord, failure string) {
+func (a *App) showProject(w http.ResponseWriter, r *http.Request, user auth.User, row projectRecord, failure string, requested ...[]string) {
 	identity, err := row.identity()
 	if err != nil {
 		http.Error(w, "Could not load this project.", http.StatusServiceUnavailable)
@@ -97,8 +106,29 @@ func (a *App) showProject(w http.ResponseWriter, r *http.Request, user auth.User
 	view := baseProjectView(row)
 	view.Role = identity.Role()
 	if !row.Configured {
+		view.QuickStart = true
+		view.Capabilities = slices.Clone(projectCapabilities)
+		if len(requested) > 0 {
+			for i := range view.Capabilities {
+				view.Capabilities[i].Selected = slices.Contains(requested[0], view.Capabilities[i].Key)
+			}
+		}
 		view.SetupSQL = identity.InstallSQL() + "\n" + identity.LookupEvidenceSQL() + "\n" + identity.LookupPlanSQL() + "\n" + identity.TrafficPlanSQL()
 		view.QuerySQL = queryEnrollment(identity)
+	} else if configured, err := a.vault.open(row, row.Secret); err == nil && configured.Automatic {
+		view.Capabilities = slices.Clone(projectCapabilities)
+		view.RepairsSelected = len(configured.Capabilities) > 0
+		view.RepairsPaused = configured.RepairsPaused
+		for i := range view.Capabilities {
+			option := &view.Capabilities[i]
+			option.Selected = slices.Contains(configured.Capabilities, option.Key)
+			if option.Selected {
+				option.Availability = "Waiting for repair support"
+				if configured.RepairsPaused {
+					option.Availability = "Paused"
+				}
+			}
+		}
 	}
 	status := http.StatusOK
 	if failure != "" {
@@ -194,6 +224,43 @@ func populateActivity(view *ProjectView, activity hostedquery.ProjectActivity, i
 		}
 		item := RunView{ID: strconv.FormatInt(job.ID, 10), Query: strconv.FormatInt(job.Query, 10),
 			Outcome: outcomeLabel(job.Outcome), Reason: job.Reason, Plan: job.PlanNode}
+		switch job.Outcome {
+		case "propose":
+			item.Outcome = "Recommendation saved"
+		case "awaiting_verification":
+			item.Outcome = "Waiting for verification"
+		case "improved_tested_inputs":
+			item.Outcome = "Improved on tested inputs"
+		case "regressed":
+			item.Outcome = "Regression detected"
+		case "inconclusive":
+			item.Outcome = "Inconclusive"
+		case "repair_interrupted":
+			item.Outcome = "Repair interrupted"
+		}
+		if repair := job.Repair; repair != nil {
+			for _, capability := range projectCapabilities {
+				if capability.Key == repair.Kind {
+					item.Repair = capability.Label
+					break
+				}
+			}
+			switch repair.Action {
+			case "recorded":
+				item.RepairStatus = "Action recorded"
+			case "removed":
+				item.RepairStatus = "Statistics object removed"
+			case "restored":
+				item.RepairStatus = "Original setting restored"
+			case "interrupted":
+				item.RepairStatus = "Interrupted"
+			}
+			for _, metric := range repair.Metrics {
+				item.Measurements = append(item.Measurements, RepairMeasurementView{
+					Label: metric.Label, Before: displayRepairMeasurement(metric.Before, metric.Unit), After: displayRepairMeasurement(metric.After, metric.Unit),
+				})
+			}
+		}
 		if item.Reason == "daily_model_limit" {
 			item.Reason = "The daily diagnosis limit has been reached. Monitoring continues."
 		}
@@ -223,4 +290,11 @@ func populateActivity(view *ProjectView, activity hostedquery.ProjectActivity, i
 		}
 		view.Polls = append(view.Polls, PollView{At: displayTime(poll.At), Status: status})
 	}
+}
+
+func displayRepairMeasurement(value float64, unit string) string {
+	if unit != "" {
+		return fmt.Sprintf("%.2f %s", value, unit)
+	}
+	return fmt.Sprintf("%.2f", value)
 }

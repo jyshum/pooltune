@@ -177,6 +177,8 @@ func (a *App) routes() *http.ServeMux {
 	mux.HandleFunc("GET /app/projects/{id}", a.requireAccount(a.project))
 	mux.HandleFunc("GET /app/projects/{id}/activity", a.requireAccount(a.downloadActivity))
 	mux.HandleFunc("POST /app/projects/{id}/connect", a.requireAccount(a.connectProject))
+	mux.HandleFunc("POST /app/projects/{id}/start", a.requireAccount(a.startProject))
+	mux.HandleFunc("POST /app/projects/{id}/repair-mode", a.requireAccount(a.changeRepairMode))
 	mux.HandleFunc("POST /app/projects/{id}/disconnect", a.requireAccount(a.disconnectProject))
 	return mux
 }

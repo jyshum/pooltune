@@ -124,6 +124,29 @@ textarea { display: block; resize: vertical; }
 .status-active { background: var(--brand-fill); border-color: #365154; color: #9ce4eb; }
 .status-pending { background: #352c20; border-color: #5a4630; color: var(--amber); }
 
+.agent-setup, .advanced-setup, .repair-permissions { margin-bottom: 16px; }
+.agent-setup > .section-intro { margin-bottom: 24px; }
+.agent-setup h2 { font-size: clamp(1.35rem, 3vw, 1.65rem); }
+.agent-setup > .section-intro p { max-width: 66ch; }
+.enrollment-form { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: 24px clamp(24px, 5vw, 54px); }
+.enrollment-fields { min-width: 0; margin: 0; padding: 0; border: 0; }
+.enrollment-fields legend { margin-bottom: 12px; padding: 0; font-size: 1rem; font-weight: 650; }
+.select-all, .capability-option { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; }
+.select-all { align-items: center; width: fit-content; min-height: 44px; margin: 6px 0 4px; color: var(--brand-hover); font-size: .875rem; font-weight: 650; }
+.select-all input, .capability-option input { flex: none; width: 18px; height: 18px; min-height: 0; margin: 0; padding: 0; accent-color: var(--brand); }
+.capability-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
+.select-all:not([hidden]) + .capability-options { margin-top: 0; }
+.capability-option { min-width: 0; padding: 11px; border: 1px solid var(--border); border-radius: 8px; background: var(--inset); }
+.capability-option:hover { border-color: var(--strong); }
+.capability-option:has(input:checked) { background: var(--brand-fill); border-color: #477277; }
+.capability-option input { margin-top: 3px; }
+.capability-option strong { display: block; font-size: .875rem; }
+.capability-option .help { display: block; margin-top: 4px; overflow-wrap: anywhere; }
+.enrollment-footer { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; grid-column: 1 / -1; padding-top: 18px; border-top: 1px solid var(--border); }
+.advanced-setup > summary { padding: 13px 20px; cursor: pointer; color: var(--muted); font-size: .875rem; }
+.advanced-setup[open] > summary { border-bottom: 1px solid var(--border); }
+.advanced-setup > .setup-grid { margin: 0; padding: 16px; }
+
 .setup-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; gap: 14px; margin-bottom: 16px; }
 .setup-heading { grid-column: 1 / -1; margin: 0 0 1px; }
 .setup-guide { padding: clamp(16px, 3.5vw, 24px); }
@@ -167,11 +190,15 @@ tbody tr:last-child > * { border-bottom: 0; }
 .outcome { color: var(--brand-hover); font-size: .88rem; }
 .record-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); gap: 8px 14px; margin: 10px 0 0; }
 .record-reason { margin-top: 12px; color: var(--muted); font-size: .89rem; }
+.repair-measurements { margin-top: 14px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.repair-measurements th, .repair-measurements td { padding: 9px 12px; }
+.repair-measurements td { font-variant-numeric: tabular-nums; }
 .disconnect { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 14px; padding: 17px 20px; }
 .disconnect p { margin-top: 6px; color: var(--muted); font-size: .875rem; }
 
 @media (max-width: 700px) {
   .setup-grid { grid-template-columns: minmax(0, 1fr); }
+  .enrollment-form { grid-template-columns: minmax(0, 1fr); }
 }
 
 @media (max-width: 520px) {
@@ -180,6 +207,10 @@ tbody tr:last-child > * { border-bottom: 0; }
   .topbar-inner { min-height: 58px; }
   .page-heading, .disconnect { align-items: flex-start; flex-direction: column; }
   .page-heading > .button { margin-top: 0; }
+  .capability-options { grid-template-columns: minmax(0, 1fr); }
+  .repair-permissions th, .repair-permissions td { padding: 10px 8px; }
+  .repair-permissions th:first-child { padding-left: 14px; }
+  .repair-permissions th:last-child, .repair-permissions td:last-child { padding-right: 14px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

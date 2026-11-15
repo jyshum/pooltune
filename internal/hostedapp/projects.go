@@ -41,6 +41,9 @@ func (p projectRecord) identity() (supabaseproject.Project, error) {
 
 type projectSecrets struct {
 	Password, CA, LogsToken string
+	Automatic               bool     `json:"automatic,omitempty"`
+	Capabilities            []string `json:"capabilities,omitempty"`
+	RepairsPaused           bool     `json:"repairs_paused,omitempty"`
 }
 
 type vault struct{ cipher.AEAD }
@@ -94,6 +97,7 @@ func (s projectStore) prepare(ctx context.Context) error {
 				UNIQUE(owner_id, ref),
 				CHECK ((secret IS NOT NULL) = (epoch > 0))
 			);
+			ALTER TABLE pooltune_app.projects ADD COLUMN IF NOT EXISTS pending_setup bytea;
 			CREATE TABLE IF NOT EXISTS pooltune_app.model_budgets (
 				project_id text NOT NULL REFERENCES pooltune_app.projects(id) ON DELETE CASCADE,
 				utc_day date NOT NULL,
@@ -138,8 +142,8 @@ const publicProjectColumns = `id, ref, name, owner_id, epoch, secret IS NOT NULL
 
 func (s projectStore) find(ctx context.Context, owner int64, id string) (projectRecord, error) {
 	var project projectRecord
-	err := s.db.QueryRow(ctx, `SELECT `+publicProjectColumns+` FROM pooltune_app.projects WHERE owner_id=$1 AND id=$2`, owner, id).
-		Scan(&project.ID, &project.Ref, &project.Name, &project.Owner, &project.Epoch, &project.Configured)
+	err := s.db.QueryRow(ctx, `SELECT `+publicProjectColumns+`, secret FROM pooltune_app.projects WHERE owner_id=$1 AND id=$2`, owner, id).
+		Scan(&project.ID, &project.Ref, &project.Name, &project.Owner, &project.Epoch, &project.Configured, &project.Secret)
 	return project, err
 }
 
@@ -207,7 +211,7 @@ func (s projectStore) activate(ctx context.Context, project projectRecord, seale
 		if err != nil {
 			return err
 		}
-		_, err = tx.Exec(ctx, `UPDATE pooltune_app.projects SET epoch=$3, secret=$4 WHERE owner_id=$1 AND id=$2`, project.Owner, project.ID, newEpoch, sealed)
+		_, err = tx.Exec(ctx, `UPDATE pooltune_app.projects SET epoch=$3, secret=$4, pending_setup=NULL WHERE owner_id=$1 AND id=$2`, project.Owner, project.ID, newEpoch, sealed)
 		return err
 	})
 }
@@ -229,6 +233,29 @@ func (s projectStore) disconnect(ctx context.Context, project projectRecord) err
 			return err
 		}
 		_, err := tx.Exec(ctx, `UPDATE pooltune_app.projects SET epoch=-$3::bigint,secret=NULL WHERE owner_id=$1 AND id=$2`, project.Owner, project.ID, epoch)
+		return err
+	})
+}
+
+func (s projectStore) replaceActivePermissions(ctx context.Context, project projectRecord, secret []byte) error {
+	identity, err := project.identity()
+	if err != nil {
+		return err
+	}
+	return pgx.BeginFunc(ctx, s.db, func(tx pgx.Tx) error {
+		tag, err := tx.Exec(ctx, `UPDATE pooltune_app.projects SET epoch=epoch+1, secret=$4
+			WHERE id=$1 AND owner_id=$2 AND epoch=$3 AND epoch>0`, project.ID, project.Owner, project.Epoch, secret)
+		if err != nil {
+			return err
+		}
+		if tag.RowsAffected() != 1 {
+			return hostedquery.ErrProjectDisconnected
+		}
+		tag, err = tx.Exec(ctx, `UPDATE pooltune_worker.projects SET monitor_epoch=monitor_epoch+1
+			WHERE project_id=$1 AND monitor_epoch=$2`, identity.ID(), project.Epoch)
+		if err == nil && tag.RowsAffected() != 1 {
+			return hostedquery.ErrProjectDisconnected
+		}
 		return err
 	})
 }
@@ -263,7 +290,7 @@ func checkProject(ctx context.Context, project projectRecord, credentials projec
 	if err != nil {
 		return errors.New("the monitor login could not read its enrollment. Check the setup SQL and role permissions")
 	}
-	if len(enrollment.Queries) == 0 {
+	if len(enrollment.Queries) == 0 && !credentials.Automatic {
 		return errors.New("enroll at least one application query in Supabase before connecting")
 	}
 	return nil

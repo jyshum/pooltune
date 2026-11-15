@@ -4,7 +4,9 @@ package hostedquery
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"reflect"
 	"testing"
 	"time"
 
@@ -174,6 +176,79 @@ func TestProjectActivityPrunesOldSuccessfulPolls(t *testing.T) {
 	recent, err := ReadProjectActivity(ctx, state, enrollment.Project, now.Add(-time.Hour))
 	if err != nil || len(recent.Polls) != 1 || len(recent.Windows) != 1 || !recent.Polls[0].At.Equal(now) {
 		t.Fatalf("a failed poll must leave a gap and explicit ranges must filter history: %+v, %v", recent, err)
+	}
+}
+
+func TestProjectActivityReportsOnlyRecordedRepairMeasurements(t *testing.T) {
+	ctx, state, _ := projectActivityTestState(t)
+	const project = "supabase/osdjqwpzgyzwfaxyufze/20139985697ea004"
+	if _, err := state.Exec(ctx, "INSERT INTO pooltune_worker.projects(project_id, monitor_epoch) VALUES ($1,1)", project); err != nil {
+		t.Fatal(err)
+	}
+	tests := []struct {
+		result, kind, action, reason string
+		firstMetric                  []float64
+		pending                      bool
+	}{
+		{result: `{"outcome":"propose","proposal":{"repair":"index","reason":"Try an index"}}`, reason: "Try an index"},
+		{result: `{"outcome":"no_change","repair":{"index_valid":false,"reason":"Missing evidence","before":{"read_calls":10,"read_mean_ms":12}}}`, reason: "Missing evidence"},
+		{result: `{"outcome":"improved_tested_inputs","repair":{"index_valid":true,"reason":"Measured result","before":{"read_calls":10,"read_mean_ms":12},"after":{"read_calls":10,"read_mean_ms":0}}}`, kind: "index", action: "recorded", reason: "Measured result", firstMetric: []float64{12, 0}},
+		{result: `{"outcome":"inconclusive","analyze":{"analyze_wall_ms":10,"reason":"Incomplete sample","before":{"read_calls":10,"read_mean_ms":12},"after":{"read_calls":10}}}`, kind: "analyze", action: "recorded", reason: "Incomplete sample"},
+		{result: `{"outcome":"regressed","statistics":{"reason":"Candidate regressed","before":{"samples":[{"read_calls":10,"read_mean_ms":12}]},"after":{"applied":true,"retained":false,"samples":[{"read_calls":10,"read_mean_ms":15}]}}}`, kind: "statistics", action: "removed", reason: "Candidate regressed", firstMetric: []float64{12, 15}},
+		{result: `{"outcome":"improved_tested_inputs","vacuum":{"vacuum_wall_ms":10,"before":{"read_calls":10,"read_mean_ms":12},"after":{"read_calls":10,"read_mean_ms":4}}}`, kind: "vacuum", action: "recorded", firstMetric: []float64{12, 4}},
+		{result: `{"outcome":"inconclusive","memory":{"memory_wall_ms":10,"restored":true,"before":{"read_calls":10,"read_mean_ms":12},"after":{"read_calls":10,"read_mean_ms":4}}}`, kind: "memory", action: "restored", firstMetric: []float64{12, 4}},
+		{result: `{"outcome":"awaiting_verification","cron":{"commit_at":"2026-11-14T00:00:01Z"}}`, kind: "cron", action: "recorded"},
+		{result: `{"outcome":"repair_interrupted","repair":{"index_valid":true,"before":{"read_calls":10,"read_mean_ms":12},"after":{"read_calls":10,"read_mean_ms":4}}}`, kind: "index", action: "interrupted"},
+		{result: `{"outcome":"inconclusive","cron":{"commit_at":"0001-01-01T00:00:00Z","reason":"Window expired"}}`, reason: "Window expired"},
+		{result: `{"outcome":"investigate","repair":{"index_valid":true}}`, pending: true},
+	}
+	for i, test := range tests {
+		_, err := state.Exec(ctx, `INSERT INTO pooltune_worker.investigations(project_id, database_oid, role_oid, query_id, finished_at, evidence, result)
+			VALUES ($1, 7, 9, $2, CASE WHEN $3 THEN NULL ELSE statement_timestamp() END, '{}', $4::jsonb)`, project, i+1, test.pending, test.result)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	activity, err := ReadProjectActivity(ctx, state, project, time.Now().Add(-time.Hour))
+	if err != nil || len(activity.Jobs) != len(tests) {
+		t.Fatalf("wrong activity rows: %d, %v", len(activity.Jobs), err)
+	}
+	for _, job := range activity.Jobs {
+		test := tests[job.Query-1]
+		raw, err := json.Marshal(job)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var display struct {
+			Reason string
+			Repair *struct {
+				Kind, Action string
+				Metrics      []struct{ Before, After float64 }
+			}
+		}
+		if err := json.Unmarshal(raw, &display); err != nil {
+			t.Fatal(err)
+		}
+		if display.Reason != test.reason {
+			t.Errorf("query %d: got reason %q, want %q", job.Query, display.Reason, test.reason)
+		}
+		if test.kind == "" {
+			if display.Repair != nil {
+				t.Errorf("query %d: proposal or no-change incorrectly showed a repair: %s", job.Query, raw)
+			}
+			continue
+		}
+		if display.Repair == nil || display.Repair.Kind != test.kind || display.Repair.Action != test.action {
+			t.Errorf("query %d: missing %s %s repair: %s", job.Query, test.kind, test.action, raw)
+			continue
+		}
+		var first []float64
+		if len(display.Repair.Metrics) != 0 {
+			first = []float64{display.Repair.Metrics[0].Before, display.Repair.Metrics[0].After}
+		}
+		if !reflect.DeepEqual(first, test.firstMetric) {
+			t.Errorf("query %d: got metric %v, want %v", job.Query, first, test.firstMetric)
+		}
 	}
 }
 

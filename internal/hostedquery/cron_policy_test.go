@@ -142,6 +142,21 @@ func TestCronEvidenceAndVerificationRequireRealComparablePeriods(t *testing.T) {
 	if outcome != "improved_tested_inputs" {
 		t.Fatal(outcome)
 	}
+	t.Run("recorded project measurements", func(t *testing.T) {
+		b, err := json.Marshal(before)
+		if err != nil {
+			t.Fatal(err)
+		}
+		a, err := json.Marshal(after)
+		if err != nil {
+			t.Fatal(err)
+		}
+		metrics := projectCronRepairMetrics(b, a)
+		if len(metrics) != 3 || metrics[0].Before != 42 || metrics[0].After != 2 ||
+			metrics[1].Before != 1 || metrics[1].After != 1 || metrics[2].Before != 1 || metrics[2].After != 1 {
+			t.Fatalf("expected paired query and protected traffic measurements, got %+v", metrics)
+		}
+	})
 	for _, mode := range []string{"few", "overlap_only", "small_relative", "small_absolute", "missing_guard", "reset", "demand", "errors", "quiet_target", "healthy_identity", "noise"} {
 		t.Run(mode, func(t *testing.T) {
 			b, a := periods(true), periods(false)

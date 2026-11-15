@@ -16,3 +16,24 @@ for (const button of document.querySelectorAll("[data-copy]")) {
     }
   });
 }
+
+const selectAll = document.getElementById("select-all-capabilities");
+
+if (selectAll) {
+  const options = Array.from(selectAll.form.querySelectorAll('input[name="capability"]'));
+
+  function updateSelectAll() {
+    const selected = options.filter(option => option.checked).length;
+    selectAll.checked = selected === options.length;
+    selectAll.indeterminate = selected > 0 && selected < options.length;
+  }
+
+  selectAll.addEventListener("change", () => {
+    for (const option of options) option.checked = selectAll.checked;
+    updateSelectAll();
+  });
+  for (const option of options) option.addEventListener("change", updateSelectAll);
+
+  updateSelectAll();
+  selectAll.closest("label").hidden = false;
+}

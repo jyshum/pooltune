@@ -2,6 +2,7 @@ package hostedapp
 
 import (
 	"bytes"
+	"reflect"
 	"testing"
 )
 
@@ -11,13 +12,16 @@ func TestProjectSecretIsBoundToOwnerAndInstallation(t *testing.T) {
 		t.Fatal(err)
 	}
 	project := projectRecord{ID: "0123456789abcdef", Ref: "abcdefghijklmnopqrst", Owner: 7}
-	secrets := projectSecrets{Password: "an-example-monitor-password", CA: "a certificate", LogsToken: "a scoped token"}
+	secrets := projectSecrets{
+		Password: "an-example-monitor-password", CA: "a certificate", LogsToken: "a scoped token",
+		Automatic: true, Capabilities: []string{"index", "cron"},
+	}
 	sealed, err := vault.seal(project, secrets)
 	if err != nil || bytes.Contains(sealed, []byte(secrets.Password)) {
 		t.Fatalf("could not protect project credentials: %v", err)
 	}
 	opened, err := vault.open(project, sealed)
-	if err != nil || opened != secrets {
+	if err != nil || !reflect.DeepEqual(opened, secrets) {
 		t.Fatalf("could not restore project credentials: %v", err)
 	}
 	for _, different := range []projectRecord{

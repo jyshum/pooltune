@@ -474,3 +474,23 @@ The Railway preview verified two Rookery runs, one with passive evidence and one
 - [x] Audit all map cards, correct stale statuses and verify that the Build status links open current card details.
 
 [Customer-trial audit](map-audit.md) · [Railway and browser checks](evidence/customer-trial-entry.json)
+
+## Approved MVP build sequence
+
+Jared approved the [Pooltune MVP build plan](mvp-build-plan.md) on November 15 and specified workload discovery and operation checkboxes. Continue independent work in parallel. Preserve Ask for approved design conflicts and the existing authority boundary on customer database changes.
+
+### Task 45: Connect an agent with operation permissions
+
+Show the scoped provider setup and the six capability choices in the existing theme. Store selections with the encrypted project runtime credentials. A selected capability never grants PostgreSQL authority. Distinguish selected capabilities from available actions until the worker has verified them.
+
+### Task 46: Discover app workload
+
+Add an explicitly enabled, bounded discovery path to the owner-installed monitor. Keep the manual enrollment path usable for existing installs. Detect ordinary app queries without requiring manual query IDs and return only the counter metadata needed to monitor them.
+
+### Task 47: Generalize nonunique index identities
+
+Extend the Go and LangGraph ordered pair contract and add catalog resolution for an authorized relation and column pair. Keep the old fixtures and their current validation working. Test a different real pair, an existing equivalent index and a mismatched or unauthorized target.
+
+### Task 48: Complete the hosted repairs and outcome view
+
+Connect the shared worker to the six owner-enabled repair families, with operation-specific limits, durable action state and before/after evidence. Show those results, no-change reasons and pause controls through the dashboard. Report when the themed interface is ready and continue through end-to-end verification on owned Railway/Rookery staging.
