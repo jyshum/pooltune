@@ -14,7 +14,7 @@ func AdaptDiagnostic(investigate DiagnosticInvestigator, read hostedquery.Diagno
 		if investigate == nil {
 			return hostedquery.IndexProposal{}, errors.New("diagnostic investigator is required")
 		}
-		input := DiagnosticInput{DiagnosticIdentity: DiagnosticIdentity{e.RunID, e.TableOID, e.Column}, Decision: e.Decision, Initial: SnapshotObservations(e)}
+		input := DiagnosticInput{DiagnosticIdentity: DiagnosticIdentity{RunID: e.RunID, TableOID: e.TableOID, Column: e.Column, Columns: e.Columns}, Decision: e.Decision, Initial: SnapshotObservations(e)}
 		result, err := investigate(ctx, input, func(ctx context.Context, tool string) (DiagnosticObservation, error) {
 			if !diagnosticTools[tool] {
 				return DiagnosticObservation{}, errors.New("unknown diagnostic tool")
@@ -30,7 +30,7 @@ func AdaptDiagnostic(investigate DiagnosticInvestigator, read hostedquery.Diagno
 			if !ok {
 				return unavailable, nil
 			}
-			if fresh.RunID != e.RunID || fresh.TableOID != e.TableOID || fresh.Column != e.Column {
+			if !SameDiagnosticIdentity(DiagnosticIdentity{RunID: fresh.RunID, TableOID: fresh.TableOID, Column: fresh.Column, Columns: fresh.Columns}, input.DiagnosticIdentity) {
 				return DiagnosticObservation{}, errors.New("diagnostic reader changed enrollment")
 			}
 			for _, o := range SnapshotObservations(fresh) {

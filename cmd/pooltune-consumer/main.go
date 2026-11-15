@@ -24,6 +24,7 @@ import (
 func main() {
 	route := flag.String("target", "local", "development target: local, rookery or staging")
 	project := flag.String("project", "", "enrolled project identity")
+	compound := flag.Bool("compound-staging-fixture", false, "qualify an owned two-column index from the staging queue")
 	cron := flag.Bool("cron-staging-fixture", false, "qualify enrolled future Cron schedule")
 	memory := flag.Bool("memory-staging-fixture", false, "qualify enrolled function memory from the staging queue")
 	vacuum := flag.Bool("vacuum-staging-fixture", false, "qualify bounded plain VACUUM from the staging queue")
@@ -33,7 +34,7 @@ func main() {
 	measure := flag.Bool("measure-staging-lookup", false, "measure one authorized synthetic Rookery lookup")
 	enrolledPath := flag.String("enrolled-lookup", "", "explicit Rookery evidence enrollment JSON")
 	fixture := flag.String("fixture", "", "journaled synthetic fixture ID")
-	mode := flag.String("mode", "scripted", "investigator: scripted, anthropic, or diagnostic (index fixture)")
+	mode := flag.String("mode", "scripted", "investigator: scripted, anthropic, or diagnostic (owned repair fixtures)")
 	poll := flag.Duration("poll", 2*time.Second, "wait between empty queue checks")
 	flag.Parse()
 	if flag.NArg() != 0 || (*route != "local" && *route != "rookery" && *route != "staging" && *route != "rookery-enrolled") ||
@@ -48,15 +49,16 @@ func main() {
 		fmt.Fprintln(os.Stderr, "staging uses the scripted investigator")
 		os.Exit(2)
 	}
-	if err := run(ctx, *route, *project, *fixture, *mode, *enrolledPath, *measure, *repair, *analyze, *statistics, *vacuum, *memory, *poll, *cron); err != nil {
+	if err := run(ctx, *route, *project, *fixture, *mode, *enrolledPath, *measure, *repair, *analyze, *statistics, *vacuum, *memory, *poll, *cron, *compound); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 }
 
-func run(ctx context.Context, route, project, fixture, mode, enrolledPath string, measure, repair, analyze, statistics, vacuum, memory bool, poll time.Duration, cronOption ...bool) error {
-	cron := len(cronOption) > 0 && cronOption[0]
-	if err := validateInvestigatorMode(mode, route, repair, measure || analyze || statistics || vacuum || memory || cron); err != nil {
+func run(ctx context.Context, route, project, fixture, mode, enrolledPath string, measure, repair, analyze, statistics, vacuum, memory bool, poll time.Duration, repairOptions ...bool) error {
+	cron := len(repairOptions) > 0 && repairOptions[0]
+	compound := len(repairOptions) > 1 && repairOptions[1]
+	if err := validateInvestigatorMode(mode, route, measure, repair, analyze, statistics, vacuum, memory, cron, compound); err != nil {
 		return err
 	}
 	target, err := labdb.TargetConfig(os.Getenv("POOLTUNE_WORKER_TARGET_DSN"), route)
@@ -72,12 +74,12 @@ func run(ctx context.Context, route, project, fixture, mode, enrolledPath string
 		return errors.New("consumer target and state must use separate databases")
 	}
 	target.RuntimeParams["application_name"] = "pooltune-consumer"
-	if !repair && !analyze && !statistics && !vacuum && !memory && !cron {
+	if !repair && !analyze && !statistics && !vacuum && !memory && !cron && !compound {
 		target.RuntimeParams["default_transaction_read_only"] = "on"
 	}
 	stateConfig.RuntimeParams["application_name"] = "pooltune-consumer-state"
 	stateConfig.RuntimeParams["statement_timeout"] = "3s"
-	if (repair || analyze || statistics || vacuum || memory || cron) && (route != "rookery" || (mode != "scripted" && mode != "anthropic" && mode != "diagnostic") || os.Getenv("POOLTUNE_STAGING_PRIVATE_STATE") != "1" || measure || (repair && analyze) || (statistics && (repair || analyze)) || (vacuum && (repair || analyze || statistics)) || (memory && (repair || analyze || statistics || vacuum)) || (cron && (repair || analyze || statistics || vacuum || memory))) {
+	if (repair || analyze || statistics || vacuum || memory || cron || compound) && (route != "rookery" || (mode != "scripted" && mode != "anthropic" && mode != "diagnostic") || os.Getenv("POOLTUNE_STAGING_PRIVATE_STATE") != "1" || measure || (repair && analyze) || (statistics && (repair || analyze)) || (vacuum && (repair || analyze || statistics)) || (memory && (repair || analyze || statistics || vacuum)) || (cron && (repair || analyze || statistics || vacuum || memory)) || (compound && (repair || analyze || statistics || vacuum || memory || cron))) {
 		return errors.New("repair requires the enrolled Rookery fixture and Railway private state")
 	}
 	if measure && (route != "rookery-enrolled" || mode != "scripted") {
@@ -142,13 +144,30 @@ func run(ctx context.Context, route, project, fixture, mode, enrolledPath string
 		if err == nil {
 			var result *hostedquery.DispatchResult
 			var workErr error
-			if repair || analyze || statistics || vacuum || memory || cron {
+			if repair || analyze || statistics || vacuum || memory || cron || compound {
 				if diagnose != nil {
-					investigate = graphrunner.AdaptDiagnostic(diagnose, hostedquery.FixtureDiagnosticEvidence(state, target, route, fixture))
+					reader := hostedquery.FixtureDiagnosticEvidence
+					switch {
+					case compound:
+						reader = hostedquery.CompoundDiagnosticEvidence
+					case analyze:
+						reader = hostedquery.AnalyzeDiagnosticEvidence
+					case statistics:
+						reader = hostedquery.StatisticsDiagnosticEvidence
+					case vacuum:
+						reader = hostedquery.VacuumDiagnosticEvidence
+					case memory:
+						reader = hostedquery.MemoryDiagnosticEvidence
+					case cron:
+						reader = hostedquery.CronDiagnosticEvidence
+					}
+					investigate = graphrunner.AdaptDiagnostic(diagnose, reader(state, target, route, fixture))
 				}
 				binding := hostedquery.ConsumerFixture{ID: fixture, Enrollment: hostedquery.Enrollment{Project: project}}
 				dispatch := hostedquery.DispatchFixtureRepair
-				if cron {
+				if compound {
+					dispatch = hostedquery.DispatchFixtureCompound
+				} else if cron {
 					dispatch = hostedquery.DispatchFixtureCron
 				} else if memory {
 					dispatch = hostedquery.DispatchFixtureMemory
@@ -231,16 +250,22 @@ func readLookupEnrollment(path string) (hostedquery.LookupEnrollment, error) {
 	return enrollment, enrollment.Validate()
 }
 
-// Diagnostic execution is opt-in until each existing repair adapter is qualified.
-func validateInvestigatorMode(mode, route string, index, other bool) error {
+// Diagnostic execution remains opt-in and restricted to exactly one owned fixture route.
+func validateInvestigatorMode(mode, route string, measure bool, repairs ...bool) error {
 	switch mode {
 	case "scripted", "anthropic":
 		return nil
 	case "diagnostic":
-		if route == "rookery" && index && !other {
+		count := 0
+		for _, enabled := range repairs {
+			if enabled {
+				count++
+			}
+		}
+		if route == "rookery" && !measure && count == 1 {
 			return nil
 		}
-		return errors.New("diagnostic mode requires only the enrolled Rookery index repair fixture")
+		return errors.New("diagnostic mode requires exactly one enrolled Rookery repair fixture")
 	default:
 		return errors.New("unknown investigator mode")
 	}

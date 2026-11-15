@@ -5,13 +5,14 @@ import {join} from 'node:path';
 import {setTimeout as sleep} from 'node:timers/promises';
 import assert from 'node:assert/strict';
 import pg from 'pg';
-import {command,counterDeltas,populateJobTimings,recordWorkerDiagnostic,summarizeTraffic,trafficRequest,vacuumObjective,type RequestSample} from './traffic.ts';
+import {command,verifyCronModelAction,trafficInvestigatorMode,verifyTrafficProposal,counterDeltas,populateJobTimings,recordWorkerDiagnostic,summarizeTraffic,trafficRequest,vacuumObjective,type RequestSample} from './traffic.ts';
 
 export function cronTargetDue(epochMS:number){const s=(epochMS/1000)%120;return s<20||(s>=30&&s<50)}
 const iso=(n:number)=>new Date(n).toISOString();
 const sqlISO=(value:string)=>`to_char(${value} AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"')`;
 
 export async function runCronTraffic(){
+ const investigatorMode=trafficInvestigatorMode(process.env.POOLTUNE_TRAFFIC_MODE);
  assert.equal(process.env.POOLTUNE_STAGING_PRIVATE_STATE,'1');
  assert(process.env.ANTHROPIC_API_KEY&&process.env.POOLTUNE_ANTHROPIC_MODEL);
  const config=new URL(process.env.POOLTUNE_LAB_TARGET_DSN!);assert.equal(config.hostname,'aws-0-us-west-2.pooler.supabase.com');assert.equal(config.port,'5432');assert.equal(config.pathname,'/postgres');config.search='';
@@ -48,7 +49,7 @@ export async function runCronTraffic(){
   const seconds=Math.max(0,(deadline-performance.now())/1000);const result=await traffic!('healthy_between_periods',seconds,false);
   phases.push({name:'healthy_between_periods',seconds,counter_sampled:false,requests:result.requests});
  },()=>performance.now(),()=>{checkClients();if(performance.now()-start>1200000)throw Error('Cron wall-clock budget expired')})}
- function startWorkers(){checkClients();if(!worker||worker.exitCode!==null||worker.signalCode!==null)worker=launch('pooltune-worker',['-target','rookery','-enrollment',enrollment,'-interval','2s','-window','4s']);if(!consumer||consumer.exitCode!==null||consumer.signalCode!==null)consumer=launch('pooltune-consumer',['-target','rookery','-project',fixture.enrollment.project,'-fixture',fixture.id,'-mode','anthropic','-cron-staging-fixture'])}
+ function startWorkers(){checkClients();if(!worker||worker.exitCode!==null||worker.signalCode!==null)worker=launch('pooltune-worker',['-target','rookery','-enrollment',enrollment,'-interval','2s','-window','4s']);if(!consumer||consumer.exitCode!==null||consumer.signalCode!==null)consumer=launch('pooltune-consumer',['-target','rookery','-project',fixture.enrollment.project,'-fixture',fixture.id,'-mode',investigatorMode,'-cron-staging-fixture'])}
  try{
   await state.connect();await admin.connect();await observer.connect();await fault.connect();
   const fingerprint=`SELECT count(*)::int AS count,md5(coalesce(string_agg(indexdef,E'\n' ORDER BY indexdef),'')) AS hash FROM pg_indexes WHERE schemaname='public'`;
@@ -114,14 +115,14 @@ export async function runCronTraffic(){
     output.current_phase='schedule_acknowledgement';
    }
    output.jobs=queued;populateJobTimings(output);
-   if(i===2){const pending=queued.find(j=>j.result?.outcome==='awaiting_verification');assert(pending,'no acknowledged schedule action after full original periods');assert.equal(pending.result.proposal.model_call.requests,1);output.model_seconds=pending.result.proposal.model_call.duration_ms/1000;output.action_seconds=pending.result.cron.action_wall_ms/1000;output.action_at=pending.result.cron.commit_at;const child=queued.find(j=>!j.finished_at);assert(child&&child.parent_id===pending.id&&new Date(child.not_before).getTime()>await dbNow(),'missing future verification child');await stop(consumer);consumer=undefined;startWorkers();const afterRestart=await jobs();assert(afterRestart.some(j=>j.id===child.id&&j.parent_id===child.parent_id&&!j.finished_at),'restart lost pending child');restarted=true;output.consumer_restart={job_id:child.id,parent_id:child.parent_id,not_before:child.not_before,preserved:true}}
+   if(i===2){const pending=queued.find(j=>j.result?.outcome==='awaiting_verification');assert(pending,'no acknowledged schedule action after full original periods');verifyTrafficProposal(pending.result.proposal,investigatorMode);output.model_seconds=pending.result.proposal.model_call.duration_ms/1000;output.action_seconds=pending.result.cron.action_wall_ms/1000;output.action_at=pending.result.cron.commit_at;const child=queued.find(j=>!j.finished_at);assert(child&&child.parent_id===pending.id&&new Date(child.not_before).getTime()>await dbNow(),'missing future verification child');await stop(consumer);consumer=undefined;startWorkers();const afterRestart=await jobs();assert(afterRestart.some(j=>j.id===child.id&&j.parent_id===child.parent_id&&!j.finished_at),'restart lost pending child');restarted=true;output.consumer_restart={job_id:child.id,parent_id:child.parent_id,not_before:child.not_before,preserved:true}}
   }
   await waitUntil(firstCycle+12*60000+8000);output.current_phase='final_verification';
   output.jobs=await waitCronFinalResult(firstCycle,{id:output.consumer_restart.job_id,parent_id:output.consumer_restart.parent_id},jobs,dbNow,async seconds=>{
    const observed=await traffic!('final_verification_healthy',seconds,false);
    phases.push({name:'final_verification_healthy',seconds,counter_sampled:false,requests:observed.requests});
   },start+1200000);output.current_phase='final_verification';
-  populateJobTimings(output);const final=output.jobs.find((j:any)=>j.id===output.consumer_restart.job_id&&j.parent_id===output.consumer_restart.parent_id&&j.finished_at);output.future_cycle_wait_seconds=final?.result?.cron?.cycle_wait_ms/1000;assert(restarted);assert.equal(final?.result?.outcome,'improved_tested_inputs','Cron follow-up did not verify all future work and traffic');assert.equal(output.jobs.filter((j:any)=>j.result?.proposal?.model_call?.requests===1&&j.result?.outcome==='awaiting_verification').length,1);output.repair_verified=true;output.passed=true;
+  populateJobTimings(output);const final=output.jobs.find((j:any)=>j.id===output.consumer_restart.job_id&&j.parent_id===output.consumer_restart.parent_id&&j.finished_at);output.future_cycle_wait_seconds=final?.result?.cron?.cycle_wait_ms/1000;assert(restarted);assert.equal(final?.result?.outcome,'improved_tested_inputs','Cron follow-up did not verify all future work and traffic');verifyCronModelAction(output.jobs,investigatorMode);output.repair_verified=true;output.passed=true;
  }catch(e:any){output.passed=false;output.failed_phase=e.command_failure?.operation??output.current_phase;output.command_failure=e.command_failure;output.error=clientFailures.length?`Cron client ${clientFailures[0].client} failed`:String(e.message).slice(0,400);process.exitCode=1}
  finally{
   await Promise.all(allChildren.map(stop));output.worker_failures=failures;output.worker_diagnostics=diagnostics;output.detector_windows=childResults.flatMap(r=>r.windows??[]);output.process_results=childResults.filter(r=>r.job_id);

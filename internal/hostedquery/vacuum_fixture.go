@@ -63,7 +63,7 @@ func validateVacuumFixture(ctx context.Context, tx trialReader, id string, expec
 
 // Missing visibility into activity fails closed. Short ordinary traffic is permitted;
 // snapshots older than five seconds, prepared work and replication horizons defer cleanup.
-func vacuumConditions(ctx context.Context, target *pgx.Conn, table uint32, guardPID uint32) (bool, error) {
+func vacuumConditions(ctx context.Context, target trialReader, table uint32, guardPID uint32) (bool, error) {
 	var clear bool
 	err := target.QueryRow(ctx, `SELECT
   NOT EXISTS(SELECT FROM pg_stat_activity WHERE datname=current_database() AND pid<>pg_backend_pid() AND pid<>$2 AND backend_type='client backend' AND (state IS NULL OR ((backend_xid IS NOT NULL OR backend_xmin IS NOT NULL) AND xact_start<clock_timestamp()-interval '5 seconds')))

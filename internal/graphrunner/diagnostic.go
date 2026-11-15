@@ -12,13 +12,15 @@ import (
 	"path/filepath"
 	"pooltune/internal/hostedquery"
 	"pooltune/internal/labdb"
+	"slices"
 	"time"
 )
 
 type DiagnosticIdentity struct {
-	RunID    string `json:"run_id"`
-	TableOID uint32 `json:"table_oid"`
-	Column   int16  `json:"column_number"`
+	RunID    string  `json:"run_id"`
+	TableOID uint32  `json:"table_oid"`
+	Column   int16   `json:"column_number"`
+	Columns  []int16 `json:"column_numbers,omitempty"`
 }
 type DiagnosticObservation struct {
 	DiagnosticIdentity
@@ -107,7 +109,7 @@ func diagnosticProcess(stateDSN string, replay bool) (DiagnosticInvestigator, er
 }
 func validObservation(o DiagnosticObservation, input DiagnosticInput, tool string) bool {
 	age := time.Since(o.At)
-	return o.DiagnosticIdentity == input.DiagnosticIdentity && o.Tool == tool && diagnosticTools[tool] && !o.At.IsZero() && age >= 0 && age <= 30*time.Second &&
+	return SameDiagnosticIdentity(o.DiagnosticIdentity, input.DiagnosticIdentity) && o.Tool == tool && diagnosticTools[tool] && !o.At.IsZero() && age >= 0 && age <= 30*time.Second &&
 		((o.Status == "available" && json.Valid(o.Data) && !bytes.Equal(o.Data, []byte("null"))) || (o.Status == "unavailable" && (len(o.Data) == 0 || bytes.Equal(o.Data, []byte("null")))))
 }
 func strictJSON(data []byte, dst any) error {
@@ -140,7 +142,7 @@ func runDiagnostic(parent context.Context, input DiagnosticInput, read Diagnosti
 	}()
 	ctx, cancel := context.WithTimeout(parent, 22*time.Second)
 	defer cancel()
-	if input.RunID == "" || len(input.RunID) > 64 || input.TableOID == 0 || input.Column <= 0 || len(input.Initial) > 7 {
+	if input.RunID == "" || len(input.RunID) > 64 || input.TableOID == 0 || !hostedquery.ValidIndexColumns(input.Column, input.Columns) || len(input.Initial) > 7 {
 		return result, errors.New("invalid diagnostic input")
 	}
 	observations := map[string]DiagnosticObservation{}
@@ -273,7 +275,7 @@ func runDiagnostic(parent context.Context, input DiagnosticInput, read Diagnosti
 }
 func validateDiagnosticResult(input DiagnosticInput, observations map[string]DiagnosticObservation, result DiagnosticResult) error {
 	p := result.Proposal
-	if p.RunID != input.RunID || p.TableOID != input.TableOID || p.Column != input.Column || len(p.Reason) == 0 || len(p.Reason) > 1000 || (p.Outcome != "no_change" && p.Outcome != "propose") {
+	if p.RunID != input.RunID || p.TableOID != input.TableOID || p.Column != input.Column || !slices.Equal(p.Columns, input.Columns) || len(p.Reason) == 0 || len(p.Reason) > 1000 || (p.Outcome != "no_change" && p.Outcome != "propose") {
 		return errors.New("identity")
 	}
 	if p.Outcome == "no_change" {
@@ -358,7 +360,7 @@ func validateDiagnosticResult(input DiagnosticInput, observations map[string]Dia
 	if p.Repair != "" {
 		required = append(required, p.Repair)
 	}
-	e := hostedquery.IndexEvidence{RunID: input.RunID, TableOID: input.TableOID, Column: input.Column, Decision: input.Decision, Label: "lookup", At: time.Now()}
+	e := hostedquery.IndexEvidence{RunID: input.RunID, TableOID: input.TableOID, Column: input.Column, Columns: input.Columns, Decision: input.Decision, Label: "lookup", At: time.Now()}
 	for _, tool := range required {
 		o, ok := observations[tool]
 		if !ok || !validObservation(o, input, tool) || o.Status != "available" {
@@ -408,7 +410,7 @@ func validateDiagnosticResult(input DiagnosticInput, observations map[string]Dia
 // SnapshotObservations preserves measurement time; callers may expose several
 // independently collected cause fields. Missing fields are never fabricated.
 func SnapshotObservations(e hostedquery.IndexEvidence) []DiagnosticObservation {
-	id := DiagnosticIdentity{e.RunID, e.TableOID, e.Column}
+	id := DiagnosticIdentity{RunID: e.RunID, TableOID: e.TableOID, Column: e.Column, Columns: e.Columns}
 	out := []DiagnosticObservation{}
 	add := func(tool string, value any) {
 		data, _ := json.Marshal(value)
@@ -434,4 +436,9 @@ func SnapshotObservations(e hostedquery.IndexEvidence) []DiagnosticObservation {
 		add("cron", e.Cron)
 	}
 	return out
+}
+
+// SameDiagnosticIdentity includes ordered index keys in evidence and replay binding.
+func SameDiagnosticIdentity(a, b DiagnosticIdentity) bool {
+	return a.RunID == b.RunID && a.TableOID == b.TableOID && a.Column == b.Column && slices.Equal(a.Columns, b.Columns)
 }

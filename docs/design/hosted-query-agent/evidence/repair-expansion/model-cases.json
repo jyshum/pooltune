@@ -1,0 +1,1587 @@
+[
+  {
+    "name": "index-retained",
+    "kind": "retained Rookery measurements",
+    "source": "docs/design/hosted-query-agent/evidence/mixed-traffic/final-index.json",
+    "evidence": {
+      "run_id": "worker-63-1",
+      "observed_at": "2026-11-14T18:05:41.403269793Z",
+      "decision": "investigate",
+      "table_oid": 26851,
+      "column_number": 2,
+      "covering_index": false,
+      "plan": {
+        "node": "Seq Scan",
+        "examined_rows": 100000,
+        "returned_rows": 1,
+        "shared_blocks": 1334
+      },
+      "lookup_column": "lookup"
+    },
+    "initial_tools": [
+      "plan",
+      "indexes"
+    ],
+    "expected": "index",
+    "min_reads": 0
+  },
+  {
+    "name": "analyze-retained",
+    "kind": "retained Rookery measurements",
+    "source": "docs/design/hosted-query-agent/evidence/mixed-traffic/final-analyze.json",
+    "evidence": {
+      "run_id": "worker-68-1",
+      "observed_at": "2026-11-14T18:08:32.808625923Z",
+      "decision": "investigate",
+      "table_oid": 26869,
+      "column_number": 2,
+      "covering_index": true,
+      "analyze": {
+        "sampled_lookup_fraction": 1,
+        "estimated_rows": 106720,
+        "actual_rows": 1
+      },
+      "plan": {
+        "node": "Seq Scan",
+        "examined_rows": 100000,
+        "returned_rows": 1,
+        "shared_blocks": 1334
+      },
+      "lookup_column": "lookup"
+    },
+    "initial_tools": [
+      "plan",
+      "indexes",
+      "analyze"
+    ],
+    "expected": "analyze",
+    "min_reads": 0
+  },
+  {
+    "name": "statistics-retained",
+    "kind": "retained Rookery measurements",
+    "source": "docs/design/hosted-query-agent/evidence/mixed-traffic/final-statistics.json",
+    "evidence": {
+      "run_id": "worker-72-1",
+      "observed_at": "2026-11-14T18:11:27.909299319Z",
+      "decision": "investigate",
+      "table_oid": 26889,
+      "column_number": 2,
+      "covering_index": true,
+      "statistics": {
+        "correlated_columns": true,
+        "cases": [
+          {
+            "estimated_rows": 24921,
+            "actual_rows": 100
+          },
+          {
+            "estimated_rows": 25078,
+            "actual_rows": 300
+          }
+        ]
+      },
+      "plan": {
+        "node": "Seq Scan",
+        "examined_rows": 100000,
+        "returned_rows": 100,
+        "shared_blocks": 541
+      },
+      "lookup_column": "lookup"
+    },
+    "initial_tools": [
+      "plan",
+      "indexes",
+      "statistics"
+    ],
+    "expected": "statistics",
+    "min_reads": 0
+  },
+  {
+    "name": "vacuum-retained",
+    "kind": "retained Rookery measurements",
+    "source": "docs/design/hosted-query-agent/evidence/mixed-traffic/final-vacuum.json",
+    "evidence": {
+      "run_id": "worker-85-1",
+      "observed_at": "2026-11-14T18:56:03.69809795Z",
+      "decision": "investigate",
+      "table_oid": 26992,
+      "column_number": 2,
+      "covering_index": true,
+      "vacuum": {
+        "heap_fetches": 50000,
+        "scan_rows": 50000,
+        "conditions_clear": true
+      },
+      "plan": {
+        "node": "Index Only Scan",
+        "examined_rows": 50000,
+        "returned_rows": 50000,
+        "shared_blocks": 50277
+      },
+      "lookup_column": "lookup"
+    },
+    "initial_tools": [
+      "plan",
+      "indexes",
+      "vacuum"
+    ],
+    "expected": "vacuum",
+    "min_reads": 0
+  },
+  {
+    "name": "memory-retained",
+    "kind": "retained Rookery measurements",
+    "source": "docs/design/hosted-query-agent/evidence/mixed-traffic/final-memory.json",
+    "evidence": {
+      "run_id": "worker-96-1",
+      "observed_at": "2026-11-14T19:47:29.876188635Z",
+      "decision": "investigate",
+      "table_oid": 27034,
+      "column_number": 2,
+      "covering_index": false,
+      "memory": {
+        "function_oid": 27046,
+        "temp_bytes": 14688256,
+        "internal_temp_bytes": 14688256,
+        "sort_nodes": 1,
+        "max_concurrent_calls": 3,
+        "candidate_bytes": 33554432,
+        "aggregate_bytes": 100663296,
+        "current_work_mem": "4MB",
+        "candidate_work_mem": "32MB",
+        "identity_verified": true
+      },
+      "plan": {
+        "node": "Sort",
+        "examined_rows": 100000,
+        "returned_rows": 100000,
+        "shared_blocks": 2128
+      },
+      "lookup_column": "lookup"
+    },
+    "initial_tools": [
+      "plan",
+      "indexes",
+      "memory"
+    ],
+    "expected": "memory",
+    "min_reads": 0
+  },
+  {
+    "name": "cron-retained",
+    "kind": "retained Rookery measurements",
+    "source": "docs/design/hosted-query-agent/evidence/mixed-traffic/final-cron.json",
+    "evidence": {
+      "run_id": "worker-111-1",
+      "observed_at": "2026-11-14T23:05:27.437798633Z",
+      "decision": "investigate",
+      "table_oid": 27143,
+      "column_number": 1,
+      "covering_index": false,
+      "cron": {
+        "job_id": 12,
+        "original_schedule": "*/2 * * * *",
+        "alternate_schedule": "1-59/2 * * * *",
+        "periods": [
+          {
+            "cycle": "2026-11-14T23:00:00Z",
+            "busy": {
+              "start": "2026-11-14T23:00:00.301Z",
+              "end": "2026-11-14T23:00:20.607Z",
+              "target": {
+                "before": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "-7056367272675311252",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.542741Z",
+                  "Calls": 251,
+                  "Blocks": 904,
+                  "ExecutionMS": 443.437405
+                },
+                "after": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "-7056367272675311252",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.542741Z",
+                  "Calls": 291,
+                  "Blocks": 1024,
+                  "ExecutionMS": 1738.114507
+                },
+                "offered": 40,
+                "errors": 0,
+                "missed": 0
+              },
+              "healthy": {
+                "before": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "5650928041212008911",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.69606Z",
+                  "Calls": 1748,
+                  "Blocks": 5244,
+                  "ExecutionMS": 40.177467
+                },
+                "after": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "5650928041212008911",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.69606Z",
+                  "Calls": 1828,
+                  "Blocks": 5484,
+                  "ExecutionMS": 41.975663
+                },
+                "offered": 80,
+                "errors": 0,
+                "missed": 0
+              },
+              "write": {
+                "before": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "-5565164404051411209",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.849352Z",
+                  "Calls": 877,
+                  "Blocks": 4386,
+                  "ExecutionMS": 55.70217
+                },
+                "after": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "-5565164404051411209",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.849352Z",
+                  "Calls": 917,
+                  "Blocks": 4586,
+                  "ExecutionMS": 57.999859
+                },
+                "offered": 40,
+                "errors": 0,
+                "missed": 0
+              }
+            },
+            "control": {
+              "start": "2026-11-14T23:00:30.158Z",
+              "end": "2026-11-14T23:00:50.315Z",
+              "target": {
+                "before": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "-7056367272675311252",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.542741Z",
+                  "Calls": 291,
+                  "Blocks": 1024,
+                  "ExecutionMS": 1738.114507
+                },
+                "after": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "-7056367272675311252",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.542741Z",
+                  "Calls": 331,
+                  "Blocks": 1144,
+                  "ExecutionMS": 1741.945392
+                },
+                "offered": 40,
+                "errors": 0,
+                "missed": 0
+              },
+              "healthy": {
+                "before": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "5650928041212008911",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.69606Z",
+                  "Calls": 1865,
+                  "Blocks": 5595,
+                  "ExecutionMS": 42.868552
+                },
+                "after": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "5650928041212008911",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.69606Z",
+                  "Calls": 1945,
+                  "Blocks": 5835,
+                  "ExecutionMS": 44.516732
+                },
+                "offered": 80,
+                "errors": 0,
+                "missed": 0
+              },
+              "write": {
+                "before": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "-5565164404051411209",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.849352Z",
+                  "Calls": 936,
+                  "Blocks": 4681,
+                  "ExecutionMS": 59.51941
+                },
+                "after": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "-5565164404051411209",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.849352Z",
+                  "Calls": 976,
+                  "Blocks": 4881,
+                  "ExecutionMS": 61.751318
+                },
+                "offered": 40,
+                "errors": 0,
+                "missed": 0
+              }
+            },
+            "quiet": {
+              "start": "2026-11-14T23:01:00.276Z",
+              "end": "2026-11-14T23:01:20.5Z",
+              "target": {
+                "before": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "-7056367272675311252",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.542741Z",
+                  "Calls": 331,
+                  "Blocks": 1144,
+                  "ExecutionMS": 1741.945392
+                },
+                "after": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "-7056367272675311252",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.542741Z",
+                  "Calls": 331,
+                  "Blocks": 1144,
+                  "ExecutionMS": 1741.945392
+                },
+                "offered": 0,
+                "errors": 0,
+                "missed": 0
+              },
+              "healthy": {
+                "before": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "5650928041212008911",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.69606Z",
+                  "Calls": 1984,
+                  "Blocks": 5952,
+                  "ExecutionMS": 45.453923
+                },
+                "after": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "5650928041212008911",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.69606Z",
+                  "Calls": 2064,
+                  "Blocks": 6192,
+                  "ExecutionMS": 47.492192
+                },
+                "offered": 80,
+                "errors": 0,
+                "missed": 0
+              },
+              "write": {
+                "before": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "-5565164404051411209",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.849352Z",
+                  "Calls": 996,
+                  "Blocks": 4981,
+                  "ExecutionMS": 62.951471
+                },
+                "after": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "-5565164404051411209",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.849352Z",
+                  "Calls": 1036,
+                  "Blocks": 5181,
+                  "ExecutionMS": 70.3736620000001
+                },
+                "offered": 40,
+                "errors": 0,
+                "missed": 0
+              }
+            },
+            "blocks": [
+              {
+                "at": "2026-11-14T23:00:03.46129Z",
+                "run_id": 1822,
+                "job_id": 12,
+                "pid": 189732,
+                "backend_start": "2026-11-14T23:00:00.00291Z",
+                "waiting_pid": 188724,
+                "waiting_start": "2026-11-14T22:52:17.981535Z",
+                "query_id": "-7056367272675311252"
+              },
+              {
+                "at": "2026-11-14T23:00:05.996031Z",
+                "run_id": 1822,
+                "job_id": 12,
+                "pid": 189732,
+                "backend_start": "2026-11-14T23:00:00.00291Z",
+                "waiting_pid": 188765,
+                "waiting_start": "2026-11-14T22:52:31.07809Z",
+                "query_id": "-7056367272675311252"
+              },
+              {
+                "at": "2026-11-14T23:00:06.969202Z",
+                "run_id": 1822,
+                "job_id": 12,
+                "pid": 189732,
+                "backend_start": "2026-11-14T23:00:00.00291Z",
+                "waiting_pid": 188765,
+                "waiting_start": "2026-11-14T22:52:31.07809Z",
+                "query_id": "-7056367272675311252"
+              },
+              {
+                "at": "2026-11-14T23:00:13.003725Z",
+                "run_id": 1822,
+                "job_id": 12,
+                "pid": 189732,
+                "backend_start": "2026-11-14T23:00:00.00291Z",
+                "waiting_pid": 188765,
+                "waiting_start": "2026-11-14T22:52:31.07809Z",
+                "query_id": "-7056367272675311252"
+              },
+              {
+                "at": "2026-11-14T23:00:13.977443Z",
+                "run_id": 1822,
+                "job_id": 12,
+                "pid": 189732,
+                "backend_start": "2026-11-14T23:00:00.00291Z",
+                "waiting_pid": 188765,
+                "waiting_start": "2026-11-14T22:52:31.07809Z",
+                "query_id": "-7056367272675311252"
+              },
+              {
+                "at": "2026-11-14T23:00:14.951046Z",
+                "run_id": 1822,
+                "job_id": 12,
+                "pid": 189732,
+                "backend_start": "2026-11-14T23:00:00.00291Z",
+                "waiting_pid": 188765,
+                "waiting_start": "2026-11-14T22:52:31.07809Z",
+                "query_id": "-7056367272675311252"
+              }
+            ]
+          },
+          {
+            "cycle": "2026-11-14T23:02:00Z",
+            "busy": {
+              "start": "2026-11-14T23:02:00.308Z",
+              "end": "2026-11-14T23:02:20.616Z",
+              "target": {
+                "before": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "-7056367272675311252",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.542741Z",
+                  "Calls": 331,
+                  "Blocks": 1144,
+                  "ExecutionMS": 1741.945392
+                },
+                "after": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "-7056367272675311252",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.542741Z",
+                  "Calls": 371,
+                  "Blocks": 1264,
+                  "ExecutionMS": 3090.786812
+                },
+                "offered": 40,
+                "errors": 0,
+                "missed": 0
+              },
+              "healthy": {
+                "before": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "5650928041212008911",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.69606Z",
+                  "Calls": 2221,
+                  "Blocks": 6663,
+                  "ExecutionMS": 51.315699
+                },
+                "after": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "5650928041212008911",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.69606Z",
+                  "Calls": 2301,
+                  "Blocks": 6903,
+                  "ExecutionMS": 53.201818
+                },
+                "offered": 80,
+                "errors": 0,
+                "missed": 0
+              },
+              "write": {
+                "before": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "-5565164404051411209",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.849352Z",
+                  "Calls": 1115,
+                  "Blocks": 5576,
+                  "ExecutionMS": 75.3089600000001
+                },
+                "after": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "-5565164404051411209",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.849352Z",
+                  "Calls": 1155,
+                  "Blocks": 5776,
+                  "ExecutionMS": 77.7867260000001
+                },
+                "offered": 40,
+                "errors": 0,
+                "missed": 0
+              }
+            },
+            "control": {
+              "start": "2026-11-14T23:02:30.307Z",
+              "end": "2026-11-14T23:02:50.465Z",
+              "target": {
+                "before": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "-7056367272675311252",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.542741Z",
+                  "Calls": 371,
+                  "Blocks": 1264,
+                  "ExecutionMS": 3090.786812
+                },
+                "after": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "-7056367272675311252",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.542741Z",
+                  "Calls": 411,
+                  "Blocks": 1384,
+                  "ExecutionMS": 3094.366214
+                },
+                "offered": 40,
+                "errors": 0,
+                "missed": 0
+              },
+              "healthy": {
+                "before": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "5650928041212008911",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.69606Z",
+                  "Calls": 2339,
+                  "Blocks": 7017,
+                  "ExecutionMS": 54.066787
+                },
+                "after": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "5650928041212008911",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.69606Z",
+                  "Calls": 2419,
+                  "Blocks": 7257,
+                  "ExecutionMS": 55.949462
+                },
+                "offered": 80,
+                "errors": 0,
+                "missed": 0
+              },
+              "write": {
+                "before": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "-5565164404051411209",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.849352Z",
+                  "Calls": 1175,
+                  "Blocks": 5876,
+                  "ExecutionMS": 78.980735
+                },
+                "after": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "-5565164404051411209",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.849352Z",
+                  "Calls": 1215,
+                  "Blocks": 6076,
+                  "ExecutionMS": 81.366121
+                },
+                "offered": 40,
+                "errors": 0,
+                "missed": 0
+              }
+            },
+            "quiet": {
+              "start": "2026-11-14T23:03:00.175Z",
+              "end": "2026-11-14T23:03:20.334Z",
+              "target": {
+                "before": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "-7056367272675311252",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.542741Z",
+                  "Calls": 411,
+                  "Blocks": 1384,
+                  "ExecutionMS": 3094.366214
+                },
+                "after": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "-7056367272675311252",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.542741Z",
+                  "Calls": 411,
+                  "Blocks": 1384,
+                  "ExecutionMS": 3094.366214
+                },
+                "offered": 0,
+                "errors": 0,
+                "missed": 0
+              },
+              "healthy": {
+                "before": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "5650928041212008911",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.69606Z",
+                  "Calls": 2457,
+                  "Blocks": 7371,
+                  "ExecutionMS": 56.827077
+                },
+                "after": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "5650928041212008911",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.69606Z",
+                  "Calls": 2537,
+                  "Blocks": 7611,
+                  "ExecutionMS": 58.769166
+                },
+                "offered": 80,
+                "errors": 0,
+                "missed": 0
+              },
+              "write": {
+                "before": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "-5565164404051411209",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.849352Z",
+                  "Calls": 1234,
+                  "Blocks": 6171,
+                  "ExecutionMS": 82.517824
+                },
+                "after": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "-5565164404051411209",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.849352Z",
+                  "Calls": 1274,
+                  "Blocks": 6371,
+                  "ExecutionMS": 85.052067
+                },
+                "offered": 40,
+                "errors": 0,
+                "missed": 0
+              }
+            },
+            "blocks": [
+              {
+                "at": "2026-11-14T23:02:02.465518Z",
+                "run_id": 1882,
+                "job_id": 12,
+                "pid": 190474,
+                "backend_start": "2026-11-14T23:02:00.005079Z",
+                "waiting_pid": 188724,
+                "waiting_start": "2026-11-14T22:52:17.981535Z",
+                "query_id": "-7056367272675311252"
+              },
+              {
+                "at": "2026-11-14T23:02:05.521155Z",
+                "run_id": 1882,
+                "job_id": 12,
+                "pid": 190474,
+                "backend_start": "2026-11-14T23:02:00.005079Z",
+                "waiting_pid": 188724,
+                "waiting_start": "2026-11-14T22:52:17.981535Z",
+                "query_id": "-7056367272675311252"
+              },
+              {
+                "at": "2026-11-14T23:02:06.476379Z",
+                "run_id": 1882,
+                "job_id": 12,
+                "pid": 190474,
+                "backend_start": "2026-11-14T23:02:00.005079Z",
+                "waiting_pid": 188724,
+                "waiting_start": "2026-11-14T22:52:17.981535Z",
+                "query_id": "-7056367272675311252"
+              },
+              {
+                "at": "2026-11-14T23:02:08.003937Z",
+                "run_id": 1882,
+                "job_id": 12,
+                "pid": 190474,
+                "backend_start": "2026-11-14T23:02:00.005079Z",
+                "waiting_pid": 188765,
+                "waiting_start": "2026-11-14T22:52:31.07809Z",
+                "query_id": "-7056367272675311252"
+              },
+              {
+                "at": "2026-11-14T23:02:08.95892Z",
+                "run_id": 1882,
+                "job_id": 12,
+                "pid": 190474,
+                "backend_start": "2026-11-14T23:02:00.005079Z",
+                "waiting_pid": 188765,
+                "waiting_start": "2026-11-14T22:52:31.07809Z",
+                "query_id": "-7056367272675311252"
+              },
+              {
+                "at": "2026-11-14T23:02:12.967008Z",
+                "run_id": 1882,
+                "job_id": 12,
+                "pid": 190474,
+                "backend_start": "2026-11-14T23:02:00.005079Z",
+                "waiting_pid": 188765,
+                "waiting_start": "2026-11-14T22:52:31.07809Z",
+                "query_id": "-7056367272675311252"
+              },
+              {
+                "at": "2026-11-14T23:02:14.493984Z",
+                "run_id": 1882,
+                "job_id": 12,
+                "pid": 190474,
+                "backend_start": "2026-11-14T23:02:00.005079Z",
+                "waiting_pid": 188724,
+                "waiting_start": "2026-11-14T22:52:17.981535Z",
+                "query_id": "-7056367272675311252"
+              }
+            ]
+          },
+          {
+            "cycle": "2026-11-14T23:04:00Z",
+            "busy": {
+              "start": "2026-11-14T23:04:00.167Z",
+              "end": "2026-11-14T23:04:20.37Z",
+              "target": {
+                "before": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "-7056367272675311252",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.542741Z",
+                  "Calls": 411,
+                  "Blocks": 1384,
+                  "ExecutionMS": 3094.366214
+                },
+                "after": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "-7056367272675311252",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.542741Z",
+                  "Calls": 451,
+                  "Blocks": 1504,
+                  "ExecutionMS": 4487.811838
+                },
+                "offered": 40,
+                "errors": 0,
+                "missed": 0
+              },
+              "healthy": {
+                "before": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "5650928041212008911",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.69606Z",
+                  "Calls": 2694,
+                  "Blocks": 8082,
+                  "ExecutionMS": 62.642406
+                },
+                "after": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "5650928041212008911",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.69606Z",
+                  "Calls": 2774,
+                  "Blocks": 8322,
+                  "ExecutionMS": 64.5004929999999
+                },
+                "offered": 80,
+                "errors": 0,
+                "missed": 0
+              },
+              "write": {
+                "before": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "-5565164404051411209",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.849352Z",
+                  "Calls": 1353,
+                  "Blocks": 6766,
+                  "ExecutionMS": 89.903711
+                },
+                "after": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "-5565164404051411209",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.849352Z",
+                  "Calls": 1393,
+                  "Blocks": 6966,
+                  "ExecutionMS": 92.4879600000001
+                },
+                "offered": 40,
+                "errors": 0,
+                "missed": 0
+              }
+            },
+            "control": {
+              "start": "2026-11-14T23:04:30.308Z",
+              "end": "2026-11-14T23:04:50.467Z",
+              "target": {
+                "before": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "-7056367272675311252",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.542741Z",
+                  "Calls": 451,
+                  "Blocks": 1504,
+                  "ExecutionMS": 4487.811838
+                },
+                "after": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "-7056367272675311252",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.542741Z",
+                  "Calls": 491,
+                  "Blocks": 1624,
+                  "ExecutionMS": 4492.313962
+                },
+                "offered": 40,
+                "errors": 0,
+                "missed": 0
+              },
+              "healthy": {
+                "before": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "5650928041212008911",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.69606Z",
+                  "Calls": 2813,
+                  "Blocks": 8439,
+                  "ExecutionMS": 65.4127289999999
+                },
+                "after": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "5650928041212008911",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.69606Z",
+                  "Calls": 2893,
+                  "Blocks": 8679,
+                  "ExecutionMS": 67.0872529999999
+                },
+                "offered": 80,
+                "errors": 0,
+                "missed": 0
+              },
+              "write": {
+                "before": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "-5565164404051411209",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.849352Z",
+                  "Calls": 1413,
+                  "Blocks": 7066,
+                  "ExecutionMS": 93.8412140000001
+                },
+                "after": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "-5565164404051411209",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.849352Z",
+                  "Calls": 1453,
+                  "Blocks": 7266,
+                  "ExecutionMS": 96.35097
+                },
+                "offered": 40,
+                "errors": 0,
+                "missed": 0
+              }
+            },
+            "quiet": {
+              "start": "2026-11-14T23:05:00.176Z",
+              "end": "2026-11-14T23:05:20.334Z",
+              "target": {
+                "before": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "-7056367272675311252",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.542741Z",
+                  "Calls": 491,
+                  "Blocks": 1624,
+                  "ExecutionMS": 4492.313962
+                },
+                "after": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "-7056367272675311252",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.542741Z",
+                  "Calls": 491,
+                  "Blocks": 1624,
+                  "ExecutionMS": 4492.313962
+                },
+                "offered": 0,
+                "errors": 0,
+                "missed": 0
+              },
+              "healthy": {
+                "before": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "5650928041212008911",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.69606Z",
+                  "Calls": 2931,
+                  "Blocks": 8793,
+                  "ExecutionMS": 68.0336809999999
+                },
+                "after": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "5650928041212008911",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.69606Z",
+                  "Calls": 3011,
+                  "Blocks": 9033,
+                  "ExecutionMS": 69.9788869999998
+                },
+                "offered": 80,
+                "errors": 0,
+                "missed": 0
+              },
+              "write": {
+                "before": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "-5565164404051411209",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.849352Z",
+                  "Calls": 1472,
+                  "Blocks": 7361,
+                  "ExecutionMS": 97.520932
+                },
+                "after": {
+                  "Database": 5,
+                  "Role": 16388,
+                  "Query": "-5565164404051411209",
+                  "Boot": "2026-11-13T06:32:09.8816Z",
+                  "Reset": "2026-11-13T06:31:44.198982Z",
+                  "Entry": "2026-11-14T22:52:33.849352Z",
+                  "Calls": 1512,
+                  "Blocks": 7561,
+                  "ExecutionMS": 99.8656870000001
+                },
+                "offered": 40,
+                "errors": 0,
+                "missed": 0
+              }
+            },
+            "blocks": [
+              {
+                "at": "2026-11-14T23:04:03.363316Z",
+                "run_id": 1943,
+                "job_id": 12,
+                "pid": 190567,
+                "backend_start": "2026-11-14T23:04:00.003922Z",
+                "waiting_pid": 188724,
+                "waiting_start": "2026-11-14T22:52:17.981535Z",
+                "query_id": "-7056367272675311252"
+              },
+              {
+                "at": "2026-11-14T23:04:05.84452Z",
+                "run_id": 1943,
+                "job_id": 12,
+                "pid": 190567,
+                "backend_start": "2026-11-14T23:04:00.003922Z",
+                "waiting_pid": 188765,
+                "waiting_start": "2026-11-14T22:52:31.07809Z",
+                "query_id": "-7056367272675311252"
+              },
+              {
+                "at": "2026-11-14T23:04:08.327054Z",
+                "run_id": 1943,
+                "job_id": 12,
+                "pid": 190567,
+                "backend_start": "2026-11-14T23:04:00.003922Z",
+                "waiting_pid": 188724,
+                "waiting_start": "2026-11-14T22:52:17.981535Z",
+                "query_id": "-7056367272675311252"
+              },
+              {
+                "at": "2026-11-14T23:04:09.852621Z",
+                "run_id": 1943,
+                "job_id": 12,
+                "pid": 190567,
+                "backend_start": "2026-11-14T23:04:00.003922Z",
+                "waiting_pid": 188765,
+                "waiting_start": "2026-11-14T22:52:31.07809Z",
+                "query_id": "-7056367272675311252"
+              },
+              {
+                "at": "2026-11-14T23:04:12.341527Z",
+                "run_id": 1943,
+                "job_id": 12,
+                "pid": 190567,
+                "backend_start": "2026-11-14T23:04:00.003922Z",
+                "waiting_pid": 188724,
+                "waiting_start": "2026-11-14T22:52:17.981535Z",
+                "query_id": "-7056367272675311252"
+              },
+              {
+                "at": "2026-11-14T23:04:15.396926Z",
+                "run_id": 1943,
+                "job_id": 12,
+                "pid": 190567,
+                "backend_start": "2026-11-14T23:04:00.003922Z",
+                "waiting_pid": 188724,
+                "waiting_start": "2026-11-14T22:52:17.981535Z",
+                "query_id": "-7056367272675311252"
+              },
+              {
+                "at": "2026-11-14T23:04:16.350985Z",
+                "run_id": 1943,
+                "job_id": 12,
+                "pid": 190567,
+                "backend_start": "2026-11-14T23:04:00.003922Z",
+                "waiting_pid": 188724,
+                "waiting_start": "2026-11-14T22:52:17.981535Z",
+                "query_id": "-7056367272675311252"
+              }
+            ]
+          }
+        ],
+        "identity_verified": true,
+        "required_runs_per_cycle": 1,
+        "cycle_seconds": 120,
+        "deadline_seconds": 120
+      },
+      "plan": {
+        "node": "Result",
+        "examined_rows": 0,
+        "returned_rows": 0,
+        "shared_blocks": 0
+      },
+      "lookup_column": "lookup"
+    },
+    "initial_tools": [
+      "plan",
+      "indexes",
+      "cron"
+    ],
+    "expected": "cron",
+    "min_reads": 0
+  },
+  {
+    "name": "withheld-stale-statistics",
+    "kind": "controlled diagnostic scenario derived from retained measurements",
+    "source": "final-analyze.json / final-statistics.json; transformations recorded in diagnostic-loop.md",
+    "evidence": {
+      "run_id": "worker-68-1",
+      "observed_at": "2026-11-14T18:08:32.808625923Z",
+      "decision": "investigate",
+      "table_oid": 26869,
+      "column_number": 2,
+      "covering_index": true,
+      "analyze": {
+        "sampled_lookup_fraction": 1,
+        "estimated_rows": 106720,
+        "actual_rows": 1
+      },
+      "plan": {
+        "node": "Seq Scan",
+        "examined_rows": 100000,
+        "returned_rows": 1,
+        "shared_blocks": 1334
+      },
+      "lookup_column": "lookup"
+    },
+    "initial_tools": [
+      "plan",
+      "indexes"
+    ],
+    "expected": "analyze",
+    "min_reads": 1
+  },
+  {
+    "name": "stale-versus-relationship",
+    "kind": "controlled diagnostic scenario derived from retained measurements",
+    "source": "final-analyze.json / final-statistics.json; transformations recorded in diagnostic-loop.md",
+    "evidence": {
+      "run_id": "worker-68-1",
+      "observed_at": "2026-11-14T18:08:32.808625923Z",
+      "decision": "investigate",
+      "table_oid": 26869,
+      "column_number": 2,
+      "covering_index": true,
+      "analyze": {
+        "sampled_lookup_fraction": 1,
+        "estimated_rows": 106720,
+        "actual_rows": 1
+      },
+      "plan": {
+        "node": "Seq Scan",
+        "examined_rows": 100000,
+        "returned_rows": 1,
+        "shared_blocks": 1334
+      },
+      "lookup_column": "lookup",
+      "statistics": {
+        "correlated_columns": false,
+        "cases": [
+          {
+            "estimated_rows": 1,
+            "actual_rows": 1
+          },
+          {
+            "estimated_rows": 2,
+            "actual_rows": 2
+          }
+        ]
+      }
+    },
+    "initial_tools": [
+      "plan",
+      "indexes",
+      "analyze",
+      "statistics"
+    ],
+    "expected": "analyze",
+    "min_reads": 0
+  },
+  {
+    "name": "relationship-versus-refresh",
+    "kind": "controlled diagnostic scenario derived from retained measurements",
+    "source": "final-analyze.json / final-statistics.json; transformations recorded in diagnostic-loop.md",
+    "evidence": {
+      "run_id": "worker-72-1",
+      "observed_at": "2026-11-14T18:11:27.909299319Z",
+      "decision": "investigate",
+      "table_oid": 26889,
+      "column_number": 2,
+      "covering_index": true,
+      "statistics": {
+        "correlated_columns": true,
+        "cases": [
+          {
+            "estimated_rows": 24921,
+            "actual_rows": 100
+          },
+          {
+            "estimated_rows": 25078,
+            "actual_rows": 300
+          }
+        ]
+      },
+      "plan": {
+        "node": "Seq Scan",
+        "examined_rows": 100000,
+        "returned_rows": 100,
+        "shared_blocks": 541
+      },
+      "lookup_column": "lookup",
+      "analyze": {
+        "estimated_rows": 1,
+        "actual_rows": 1
+      }
+    },
+    "initial_tools": [
+      "plan",
+      "indexes",
+      "analyze",
+      "statistics"
+    ],
+    "expected": "statistics",
+    "min_reads": 0
+  },
+  {
+    "name": "contradictory-statistics",
+    "kind": "controlled diagnostic scenario derived from retained measurements",
+    "source": "final-analyze.json / final-statistics.json; transformations recorded in diagnostic-loop.md",
+    "evidence": {
+      "run_id": "worker-68-1",
+      "observed_at": "2026-11-14T18:08:32.808625923Z",
+      "decision": "investigate",
+      "table_oid": 26869,
+      "column_number": 2,
+      "covering_index": true,
+      "analyze": {
+        "sampled_lookup_fraction": 1,
+        "estimated_rows": 106720,
+        "actual_rows": 1
+      },
+      "plan": {
+        "node": "Seq Scan",
+        "examined_rows": 100000,
+        "returned_rows": 1,
+        "shared_blocks": 1334
+      },
+      "lookup_column": "lookup",
+      "statistics": {
+        "correlated_columns": true,
+        "cases": [
+          {
+            "estimated_rows": 24921,
+            "actual_rows": 100
+          },
+          {
+            "estimated_rows": 25078,
+            "actual_rows": 300
+          }
+        ]
+      }
+    },
+    "initial_tools": [
+      "plan",
+      "indexes",
+      "analyze",
+      "statistics"
+    ],
+    "expected": "no_change",
+    "min_reads": 0
+  },
+  {
+    "name": "healthy-detector",
+    "kind": "controlled diagnostic scenario derived from retained measurements",
+    "source": "final-analyze.json / final-statistics.json; transformations recorded in diagnostic-loop.md",
+    "evidence": {
+      "run_id": "worker-63-1",
+      "observed_at": "2026-11-14T18:05:41.403269793Z",
+      "decision": "no_change",
+      "table_oid": 26851,
+      "column_number": 2,
+      "covering_index": false,
+      "plan": {
+        "node": "Seq Scan",
+        "examined_rows": 100000,
+        "returned_rows": 1,
+        "shared_blocks": 1334
+      },
+      "lookup_column": "lookup"
+    },
+    "initial_tools": [
+      "plan",
+      "indexes"
+    ],
+    "expected": "no_change",
+    "min_reads": 0
+  },
+  {
+    "name": "unselective-workload",
+    "kind": "controlled diagnostic scenario derived from retained measurements",
+    "source": "final-analyze.json / final-statistics.json; transformations recorded in diagnostic-loop.md",
+    "evidence": {
+      "run_id": "worker-63-1",
+      "observed_at": "2026-11-14T18:05:41.403269793Z",
+      "decision": "investigate",
+      "table_oid": 26851,
+      "column_number": 2,
+      "covering_index": false,
+      "plan": {
+        "node": "Seq Scan",
+        "examined_rows": 100000,
+        "returned_rows": 90000,
+        "shared_blocks": 1200
+      },
+      "lookup_column": "lookup"
+    },
+    "initial_tools": [
+      "plan",
+      "indexes"
+    ],
+    "expected": "no_change",
+    "min_reads": 0
+  },
+  {
+    "name": "unsupported-slowdown",
+    "kind": "controlled diagnostic scenario derived from retained measurements",
+    "source": "final-analyze.json / final-statistics.json; transformations recorded in diagnostic-loop.md",
+    "evidence": {
+      "run_id": "worker-63-1",
+      "observed_at": "2026-11-14T18:05:41.403269793Z",
+      "decision": "investigate",
+      "table_oid": 26851,
+      "column_number": 2,
+      "covering_index": true,
+      "plan": {
+        "node": "Index Scan",
+        "examined_rows": 1,
+        "returned_rows": 1,
+        "shared_blocks": 3
+      },
+      "lookup_column": "lookup"
+    },
+    "initial_tools": [
+      "plan",
+      "indexes"
+    ],
+    "expected": "no_change",
+    "min_reads": 0
+  },
+  {
+    "name": "heldout-withheld-25000",
+    "kind": "synthetic held-out diagnostic variation; no fresh Rookery measurement",
+    "source": "final-analyze.json / final-statistics.json; transformations recorded in diagnostic-loop.md",
+    "evidence": {
+      "run_id": "worker-68-1",
+      "observed_at": "2026-11-14T18:08:32.808625923Z",
+      "decision": "investigate",
+      "table_oid": 800,
+      "column_number": 2,
+      "covering_index": true,
+      "analyze": {
+        "sampled_lookup_fraction": 1,
+        "estimated_rows": 25000,
+        "actual_rows": 1
+      },
+      "plan": {
+        "node": "Seq Scan",
+        "examined_rows": 25000,
+        "returned_rows": 1,
+        "shared_blocks": 1334
+      },
+      "lookup_column": "lookup"
+    },
+    "initial_tools": [
+      "plan",
+      "indexes"
+    ],
+    "expected": "analyze",
+    "min_reads": 1
+  },
+  {
+    "name": "heldout-withheld-250000",
+    "kind": "synthetic held-out diagnostic variation; no fresh Rookery measurement",
+    "source": "final-analyze.json / final-statistics.json; transformations recorded in diagnostic-loop.md",
+    "evidence": {
+      "run_id": "worker-68-1",
+      "observed_at": "2026-11-14T18:08:32.808625923Z",
+      "decision": "investigate",
+      "table_oid": 801,
+      "column_number": 2,
+      "covering_index": true,
+      "analyze": {
+        "sampled_lookup_fraction": 1,
+        "estimated_rows": 250000,
+        "actual_rows": 1
+      },
+      "plan": {
+        "node": "Seq Scan",
+        "examined_rows": 250000,
+        "returned_rows": 1,
+        "shared_blocks": 1334
+      },
+      "lookup_column": "lookup"
+    },
+    "initial_tools": [
+      "plan",
+      "indexes"
+    ],
+    "expected": "analyze",
+    "min_reads": 1
+  },
+  {
+    "name": "compound-selective",
+    "kind": "controlled_variation",
+    "source": "Controlled two-column variation of retained index measurements; fresh hosted measurement remains separate.",
+    "evidence": {
+      "run_id": "worker-63-1",
+      "observed_at": "2026-11-14T18:05:41.403269793Z",
+      "decision": "investigate",
+      "table_oid": 26851,
+      "column_number": 2,
+      "covering_index": false,
+      "plan": {
+        "node": "Seq Scan",
+        "examined_rows": 100000,
+        "returned_rows": 1,
+        "shared_blocks": 1334
+      },
+      "lookup_column": "lookup",
+      "column_numbers": [
+        2,
+        3
+      ]
+    },
+    "initial_tools": [
+      "plan",
+      "indexes"
+    ],
+    "expected": "index",
+    "min_reads": 0
+  },
+  {
+    "name": "compound-covered",
+    "kind": "controlled_variation",
+    "source": "Controlled two-column variation of retained index measurements; fresh hosted measurement remains separate.",
+    "evidence": {
+      "run_id": "worker-63-1",
+      "observed_at": "2026-11-14T18:05:41.403269793Z",
+      "decision": "investigate",
+      "table_oid": 26851,
+      "column_number": 2,
+      "covering_index": true,
+      "plan": {
+        "node": "Index Scan",
+        "examined_rows": 1,
+        "returned_rows": 1,
+        "shared_blocks": 4
+      },
+      "lookup_column": "lookup",
+      "column_numbers": [
+        2,
+        3
+      ]
+    },
+    "initial_tools": [
+      "plan",
+      "indexes"
+    ],
+    "expected": "no_change",
+    "min_reads": 0
+  },
+  {
+    "name": "compound-unselective",
+    "kind": "controlled_variation",
+    "source": "Controlled two-column variation of retained index measurements; fresh hosted measurement remains separate.",
+    "evidence": {
+      "run_id": "worker-63-1",
+      "observed_at": "2026-11-14T18:05:41.403269793Z",
+      "decision": "investigate",
+      "table_oid": 26851,
+      "column_number": 2,
+      "covering_index": false,
+      "plan": {
+        "node": "Seq Scan",
+        "examined_rows": 100000,
+        "returned_rows": 90000,
+        "shared_blocks": 1334
+      },
+      "lookup_column": "lookup",
+      "column_numbers": [
+        2,
+        3
+      ]
+    },
+    "initial_tools": [
+      "plan",
+      "indexes"
+    ],
+    "expected": "no_change",
+    "min_reads": 0
+  }
+]

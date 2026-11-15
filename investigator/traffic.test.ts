@@ -81,3 +81,37 @@ test('failed fixture commands retain bounded operation and SQLSTATE without stde
   });
  }finally{process.env.PATH=prior;rmSync(dir,{recursive:true,force:true})}
 });
+
+test('diagnostic traffic requires recorded real model work and allows bounded follow-up calls',async()=>{
+ const {trafficInvestigatorMode,verifyTrafficProposal}=await import('./traffic.ts');
+ assert.equal(trafficInvestigatorMode(undefined),'anthropic');
+ assert.equal(trafficInvestigatorMode('diagnostic'),'diagnostic');
+ assert.throws(()=>trafficInvestigatorMode('scripted'));
+ const p={model_call:{model:'test-model',requests:2,duration_ms:100},diagnostic:{model_calls:2,model_attempts:2,reads:1,model_ms:100,tool_ms:5,total_ms:110}};
+ verifyTrafficProposal(p,'diagnostic');
+ assert.throws(()=>verifyTrafficProposal({...p,diagnostic:undefined},'diagnostic'));
+ assert.throws(()=>verifyTrafficProposal({...p,model_call:{...p.model_call,requests:4}},'diagnostic'));
+ assert.throws(()=>verifyTrafficProposal({...p,diagnostic:{...p.diagnostic,model_calls:1}},'diagnostic'));
+ assert.throws(()=>verifyTrafficProposal(p,'anthropic'));
+ verifyTrafficProposal({model_call:{model:'test-model',requests:1,duration_ms:100}},'anthropic');
+});
+
+test('compound traffic keeps both enrolled predicates and verifies the exact result',async()=>{
+ const {trafficCase}=await import('./traffic.ts');
+ const c=trafficCase('compound','"owned"."candidate"');
+ assert.equal(c.sql,'SELECT id FROM ONLY "owned"."candidate" WHERE lookup=$1 AND padding=$2');
+ assert.deepEqual(c.input(0),[43,'43'.padStart(64,'0')]);
+ c.check([{id:43}],0);
+ assert.throws(()=>c.check([{id:43},{id:44}],0));
+ assert.throws(()=>c.check([{id:44}],0));
+});
+
+test('Cron final verification accepts one acknowledged multi-call diagnostic action and rejects duplicates',async()=>{
+ const {verifyCronModelAction}=await import('./traffic.ts');
+ const proposal={model_call:{model:'test-model',requests:2,duration_ms:100},diagnostic:{model_calls:2,model_attempts:2,reads:1,model_ms:100,tool_ms:5,total_ms:110}};
+ const jobs=[{result:{outcome:'awaiting_verification',proposal}},{result:{outcome:'improved_tested_inputs'}}];
+ verifyCronModelAction(jobs,'diagnostic');
+ assert.throws(()=>verifyCronModelAction([...jobs,jobs[0]],'diagnostic'));
+ assert.throws(()=>verifyCronModelAction([jobs[1]],'diagnostic'));
+ assert.throws(()=>verifyCronModelAction(jobs,'anthropic'));
+});

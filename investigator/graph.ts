@@ -3,6 +3,8 @@ import type { BaseCheckpointSaver } from "@langchain/langgraph";
 import { z } from "zod";
 import {cronSchema,cronCause} from "./cron-schema.ts";
 
+export const orderedColumnsSchema=z.tuple([z.literal(2),z.literal(3)]);
+
 const planSchema = z.strictObject({
   node: z.string().max(60),
   examined_rows: z.number().int().nonnegative(),
@@ -16,6 +18,7 @@ export const evidenceFields = z.strictObject({
   decision: z.enum(["investigate", "no_change", "insufficient_evidence"]),
   table_oid: z.number().int().positive().max(4294967295),
   column_number: z.number().int().positive().max(32767),
+  column_numbers: orderedColumnsSchema.optional(),
   lookup_column: z.literal("lookup"),
   covering_index: z.boolean(),
   plan: planSchema,
@@ -36,6 +39,7 @@ export const proposalSchema = z.strictObject({
   run_id: z.string().min(1).max(64),
   table_oid: z.number().int().positive().max(4294967295),
   column_number: z.number().int().positive().max(32767),
+  column_numbers: orderedColumnsSchema.optional(),
   repair: z.enum(["analyze", "statistics", "vacuum", "memory", "cron"]).optional(),
   reason: z.string().min(1).max(1000),
   model_call: z.strictObject({
@@ -56,10 +60,11 @@ const state = new StateSchema({
 });
 
 function identity(evidence: Evidence) {
-  return { run_id: evidence.run_id, table_oid: evidence.table_oid, column_number: evidence.column_number };
+  return { run_id: evidence.run_id, table_oid: evidence.table_oid, column_number: evidence.column_number, ...(evidence.column_numbers?{column_numbers:evidence.column_numbers}:{}) };
 }
 
 export function screenEvidence(evidence: Evidence) {
+ if(evidence.column_numbers && (evidence.column_number!==2 || [evidence.analyze,evidence.statistics,evidence.vacuum,evidence.memory,evidence.cron].some(Boolean))) return {proposal:{...identity(evidence),outcome:"no_change" as const,reason:"Unsupported compound enrollment."}};
       if (evidence.cron) {
         if(evidence.decision === "investigate" && cronCause(evidence.cron)) return {};
         return {proposal:{...identity(evidence),outcome:"no_change" as const,reason:"Repeated attributed contention or enrolled schedule constraints are insufficient."}};

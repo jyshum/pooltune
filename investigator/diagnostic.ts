@@ -1,12 +1,12 @@
 import { END, START, StateGraph, StateSchema } from '@langchain/langgraph';
 import type { BaseCheckpointSaver } from '@langchain/langgraph';
 import { z } from 'zod';
-import { evidenceFields, screenEvidence, type Evidence, type Proposal } from './graph.ts';
+import { evidenceFields, orderedColumnsSchema, screenEvidence, type Evidence, type Proposal } from './graph.ts';
 
 export const toolSchema=z.enum(['plan','indexes','analyze','statistics','vacuum','memory','cron']);
 export type DiagnosticTool=z.infer<typeof toolSchema>;
 const repairSchema=z.enum(['index','analyze','statistics','vacuum','memory','cron']);
-const identityShape={run_id:z.string().min(1).max(64),table_oid:z.number().int().positive().max(4294967295),column_number:z.number().int().positive().max(32767)};
+const identityShape={run_id:z.string().min(1).max(64),table_oid:z.number().int().positive().max(4294967295),column_number:z.number().int().positive().max(32767),column_numbers:orderedColumnsSchema.optional()};
 export const observationSchema=z.strictObject({...identityShape,tool:toolSchema,observed_at:z.iso.datetime(),status:z.enum(['available','unavailable']),data:z.unknown().optional()});
 export type Observation=z.infer<typeof observationSchema>;
 export const diagnosticInputSchema=z.strictObject({...identityShape,decision:z.enum(['investigate','no_change','insufficient_evidence']),initial:z.array(observationSchema).max(7)});
@@ -17,7 +17,7 @@ export const diagnosticDecisionSchema=z.strictObject({
  reason:z.string().min(1).max(300),
 });
 export type DiagnosticDecision=z.infer<typeof diagnosticDecisionSchema>;
-export type DiagnosticView={identity:{run_id:string;table_oid:number;column_number:number};observations:Observation[];history:DiagnosticDecision[];remaining_model_calls:number;remaining_reads:number};
+export type DiagnosticView={identity:{run_id:string;table_oid:number;column_number:number;column_numbers?:[2,3]};observations:Observation[];history:DiagnosticDecision[];remaining_model_calls:number;remaining_reads:number};
 export type DiagnosticDecider=(view:DiagnosticView,signal:AbortSignal)=>Promise<{decision:unknown;model?:string;input_tokens?:number;output_tokens?:number}>;
 export type DiagnosticReader=(tool:DiagnosticTool,signal:AbortSignal)=>Promise<unknown>;
 const stateSchema=new StateSchema({input:diagnosticInputSchema,observations:z.array(observationSchema).default([]),history:z.array(diagnosticDecisionSchema).default([]),
@@ -25,10 +25,10 @@ const stateSchema=new StateSchema({input:diagnosticInputSchema,observations:z.ar
  started_at:z.number().default(0),current:diagnosticDecisionSchema.optional(),stop_reason:z.string().default(''),
  proposal:z.custom<Proposal>().optional(),model:z.string().default(''),input_tokens:z.number().default(0),output_tokens:z.number().default(0)});
 const schemas={plan:evidenceFields.shape.plan,indexes:z.strictObject({covering_index:z.boolean()}),analyze:evidenceFields.shape.analyze.unwrap(),statistics:evidenceFields.shape.statistics.unwrap(),vacuum:evidenceFields.shape.vacuum.unwrap(),memory:evidenceFields.shape.memory.unwrap(),cron:evidenceFields.shape.cron.unwrap()};
-function identity(input:DiagnosticInput){return {run_id:input.run_id,table_oid:input.table_oid,column_number:input.column_number};}
+function identity(input:DiagnosticInput){return {run_id:input.run_id,table_oid:input.table_oid,column_number:input.column_number,...(input.column_numbers?{column_numbers:input.column_numbers}:{})};}
 function checkedObservation(raw:unknown,input:DiagnosticInput,now:number,expected?:DiagnosticTool):Observation {
  const o=observationSchema.parse(raw);
- if(o.run_id!==input.run_id||o.table_oid!==input.table_oid||o.column_number!==input.column_number||(expected&&o.tool!==expected))throw Error('identity');
+ if(o.run_id!==input.run_id||o.table_oid!==input.table_oid||o.column_number!==input.column_number||JSON.stringify(o.column_numbers)!==JSON.stringify(input.column_numbers)||(expected&&o.tool!==expected))throw Error('identity');
  const age=now-Date.parse(o.observed_at);
  if(age<0||age>30000)throw Error('expired');
  if(o.status==='available')schemas[o.tool].parse(o.data);

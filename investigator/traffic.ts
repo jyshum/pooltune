@@ -19,11 +19,11 @@ export function summarizeTraffic(samples: RequestSample[], offered: number, seco
 }
 
 export function trafficCase(repair: string, candidate: string) {
-  assert(["index", "analyze", "statistics", "vacuum", "memory"].includes(repair));
+  assert(["index", "compound", "analyze", "statistics", "vacuum", "memory"].includes(repair));
   return {
     sql: repair === "memory" ? `SELECT ${candidate.replace(/\."candidate"$/,'."pooltune_memory_sum"')}() AS sum` : repair === "vacuum" ? `SELECT sum(lookup) FROM ONLY ${candidate} WHERE lookup >= $1 AND lookup <= $2`
-      : `SELECT id FROM ${repair === "index" ? "" : "ONLY "}${candidate} WHERE lookup=$1` + (repair === "statistics" ? " AND padding=$2" : ""),
-    input: (tick: number) => repair === "memory" ? [] : repair === "vacuum" ? [1,50000] : repair === "statistics" ? [1 + tick % 2, tick % 2 ? "a" : "b"] : [43],
+      : `SELECT id FROM ${repair === "index" ? "" : "ONLY "}${candidate} WHERE lookup=$1` + (["statistics","compound"].includes(repair) ? " AND padding=$2" : ""),
+    input: (tick: number) => repair === "compound" ? [43,"43".padStart(64,"0")] : repair === "memory" ? [] : repair === "vacuum" ? [1,50000] : repair === "statistics" ? [1 + tick % 2, tick % 2 ? "a" : "b"] : [43],
     check: (rows: any[], tick: number) => {
       if (repair === "memory") { assert.equal(rows.length,1); assert.equal(String(rows[0]?.sum),"5000050000"); }
       else if (repair === "vacuum") { assert.equal(rows.length,1); assert.equal(String(rows[0]?.sum),"1250025000"); }
@@ -83,10 +83,33 @@ export async function command(args: string[], timeoutMS = 65000) {
   });
 }
 
+export function trafficInvestigatorMode(value:string|undefined):'anthropic'|'diagnostic' {
+ const mode=value??'anthropic';
+ assert(mode==='anthropic'||mode==='diagnostic','traffic qualification requires a live model mode');
+ return mode;
+}
+export function verifyCronModelAction(jobs:any[],mode:'anthropic'|'diagnostic') {
+ const actions=jobs.filter(j=>j.result?.outcome==='awaiting_verification');
+ assert.equal(actions.length,1,'expected one acknowledged schedule action');
+ verifyTrafficProposal(actions[0].result.proposal,mode);
+}
+export function verifyTrafficProposal(proposal:any,mode:'anthropic'|'diagnostic') {
+ const m=proposal?.model_call;
+ assert(m&&typeof m.model==='string'&&m.model.length>0&&Number.isFinite(m.duration_ms)&&m.duration_ms>0,'missing measured model call');
+ assert(Number.isInteger(m.requests)&&m.requests>=1&&m.requests<=(mode==='diagnostic'?3:1),'model request budget');
+ if(mode==='diagnostic'){
+  const d=proposal.diagnostic;
+  assert(d&&d.model_calls===m.requests&&Number.isInteger(d.model_attempts)&&d.model_attempts>=d.model_calls&&d.model_attempts<=3,'missing diagnostic attempt evidence');
+  assert(Number.isInteger(d.reads)&&d.reads>=0&&d.reads<=6,'diagnostic read budget');
+  assert([d.model_ms,d.tool_ms,d.total_ms].every(n=>Number.isFinite(n)&&n>=0),'missing diagnostic timings');
+ }
+}
+
 async function main() {
+  const investigatorMode=trafficInvestigatorMode(process.env.POOLTUNE_TRAFFIC_MODE);
   const repair = process.argv[2];
   if(repair === "cron") {const {runCronTraffic}=await import("./cron-traffic.ts");await runCronTraffic();return;}
-  assert(["index", "analyze", "statistics", "vacuum", "memory"].includes(repair), "choose a supported fixture repair");
+  assert(["index", "compound", "analyze", "statistics", "vacuum", "memory"].includes(repair), "choose a supported fixture repair");
   assert.equal(process.env.POOLTUNE_STAGING_PRIVATE_STATE, "1");
   assert(process.env.ANTHROPIC_API_KEY && process.env.POOLTUNE_ANTHROPIC_MODEL);
   const config = new URL(process.env.POOLTUNE_LAB_TARGET_DSN!);
@@ -108,7 +131,7 @@ async function main() {
   const workerDiagnostics: string[] = [];
   const clients: pg.Client[] = [];
   const phases: any[] = [];
-  const output: any = { repair, phases };
+  const output: any = { repair, investigator_mode:investigatorMode, phases };
   const publish = () => console.log(JSON.stringify(output));
   async function stopWorkers() {
     const stopping = children;
@@ -175,7 +198,7 @@ async function main() {
     function startWorkers() {
       launch("pooltune-worker", ["-target", "rookery", "-enrollment", enrollment, "-interval", "2s", "-window", "4s"]);
       const flag = repair === "index" ? "repair" : repair;
-      launch("pooltune-consumer", ["-target", "rookery", "-project", fixture.enrollment.project, "-fixture", fixture.id, "-mode", "anthropic", `-${flag}-staging-fixture`]);
+      launch("pooltune-consumer", ["-target", "rookery", "-project", fixture.enrollment.project, "-fixture", fixture.id, "-mode", investigatorMode, `-${flag}-staging-fixture`]);
     }
     // Two target sessions share the declared rate; healthy reads stay at four/s and writes at two/s.
     const kinds = ["target", "target", "healthy", "write"];
@@ -187,12 +210,12 @@ async function main() {
     }
     await admin.query("SET lock_timeout='250ms'; SET statement_timeout='5s'");
     async function createBaselineIndex() {
-      await admin.query(`CREATE INDEX pooltune_lookup_idx ON ${candidate} (lookup)`);
+      await admin.query(`CREATE INDEX pooltune_lookup_idx ON ${candidate} (${repair==="compound"?"lookup,padding":"lookup"})`);
       baselineIndexOID = (await admin.query("SELECT to_regclass($1)::oid AS oid", [`${schema}.pooltune_lookup_idx`])).rows[0].oid;
     }
-    if (repair === "index") await createBaselineIndex();
+    if (repair === "index" || repair === "compound") await createBaselineIndex();
     async function setSlow(slow: boolean) {
-      if (repair === "index") {
+      if (repair === "index" || repair === "compound") {
         if (slow) {
           await admin.query(`DROP INDEX "${schema}".pooltune_lookup_idx RESTRICT`);
           baselineIndexOID = null;
@@ -314,7 +337,7 @@ async function main() {
     output.detection_seconds = (new Date(job.created_at).getTime() - Date.parse(output.slowdown_at))/1000;
     output.repair_seconds = (new Date(job.finished_at).getTime() - new Date(job.created_at).getTime())/1000;
     assert.equal(job.result?.outcome, "improved_tested_inputs", "sustained slowdown did not get a verified repair");
-    assert.equal(job.result.proposal.model_call.requests, 1);
+    verifyTrafficProposal(job.result.proposal,investigatorMode);
     output.repair_verified = true;
     output.traffic_errors = phases.reduce((sum, phase) => sum + Object.values(phase.requests).reduce((n: number, r: any) => n + r.errors, 0), 0);
     output.missed_requests = phases.reduce((sum, phase) => sum + Object.values(phase.requests).reduce((n: number, r: any) => n + r.missed, 0), 0);
@@ -363,6 +386,7 @@ export function populateJobTimings(output:any) {
  const first=jobs[0];const last=jobs.filter((j:any)=>j.finished_at).at(-1);
  if(first.finished_at&&Number.isFinite(first.result?.elapsed_ms))output.initial_queue_delay_seconds=(new Date(first.finished_at).getTime()-new Date(first.created_at).getTime()-first.result.elapsed_ms)/1000;
  const model=jobs.find((j:any)=>j.result?.proposal?.model_call)?.result.proposal.model_call;if(model)output.model_seconds=model.duration_ms/1000;
+ const diagnostic=jobs.find((j:any)=>j.result?.proposal?.diagnostic)?.result.proposal.diagnostic;if(diagnostic)output.investigation={model_calls:diagnostic.model_calls,model_attempts:diagnostic.model_attempts,reads:diagnostic.reads,model_ms:diagnostic.model_ms,tool_ms:diagnostic.tool_ms,total_ms:diagnostic.total_ms};
  const action=jobs.find((j:any)=>j.result?.cron?.action_wall_ms>0)?.result.cron;if(action)output.action_seconds=action.action_wall_ms/1000;
  const cycle=jobs.findLast((j:any)=>j.result?.cron?.cycle_wait_ms>0)?.result.cron;if(cycle)output.future_cycle_wait_seconds=cycle.cycle_wait_ms/1000;
  const periods=jobs.find((j:any)=>j.result?.cron?.before?.length===3)?.result.cron.before;if(periods)output.evidence_accumulation_seconds=(Date.parse(periods[2].quiet.end)-Date.parse(periods[0].cycle))/1000;

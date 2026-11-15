@@ -86,10 +86,20 @@ func createConsumerFixture(ctx context.Context, target, state *pgx.Conn, route, 
 	status, source := "consumer_ready", ""
 	if repair != "" {
 		status, source = repair+"_ready", "ONLY "
-		if err := writeTrialStatus(ctx, state, report.ID, repair+"_preparing", nil, nil); err != nil {
+		if repair == "compound" {
+			tag, intentErr := state.Exec(ctx, "UPDATE "+journalTable+" SET status='compound_preparing',index_definition=$2 WHERE id=$1 AND status='setup' AND index_definition=$3", report.ID, compoundDefinition, trialDefinition)
+			if intentErr != nil {
+				return report, intentErr
+			}
+			if tag.RowsAffected() != 1 {
+				return report, errors.New("compound preparation intent changed")
+			}
+		} else if err := writeTrialStatus(ctx, state, report.ID, repair+"_preparing", nil, nil); err != nil {
 			return report, err
 		}
-		if repair == "cron" {
+		if repair == "compound" {
+			err = seedCompoundFixture(ctx, target, state, report.ID)
+		} else if repair == "cron" {
 			err = seedCronFixture(ctx, target, state, report.ID)
 		} else if repair == "memory" {
 			err = seedMemoryFixture(ctx, target, state, report.ID)
@@ -113,7 +123,9 @@ func createConsumerFixture(ctx context.Context, target, state *pgx.Conn, route, 
 			sql := "SELECT id FROM " + source + qualified(report.Schema, lookup.table) + " WHERE " + lookup.column + "=$1"
 			var plan explain
 			var err error
-			if repair == "cron" && lookup.table == "candidate" {
+			if repair == "compound" && lookup.table == "candidate" {
+				plan, err = readLookupPlan(ctx, tx, "EXPLAIN (FORMAT JSON, VERBOSE) "+compoundQuery(report.Schema), indexReadArgs(inputIDs[0], true)...)
+			} else if repair == "cron" && lookup.table == "candidate" {
 				plan, err = readLookupPlan(ctx, tx, "EXPLAIN (FORMAT JSON, VERBOSE) "+cronQuery(report.Schema))
 			} else if repair == "memory" && lookup.table == "candidate" {
 				plan, err = readLookupPlan(ctx, tx, "EXPLAIN (FORMAT JSON, VERBOSE) "+memoryQuery(report.Schema))

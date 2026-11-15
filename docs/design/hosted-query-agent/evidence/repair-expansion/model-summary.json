@@ -1,0 +1,29 @@
+{
+  "scope": "Real Sonnet on retained and controlled evidence. No database mutations; not hosted repair results.",
+  "model": "claude-sonnet-5-5",
+  "cases": 18,
+  "passed": 18,
+  "compound": [
+    {
+      "case": "compound-selective",
+      "outcome": "index",
+      "calls": 1,
+      "model_ms": 3092.57625,
+      "investigation_ms": 3395.491125
+    },
+    {
+      "case": "compound-covered",
+      "outcome": "no_change",
+      "calls": 1,
+      "model_ms": 3075.035833,
+      "investigation_ms": 3369.222625
+    },
+    {
+      "case": "compound-unselective",
+      "outcome": "no_change",
+      "calls": 1,
+      "model_ms": 3138.7038749999997,
+      "investigation_ms": 3423.587916
+    }
+  ]
+}

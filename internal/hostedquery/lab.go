@@ -267,6 +267,7 @@ type explainNode struct {
 	SortSpace   string        `json:"Sort Space Type"`
 	HeapFetches *int64        `json:"Heap Fetches"`
 	Type        string        `json:"Node Type"`
+	Index       string        `json:"Index Name"`
 	Schema      string        `json:"Schema"`
 	Relation    string        `json:"Relation Name"`
 	EstRows     int64         `json:"Plan Rows"`

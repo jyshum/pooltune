@@ -76,3 +76,30 @@ func TestModelRejectsMixedMemoryCauseBeforeCallingProvider(t *testing.T) {
 		t.Fatal("mixed evidence admitted")
 	}
 }
+
+func TestModelCannotAddRemoveOrReorderCompoundIdentity(t *testing.T) {
+	for _, tc := range []struct {
+		name               string
+		enrolled, proposed []int16
+		cause              bool
+	}{
+		{"extra", nil, []int16{2, 3}, false}, {"missing", []int16{2, 3}, nil, false}, {"reversed", []int16{2, 3}, []int16{3, 2}, false}, {"unsupported", []int16{2, 4}, []int16{2, 4}, false}, {"other repair", []int16{2, 3}, []int16{2, 3}, true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			e := IndexEvidence{At: time.Now(), Decision: Investigate, TableOID: 42, Column: 2, Columns: tc.enrolled, Label: "lookup", Plan: PlanEvidence{Node: "Seq Scan"}}
+			if tc.cause {
+				e.Analyze = &AnalyzeEvidence{}
+			}
+			result := &DispatchResult{}
+			err := runIndexInvestigator(context.Background(), investigationClaim{InvestigationJob: InvestigationJob{ID: 2}, Attempt: 1}, result, e, func(_ context.Context, got IndexEvidence) (IndexProposal, error) {
+				return IndexProposal{Outcome: "propose", RunID: got.RunID, TableOID: got.TableOID, Column: got.Column, Columns: tc.proposed, Repair: expectedRepair(got), Reason: "test"}, nil
+			})
+			if err == nil && result.Outcome != "insufficient_evidence" {
+				t.Fatalf("unsafe result %+v", result)
+			}
+			if result.Proposal != nil {
+				t.Fatal("unsafe proposal retained")
+			}
+		})
+	}
+}

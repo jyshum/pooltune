@@ -90,7 +90,7 @@ func DrillIndexTrialRecovery(ctx context.Context, target, state *pgx.Conn, inves
 
 // ScriptedInvestigator provides a deterministic recommendation for fixture qualification without a model credential.
 func ScriptedInvestigator(_ context.Context, e IndexEvidence) (IndexProposal, error) {
-	return IndexProposal{Outcome: "propose", RunID: e.RunID, TableOID: e.TableOID, Column: e.Column, Reason: "Selective sequential scan on the enrolled synthetic lookup."}, nil
+	return IndexProposal{Outcome: "propose", RunID: e.RunID, TableOID: e.TableOID, Column: e.Column, Columns: e.Columns, Reason: "Selective sequential scan on the enrolled synthetic lookup."}, nil
 }
 
 func runIndexTrial(ctx context.Context, target, state *pgx.Conn, investigate IndexInvestigator, identity string, afterBuild func() error) (report IndexTrialReport, err error) {
@@ -159,6 +159,11 @@ func runIndexTrial(ctx context.Context, target, state *pgx.Conn, investigate Ind
 
 func applyIndexTrial(ctx context.Context, target, state *pgx.Conn, report IndexTrialReport, afterBuild func() error) (IndexTrialReport, error) {
 	schema := trialSchema(report.RunID)
+	compound := len(report.Evidence.Columns) > 0
+	collect, sample, inspect, build := trialEvidence, sampleTrial, inspectTrialIndex, buildTrialIndex
+	if compound {
+		collect, sample, inspect, build = compoundTrialEvidence, sampleCompoundTrial, inspectCompoundIndex, buildCompoundIndex
+	}
 	if reason := qualifyIndex(report.Evidence, report.Proposal, time.Now()); reason != nil {
 		report.Outcome, report.Reason = "no_change", reason.Error()
 		return report, nil
@@ -166,7 +171,7 @@ func applyIndexTrial(ctx context.Context, target, state *pgx.Conn, report IndexT
 	if err := trialCapacity(ctx, target); err != nil {
 		return report, err
 	}
-	latest, err := trialEvidence(ctx, target, report.RunID, report.Before)
+	latest, err := collect(ctx, target, report.RunID, report.Before)
 	if err != nil {
 		return report, err
 	}
@@ -179,11 +184,19 @@ func applyIndexTrial(ctx context.Context, target, state *pgx.Conn, report IndexT
 	if err != nil {
 		return report, err
 	}
+	var intended bool
+	definition := trialDefinition
+	if compound {
+		definition = compoundDefinition
+	}
+	if err := state.QueryRow(ctx, "SELECT index_definition=$2 FROM "+journalTable+" WHERE id=$1", report.RunID, definition).Scan(&intended); err != nil || !intended {
+		return report, errors.Join(errors.New("index shape differs from durable intent"), err)
+	}
 	err = validateSampleFixture(ctx, target, report.RunID, expected)
 	if err != nil || expected.Candidate != report.Proposal.TableOID {
 		return report, errors.Join(errors.New("enrolled fixture changed before build"), err)
 	}
-	existing, err := inspectTrialIndex(ctx, target, schema)
+	existing, err := inspect(ctx, target, schema)
 	if err != nil || existing.Exists {
 		return report, errors.Join(errors.New("reserved trial index name is occupied"), err)
 	}
@@ -191,11 +204,14 @@ func applyIndexTrial(ctx context.Context, target, state *pgx.Conn, report IndexT
 	if report.JobID != 0 {
 		building = "queued_building"
 	}
+	if compound {
+		building = "compound_building"
+	}
 	if err := writeTrialStatus(ctx, state, report.RunID, building, nil, &report); err != nil {
 		return report, err
 	}
 	buildStart := time.Now()
-	if err := buildTrialIndex(ctx, target, schema); err != nil {
+	if err := build(ctx, target, schema); err != nil {
 		return report, fmt.Errorf("build index (journal pending): %w", err)
 	}
 	report.BuildWallMS = elapsedMS(buildStart)
@@ -204,7 +220,7 @@ func applyIndexTrial(ctx context.Context, target, state *pgx.Conn, report IndexT
 			return report, err
 		}
 	}
-	index, err := inspectTrialIndex(ctx, target, schema)
+	index, err := inspect(ctx, target, schema)
 	if err != nil {
 		return report, err
 	}
@@ -213,7 +229,7 @@ func applyIndexTrial(ctx context.Context, target, state *pgx.Conn, report IndexT
 	}
 	report.IndexValid, report.IndexBytes = true, index.Bytes
 	verifyStart := time.Now()
-	report.After, err = sampleTrial(ctx, target, report.RunID, expected)
+	report.After, err = sample(ctx, target, report.RunID, expected)
 	if err != nil {
 		report.Outcome, report.Reason = "failed", "verification could not complete the measured fixture workload"
 		return report, errors.Join(fmt.Errorf("verify outcome: %w", err),
@@ -226,7 +242,7 @@ func applyIndexTrial(ctx context.Context, target, state *pgx.Conn, report IndexT
 		return report, errors.New("healthy comparison index catalog changed")
 	}
 	report.VerifyWallMS = elapsedMS(verifyStart)
-	report.Outcome, report.Reason = compareTrial(report.Before, report.After)
+	report.Outcome, report.Reason = compareIndexTrial(report.Before, report.After, compound)
 	return report, nil
 }
 
@@ -365,7 +381,13 @@ func inspectTrialIndex(ctx context.Context, target trialReader, schema string) (
 	return index, err
 }
 
-func buildTrialIndex(ctx context.Context, target *pgx.Conn, schema string) (err error) {
+func buildTrialIndex(ctx context.Context, target *pgx.Conn, schema string) error {
+	return buildBoundedIndex(ctx, target, schema, false)
+}
+func buildCompoundIndex(ctx context.Context, target *pgx.Conn, schema string) error {
+	return buildBoundedIndex(ctx, target, schema, true)
+}
+func buildBoundedIndex(ctx context.Context, target *pgx.Conn, schema string, compound bool) (err error) {
 	defer func() {
 		cleanup, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 		defer cancel()
@@ -379,7 +401,11 @@ func buildTrialIndex(ctx context.Context, target *pgx.Conn, schema string) (err 
 			return err
 		}
 	}
+	keys := "lookup"
+	if compound {
+		keys = "lookup,padding"
+	}
 	_, err = target.Exec(ctx, "CREATE INDEX CONCURRENTLY "+pgx.Identifier{trialIndex}.Sanitize()+" ON "+
-		qualified(schema, "candidate")+" USING btree (lookup)")
+		qualified(schema, "candidate")+" USING btree ("+keys+")")
 	return err
 }

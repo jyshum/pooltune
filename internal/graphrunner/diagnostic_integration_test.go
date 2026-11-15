@@ -125,7 +125,7 @@ func TestDiagnosticJournalReusesReceiptsAfterReconnect(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if calls != 1 || !restored.At.Equal(original.At) || restored.DiagnosticIdentity != original.DiagnosticIdentity {
+	if calls != 1 || !restored.At.Equal(original.At) || !SameDiagnosticIdentity(restored.DiagnosticIdentity, original.DiagnosticIdentity) {
 		t.Fatal("receipt was remeasured or rebound")
 	}
 	input.TableOID++
@@ -194,6 +194,33 @@ func TestDiagnosticJournalModelBudgetSurvivesReconnect(t *testing.T) {
 			}
 		} else if err == nil || n != 3 {
 			t.Fatal("fourth model attempt admitted")
+		}
+	}
+}
+
+func TestDiagnosticJournalBindsOrderedCompoundKeysAcrossRestart(t *testing.T) {
+	ctx, cfg, _ := testpg.Start(t)
+	input := diagnosticFixture()
+	input.Columns = []int16{2, 3}
+	for i := range input.Initial {
+		input.Initial[i].DiagnosticIdentity = input.DiagnosticIdentity
+	}
+	journal, err := openDiagnosticJournal(ctx, cfg, input)
+	if err != nil {
+		t.Fatal(err)
+	}
+	journal.close()
+	reopened, err := openDiagnosticJournal(ctx, cfg, input)
+	if err != nil {
+		t.Fatal(err)
+	}
+	reopened.close()
+	for _, keys := range [][]int16{nil, {3, 2}, {2, 4}} {
+		altered := input
+		altered.Columns = keys
+		if j, err := openDiagnosticJournal(ctx, cfg, altered); err == nil {
+			j.close()
+			t.Fatalf("rebound persisted keys %v", keys)
 		}
 	}
 }

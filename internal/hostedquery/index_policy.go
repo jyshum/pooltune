@@ -2,6 +2,7 @@ package hostedquery
 
 import (
 	"errors"
+	"slices"
 	"time"
 )
 
@@ -11,6 +12,7 @@ type IndexEvidence struct {
 	At          time.Time           `json:"observed_at"`
 	Decision    Decision            `json:"decision"`
 	TableOID    uint32              `json:"table_oid"`
+	Columns     []int16             `json:"column_numbers,omitempty"`
 	Column      int16               `json:"column_number"`
 	Existing    bool                `json:"covering_index"`
 	Cron        *CronEvidence       `json:"cron,omitempty"`
@@ -39,6 +41,7 @@ type IndexProposal struct {
 	Outcome    string           `json:"outcome"`
 	RunID      string           `json:"run_id"`
 	TableOID   uint32           `json:"table_oid"`
+	Columns    []int16          `json:"column_numbers,omitempty"`
 	Column     int16            `json:"column_number"`
 	Reason     string           `json:"reason"`
 }
@@ -53,6 +56,8 @@ func qualifyIndex(e IndexEvidence, p IndexProposal, now time.Time) error {
 		e.TableOID == 0 || p.TableOID != e.TableOID || e.Column <= 0 || p.Column != e.Column ||
 		len(p.Reason) == 0 || len(p.Reason) > 1000:
 		return errors.New("proposal does not match the enrolled lookup and evidence")
+	case !ValidIndexColumns(e.Column, e.Columns) || !slices.Equal(e.Columns, p.Columns):
+		return errors.New("proposal changed ordered index keys")
 	case e.Existing:
 		return errors.New("a covering index is already present")
 	case e.Plan.Node != "Seq Scan" || e.Plan.ExaminedRows < 10_000 ||
@@ -60,4 +65,9 @@ func qualifyIndex(e IndexEvidence, p IndexProposal, now time.Time) error {
 		return errors.New("plan does not show a selective sequential scan")
 	}
 	return nil
+}
+
+// ValidIndexColumns bounds the currently enrolled scalar and compound shapes.
+func ValidIndexColumns(column int16, columns []int16) bool {
+	return column > 0 && (len(columns) == 0 || (column == 2 && slices.Equal(columns, []int16{2, 3})))
 }

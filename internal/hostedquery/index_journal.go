@@ -101,7 +101,7 @@ func journalTargetConfig(config *pgx.ConnConfig, identity string) string {
 }
 
 func reconcileTrials(ctx context.Context, target, state *pgx.Conn, identity string) error {
-	return reconcileTrialStatuses(ctx, target, state, identity, []string{"setup", "building", "verified", "declined", "vacuum_preparing", "memory_preparing"})
+	return reconcileTrialStatuses(ctx, target, state, identity, []string{"setup", "building", "verified", "declined", "vacuum_preparing", "memory_preparing", "compound_preparing"})
 }
 
 func reconcileTrialStatuses(ctx context.Context, target, state *pgx.Conn, identity string, statuses []string) error {
@@ -160,12 +160,17 @@ func loadFixture(ctx context.Context, db trialReader, id string) (fixtureObjects
 func expectedFixture(ctx context.Context, state *pgx.Conn, id string) (fixtureObjects, error) {
 	var raw []byte
 	var name, definition *string
-	err := state.QueryRow(ctx, "SELECT objects,index_name,index_definition FROM "+journalTable+" WHERE id=$1", id).Scan(&raw, &name, &definition)
+	var status string
+	err := state.QueryRow(ctx, "SELECT objects,index_name,index_definition,status FROM "+journalTable+" WHERE id=$1", id).Scan(&raw, &name, &definition, &status)
 	if err != nil {
 		return fixtureObjects{}, err
 	}
 	var ids fixtureObjects
-	if name == nil || *name != trialIndex || definition == nil || *definition != trialDefinition ||
+	expectedDefinition := trialDefinition
+	if strings.HasPrefix(status, "compound_") {
+		expectedDefinition = compoundDefinition
+	}
+	if name == nil || *name != trialIndex || definition == nil || *definition != expectedDefinition ||
 		json.Unmarshal(raw, &ids) != nil || ids.Candidate == 0 || ids.Healthy == 0 {
 		return ids, errors.New("fixture has no matching durable ownership and index intent")
 	}
@@ -261,13 +266,17 @@ func cleanTrial(ctx context.Context, target, state *pgx.Conn, id string) (string
 				return err
 			}
 		}
-		index, err := inspectTrialIndex(ctx, tx, schema)
+		inspect := inspectTrialIndex
+		if strings.HasPrefix(status, "compound_") {
+			inspect = inspectCompoundIndex
+		}
+		index, err := inspect(ctx, tx, schema)
 		if err != nil {
 			return err
 		}
 		observed = "absent"
 		if index.Exists {
-			if status == "setup" || status == "declined" || status == "consumer_ready" || status == "queued_declined" {
+			if status == "setup" || status == "declined" || status == "consumer_ready" || status == "queued_declined" || status == "compound_ready" || status == "compound_preparing" || status == "compound_declined" {
 				return errors.New("index exists before a build was authorized")
 			}
 			if !index.Matches {

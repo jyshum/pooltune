@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -137,7 +138,7 @@ func runIndexInvestigator(ctx context.Context, claim investigationClaim, result 
 			causes++
 		}
 	}
-	if causes > 1 || evidence.Decision != Investigate || evidence.At.IsZero() || evidence.At.After(now) ||
+	if causes > 1 || (len(evidence.Columns) > 0 && causes > 0) || !ValidIndexColumns(evidence.Column, evidence.Columns) || evidence.Decision != Investigate || evidence.At.IsZero() || evidence.At.After(now) ||
 		now.Sub(evidence.At) > 30*time.Second || evidence.TableOID == 0 || evidence.Column <= 0 ||
 		evidence.Label != "lookup" || evidence.Plan.Node == "" {
 		result.Outcome = "insufficient_evidence"
@@ -154,7 +155,7 @@ func runIndexInvestigator(ctx context.Context, claim investigationClaim, result 
 		(proposal.Repair != "" && proposal.Repair != expectedRepair(evidence)) ||
 		(proposal.Outcome == "propose" && proposal.Repair != expectedRepair(evidence)) ||
 		proposal.RunID != evidence.RunID || proposal.TableOID != evidence.TableOID ||
-		proposal.Column != evidence.Column || len(proposal.Reason) == 0 || len(proposal.Reason) > 1000 {
+		proposal.Column != evidence.Column || !slices.Equal(proposal.Columns, evidence.Columns) || len(proposal.Reason) == 0 || len(proposal.Reason) > 1000 {
 		return errors.New("graph response does not match the claimed investigation")
 	}
 	result.TargetPlanMS = evidence.ExecutionMS

@@ -13,6 +13,23 @@ import (
 // DispatchFixtureRepair is an explicit lab mode for an owned synthetic fixture.
 // The queue, proposal, action journal and measured workload refer to that fixture.
 func DispatchFixtureRepair(ctx context.Context, state *pgx.Conn, config *pgx.ConnConfig, route string, fixture ConsumerFixture, investigate IndexInvestigator) (*DispatchResult, error) {
+	return dispatchFixtureIndex(ctx, state, config, route, fixture, investigate, false)
+}
+
+// DispatchFixtureCompound uses the same queue and guards for the enrolled two-column fixture.
+func DispatchFixtureCompound(ctx context.Context, state *pgx.Conn, config *pgx.ConnConfig, route string, fixture ConsumerFixture, investigate IndexInvestigator) (*DispatchResult, error) {
+	return dispatchFixtureIndex(ctx, state, config, route, fixture, investigate, true)
+}
+func dispatchFixtureIndex(ctx context.Context, state *pgx.Conn, config *pgx.ConnConfig, route string, fixture ConsumerFixture, investigate IndexInvestigator, compound bool) (*DispatchResult, error) {
+	readyStatus, verifiedStatus, declinedStatus, buildingStatus, recoveredStatus := "consumer_ready", "queued_verified", "queued_declined", "queued_building", "queued_recovered"
+	definition := trialDefinition
+	sample, collect, evidence, recover := sampleTrial, collectIndexCatalog, trialEvidence, recoverQueuedFixture
+	if compound {
+		readyStatus, verifiedStatus, declinedStatus, buildingStatus, recoveredStatus = "compound_ready", "compound_verified", "compound_declined", "compound_building", "compound_recovered"
+		definition = compoundDefinition
+		sample, collect, evidence, recover = sampleCompoundTrial, collectCompoundCatalog, compoundTrialEvidence, recoverQueuedCompound
+	}
+
 	if investigate == nil || ValidateConsumerFixtureID(fixture.ID) != nil ||
 		fixture.Enrollment.Project != route+"/consumer/"+fixture.ID {
 		return nil, errors.New("queued repair requires an exact synthetic fixture and investigator")
@@ -30,29 +47,29 @@ func DispatchFixtureRepair(ctx context.Context, state *pgx.Conn, config *pgx.Con
 		if err != nil {
 			return err
 		}
-		if status != "consumer_ready" {
+		if status != readyStatus {
 			var report IndexTrialReport
 			if previous == nil || json.Unmarshal(previous, &report) != nil || report.JobID != claim.ID {
 				return nil
 			}
 			switch status {
-			case "queued_verified", "queued_declined":
+			case verifiedStatus, declinedStatus:
 				result.ObservedLatency = observedLookupLatency(claim.queueEvidence, report.Evidence.At)
 				saveFixtureRepair(result, report)
-			case "queued_building":
+			case buildingStatus:
 				target, err := pgx.ConnectConfig(ctx, config)
 				if err != nil {
 					return err
 				}
 				defer target.Close(ctx)
-				observed, err := recoverQueuedFixture(ctx, target, state, fixture.ID)
+				observed, err := recover(ctx, target, state, fixture.ID)
 				if err != nil {
 					return err
 				}
 				result.RecoveredIndex = observed
 				result.Outcome = "repair_interrupted"
 				result.Repair = &report
-			case "queued_recovered":
+			case recoveredStatus:
 				if recoveredIndex != nil {
 					result.RecoveredIndex = *recoveredIndex
 				}
@@ -83,8 +100,8 @@ func DispatchFixtureRepair(ctx context.Context, state *pgx.Conn, config *pgx.Con
 		}
 		// Recheck under the same target lock that serializes builds and cleanup.
 		var ready bool
-		err = state.QueryRow(ctx, "SELECT EXISTS (SELECT FROM "+journalTable+" WHERE id=$1 AND target=$2 AND status='consumer_ready')",
-			fixture.ID, binding).Scan(&ready)
+		err = state.QueryRow(ctx, "SELECT EXISTS (SELECT FROM "+journalTable+" WHERE id=$1 AND target=$2 AND status=$3 AND index_definition=$4)",
+			fixture.ID, binding, readyStatus, definition).Scan(&ready)
 		if err != nil || !ready {
 			return err
 		}
@@ -94,6 +111,9 @@ func DispatchFixtureRepair(ctx context.Context, state *pgx.Conn, config *pgx.Con
 		}
 		schema := trialSchema(fixture.ID)
 		candidate := "SELECT id FROM " + qualified(schema, "candidate") + " WHERE lookup=$1"
+		if compound {
+			candidate = compoundQuery(schema)
+		}
 		var plan explain
 		err = pgx.BeginTxFunc(ctx, target, pgx.TxOptions{AccessMode: pgx.ReadOnly}, func(tx pgx.Tx) error {
 			if _, err := tx.Exec(ctx, "SET LOCAL search_path=pg_catalog; SET LOCAL statement_timeout='750ms'"); err != nil {
@@ -106,11 +126,11 @@ func DispatchFixtureRepair(ctx context.Context, state *pgx.Conn, config *pgx.Con
 				return err
 			}
 			var err error
-			plan, err = readPlan(ctx, tx, "EXPLAIN (FORMAT JSON, VERBOSE) "+candidate)
+			plan, err = readLookupPlan(ctx, tx, "EXPLAIN (FORMAT JSON, VERBOSE) "+candidate, indexReadArgs(inputIDs[0], compound)...)
 			if err != nil || plan.QueryID != claim.Query {
 				return err
 			}
-			catalog, err := collectIndexCatalog(ctx, tx, fixture.ID)
+			catalog, err := collect(ctx, tx, fixture.ID)
 			if err != nil {
 				return err
 			}
@@ -139,12 +159,12 @@ func DispatchFixtureRepair(ctx context.Context, state *pgx.Conn, config *pgx.Con
 		}
 		report := IndexTrialReport{RunID: fixture.ID, JobID: claim.ID}
 		started := time.Now()
-		report.Before, err = sampleTrial(ctx, target, fixture.ID, expected)
+		report.Before, err = sample(ctx, target, fixture.ID, expected)
 		if err != nil {
 			return fmt.Errorf("measure queued repair baseline: %w", err)
 		}
 		report.DetectWallMS = elapsedMS(started)
-		report.Evidence, err = trialEvidence(ctx, target, fixture.ID, report.Before)
+		report.Evidence, err = evidence(ctx, target, fixture.ID, report.Before)
 		if err != nil {
 			return err
 		}
@@ -164,9 +184,9 @@ func DispatchFixtureRepair(ctx context.Context, state *pgx.Conn, config *pgx.Con
 			return err
 		}
 		report.TotalWallMS = elapsedMS(started)
-		status = "queued_declined"
+		status = declinedStatus
 		if report.IndexValid {
-			status = "queued_verified"
+			status = verifiedStatus
 		}
 		if err := writeTrialStatus(ctx, state, fixture.ID, status, nil, &report); err != nil {
 			return err
@@ -185,7 +205,17 @@ func saveFixtureRepair(result *DispatchResult, report IndexTrialReport) {
 	}
 }
 
-func recoverQueuedFixture(ctx context.Context, target, state *pgx.Conn, fixture string) (observed string, err error) {
+func recoverQueuedFixture(ctx context.Context, target, state *pgx.Conn, fixture string) (string, error) {
+	return recoverQueuedIndex(ctx, target, state, fixture, false)
+}
+func recoverQueuedCompound(ctx context.Context, target, state *pgx.Conn, fixture string) (string, error) {
+	return recoverQueuedIndex(ctx, target, state, fixture, true)
+}
+func recoverQueuedIndex(ctx context.Context, target, state *pgx.Conn, fixture string, compound bool) (observed string, err error) {
+	building, recovered := "queued_building", "queued_recovered"
+	if compound {
+		building, recovered = "compound_building", "compound_recovered"
+	}
 	if err := lockTrial(ctx, target); err != nil {
 		return "", err
 	}
@@ -194,15 +224,15 @@ func recoverQueuedFixture(ctx context.Context, target, state *pgx.Conn, fixture 
 	if err := state.QueryRow(ctx, "SELECT status,coalesce(recovered_index,'') FROM "+journalTable+" WHERE id=$1", fixture).Scan(&status, &recovery); err != nil {
 		return "", err
 	}
-	if status == "queued_recovered" {
+	if status == recovered {
 		return recovery, nil
 	}
-	if status != "queued_building" {
+	if status != building {
 		return "", errors.New("queued fixture no longer has an interrupted build")
 	}
 	observed, err = cleanTrial(ctx, target, state, fixture)
 	if err != nil {
 		return "", err
 	}
-	return observed, writeTrialStatus(ctx, state, fixture, "queued_recovered", &observed, nil)
+	return observed, writeTrialStatus(ctx, state, fixture, recovered, &observed, nil)
 }

@@ -49,7 +49,7 @@ func run() error {
 		c.Evidence.RunID = fmt.Sprintf("diagnostic-eval-%d-%d", time.Now().UnixMilli(), i)
 		c.Evidence.At = time.Now().UTC()
 		observations := graphrunner.SnapshotObservations(c.Evidence)
-		id := graphrunner.DiagnosticIdentity{RunID: c.Evidence.RunID, TableOID: c.Evidence.TableOID, Column: c.Evidence.Column}
+		id := graphrunner.DiagnosticIdentity{RunID: c.Evidence.RunID, TableOID: c.Evidence.TableOID, Column: c.Evidence.Column, Columns: c.Evidence.Columns}
 		input := graphrunner.DiagnosticInput{DiagnosticIdentity: id, Decision: c.Evidence.Decision, Initial: []graphrunner.DiagnosticObservation{}}
 		for _, o := range observations {
 			for _, tool := range c.InitialTools {

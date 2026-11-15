@@ -11,7 +11,13 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func sampleTrial(ctx context.Context, target *pgx.Conn, id string, expected fixtureObjects) (sample TrialSample, err error) {
+func sampleTrial(ctx context.Context, target *pgx.Conn, id string, expected fixtureObjects) (TrialSample, error) {
+	return sampleIndexTrial(ctx, target, id, expected, false)
+}
+func sampleCompoundTrial(ctx context.Context, target *pgx.Conn, id string, expected fixtureObjects) (TrialSample, error) {
+	return sampleIndexTrial(ctx, target, id, expected, true)
+}
+func sampleIndexTrial(ctx context.Context, target *pgx.Conn, id string, expected fixtureObjects, compound bool) (sample TrialSample, err error) {
 	tx, err := target.Begin(ctx)
 	if err != nil {
 		return sample, err
@@ -43,6 +49,9 @@ func sampleTrial(ctx context.Context, target *pgx.Conn, id string, expected fixt
 			return err
 		}
 		reads := "SELECT id FROM ONLY " + candidate + " WHERE lookup=$1"
+		if compound {
+			reads = compoundQuery(schema)
+		}
 		healthy := "SELECT id FROM ONLY " + healthyTable + " WHERE id=$1"
 		// Use distinct write keys that never overlap the verification reads. Changing the
 		// indexed value exercises index maintenance even when PostgreSQL could use HOT.
@@ -54,11 +63,11 @@ func sampleTrial(ctx context.Context, target *pgx.Conn, id string, expected fixt
 			batch := &pgx.Batch{}
 			for _, input := range inputIDs {
 				if round == 0 {
-					batch.Queue(reads, input)
+					batch.Queue(reads, indexReadArgs(input, compound)...)
 					batch.Queue(healthy, input)
 				}
 				const measured = "EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON, TIMING OFF) "
-				batch.Queue(measured+reads, input)
+				batch.Queue(measured+reads, indexReadArgs(input, compound)...)
 				batch.Queue(measured+healthy, input)
 				batch.Queue(measured+writes, fixtureRows+1-input)
 			}
@@ -85,6 +94,9 @@ func sampleTrial(ctx context.Context, target *pgx.Conn, id string, expected fixt
 					case 0:
 						if plan.Node.Rows != 1 || plan.Node.Loops != 1 {
 							return errors.Join(errors.New("target did not return a single row"), result.Close())
+						}
+						if compound && plan.Node.Type == "Bitmap Heap Scan" && (len(plan.Node.Plans) != 1 || plan.Node.Plans[0].Type != "Bitmap Index Scan" || plan.Node.Plans[0].Index != trialIndex || plan.Node.Plans[0].Rows != 1 || plan.Node.Plans[0].Loops != 1) {
+							return errors.Join(errors.New("compound bitmap did not use exact selective owned index"), result.Close())
 						}
 						if sample.Reads > 0 && (sample.Plan != plan.Node.Type || sample.PlanExamined != plan.Node.Rows+plan.Node.Filtered) {
 							return errors.Join(errors.New("target plan varied across enrolled inputs"), result.Close())
@@ -214,6 +226,9 @@ func median(values []float64) float64 {
 }
 
 func compareTrial(before, after TrialSample) (string, string) {
+	return compareIndexTrial(before, after, false)
+}
+func compareIndexTrial(before, after TrialSample, compound bool) (string, string) {
 	if before.Errors+after.Errors != 0 {
 		return "failed", "fixture workload reported errors"
 	}
@@ -249,7 +264,7 @@ func compareTrial(before, after TrialSample) (string, string) {
 	}
 	delta := before.ReadMS - after.ReadMS
 	if delta >= 5 && delta >= .2*before.ReadMS && delta > 3*math.Max(before.ReadMAD, after.ReadMAD) &&
-		after.Blocks <= .7*before.Blocks && (after.Plan == "Index Scan" || after.Plan == "Index Only Scan") {
+		after.Blocks <= .7*before.Blocks && (after.Plan == "Index Scan" || after.Plan == "Index Only Scan" || (compound && after.Plan == "Bitmap Heap Scan")) {
 		return "improved_tested_inputs", "target latency and logical block work improved with observed fixture guards"
 	}
 	return "inconclusive", "measured result did not meet the preselected benefit and plan checks"

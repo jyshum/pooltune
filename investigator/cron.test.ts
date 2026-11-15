@@ -156,7 +156,7 @@ for(const role of ['admin','observer','fault','state','traffic_0']){
      return next(specifier,context);
     },load(url,context,next){
      if(url==='test:pg')return {format:'module',source:'export default globalThis.boundary.pg',shortCircuit:true};
-     if(url==='test:traffic')return {format:'module',source:'export const {command,counterDeltas,populateJobTimings,recordWorkerDiagnostic,summarizeTraffic,trafficRequest,vacuumObjective}=globalThis.boundary.shared',shortCircuit:true};
+     if(url==='test:traffic')return {format:'module',source:'export const {command,verifyCronModelAction,trafficInvestigatorMode,verifyTrafficProposal,counterDeltas,populateJobTimings,recordWorkerDiagnostic,summarizeTraffic,trafficRequest,vacuumObjective}=globalThis.boundary.shared',shortCircuit:true};
      return next(url,context);
     }});
     writeFileSync(dir+'/ca.pem','test boundary certificate');

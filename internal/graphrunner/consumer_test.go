@@ -67,3 +67,21 @@ func TestConsumerDiagnosticPreservesFailures(t *testing.T) {
 		t.Fatalf("lost failure: %v", err)
 	}
 }
+
+func TestConsumerDiagnosticBindsOrderedCompoundIdentity(t *testing.T) {
+	e := hostedquery.IndexEvidence{RunID: "compound", At: time.Now().UTC(), Decision: hostedquery.Investigate, TableOID: 31, Column: 2, Columns: []int16{2, 3}}
+	graph := func(ctx context.Context, in DiagnosticInput, read DiagnosticReader) (DiagnosticResult, error) {
+		if len(in.Columns) != 2 || in.Columns[0] != 2 || in.Columns[1] != 3 {
+			t.Fatal("compound identity lost")
+		}
+		_, err := read(ctx, "indexes")
+		return DiagnosticResult{}, err
+	}
+	reader := func(ctx context.Context, tool string, base hostedquery.IndexEvidence) (hostedquery.IndexEvidence, bool, error) {
+		base.Columns = []int16{3, 2}
+		return base, true, nil
+	}
+	if _, err := AdaptDiagnostic(graph, reader)(context.Background(), e); err == nil {
+		t.Fatal("reordered reader identity accepted")
+	}
+}

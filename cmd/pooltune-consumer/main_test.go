@@ -35,23 +35,31 @@ func TestReadLookupEnrollment(t *testing.T) {
 	}
 }
 
-func TestDiagnosticModeRequiresTheQualifiedIndexRoute(t *testing.T) {
-	for _, tc := range []struct {
-		mode, route  string
-		index, other bool
-		ok           bool
-	}{
-		{"diagnostic", "rookery", true, false, true},
-		{"diagnostic", "rookery", false, false, false},
-		{"diagnostic", "rookery", true, true, false},
-		{"diagnostic", "rookery-enrolled", true, false, false},
-		{"diagnostic", "local", true, false, false},
-		{"unknown", "rookery", true, false, false},
-		{"anthropic", "rookery", true, false, true},
-		{"scripted", "staging", false, false, true},
-	} {
-		if err := validateInvestigatorMode(tc.mode, tc.route, tc.index, tc.other); (err == nil) != tc.ok {
-			t.Errorf("%+v: %v", tc, err)
+func TestDiagnosticModeRequiresExactlyOneOwnedRepairRoute(t *testing.T) {
+	for _, repair := range []int{0, 1, 2, 3, 4, 5, 6} {
+		flags := make([]bool, 7)
+		flags[repair] = true
+		if err := validateInvestigatorMode("diagnostic", "rookery", false, flags...); err != nil {
+			t.Errorf("repair %d: %v", repair, err)
 		}
+		if err := validateInvestigatorMode("diagnostic", "rookery", true, flags...); err == nil {
+			t.Fatal("measurement mixed with repair accepted")
+		}
+		for _, route := range []string{"local", "staging", "rookery-enrolled"} {
+			if validateInvestigatorMode("diagnostic", route, false, flags...) == nil {
+				t.Fatalf("route %s accepted", route)
+			}
+		}
+	}
+	for _, flags := range [][]bool{nil, {false, false}, {true, true}, {true, false, true}} {
+		if validateInvestigatorMode("diagnostic", "rookery", false, flags...) == nil {
+			t.Fatalf("ambiguous routes accepted: %v", flags)
+		}
+	}
+	if validateInvestigatorMode("unknown", "rookery", false, true) == nil {
+		t.Fatal("unknown mode accepted")
+	}
+	if err := validateInvestigatorMode("scripted", "staging", false); err != nil {
+		t.Fatal(err)
 	}
 }

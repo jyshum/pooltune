@@ -24,6 +24,7 @@ func main() {
 	recoverOnly := flag.Bool("recover-index-trials", false, "reconcile interrupted fixture runs")
 	trafficTrial := flag.Bool("worker-traffic", false, "observe a bounded read-only traffic stream from another session")
 	investigation := flag.String("worker-investigation", "", "investigate the queued traffic job: anthropic or scripted")
+	compoundFixture := flag.Bool("compound-fixture", false, "seed a two-column nonunique index fixture")
 	cronFixture := flag.Bool("cron-fixture", false, "create enrolled future Cron fixture")
 	cronAction := flag.String("cron-action", "", "owned Cron fixture operation: activate, record, inspect")
 	cronID := flag.String("cron-id", "", "owned Cron fixture ID")
@@ -47,7 +48,7 @@ func main() {
 		fmt.Fprintln(os.Stderr, "choose scripted or anthropic worker investigation with -worker-traffic")
 		os.Exit(2)
 	}
-	if (*analyzeFixture || *statisticsFixture || *vacuumFixture || *memoryFixture || *cronFixture) && (!*createConsumer || *route != "rookery" || os.Getenv("POOLTUNE_STAGING_PRIVATE_STATE") != "1" || (*analyzeFixture && *statisticsFixture) || (*vacuumFixture && (*analyzeFixture || *statisticsFixture)) || (*memoryFixture && (*analyzeFixture || *statisticsFixture || *vacuumFixture)) || (*cronFixture && (*analyzeFixture || *statisticsFixture || *vacuumFixture || *memoryFixture))) {
+	if (*analyzeFixture || *statisticsFixture || *vacuumFixture || *memoryFixture || *cronFixture || *compoundFixture) && (!*createConsumer || *route != "rookery" || os.Getenv("POOLTUNE_STAGING_PRIVATE_STATE") != "1" || (*analyzeFixture && *statisticsFixture) || (*vacuumFixture && (*analyzeFixture || *statisticsFixture)) || (*memoryFixture && (*analyzeFixture || *statisticsFixture || *vacuumFixture)) || (*cronFixture && (*analyzeFixture || *statisticsFixture || *vacuumFixture || *memoryFixture)) || (*compoundFixture && (*analyzeFixture || *statisticsFixture || *vacuumFixture || *memoryFixture || *cronFixture))) {
 		fmt.Fprintln(os.Stderr, "statistics fixtures require Rookery, Railway private state, and one selected fixture")
 		os.Exit(2)
 	}
@@ -68,7 +69,7 @@ func main() {
 		os.Exit(2)
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 65*time.Second)
-	err := run(ctx, *route, *trial, *recoverOnly, *trafficTrial, *investigation, *createConsumer, *removeConsumer, *pauseAfterBuild, *analyzeFixture, *statisticsFixture, *vacuumFixture, *memoryFixture, cronOptions{*cronFixture, *cronAction, *cronID, *cronPeriod})
+	err := run(ctx, *route, *trial, *recoverOnly, *trafficTrial, *investigation, *createConsumer, *removeConsumer, *pauseAfterBuild, *analyzeFixture, *statisticsFixture, *vacuumFixture, *memoryFixture, cronOptions{create: *cronFixture, action: *cronAction, id: *cronID, period: *cronPeriod, compound: *compoundFixture})
 	cancel()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -149,7 +150,9 @@ func run(ctx context.Context, route string, trial string, recoverOnly, trafficTr
 	identity := route
 	if createConsumer {
 		create := hostedquery.CreateConsumerFixture
-		if cron.create {
+		if cron.compound {
+			create = hostedquery.CreateCompoundFixture
+		} else if cron.create {
 			create = hostedquery.CreateCronFixture
 		} else if memoryFixture {
 			create = hostedquery.CreateMemoryFixture
@@ -232,6 +235,7 @@ func run(ctx context.Context, route string, trial string, recoverOnly, trafficTr
 }
 
 type cronOptions struct {
+	compound           bool
 	create             bool
 	action, id, period string
 }
