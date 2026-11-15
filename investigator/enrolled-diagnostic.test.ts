@@ -35,3 +35,17 @@ test('refuses a repair proposal in the enrolled-lookup path', async () => {
  assert.equal(result.stop_reason,'invalid_model_output');
  assert.deepEqual(result.history,[]);
 });
+
+test('an enrolled measured plan reaches Sonnet input as a separately labeled sample', async () => {
+ const sample = {...lookup,measured_plan:{captured_at:new Date().toISOString(),node:'Seq Scan',
+  estimated_rows:1,actual_rows:1,filtered_rows:99999,shared_hit_blocks:443,shared_read_blocks:0,execution_ms:4}};
+ const run = input();
+ run.initial[0].data = sample;
+ const graph = buildDiagnosticGraph(async view => {
+  assert.deepEqual(view.observations[0].data,sample);
+  return {decision:{action:'no_change',repair:null,tools:[],assessments,reason:'The measured sequential scan is costly.'}};
+ },async () => { throw Error('Unexpected database read'); });
+ const result = await graph.invoke({input:run});
+ assert.equal(result.model_calls,1);
+ assert.equal(result.proposal?.outcome,'no_change');
+});

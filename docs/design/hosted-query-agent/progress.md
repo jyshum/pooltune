@@ -457,3 +457,7 @@ Jared requested the next build step, Railway deployment with a full Rookery test
 Task 38 passed on Railway deployment 6e2376c3-929b-46eb-b3c2-0d916a046c7d at source e5b4dcf. Slow Rookery workload queued job 153 in 18.466 s with a healthy control and 80 pairs, zero errors and no additional lookup executions. Sonnet took 4.003 s, and Railway saved the diagnosis on attempt one in 5.873 s of worker time. Driver start to saved result took 24.791 s. The initial active deployment could not reach the IPv6-only endpoint before egress was enabled. The scoped live setting fixed it and kept verified TLS. Prior services stayed on their existing healthy deployments.
 
 Review found a startup race with a first disconnect. A local regression demonstrated it, the atomic stop record fixed it and rereview passed. The staging service pipes only operational data to Railway logs and keeps the full diagnosis in Postgres. Final disconnect succeeded, pilot variables and owned Rookery objects were removed, and standby deployment e56de2a6-bc7c-4c84-ac58-afc925a47d08 was healthy. The public index fingerprint matched. [Build-track audit and qualification](enrolled-railway.md).
+
+## Live execution plans for enrolled lookups
+
+Jared requested measured plans next, Rookery verification through Railway, the map update and a local revamp commit. Base 4c101e0. Inherited Ask + milestones and native execution. One separately owner-captured representative app-role plan is added to passive diagnostic evidence; no new automatic repair, provider-token grant or customer rollout.

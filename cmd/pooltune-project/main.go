@@ -21,7 +21,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-const usage = "usage: pooltune-project {setup-sql|setup-evidence-sql|connect|run|diagnose|serve|disconnect} -ref PROJECT_REF -key INSTALLATION_KEY"
+const usage = "usage: pooltune-project {setup-sql|setup-evidence-sql|setup-plan-sql|connect|run|diagnose|serve|disconnect} -ref PROJECT_REF -key INSTALLATION_KEY"
 
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
@@ -38,7 +38,7 @@ func execute(ctx context.Context, args []string, output io.Writer) error {
 	}
 	command := args[0]
 	switch command {
-	case "setup-sql", "setup-evidence-sql", "connect", "run", "diagnose", "serve", "disconnect":
+	case "setup-sql", "setup-evidence-sql", "setup-plan-sql", "connect", "run", "diagnose", "serve", "disconnect":
 	default:
 		return errors.New(usage)
 	}
@@ -74,6 +74,11 @@ func execute(ctx context.Context, args []string, output io.Writer) error {
 		_, err := io.WriteString(output, project.LookupEvidenceSQL())
 		return err
 	}
+	if command == "setup-plan-sql" {
+		_, err := io.WriteString(output, project.LookupPlanSQL())
+		return err
+	}
+
 	stateDSN := os.Getenv("POOLTUNE_WORKER_STATE_DSN")
 	stateConfig, err := labdb.StateConfig(stateDSN)
 	if err != nil {

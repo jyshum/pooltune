@@ -76,7 +76,13 @@ func testLookupFlow(t *testing.T, ctx context.Context, project supabaseproject.P
 		}
 		defer conn.Close(cleanup)
 		_, err = conn.Exec(cleanup, fmt.Sprintf(`
-			DROP FUNCTION IF EXISTS %s.read_lookup(oid,bigint);
+			DROP FUNCTION IF EXISTS %[1]s.read_lookup_plan(oid,bigint);
+			DROP FUNCTION IF EXISTS %[1]s.publish_lookup_plan(jsonb);
+			DROP FUNCTION IF EXISTS %[1]s.capture_lookup_plan(oid,bigint,integer);
+			DROP FUNCTION IF EXISTS %[1]s.lookup_plan_stamp(oid);
+			DROP TABLE IF EXISTS %[1]s.lookup_plans;
+			DROP FUNCTION IF EXISTS %[1]s.lookup_plan_summary(jsonb);
+			DROP FUNCTION IF EXISTS %[1]s.read_lookup(oid,bigint);
 			DROP FUNCTION IF EXISTS %s.allow_lookup(oid,bigint,regclass,name);
 			DROP TABLE IF EXISTS %s.lookup_grants;
 			DROP FUNCTION IF EXISTS %s.snapshot();
@@ -100,6 +106,7 @@ func testLookupFlow(t *testing.T, ctx context.Context, project supabaseproject.P
 
 	mustMonitorExec(t, ctx, admin, project.InstallSQL())
 	mustMonitorExec(t, ctx, admin, project.LookupEvidenceSQL())
+	mustMonitorExec(t, ctx, admin, project.LookupPlanSQL())
 	mustMonitorExec(t, ctx, admin, fmt.Sprintf(`
 		CREATE ROLE %s NOLOGIN;
 		GRANT %s TO CURRENT_USER;
@@ -114,7 +121,7 @@ func testLookupFlow(t *testing.T, ctx context.Context, project supabaseproject.P
 	mustMonitorExec(t, ctx, traffic, "SET ROLE "+app)
 	// Use the exact supported spelling. The SQL identifier names are generated
 	// simple names, so PostgreSQL's format(%I) normalizes them without quotes.
-	query := "SELECT lookup FROM " + appRole + ".items WHERE lookup = $1"
+	query := "SELECT lookup FROM ONLY " + appRole + ".items WHERE lookup OPERATOR(pg_catalog.=) $1"
 	executeLookup := func(input int32) {
 		t.Helper()
 		var got int32
@@ -180,6 +187,56 @@ func testLookupFlow(t *testing.T, ctx context.Context, project supabaseproject.P
 		t.Fatal("grant was not visible to monitor", err)
 	}
 
+	capture := "SELECT " + scope + ".capture_lookup_plan($1::oid,$2::bigint,$3::integer)"
+	if _, err := monitor.Exec(ctx, capture, role, queryID, int32(17)); monitorSQLState(err) != "42501" {
+		t.Fatal("monitor credential could trigger EXPLAIN ANALYZE", monitorSQLState(err))
+	}
+	if _, err := admin.Exec(ctx, capture, role, queryID, int32(17)); monitorSQLState(err) != "P0001" {
+		t.Fatal("capture unexpectedly accepted an unbounded read-write transaction", err)
+	}
+	var receipt []byte
+	err = pgx.BeginTxFunc(ctx, admin, pgx.TxOptions{AccessMode: pgx.ReadOnly}, func(tx pgx.Tx) error {
+		if _, err := tx.Exec(ctx, "SET LOCAL statement_timeout = '750ms'; SET LOCAL transaction_timeout = '2s'"); err != nil {
+			return err
+		}
+		return tx.QueryRow(ctx, capture, role, queryID, int32(17)).Scan(&receipt)
+	})
+	if err != nil {
+		t.Fatal("capture actual enrolled plan", err)
+	}
+	if strings.Contains(string(receipt), appRole) || strings.Contains(string(receipt), "Query Identifier") {
+		t.Fatal("owner receipt contains raw plan or relation identity")
+	}
+	if !remote {
+		_, bad := admin.Exec(ctx, "SELECT "+scope+".publish_lookup_plan(jsonb_set($1::jsonb,'{sample,raw_filter}',to_jsonb('synthetic secret'::text)))", string(receipt))
+		if monitorSQLState(bad) != "23514" {
+			t.Fatalf("publisher accepted a raw filter field: %v", bad)
+		}
+	}
+
+	if _, err := admin.Exec(ctx, "SELECT "+scope+".publish_lookup_plan($1::jsonb)", string(receipt)); err != nil {
+		t.Fatal("publish plan", err)
+	}
+	plan, err := readProjectLookupPlan(ctx, monitor, project, role, queryID)
+	if err != nil || plan == nil || plan.Node != "Seq Scan" || plan.ActualRows != 1 ||
+		plan.FilteredRows != 99999 || plan.SharedHitBlocks+plan.SharedReadBlocks < 400 {
+		t.Fatalf("read measured plan %+v (%v)", plan, err)
+	}
+	if !remote {
+		mustMonitorExec(t, ctx, admin, "UPDATE "+scope+".lookup_plans SET captured_at=clock_timestamp()-interval '3 minutes'")
+		if stale, err := readProjectLookupPlan(ctx, monitor, project, role, queryID); err != nil || stale != nil {
+			t.Fatalf("expired capture was readable: %+v (%v)", stale, err)
+		}
+		if _, err := admin.Exec(ctx, "SELECT "+scope+".publish_lookup_plan($1::jsonb)", string(receipt)); err != nil {
+			t.Fatal("restore current sample", err)
+		}
+		mustMonitorExec(t, ctx, admin, "CREATE INDEX plan_test_index ON "+table+" (lookup)")
+		if stale, err := readProjectLookupPlan(ctx, monitor, project, role, queryID); err != nil || stale != nil {
+			t.Fatalf("capture survived an index change: %+v (%v)", stale, err)
+		}
+		mustMonitorExec(t, ctx, admin, "DROP INDEX "+app+".plan_test_index")
+	}
+
 	_, stateConfig, _ := testpg.Start(t)
 	state := openMonitorConn(t, ctx, stateConfig)
 	if err := PrepareWorkerState(ctx, state); err != nil {
@@ -219,7 +276,7 @@ func testLookupFlow(t *testing.T, ctx context.Context, project supabaseproject.P
 		result, err := DiagnoseProjectLookup(ctx, state, monitor, project, worker.epoch,
 			func(ctx context.Context, _ string, _ uint32, _ int16, _ time.Time, evidence LookupEvidence, admit func(context.Context) error) (*LookupDiagnosis, error) {
 				attempts++
-				if evidence.LeadingBTree || evidence.TablePages < 300 || len(evidence.SharedBlockAccesses) != 5 {
+				if evidence.LeadingBTree || evidence.TablePages < 300 || len(evidence.SharedBlockAccesses) != 5 || evidence.MeasuredPlan == nil {
 					t.Fatalf("unexpected approved lookup evidence: %+v", evidence)
 				}
 				if err := admit(ctx); err != nil {

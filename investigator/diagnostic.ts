@@ -31,6 +31,11 @@ const lookupSchema=z.strictObject({
  recent_window_calls:z.array(count.positive()).length(5),recent_window_shared_block_accesses:z.array(count).length(5),
  table_pages:count,estimated_table_rows:z.number().nonnegative().nullable(),leading_btree:z.boolean(),
  modified_since_analyze:count,estimated_dead_rows:count,
+ measured_plan:z.strictObject({
+  captured_at:z.iso.datetime(),node:z.enum(['Seq Scan','Index Scan','Index Only Scan']),
+  estimated_rows:count,actual_rows:count,filtered_rows:count,
+  shared_hit_blocks:count,shared_read_blocks:count,execution_ms:z.number().nonnegative().max(750),
+ }).optional(),
 });
 const schemas={lookup:lookupSchema,plan:evidenceFields.shape.plan,indexes:z.strictObject({covering_index:z.boolean()}),analyze:evidenceFields.shape.analyze.unwrap(),statistics:evidenceFields.shape.statistics.unwrap(),vacuum:evidenceFields.shape.vacuum.unwrap(),memory:evidenceFields.shape.memory.unwrap(),cron:evidenceFields.shape.cron.unwrap()};
 function identity(input:DiagnosticInput){return {run_id:input.run_id,table_oid:input.table_oid,column_number:input.column_number,...(input.column_numbers?{column_numbers:input.column_numbers}:{})};}

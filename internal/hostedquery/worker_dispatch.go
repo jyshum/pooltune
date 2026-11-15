@@ -26,6 +26,7 @@ type investigationClaim struct {
 }
 
 type DispatchResult struct {
+	LookupPlan       *LookupMeasuredPlan      `json:"lookup_plan,omitempty"`
 	LookupDiagnosis  *LookupDiagnosis         `json:"lookup_diagnosis,omitempty"`
 	JobID            int64                    `json:"job_id"`
 	Attempt          int                      `json:"attempt"`

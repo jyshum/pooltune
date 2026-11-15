@@ -15,15 +15,16 @@ import (
 )
 
 type LookupEvidence struct {
-	ObjectiveMS          float64   `json:"objective_ms"`
-	WindowMeansMS        []float64 `json:"recent_window_mean_ms"`
-	WindowCalls          []int64   `json:"recent_window_calls"`
-	SharedBlockAccesses  []int64   `json:"recent_window_shared_block_accesses"`
-	TablePages           int32     `json:"table_pages"`
-	EstimatedTableRows   *float64  `json:"estimated_table_rows"`
-	LeadingBTree         bool      `json:"leading_btree"`
-	ModifiedSinceAnalyze int64     `json:"modified_since_analyze"`
-	EstimatedDeadRows    int64     `json:"estimated_dead_rows"`
+	MeasuredPlan         *LookupMeasuredPlan `json:"measured_plan,omitempty"`
+	ObjectiveMS          float64             `json:"objective_ms"`
+	WindowMeansMS        []float64           `json:"recent_window_mean_ms"`
+	WindowCalls          []int64             `json:"recent_window_calls"`
+	SharedBlockAccesses  []int64             `json:"recent_window_shared_block_accesses"`
+	TablePages           int32               `json:"table_pages"`
+	EstimatedTableRows   *float64            `json:"estimated_table_rows"`
+	LeadingBTree         bool                `json:"leading_btree"`
+	ModifiedSinceAnalyze int64               `json:"modified_since_analyze"`
+	EstimatedDeadRows    int64               `json:"estimated_dead_rows"`
 }
 
 type LookupDiagnosis struct {
@@ -138,6 +139,11 @@ func diagnoseProjectClaim(ctx context.Context, state, target *pgx.Conn, project 
 		return err
 	}
 
+	evidence.MeasuredPlan, err = readProjectLookupPlan(ctx, target, project, claim.Role, claim.Query)
+	if err != nil {
+		return err
+	}
+
 	recheck := func(ctx context.Context) error {
 		current, _, err := readProjectLookup(ctx, target, project, claim, windows)
 		if err != nil {
@@ -145,6 +151,15 @@ func diagnoseProjectClaim(ctx context.Context, state, target *pgx.Conn, project 
 		}
 		if current != grant {
 			return errLookupScope
+		}
+		if evidence.MeasuredPlan != nil {
+			plan, err := readProjectLookupPlan(ctx, target, project, claim.Role, claim.Query)
+			if err != nil {
+				return err
+			}
+			if plan == nil || *plan != *evidence.MeasuredPlan {
+				return errLookupScope
+			}
 		}
 		var active bool
 		err = state.QueryRow(ctx, `
@@ -177,6 +192,6 @@ func diagnoseProjectClaim(ctx context.Context, state, target *pgx.Conn, project 
 		return nil
 	}
 	result.Outcome, result.DiagnosticReason, result.ThreadID = "diagnosed", "", runID
-	result.ObservedLatency, result.LookupDiagnosis = windows, diagnosis
+	result.ObservedLatency, result.LookupDiagnosis, result.LookupPlan = windows, diagnosis, evidence.MeasuredPlan
 	return nil
 }

@@ -422,3 +422,11 @@ Tasks 27–29 completed for the explicitly bounded diagnostic slice. Sonnet pass
 - [x] Run monitoring and queued diagnosis in a dedicated private staging service using the existing Railway state database and direct verified Supabase TLS. Keep prior repair services in place.
 - [x] Verify owner-authorized slow and healthy app-role lookups, real Sonnet, saved result, no replay, disconnect and cleanup. Leave the deployment installed in standby after the isolated test.
 - [x] Audit the five yellow Database Tools cards against implementation and roadmap. Show the verified evidence-reader and hosted flow without marking unfinished general-purpose capabilities complete.
+
+### Task 39: Read measured execution plans for enrolled lookups
+
+**Authority:** Jared requested live execution plans, Railway/Rookery qualification, a map update and a local revamp commit. Continue existing ask + milestones and native execution. The [bounded sample design](enrolled-plans.md) preserves the stopped-before-customer-mutation review boundary and adds no repair. Scope uses owner-approved test objects and the existing staging service.
+
+- [ ] Prove an explicitly permitted, read-only measured sample for the exact app role and statement.
+- [ ] Check sample freshness and binding before Sonnet and before publishing the diagnosis, with passive fallback for absent plans.
+- [ ] Verify the exact flow on Rookery through Railway, disconnect and clean up, and record the result in the map.
