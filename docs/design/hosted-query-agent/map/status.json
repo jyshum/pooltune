@@ -65,33 +65,49 @@
     },
     "investigator": {
       "status": "partial",
-      "scope": "One diagnostic graph compares causes, requests named Go evidence and routes permitted proposals to all six guarded executors. Current hosted results are linked in the repair-connection children.",
-      "remaining": "General customer collectors, broader workloads, remaining requested-reader coverage and hosted mid-model recovery remain.",
+      "scope": "Compare causes, request Go evidence and propose repairs: all six bounded paths passed hosted Sonnet.",
+      "remaining": "Build: Connect the graph to evidence for ordinary enrolled project queries. Current diagnostic execution selects one owned repair fixture. Preserve complete timings when a worker attempt fails. Verify: Request fresh hosted evidence for the other repair families; interrupt and resume a hosted investigation during a model call. Local recovery tests already exist.",
       "evidence": [
         "investigator/diagnostic.ts",
         "docs/design/hosted-query-agent/diagnostic-loop.md",
-        "docs/design/hosted-query-agent/hosted-diagnostic.md"
-      ]
+        "docs/design/hosted-query-agent/hosted-diagnostic.md",
+        "cmd/pooltune-consumer/main.go",
+        "internal/hostedquery/diagnostic_planner_readers.go",
+        "docs/design/hosted-query-agent/repair-expansion.md"
+      ],
+      "remainingBuild": "Connect the graph to evidence for ordinary enrolled project queries. Current diagnostic execution selects one owned repair fixture. Preserve complete timings when a worker attempt fails.",
+      "remainingVerification": "Request fresh hosted evidence for the other repair families; interrupt and resume a hosted investigation during a model call. Local recovery tests already exist.",
+      "statusLabel": "Staging works; scope remains"
     },
     "tools": {
       "status": "partial",
-      "scope": "Six bounded repair cases are verified; broader evidence collection and customer repair coverage remain.",
-      "remaining": "Expand the amber repair families and gray connections. Green child cards describe bounded tested cases, not full production capabilities.",
+      "scope": "All six bounded repair cases work. Some planned operations and general query targeting are still missing.",
+      "remaining": "Build: Select index candidates for customer queries; add individual-column statistics-target changes and table cleanup-threshold changes. Bind repairs to customer grants and target identities. Verify: Measure concurrent committed writes on repaired tables, real memory headroom and actual owner schedules.",
       "evidence": [
         "docs/design/hosted-query-agent/roadmap.md",
-        "docs/design/hosted-query-agent/cron-staging.md"
-      ]
+        "docs/design/hosted-query-agent/cron-staging.md",
+        "docs/product/query-performance-v1.md",
+        "docs/design/hosted-query-agent/repair-expansion.md"
+      ],
+      "remainingBuild": "Select index candidates for customer queries; add individual-column statistics-target changes and table cleanup-threshold changes. Bind repairs to customer grants and target identities.",
+      "remainingVerification": "Measure concurrent committed writes on repaired tables, real memory headroom and actual owner schedules.",
+      "statusLabel": "Six cases tested; scope remains"
     },
     "inspection": {
       "status": "partial",
-      "scope": "Named bounded readers now cover the six owned repair fixture types. Local PostgreSQL evidence/refusal checks passed.",
-      "remaining": "Qualify requested live Rookery reads and hosted outcomes; general enrolled customer readers remain.",
+      "scope": "Named readers cover six fixture types; a hosted Sonnet request for fresh ANALYZE evidence passed.",
+      "remaining": "Build: Collect identity-bound plans, indexes, statistics, visibility, function spill and job history for authorized real targets rather than fixture-specific catalogs. Verify: Exercise the remaining named readers when requested by Claude in hosting, including changed or revoked enrollment.",
       "evidence": [
         "internal/graphrunner/diagnostic.go",
         "docs/design/hosted-query-agent/diagnostic-loop.md",
         "internal/hostedquery/diagnostic_reader.go",
-        "internal/hostedquery/diagnostic_reader_integration_test.go"
-      ]
+        "internal/hostedquery/diagnostic_reader_integration_test.go",
+        "internal/hostedquery/diagnostic_planner_readers.go",
+        "internal/hostedquery/diagnostic_maintenance_readers.go",
+        "docs/design/hosted-query-agent/evidence/repair-expansion/requested-evidence.json"
+      ],
+      "remainingBuild": "Collect identity-bound plans, indexes, statistics, visibility, function spill and job history for authorized real targets rather than fixture-specific catalogs.",
+      "remainingVerification": "Exercise the remaining named readers when requested by Claude in hosting, including changed or revoked enrollment."
     },
     "experiments": {
       "status": "partial",
@@ -104,11 +120,17 @@
     },
     "index": {
       "status": "partial",
-      "scope": "Single-column and one ordered two-column staging case verified with real Claude and traffic.",
-      "remaining": "Broaden query shapes, customer enrollment and committed writes to the repaired table.",
+      "scope": "Single-column and two-column index repairs passed. The compound executor uses the fixed lookup,padding test columns.",
+      "remaining": "Build: Derive permitted table, columns and key order from an enrolled customer query. The current validator accepts only the scalar case or column numbers [2,3], and construction uses fixed names. Verify: Qualify each newly supported query shape, existing-index equivalence, storage cost and concurrent committed writes. Other shapes are not merely untested generic support.",
       "evidence": [
-        "docs/design/hosted-query-agent/mixed-traffic.md"
-      ]
+        "docs/design/hosted-query-agent/mixed-traffic.md",
+        "internal/hostedquery/index_policy.go",
+        "internal/hostedquery/index_trial.go",
+        "internal/hostedquery/compound_index.go"
+      ],
+      "remainingBuild": "Derive permitted table, columns and key order from an enrolled customer query. The current validator accepts only the scalar case or column numbers [2,3], and construction uses fixed names.",
+      "remainingVerification": "Qualify each newly supported query shape, existing-index equivalence, storage cost and concurrent committed writes. Other shapes are not merely untested generic support.",
+      "statusLabel": "Two index cases tested"
     },
     "refresh": {
       "status": "verified",
@@ -120,19 +142,29 @@
     },
     "richer": {
       "status": "partial",
-      "scope": "Joint-statistics case verified for related predicate columns.",
-      "remaining": "Column statistics targets and broader data distributions remain.",
+      "scope": "Joint statistics for lookup,padding work. The planned individual-column detail adjustment is not implemented.",
+      "remaining": "Build: Add bounded ALTER COLUMN SET STATISTICS: read and save the old target, choose an allowed target, analyze, and restore when appropriate. Generalize joint-statistics targeting beyond the fixed pair. Verify: Test uneven value distributions, read benefit, analysis cost and restoration with real Claude.",
       "evidence": [
-        "docs/design/hosted-query-agent/richer-statistics.md"
-      ]
+        "docs/design/hosted-query-agent/richer-statistics.md",
+        "internal/hostedquery/statistics_samples.go",
+        "docs/product/query-performance-v1.md"
+      ],
+      "remainingBuild": "Add bounded ALTER COLUMN SET STATISTICS: read and save the old target, choose an allowed target, analyze, and restore when appropriate. Generalize joint-statistics targeting beyond the fixed pair.",
+      "remainingVerification": "Test uneven value distributions, read benefit, analysis cost and restoration with real Claude.",
+      "statusLabel": "Joint statistics tested"
     },
     "cleanup": {
       "status": "partial",
-      "scope": "Plain VACUUM case verified: reduce visibility work without replacing the index.",
-      "remaining": "Recurring cleanup settings and broader maintenance workloads remain.",
+      "scope": "Plain VACUUM passed. Planned changes to table cleanup-trigger thresholds are not implemented.",
+      "remaining": "Build: Add bounded table cleanup-threshold adjustments, including saved prior values, owner grants and restoration. Verify: Prove late cleanup triggering is the cause and that changed thresholds reduce recurring backlog without excess interference.",
       "evidence": [
-        "docs/design/hosted-query-agent/bounded-vacuum.md"
-      ]
+        "docs/design/hosted-query-agent/bounded-vacuum.md",
+        "docs/product/query-performance-v1.md",
+        "internal/hostedquery/vacuum_fixture.go"
+      ],
+      "remainingBuild": "Add bounded table cleanup-threshold adjustments, including saved prior values, owner grants and restoration.",
+      "remainingVerification": "Prove late cleanup triggering is the cause and that changed thresholds reduce recurring backlog without excess interference.",
+      "statusLabel": "Plain VACUUM tested"
     },
     "memory": {
       "status": "verified",
@@ -177,12 +209,17 @@
     },
     "studio": {
       "status": "partial",
-      "scope": "Developer graph registration and scripted replay were verified; Studio shows the investigator graph.",
-      "remaining": "A live view covering detector, queue, Go actions and outcomes still needs integration. Studio is not the customer dashboard.",
+      "scope": "Studio graph registration and scripted replay exist. The Studio export is not connected to live Go evidence tools.",
+      "remaining": "Build: Attach an authorized Go evidence bridge to developer graph sessions and correlate worker, queue, graph, action and verification events in a visible run history. Verify: Show an actual hosted run end to end, including a requested Go read and the applied/verified result. The recorded earlier viewer proof is API registration/scripted replay, not this full live view.",
       "evidence": [
         "investigator/langgraph.json",
-        "docs/design/hosted-query-agent/index-slice.md"
-      ]
+        "docs/design/hosted-query-agent/index-slice.md",
+        "investigator/diagnostic-model.ts",
+        "docs/design/hosted-query-agent/diagnostic-loop.md"
+      ],
+      "remainingBuild": "Attach an authorized Go evidence bridge to developer graph sessions and correlate worker, queue, graph, action and verification events in a visible run history.",
+      "remainingVerification": "Show an actual hosted run end to end, including a requested Go read and the applied/verified result. The recorded earlier viewer proof is API registration/scripted replay, not this full live view.",
+      "statusLabel": "Graph exists; live bridge missing"
     },
     "screen-evidence": {
       "status": "verified",
@@ -195,7 +232,7 @@
     "model-recommendation": {
       "status": "verified",
       "scope": "Built: send plan, index checks and the supplied cause evidence together; validate the response.",
-      "remaining": "These are one-cause cases, not a completed open-ended diagnostic loop.",
+      "remaining": "This card describes the original one-call path. The separate diagnostic loop is built and can request evidence; broader customer diagnosis remains.",
       "evidence": [
         "investigator/model.ts",
         "docs/design/hosted-query-agent/live-repairs.md"
@@ -203,13 +240,14 @@
     },
     "diagnose-causes": {
       "status": "verified",
-      "scope": "Sonnet passed 15/15 bounded local/replay cases. In Railway it selected an index and rejected statistics/cleanup explanations before a verified repair.",
-      "remaining": "Replay covers 18 bounded cases. Current hosted repair connections are listed separately; broader customer diagnosis and representative mixed causes remain unqualified.",
+      "scope": "Sonnet passed 18/18 bounded replay cases. All six owned repair routes passed hosted diagnostic runs; a separate hosted probe requested missing evidence.",
+      "remaining": "Collect evidence from ordinary customer queries and test representative competing causes; do not infer general diagnosis from constructed fixtures.",
       "evidence": [
         "investigator/diagnostic.ts",
         "investigator/diagnostic-model.ts",
         "docs/design/hosted-query-agent/evidence/diagnostic-loop/summary.json",
-        "docs/design/hosted-query-agent/hosted-diagnostic.md"
+        "docs/design/hosted-query-agent/hosted-diagnostic.md",
+        "docs/design/hosted-query-agent/repair-expansion.md"
       ]
     },
     "request-evidence": {
@@ -224,7 +262,7 @@
     "repair-coverage": {
       "status": "planned",
       "scope": "Remaining: test richer repair variants and ordinary application workloads.",
-      "remaining": "Compound indexes, statistics targets, cleanup settings, candidate-table writes, realistic memory budgets and schedules.",
+      "remaining": "Implement real-query index candidate selection, individual-column statistics targets and cleanup thresholds; qualify committed writes, real memory budgets and owner schedules.",
       "evidence": [
         "docs/design/hosted-query-agent/roadmap.md"
       ]
@@ -397,11 +435,17 @@
     },
     "index-compound-general": {
       "status": "planned",
-      "scope": "Qualify compound indexes on representative enrolled customer query shapes beyond the fixed two-equality fixture, including write/storage cost and safe recovery.",
-      "remaining": "Design candidate selection and validate representative inputs, roles, workload interference and current owner grants.",
+      "scope": "Build candidate selection beyond the fixed two-equality test query, then qualify the accepted query shapes.",
+      "remaining": "Build: Represent authorized real table/column identities and choose key order from query predicates. Define supported combinations such as equality with a range or ordering; do not assume all shapes are supported. Verify: Test accepted shapes with real Sonnet, representative inputs, existing indexes, writes, storage cost and interrupted recovery.",
       "evidence": [
-        "docs/product/query-performance-v1.md"
-      ]
+        "docs/product/query-performance-v1.md",
+        "internal/hostedquery/index_policy.go",
+        "internal/hostedquery/index_trial.go",
+        "internal/hostedquery/compound_index.go"
+      ],
+      "remainingBuild": "Represent authorized real table/column identities and choose key order from query predicates. Define supported combinations such as equality with a range or ordering; do not assume all shapes are supported.",
+      "remainingVerification": "Test accepted shapes with real Sonnet, representative inputs, existing indexes, writes, storage cost and interrupted recovery."
     }
-  }
+  },
+  "colorMeaning": "Green verifies the stated case only. Yellow means the named area still contains concrete missing implementation or verification. It is not a percentage complete; inspect Build next and Verify next."
 }

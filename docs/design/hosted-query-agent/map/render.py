@@ -36,7 +36,7 @@ with tempfile.TemporaryDirectory() as tmp:
   html=html.replace(old,new)
  data=json.dumps(status,ensure_ascii=False).replace('<','\\u003c').replace('\u2028','\\u2028').replace('\u2029','\\u2029')
  replace('</head>','<script>window.POOLTUNE_PROGRESS = '+data+';</script><style>'+(folder/'status.css').read_text()+'</style></head>')
- replace("return [meta?.stack, view?.changeStatus, view?.ownership].filter(Boolean).join(' · ');", "return [meta?.stack, window.POOLTUNE_PROGRESS.nodes[item.slice(2)] ? ({verified:'Verified scope',partial:'Partly built',planned:'Remaining',external:'External'})[window.POOLTUNE_PROGRESS.nodes[item.slice(2)].status] : '', view?.ownership].filter(Boolean).join(' · ');")
+ replace("return [meta?.stack, view?.changeStatus, view?.ownership].filter(Boolean).join(' · ');", "return [meta?.stack, window.POOLTUNE_PROGRESS.nodes[item.slice(2)] ? (window.POOLTUNE_PROGRESS.nodes[item.slice(2)].statusLabel || ({verified:'Verified scope',partial:'Partly built',planned:'Remaining',external:'External'})[window.POOLTUNE_PROGRESS.nodes[item.slice(2)].status]) : '', view?.ownership].filter(Boolean).join(' · ');")
  replace('return `<div class="card ${cls}" style="--c:${colorOf(i)}">', 'return `<div class="card ${cls} pt-${window.POOLTUNE_PROGRESS.nodes[item.slice(2)]?.status || \'external\'}" data-progress-id="${h(item)}" style="--c:${colorOf(i)}">')
  # Extend the existing view through its public panel/header hooks; no upstream edits.
  js=(folder/'status.js').read_text();assert '</script' not in js.lower()

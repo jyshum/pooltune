@@ -160,9 +160,9 @@
     },
     {
       "id": "investigator",
-      "label": "Investigator graph",
+      "label": "Investigator: staging works",
       "type": "service",
-      "purpose": "One diagnostic graph compares causes and requests evidence. Its index adapter now runs through the Railway consumer and guarded repair executor.",
+      "purpose": "Compare causes, request Go evidence and propose repairs: all six bounded paths passed hosted Sonnet.",
       "decisionIds": [
         "d-workflow"
       ],
@@ -204,19 +204,19 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "One diagnostic graph compares causes and requests evidence. Its index adapter now runs through the Railway consumer and guarded repair executor.",
+      "changeSummary": "Compare causes, request Go evidence and propose repairs: all six bounded paths passed hosted Sonnet.",
       "stack": [
         "TypeScript",
         "LangGraph"
       ],
-      "after": "One diagnostic graph compares causes and requests evidence. Its index adapter now runs through the Railway consumer and guarded repair executor.",
+      "after": "Compare causes, request Go evidence and propose repairs: all six bounded paths passed hosted Sonnet.",
       "expandWhy": "Which agent steps exist, and which diagnostic steps still need building?"
     },
     {
       "id": "tools",
-      "label": "Controlled database tools",
+      "label": "Database tools: six cases tested",
       "type": "service",
-      "purpose": "Six bounded repair cases are verified; broader evidence collection and customer repair coverage remain.",
+      "purpose": "All six bounded repair cases work. Some planned operations and general query targeting are still missing.",
       "decisionIds": [
         "d-language"
       ],
@@ -238,12 +238,12 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Six bounded repair cases are verified; broader evidence collection and customer repair coverage remain.",
+      "changeSummary": "All six bounded repair cases work. Some planned operations and general query targeting are still missing.",
       "stack": [
         "Go"
       ],
       "expandWhy": "What can the agent inspect or change, and what evidence and recovery does each repair require?",
-      "after": "Check authority and current conditions before inspection, experiments, repairs, or recovery."
+      "after": "All six bounded repair cases work. Some planned operations and general query targeting are still missing."
     },
     {
       "id": "state",
@@ -332,9 +332,9 @@
     },
     {
       "id": "studio",
-      "label": "Developer graph viewer",
+      "label": "Developer viewer: graph only",
       "type": "interface",
-      "purpose": "Developer graph registration and scripted replay were verified; Studio shows the investigator graph.",
+      "purpose": "Studio graph registration and scripted replay exist. The Studio export is not connected to live Go evidence tools.",
       "decisionIds": [
         "d-studio"
       ],
@@ -356,18 +356,18 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Developer graph registration and scripted replay were verified; Studio shows the investigator graph.",
+      "changeSummary": "Studio graph registration and scripted replay exist. The Studio export is not connected to live Go evidence tools.",
       "stack": [
         "LangGraph development server",
         "LangSmith Studio"
       ],
-      "after": "Proposed LangSmith Studio setup to inspect graph runs; account, tracing and export settings remain open."
+      "after": "Studio graph registration and scripted replay exist. The Studio export is not connected to live Go evidence tools."
     },
     {
       "id": "inspection",
       "label": "Inspect existing evidence",
       "type": "service",
-      "purpose": "Go reuses initial evidence and exposes bounded plan/index/statistics readers for the owned index fixture, with real PostgreSQL identity checks.",
+      "purpose": "Named readers cover six fixture types; a hosted Sonnet request for fresh ANALYZE evidence passed.",
       "decisionIds": [
         "d-reuse",
         "d-identity"
@@ -405,12 +405,12 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Go reuses initial evidence and exposes bounded plan/index/statistics readers for the owned index fixture, with real PostgreSQL identity checks.",
+      "changeSummary": "Named readers cover six fixture types; a hosted Sonnet request for fresh ANALYZE evidence passed.",
       "stack": [
         "Go"
       ],
       "parent": "tools",
-      "after": "Go reuses initial evidence and exposes bounded plan/index/statistics readers for the owned index fixture, with real PostgreSQL identity checks."
+      "after": "Named readers cover six fixture types; a hosted Sonnet request for fresh ANALYZE evidence passed."
     },
     {
       "id": "experiments",
@@ -451,7 +451,7 @@
       "id": "index",
       "label": "Add a nonunique index",
       "type": "service",
-      "purpose": "Single-column staging case verified; bounded two-column implementation now has local tests and real model decision evidence.",
+      "purpose": "Single-column and two-column index repairs passed. The compound executor uses the fixed lookup,padding test columns.",
       "decisionIds": [
         "d-trials"
       ],
@@ -468,12 +468,12 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Single-column staging case verified; bounded two-column implementation now has local tests and real model decision evidence.",
+      "changeSummary": "Single-column and two-column index repairs passed. The compound executor uses the fixed lookup,padding test columns.",
       "stack": [
         "Go"
       ],
       "parent": "tools",
-      "after": "Inspect access work and existing indexes; evaluate bounded candidates and measure actual effects. Recover only eligible Pooltune-created artifacts; build resources cannot be undone.",
+      "after": "Single-column and two-column index repairs passed. The compound executor uses the fixed lookup,padding test columns.",
       "expandWhy": "Which index shapes can Pooltune create today?"
     },
     {
@@ -506,7 +506,7 @@
       "id": "richer",
       "label": "Improve statistics detail",
       "type": "service",
-      "purpose": "Joint-statistics case verified for related predicate columns. Other V1 variants remain.",
+      "purpose": "Joint statistics for lookup,padding work. The planned individual-column detail adjustment is not implemented.",
       "decisionIds": [],
       "sources": [
         {
@@ -521,19 +521,19 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Joint-statistics case verified for related predicate columns. Other V1 variants remain.",
+      "changeSummary": "Joint statistics for lookup,padding work. The planned individual-column detail adjustment is not implemented.",
       "stack": [
         "Go"
       ],
       "parent": "tools",
-      "after": "Use persistent estimate errors after refresh to qualify extended statistics or a bounded column target. Preserve prior definitions/settings; exact sampled statistics cannot be restored by resetting a target.",
+      "after": "Joint statistics for lookup,padding work. The planned individual-column detail adjustment is not implemented.",
       "expandWhy": "Which statistics improvements exist and which remain?"
     },
     {
       "id": "cleanup",
       "label": "Perform targeted cleanup",
       "type": "service",
-      "purpose": "Plain VACUUM case verified: reduce visibility work without replacing the index. Other V1 variants remain.",
+      "purpose": "Plain VACUUM passed. Planned changes to table cleanup-trigger thresholds are not implemented.",
       "decisionIds": [],
       "sources": [
         {
@@ -548,12 +548,12 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Plain VACUUM case verified: reduce visibility work without replacing the index. Other V1 variants remain.",
+      "changeSummary": "Plain VACUUM passed. Planned changes to table cleanup-trigger thresholds are not implemented.",
       "stack": [
         "Go"
       ],
       "parent": "tools",
-      "after": "Use cleanup and access evidence for bounded plain VACUUM or permitted threshold adjustments. Pinned versions may prevent cleanup; completed cleanup has no exact undo.",
+      "after": "Plain VACUUM passed. Planned changes to table cleanup-trigger thresholds are not implemented.",
       "expandWhy": "Which cleanup actions exist and which remain?"
     },
     {
@@ -694,7 +694,7 @@
       "id": "diagnose-causes",
       "label": "Compare possible causes",
       "type": "service",
-      "purpose": "Sonnet passed 15/15 bounded local/replay cases. In Railway it selected an index and rejected statistics/cleanup explanations before a verified repair.",
+      "purpose": "Sonnet passed 18/18 bounded replay cases. All six owned repair routes passed hosted diagnostic runs; a separate hosted probe requested missing evidence.",
       "decisionIds": [],
       "sources": [
         {
@@ -729,8 +729,8 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Sonnet passed 15/15 bounded local/replay cases. In Railway it selected an index and rejected statistics/cleanup explanations before a verified repair.",
-      "after": "Sonnet passed 15/15 bounded local/replay cases. In Railway it selected an index and rejected statistics/cleanup explanations before a verified repair.",
+      "changeSummary": "Sonnet passed 18/18 bounded replay cases. All six owned repair routes passed hosted diagnostic runs; a separate hosted probe requested missing evidence.",
+      "after": "Sonnet passed 18/18 bounded replay cases. All six owned repair routes passed hosted diagnostic runs; a separate hosted probe requested missing evidence.",
       "parent": "investigator",
       "stack": [
         "TypeScript",
@@ -1705,10 +1705,10 @@
     },
     {
       "id": "index-compound-general",
-      "label": "More compound query shapes",
+      "label": "Choose indexes for real queries",
       "type": "service",
       "parent": "index",
-      "purpose": "Qualify compound indexes on representative enrolled customer query shapes beyond the fixed two-equality fixture, including write/storage cost and safe recovery.",
+      "purpose": "Build candidate selection beyond the fixed two-equality test query, then qualify the accepted query shapes.",
       "decisionIds": [],
       "sources": [
         {
@@ -1718,8 +1718,8 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Qualify compound indexes on representative enrolled customer query shapes beyond the fixed two-equality fixture, including write/storage cost and safe recovery.",
-      "after": "Qualify compound indexes on representative enrolled customer query shapes beyond the fixed two-equality fixture, including write/storage cost and safe recovery.",
+      "changeSummary": "Build candidate selection beyond the fixed two-equality test query, then qualify the accepted query shapes.",
+      "after": "Build candidate selection beyond the fixed two-equality test query, then qualify the accepted query shapes.",
       "stack": [
         "Go",
         "TypeScript"
