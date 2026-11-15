@@ -57,14 +57,33 @@ type CounterRow = {
   reset: string; entry: string; calls: number; blocks: number; execution_ms: number;
 };
 
-export async function waitOwnedCronActivation(first: number, read: () => Promise<{now: number; active: boolean}>,
+type OwnedCronPhase = 'staging_configuration' | 'fixture_binding' | 'credentials_configuration' | 'state_route' |
+  'target_connection' | 'provider_catalog' | 'scheduler_clock' | 'fixture_catalog' | 'fixture_lifetime' |
+  'observer_connection' | 'state_connection' | 'traffic_connections' | 'activation_wait' | 'traffic_warmup' |
+  'counter_catalog' | 'counter_identity' | 'capture_window' | 'archive_period' | 'handoff_acknowledgement' | 'verification_result';
+
+const safeObserverCodes = new Set([
+  'ERR_ASSERTION', 'ERR_INVALID_URL', 'ECONNREFUSED', 'ECONNRESET', 'EADDRNOTAVAIL', 'EAI_AGAIN',
+  'EHOSTUNREACH', 'ENETUNREACH', 'ENOTFOUND', 'EPIPE', 'ETIMEDOUT', 'CERT_HAS_EXPIRED',
+  'ERR_TLS_CERT_ALTNAME_INVALID', 'SELF_SIGNED_CERT_IN_CHAIN', 'UNABLE_TO_VERIFY_LEAF_SIGNATURE',
+]);
+
+export function ownedCronFailureLine(phase: OwnedCronPhase, error: unknown) {
+  const code = (error as {code?: unknown})?.code;
+  const safe = typeof code === 'string' && (safeObserverCodes.has(code) ||
+    (error instanceof pg.DatabaseError && /^[A-Z0-9]{5}$/.test(code)));
+  return `Owned Cron observation failed (${safe ? code : 'OBSERVER_ERROR'}). Phase: ${phase}.`;
+}
+
+export async function waitOwnedCronActivation(first: number, read: () => Promise<{now: number; active: boolean; witnessActive: boolean}>,
   wait: () => Promise<unknown> = () => sleep(700)) {
   let previous = 0;
   for (;;) {
-    const {now, active} = await read();
+    const {now, active, witnessActive} = await read();
     if (!Number.isFinite(now) || now <= previous || now >= first) throw Error('Cron activation observation expired or clock changed');
     if (active) {
       if (now < first - 55_000) throw Error('Cron target was active before its approved activation window');
+      if (!witnessActive) throw Error('Cron target activation requires the exact active witness');
       return;
     }
     previous = now;
@@ -74,10 +93,14 @@ export async function waitOwnedCronActivation(first: number, read: () => Promise
 
 // Captures only the already prepared private fixture. PostgreSQL and the
 // recorder still enforce job identity, evidence, and all action authority.
-export async function runOwnedCronTraffic() {
+export async function runOwnedCronTraffic(setPhase: (phase: OwnedCronPhase) => void = () => {}) {
+  setPhase('staging_configuration');
   assert.equal(process.env.POOLTUNE_STAGING_PRIVATE_STATE, '1');
+  setPhase('fixture_binding');
   const {project, schema, target, candidate, first, expires, request} = readOwnedCronObserverBinding(process.env.POOLTUNE_OWNED_CRON_FIXTURE ?? '');
+  setPhase('credentials_configuration');
   assert(process.env.POOLTUNE_OWNED_CRON_PASSWORD && process.env.POOLTUNE_OWNED_CRON_CA, 'Cron fixture login is missing');
+  setPhase('state_route');
   const stateURL = new URL(process.env.POOLTUNE_WORKER_STATE_DSN ?? '');
   assert(['postgres:', 'postgresql:'].includes(stateURL.protocol) &&
     stateURL.hostname === 'postgres.railway.internal' && stateURL.port === '5432' && stateURL.pathname === '/railway' &&
@@ -110,7 +133,9 @@ export async function runOwnedCronTraffic() {
   const normalizedWrite = writeSQL.replace("WHEN 'a' THEN 'b' ELSE 'a'", 'WHEN $2 THEN $3 ELSE $4');
   const result = {project, periods_recorded: 0, job_id: '', verification_job_id: '', outcome: ''};
   try {
+    setPhase('target_connection');
     await stats.connect();
+    setPhase('provider_catalog');
     const route = await stats.query<{eligible: boolean}>(`SELECT NOT pg_is_in_recovery()
       AND (SELECT current_user::regrole::oid=$1 AND oid=$2 FROM pg_database WHERE datname=current_database())
       AND current_user=session_user AND has_schema_privilege(current_user,'cron','USAGE')
@@ -125,8 +150,10 @@ export async function runOwnedCronTraffic() {
           AND encode(sha256(convert_to(pg_get_functiondef(p.oid),'UTF8')),'hex')=$6) AS eligible`,
     [target.OwnerOID, target.DatabaseOID, request.Runtime.FunctionOID, request.Runtime.Schema, request.Runtime.OwnerOID, request.Runtime.DefinitionDigest]);
     assert.equal(route.rows[0]?.eligible, true, 'exact scheduler provider must qualify before sending traffic');
+    setPhase('scheduler_clock');
     const scheduler = await stats.query<{ready: boolean}>(`SELECT ready FROM "${request.Runtime.Schema}".scheduler_status()`);
     assert(scheduler.rows.length === 1 && scheduler.rows[0].ready, 'the scoped scheduler clock is unavailable');
+    setPhase('fixture_catalog');
     const scope = await stats.query<{eligible: boolean}>(`SELECT EXISTS (
       SELECT FROM pg_namespace n JOIN pg_class c ON c.relnamespace=n.oid
       WHERE n.nspname=$1 AND n.nspowner=$2 AND c.oid=$3 AND c.relowner=$2 AND c.relname='candidate'
@@ -136,7 +163,7 @@ export async function runOwnedCronTraffic() {
       ) AND EXISTS (SELECT FROM cron.job WHERE jobid=$5 AND jobname=$6 AND schedule='*/2 * * * *'
         AND username::text=current_user AND database=current_database()
         AND encode(sha256(convert_to(command,'UTF8')),'hex')=$7)
-      AND EXISTS (SELECT FROM cron.job WHERE jobid=$8 AND jobname=$1||'_witness' AND active AND schedule='2 seconds'
+      AND EXISTS (SELECT FROM cron.job WHERE jobid=$8 AND jobname=$1||'_witness' AND schedule='2 seconds'
         AND username::text=current_user AND database=current_database() AND command='SELECT 1')
       AND NOT EXISTS(SELECT FROM (VALUES($9::oid,$10::text),($11::oid,$12::text)) v(oid,digest)
         WHERE NOT EXISTS (SELECT FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
@@ -144,34 +171,42 @@ export async function runOwnedCronTraffic() {
             AND encode(sha256(convert_to(pg_get_functiondef(p.oid),'UTF8')),'hex')=v.digest)) AS eligible`,
       [schema, target.OwnerOID, candidate.TableOID, `Pooltune hosted cron fixture ${project}`, target.JobID, target.Name,
         target.CommandDigest, target.WitnessJobID, request.ReadOID, request.ReadDigest, request.ProcedureOID, request.ProcedureDigest]);
-    assert.equal(scope.rows[0]?.eligible, true, 'the exact disposable Cron objects or active jobs did not qualify');
+    assert.equal(scope.rows[0]?.eligible, true, 'the exact disposable Cron objects or jobs did not qualify');
     const clock = async () => {
       check();
       const {rows} = await stats.query<{now: string}>(`SELECT extract(epoch FROM clock_timestamp())*1000 AS now`);
       return Number(rows[0]?.now);
     };
+    setPhase('fixture_lifetime');
     const now = await clock();
     assert(Number.isFinite(now) && now < first && expires > now + 12 * 60_000, 'Cron observer started outside the fixture lifetime');
+    setPhase('observer_connection');
     await observer.connect();
+    setPhase('state_connection');
     await state.connect();
+    setPhase('traffic_connections');
     for (const connection of trafficClients) {
       await connection.connect();
       await connection.query("SET lock_timeout='250ms'");
     }
+    setPhase('activation_wait');
+    console.log(JSON.stringify({event: 'owned_cron_observer_ready'}));
     await waitOwnedCronActivation(first, async () => {
       check();
-      const {rows} = await stats.query<{now: string; active: boolean}>(`SELECT extract(epoch FROM clock_timestamp())*1000 AS now,j.active
+      const {rows} = await stats.query<{now: string; active: boolean; witness_active: boolean}>(`SELECT extract(epoch FROM clock_timestamp())*1000 AS now,j.active,w.active AS witness_active
         FROM cron.job j JOIN cron.job w ON w.jobid=$5 AND w.username=j.username AND w.database=j.database
         WHERE j.jobid=$1 AND j.jobname=$2 AND j.username::text=current_user AND j.database=current_database()
           AND j.schedule='*/2 * * * *' AND encode(sha256(convert_to(j.command,'UTF8')),'hex')=$3
-          AND w.jobname=$4 AND w.active AND w.schedule='2 seconds' AND w.command='SELECT 1'`,
+          AND w.jobname=$4 AND w.schedule='2 seconds' AND w.command='SELECT 1'`,
       [target.JobID, target.Name, target.CommandDigest, `${schema}_witness`, target.WitnessJobID]);
       assert.equal(rows.length, 1, 'Cron activation disappeared or the exact jobs changed');
-      return {now: Number(rows[0].now), active: rows[0].active};
+      return {now: Number(rows[0].now), active: rows[0].active, witnessActive: rows[0].witness_active};
     });
+    setPhase('traffic_warmup');
     await trafficClients[0].query(targetSQL);
     await trafficClients[2].query(healthySQL, [43]);
     await trafficClients[3].query(writeSQL, [90001]);
+    setPhase('counter_catalog');
     const namespace = (await stats.query<{nspname: string}>(`SELECT n.nspname FROM pg_extension e
       JOIN pg_namespace n ON n.oid=e.extnamespace WHERE e.extname='pg_stat_statements'`)).rows[0]?.nspname;
     assert(namespace && /^[a-z_]+$/.test(namespace), 'Cron statement counters are unavailable');
@@ -187,6 +222,7 @@ export async function runOwnedCronTraffic() {
       assert.equal(rows.length, 3, 'all three exact observed query counters are required');
       return {at: rows[0].at, rows};
     }
+    setPhase('counter_identity');
     const initial = await snapshot();
     const id = (...statements: string[]) => {
       const row = initial.rows.find(item => statements.includes(item.query));
@@ -268,11 +304,14 @@ export async function runOwnedCronTraffic() {
     let attached: {id: string; parent_id: string} | undefined;
     for (let index = 0; index < 6; index++) {
       const cycle = first + index * 120_000;
+      setPhase('capture_window');
       const period = await captureCronPeriod(cycle, index, waitUntil, boundedTraffic);
+      setPhase('archive_period');
       await runCronPhase(() => archive(period), async () => healthy(Math.max(.1, (cycle + 100_000 - await clock()) / 1000)));
       result.periods_recorded++;
       console.error(`Cron period ${index + 1} of 6 archived.`);
       if (index === 2) {
+        setPhase('handoff_acknowledgement');
         const queued = await waitCronAcknowledgement(cycle, target.WitnessJobID, jobs, clock, healthy);
         const parent = queued.find(job => job.finished_at && job.result?.outcome === 'awaiting_verification');
         attached = queued.find(job => !job.finished_at && job.parent_id === parent?.id);
@@ -281,6 +320,7 @@ export async function runOwnedCronTraffic() {
         result.verification_job_id = attached.id;
       }
     }
+    setPhase('verification_result');
     assert(attached, 'Cron action did not leave an exact verification job');
     await waitUntil(first + 12 * 60_000 + 8000);
     const queued = await waitCronFinalResult(first, attached, jobs, clock, healthy, begin + CRON_CAMPAIGN_BUDGET_MS);
@@ -303,12 +343,11 @@ async function archive(period: object) {
 }
 
 if (import.meta.main) {
+  let phase: OwnedCronPhase = 'staging_configuration';
   try {
-    await runOwnedCronTraffic();
+    await runOwnedCronTraffic(current => { phase = current; });
   } catch (error) {
-    const code = (error as {code?: unknown})?.code;
-    console.error(typeof code === 'string' && /^[0-9A-Z_]{1,24}$/.test(code) ?
-      `Owned Cron observation failed (${code}).` : 'Owned Cron observation failed. Check the scoped fixture, recorder and worker queue.');
+    console.error(ownedCronFailureLine(phase, error));
     process.exitCode = 1;
   }
 }
