@@ -1,5 +1,5 @@
 {
-  "sourceRevision": "baf9ce564a592f0c4bfb3006ceb0367b733079a1",
+  "sourceRevision": "80c8af3489120887af8fcccc03ab54af208b0c08",
   "summary": "Railway verified the compound index and its post-write restart, statistics refresh, joint statistics, table cleanup and function memory on Rookery. Job scheduling and general project repair permissions need qualification.",
   "next": [
     "cron",
@@ -172,7 +172,8 @@
         "internal/hostedquery/project_analyze_integration_test.go",
         "internal/hostedquery/owned_statistics_repairs_integration_test.go",
         "docs/design/hosted-query-agent/evidence/mvp-owned-analyze-railway.json",
-        "docs/design/hosted-query-agent/evidence/mvp-owned-analyze-first-railway.json"
+        "docs/design/hosted-query-agent/evidence/mvp-owned-analyze-first-railway.json",
+        "docs/design/hosted-query-agent/evidence/mvp-simple-analyze-railway.json"
       ],
       "statusLabel": "Railway refresh verified"
     },
@@ -222,8 +223,8 @@
     },
     "cron": {
       "status": "partial",
-      "scope": "The owned worker can resume scheduling verification locally and has a private period recorder. A restricted Rookery login could not read the required scheduler settings or launcher start time.",
-      "remaining": "Qualify scoped provider permissions and drive three original and three future cycles through the signed-in owner flow.",
+      "scope": "The owned scheduler uses an approved read-only check for exact launcher identity and runtime settings. Rookery ran two witness jobs under the dedicated role. The private observer can feed real periods to the hosted worker.",
+      "remaining": "Run the three original and three future cycles in the normal Railway owner flow.",
       "evidence": [
         "docs/design/hosted-query-agent/cron-staging.md",
         "internal/hostedquery/project_cron.go",
@@ -231,9 +232,11 @@
         "internal/hostedquery/owned_cron_dispatch_integration_test.go",
         "docs/design/hosted-query-agent/evidence/repair-expansion/cron-20261114-220423.json",
         "docs/design/hosted-query-agent/evidence/mvp-owned-cron-role-preflight-rookery.json",
-        "internal/hostedquery/owned_cron_observer_test.go"
+        "internal/hostedquery/owned_cron_observer_test.go",
+        "internal/hostedquery/owned_cron_provider.go",
+        "investigator/owned-cron-traffic.ts"
       ],
-      "statusLabel": "Scheduler authority unqualified"
+      "statusLabel": "Dedicated scheduler witness verified"
     },
     "recovery": {
       "status": "verified",
@@ -346,7 +349,7 @@
     },
     "connect-project": {
       "status": "partial",
-      "scope": "The Railway simple form took a Rookery-scoped setup token, certificate and one index selection. It started a read-only monitor, discovered the workload and enabled the owned repair.",
+      "scope": "Railway verified simple setup through signed-in compound-index, statistics refresh and joint-statistics repairs. Each used one permission checkbox and zero manually enrolled query IDs.",
       "remaining": "Qualify the other repair permissions and general project authority through the normal owner flow.",
       "evidence": [
         "docs/design/hosted-query-agent/supabase-monitoring.md",
@@ -359,7 +362,9 @@
         "internal/hostedapp/start.go",
         "internal/supabaseproject/bootstrap_integration_test.go",
         "docs/design/hosted-query-agent/evidence/mvp-simple-index-preflight.json",
-        "docs/design/hosted-query-agent/evidence/mvp-simple-index-railway.json"
+        "docs/design/hosted-query-agent/evidence/mvp-simple-index-railway.json",
+        "docs/design/hosted-query-agent/evidence/mvp-simple-analyze-railway.json",
+        "docs/design/hosted-query-agent/evidence/mvp-simple-statistics-railway.json"
       ],
       "statusLabel": "Simple owned repair verified"
     },
@@ -475,18 +480,21 @@
       "remaining": "Qualify more column pairs, default planner settings and the simple setup flow.",
       "evidence": [
         "docs/design/hosted-query-agent/richer-statistics.md",
-        "docs/design/hosted-query-agent/evidence/mvp-owned-statistics-railway.json"
+        "docs/design/hosted-query-agent/evidence/mvp-owned-statistics-railway.json",
+        "docs/design/hosted-query-agent/evidence/mvp-simple-statistics-railway.json"
       ],
       "statusLabel": "Railway joint statistics verified"
     },
     "statistics-target": {
-      "status": "planned",
-      "scope": "Remaining V1 work: increase detail collected for an individual column when the measured evidence warrants it.",
-      "remaining": "Implement bounded column targets, preserve prior settings and verify benefit, resource cost and recovery with real Claude.",
+      "status": "partial",
+      "scope": "The owned statistics worker can try a higher target on one column, measure the query and protected traffic, and restore the previous setting and sampled statistics. Local PostgreSQL verified restoration.",
+      "remaining": "Confirm the normal Railway setup records the setting and benefit or restoration.",
       "evidence": [
         "docs/product/query-performance-v1.md",
-        "docs/design/hosted-query-agent/roadmap.md"
-      ]
+        "docs/design/hosted-query-agent/roadmap.md",
+        "internal/hostedquery/owned_statistics_target.go"
+      ],
+      "statusLabel": "Hosted path built"
     },
     "cleanup-vacuum": {
       "status": "verified",
@@ -499,13 +507,15 @@
       "statusLabel": "Railway plain cleanup verified"
     },
     "cleanup-settings": {
-      "status": "planned",
-      "scope": "Remaining V1 work: qualify permitted cleanup threshold adjustments beyond the tested plain VACUUM operation.",
-      "remaining": "Define allowed settings, admission, benefit verification and restoration before automatic changes.",
+      "status": "partial",
+      "scope": "The owned worker lowers the cleanup trigger when the backlog grows. Local PostgreSQL verified that follow-up survives reconnect, observes an automatic cleanup and restores the setting if overall benefit falls short.",
+      "remaining": "Confirm the normal Railway setup writes one guarded option and observes the real automatic cleanup.",
       "evidence": [
         "docs/product/query-performance-v1.md",
-        "docs/design/hosted-query-agent/roadmap.md"
-      ]
+        "docs/design/hosted-query-agent/roadmap.md",
+        "internal/hostedquery/owned_cleanup_settings.go"
+      ],
+      "statusLabel": "Hosted path built"
     },
     "diagnostic-analyze": {
       "status": "verified",
@@ -668,14 +678,17 @@
     },
     "agent-permission-setup": {
       "status": "verified",
-      "scope": "Railway served the six repair choices and used the selected index permission to run an eligible owned repair after the scoped setup request.",
-      "remaining": "Connect additional checked repair types to verified privileges and qualify wider projects.",
+      "scope": "Railway verified simple setup for the compound index, statistics refresh, joint statistics and function memory. Each used one checkbox and zero manual query IDs.",
+      "remaining": "Complete the cleanup and scheduler checks. Qualify repair authority beyond the owned Rookery fixtures.",
       "evidence": [
         "internal/hostedapp/ui/pages.html",
         "docs/design/hosted-query-agent/evidence/mvp-agent-setup.json",
-        "docs/design/hosted-query-agent/evidence/mvp-simple-index-railway.json"
+        "docs/design/hosted-query-agent/evidence/mvp-simple-index-railway.json",
+        "docs/design/hosted-query-agent/evidence/mvp-simple-analyze-railway.json",
+        "docs/design/hosted-query-agent/evidence/mvp-simple-statistics-railway.json",
+        "docs/design/hosted-query-agent/evidence/mvp-simple-memory-railway.json"
       ],
-      "statusLabel": "Index permission tested"
+      "statusLabel": "Four checkboxes verified"
     },
     "automatic-workload-discovery": {
       "status": "verified",
@@ -889,6 +902,25 @@
         "memory",
         "cron",
         "repair-coverage"
+      ]
+    },
+    {
+      "label": "Task 56 · Verify normal repair setup",
+      "summary": "Three more repair checkboxes passed on Railway with zero manual query IDs.",
+      "nodes": [
+        "agent-permission-setup",
+        "refresh",
+        "statistics-joint",
+        "memory"
+      ]
+    },
+    {
+      "label": "Tasks 57 and 58 · Scheduler and settings",
+      "summary": "The dedicated Rookery scheduler witness passed and both settings passed local guarded-change and restoration tests.",
+      "nodes": [
+        "cron",
+        "statistics-target",
+        "cleanup-settings"
       ]
     }
   ],

@@ -5,7 +5,7 @@
   "workType": "Build progress and remaining work",
   "summary": "Railway verified the compound index and its post-write restart, statistics refresh, joint statistics, table cleanup and function memory on Rookery. Job scheduling and general project repair permissions need qualification.",
   "sourceRevision": {
-    "commit": "baf9ce564a592f0c4bfb3006ceb0367b733079a1",
+    "commit": "80c8af3489120887af8fcccc03ab54af208b0c08",
     "dirty": false
   },
   "components": [
@@ -543,6 +543,11 @@
           "path": "docs/design/hosted-query-agent/evidence/mvp-owned-analyze-first-railway.json",
           "revision": "0554eeb",
           "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/mvp-simple-analyze-railway.json",
+          "revision": "221e9d1",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
@@ -667,7 +672,7 @@
       "id": "cron",
       "label": "Job scheduling: tested case",
       "type": "service",
-      "purpose": "The owned worker can resume scheduling verification locally and has a private period recorder. A restricted Rookery login could not read the required scheduler settings or launcher start time.",
+      "purpose": "The owned scheduler uses an approved read-only check for exact launcher identity and runtime settings. Rookery ran two witness jobs under the dedicated role. The private observer can feed real periods to the hosted worker.",
       "decisionIds": [],
       "sources": [
         {
@@ -699,15 +704,25 @@
           "path": "internal/hostedquery/owned_cron_observer_test.go",
           "revision": "baf9ce5",
           "kind": "verified"
+        },
+        {
+          "path": "internal/hostedquery/owned_cron_provider.go",
+          "revision": "80c8af3",
+          "kind": "verified"
+        },
+        {
+          "path": "investigator/owned-cron-traffic.ts",
+          "revision": "80c8af3",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "The owned worker can resume scheduling verification locally and has a private period recorder. A restricted Rookery login could not read the required scheduler settings or launcher start time.",
+      "changeSummary": "The owned scheduler uses an approved read-only check for exact launcher identity and runtime settings. Rookery ran two witness jobs under the dedicated role. The private observer can feed real periods to the hosted worker.",
       "stack": [
         "Go"
       ],
       "parent": "tools",
-      "after": "The owned worker can resume scheduling verification locally and has a private period recorder. A restricted Rookery login could not read the required scheduler settings or launcher start time."
+      "after": "The owned scheduler uses an approved read-only check for exact launcher identity and runtime settings. Rookery ran two witness jobs under the dedicated role. The private observer can feed real periods to the hosted worker."
     },
     {
       "id": "recovery",
@@ -996,7 +1011,7 @@
       "id": "connect-project",
       "label": "Connect and enroll a project",
       "type": "service",
-      "purpose": "The Railway simple form took a Rookery-scoped setup token, certificate and one index selection. It started a read-only monitor, discovered the workload and enabled the owned repair.",
+      "purpose": "Railway verified simple setup through signed-in compound-index, statistics refresh and joint-statistics repairs. Each used one permission checkbox and zero manually enrolled query IDs.",
       "decisionIds": [],
       "sources": [
         {
@@ -1013,11 +1028,21 @@
           "path": "docs/design/hosted-query-agent/dedicated-login.md",
           "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
           "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/mvp-simple-analyze-railway.json",
+          "revision": "221e9d1",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/mvp-simple-statistics-railway.json",
+          "revision": "221e9d1",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "The Railway simple form took a Rookery-scoped setup token, certificate and one index selection. It started a read-only monitor, discovered the workload and enabled the owned repair.",
-      "after": "The Railway simple form took a Rookery-scoped setup token, certificate and one index selection. It started a read-only monitor, discovered the workload and enabled the owned repair.",
+      "changeSummary": "Railway verified simple setup through signed-in compound-index, statistics refresh and joint-statistics repairs. Each used one permission checkbox and zero manually enrolled query IDs.",
+      "after": "Railway verified simple setup through signed-in compound-index, statistics refresh and joint-statistics repairs. Each used one permission checkbox and zero manually enrolled query IDs.",
       "parent": "backend",
       "stack": [
         "Go",
@@ -1383,6 +1408,11 @@
           "path": "docs/design/hosted-query-agent/evidence/mvp-owned-statistics-railway.json",
           "revision": "baf9ce5",
           "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/mvp-simple-statistics-railway.json",
+          "revision": "221e9d1",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
@@ -1397,7 +1427,7 @@
       "label": "Column statistics targets: remaining",
       "type": "service",
       "parent": "richer",
-      "purpose": "Remaining V1 work: increase detail collected for an individual column when the measured evidence warrants it.",
+      "purpose": "The owned statistics worker can try a higher target on one column, measure the query and protected traffic, and restore the previous setting and sampled statistics. Local PostgreSQL verified restoration.",
       "decisionIds": [],
       "sources": [
         {
@@ -1409,11 +1439,16 @@
           "path": "docs/design/hosted-query-agent/roadmap.md",
           "revision": "e0606a28145f5406503defa87e16070a580490a9",
           "kind": "intended"
+        },
+        {
+          "path": "internal/hostedquery/owned_statistics_target.go",
+          "revision": "80c8af3",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Remaining V1 work: increase detail collected for an individual column when the measured evidence warrants it.",
-      "after": "Remaining V1 work: increase detail collected for an individual column when the measured evidence warrants it.",
+      "changeSummary": "The owned statistics worker can try a higher target on one column, measure the query and protected traffic, and restore the previous setting and sampled statistics. Local PostgreSQL verified restoration.",
+      "after": "The owned statistics worker can try a higher target on one column, measure the query and protected traffic, and restore the previous setting and sampled statistics. Local PostgreSQL verified restoration.",
       "stack": [
         "Go"
       ]
@@ -1449,7 +1484,7 @@
       "label": "Cleanup settings: remaining",
       "type": "service",
       "parent": "cleanup",
-      "purpose": "Remaining V1 work: qualify permitted cleanup threshold adjustments beyond the tested plain VACUUM operation.",
+      "purpose": "The owned worker lowers the cleanup trigger when the backlog grows. Local PostgreSQL verified that follow-up survives reconnect, observes an automatic cleanup and restores the setting if overall benefit falls short.",
       "decisionIds": [],
       "sources": [
         {
@@ -1461,11 +1496,16 @@
           "path": "docs/design/hosted-query-agent/roadmap.md",
           "revision": "e0606a28145f5406503defa87e16070a580490a9",
           "kind": "intended"
+        },
+        {
+          "path": "internal/hostedquery/owned_cleanup_settings.go",
+          "revision": "80c8af3",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Remaining V1 work: qualify permitted cleanup threshold adjustments beyond the tested plain VACUUM operation.",
-      "after": "Remaining V1 work: qualify permitted cleanup threshold adjustments beyond the tested plain VACUUM operation.",
+      "changeSummary": "The owned worker lowers the cleanup trigger when the backlog grows. Local PostgreSQL verified that follow-up survives reconnect, observes an automatic cleanup and restores the setting if overall benefit falls short.",
+      "after": "The owned worker lowers the cleanup trigger when the backlog grows. Local PostgreSQL verified that follow-up survives reconnect, observes an automatic cleanup and restores the setting if overall benefit falls short.",
       "stack": [
         "Go"
       ]
@@ -2140,18 +2180,33 @@
       "id": "agent-permission-setup",
       "label": "Agent setup and repair choices",
       "type": "service",
-      "purpose": "Railway served the six repair choices and used the selected index permission to run an eligible owned repair after the scoped setup request.",
+      "purpose": "Railway verified simple setup for the compound index, statistics refresh, joint statistics and function memory. Each used one checkbox and zero manual query IDs.",
       "decisionIds": [],
       "sources": [
         {
           "path": "internal/hostedapp/ui/pages.html",
           "revision": "3515654b68bdcfc38d812f1e8c17d6dca18cdc74",
           "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/mvp-simple-analyze-railway.json",
+          "revision": "221e9d1",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/mvp-simple-statistics-railway.json",
+          "revision": "221e9d1",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/mvp-simple-memory-railway.json",
+          "revision": "221e9d1",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Railway served the six repair choices and used the selected index permission to run an eligible owned repair after the scoped setup request.",
-      "after": "Railway served the six repair choices and used the selected index permission to run an eligible owned repair after the scoped setup request.",
+      "changeSummary": "Railway verified simple setup for the compound index, statistics refresh, joint statistics and function memory. Each used one checkbox and zero manual query IDs.",
+      "after": "Railway verified simple setup for the compound index, statistics refresh, joint statistics and function memory. Each used one checkbox and zero manual query IDs.",
       "parent": "connect-project",
       "stack": [
         "Go",

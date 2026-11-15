@@ -1,0 +1,218 @@
+{
+  "phase": "verified",
+  "deployment": "7627cacb-a119-4667-9b47-91f4d5ef6547",
+  "operation": "analyze",
+  "initial_relation_bytes": 23461888,
+  "monitor_absent_pre_start": true,
+  "fixture_profile": "default",
+  "setup_path": "normal_start_form",
+  "setup_fields": [
+    "setup_token",
+    "ca",
+    "capability"
+  ],
+  "manually_enrolled_query_ids": 0,
+  "worker_config_query_id": 0,
+  "selected_capability": "analyze",
+  "catalog_before": {
+    "analyze_count": 1,
+    "statistics": [],
+    "indexes": [
+      {
+        "oid": "29511",
+        "keys": "1",
+        "live": true
+      },
+      {
+        "oid": "29516",
+        "keys": "1",
+        "live": true
+      },
+      {
+        "oid": "29518",
+        "keys": "2",
+        "live": true
+      }
+    ],
+    "protected_row": 0
+  },
+  "polls_seen": 18,
+  "job_outcomes": [
+    "improved_tested_inputs"
+  ],
+  "job_id": 260,
+  "attempts": 1,
+  "outcome": "improved_tested_inputs",
+  "reason": "row estimation and measured query latency improved with no sampled regression",
+  "graph_ms": 5139.125338,
+  "model_ms": 4288.162805,
+  "repair": {
+    "kind": "analyze",
+    "action": "recorded",
+    "metrics": [
+      {
+        "label": "Query mean latency",
+        "unit": "ms",
+        "before": 18.268299999999996,
+        "after": 0.023799999999999995
+      },
+      {
+        "label": "Protected read mean latency",
+        "unit": "ms",
+        "before": 0.031100000000000006,
+        "after": 0.020199999999999996
+      },
+      {
+        "label": "Protected write mean latency",
+        "unit": "ms",
+        "before": 0.0704,
+        "after": 0.03520000000000001
+      },
+      {
+        "label": "Block accesses per read",
+        "unit": "",
+        "before": 1976,
+        "after": 4
+      },
+      {
+        "label": "Row estimate error ratio",
+        "unit": "\u00d7",
+        "before": 223288,
+        "after": 1
+      }
+    ]
+  },
+  "terminal_job": {
+    "id": 260,
+    "attempts": 1,
+    "outcome": "improved_tested_inputs",
+    "claimed_at": "2026-11-15T23:00:10.662186Z",
+    "finished_at": "2026-11-15T23:00:28.551372Z",
+    "elapsed_ms": 17889.805804
+  },
+  "worker_result_observed_seconds": 39.34218608302763,
+  "catalog_after": {
+    "analyze_count": 2,
+    "statistics": [],
+    "indexes": [
+      {
+        "oid": "29511",
+        "keys": "1",
+        "live": true
+      },
+      {
+        "oid": "29516",
+        "keys": "1",
+        "live": true
+      },
+      {
+        "oid": "29518",
+        "keys": "2",
+        "live": true
+      }
+    ],
+    "protected_row": 0
+  },
+  "mixed_traffic": {
+    "candidate": {
+      "before": {
+        "calls": 88,
+        "client_mean_ms": 68.32509608714396
+      },
+      "during": {
+        "calls": 79,
+        "client_mean_ms": 40.020733123462456
+      },
+      "after": {
+        "calls": 36,
+        "client_mean_ms": 24.228731461334974
+      }
+    },
+    "healthy": {
+      "before": {
+        "calls": 97,
+        "client_mean_ms": 25.252813549553878
+      },
+      "during": {
+        "calls": 79,
+        "client_mean_ms": 21.53826479820676
+      },
+      "after": {
+        "calls": 36,
+        "client_mean_ms": 23.985194328512687
+      }
+    },
+    "write": {
+      "before": {
+        "calls": 97,
+        "client_mean_ms": 27.492567838035217
+      },
+      "during": {
+        "calls": 79,
+        "client_mean_ms": 26.097420849866836
+      },
+      "after": {
+        "calls": 36,
+        "client_mean_ms": 27.559633051472094
+      }
+    }
+  },
+  "traffic_errors": {},
+  "postgres_counters_before": {
+    "healthy": {
+      "database": 5,
+      "role": 29502,
+      "query": 1123150232151469325,
+      "calls": 1,
+      "time_ms": 0.068821,
+      "blocks": 2
+    },
+    "write": {
+      "database": 5,
+      "role": 29502,
+      "query": -9205633860274038894,
+      "calls": 1,
+      "time_ms": 0.05027,
+      "blocks": 4
+    },
+    "candidate": {
+      "database": 5,
+      "role": 29502,
+      "query": -2783225117393715210,
+      "calls": 1,
+      "time_ms": 25.14874,
+      "blocks": 1976
+    }
+  },
+  "postgres_counters_after": {
+    "healthy": {
+      "database": 5,
+      "role": 29502,
+      "query": 1123150232151469325,
+      "calls": 213,
+      "time_ms": 4.930346,
+      "blocks": 426
+    },
+    "write": {
+      "database": 5,
+      "role": 29502,
+      "query": -9205633860274038894,
+      "calls": 213,
+      "time_ms": 13.246084,
+      "blocks": 852
+    },
+    "candidate": {
+      "database": 5,
+      "role": 29502,
+      "query": -2783225117393715210,
+      "calls": 204,
+      "time_ms": 4601.332109,
+      "blocks": 310420
+    }
+  },
+  "healthy_control_queued": false,
+  "dashboard_disconnected": true,
+  "owned_database_objects_removed": true,
+  "public_index_fingerprint_unchanged": true,
+  "revision": "221e9d1"
+}

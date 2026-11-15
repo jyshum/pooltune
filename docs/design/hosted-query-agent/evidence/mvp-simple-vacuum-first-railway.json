@@ -1,0 +1,58 @@
+{
+  "operation": "vacuum",
+  "deployment": "c5c4a18b-2439-432a-8877-b3da11f92171",
+  "installation": "58db266113e3f83f",
+  "phase": "mixed_traffic",
+  "setup_path": "normal_start_form",
+  "manually_enrolled_query_ids": 0,
+  "initial_relation_bytes": 19611648,
+  "before_catalog": 0,
+  "fixture_padding_bytes": 104,
+  "monitor_absent_pre_start": true,
+  "setup_fields": [
+    "setup_token",
+    "ca",
+    "capability"
+  ],
+  "worker_config_query_id": 0,
+  "selected_capability": "vacuum",
+  "polls_seen": 1,
+  "job_outcomes": [],
+  "mixed_traffic": {
+    "candidate": {
+      "before": {
+        "calls": 0,
+        "client_mean_ms": null
+      },
+      "after": {
+        "calls": 0,
+        "client_mean_ms": null
+      }
+    },
+    "healthy": {
+      "before": {
+        "calls": 10,
+        "client_mean_ms": 46.66717899381183
+      },
+      "after": {
+        "calls": 0,
+        "client_mean_ms": null
+      }
+    },
+    "write": {
+      "before": {
+        "calls": 10,
+        "client_mean_ms": 44.95019560563378
+      },
+      "after": {
+        "calls": 0,
+        "client_mean_ms": null
+      }
+    }
+  },
+  "dashboard_disconnected": true,
+  "owned_database_objects_removed": true,
+  "public_index_fingerprint_unchanged": true,
+  "revision": "221e9d1",
+  "live_outcome": "ordinary_candidate_traffic_not_completed"
+}

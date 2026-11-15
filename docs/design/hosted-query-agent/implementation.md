@@ -522,3 +522,15 @@ Use the dedicated staging account, existing advanced enrollment and separate Roo
 ### Task 55: Qualify the five remaining repairs through the hosted worker
 
 Build and check statistics analysis and settings, table cleanup and function memory, and Cron scheduling in parallel. Reuse the six existing capability names, the native operation limits and the worker's existing queue. Exact project identity, operation permission, evidence and a durable intent must match. A completed change needs observed benefit and protected traffic. Cron also needs durable handoff to subsequent scheduler periods. Record locally tested tooling, joined hosted results and gaps separately.
+
+### Task 56: Verify the remaining checkboxes from simple setup
+
+Start with a new owner account and an exact disposable Rookery workload. Use the existing Railway form with the Rookery-only setup token, project certificate and one capability. Leave manual enrollment empty. Confirm the worker discovers the actual query, runs the selected operation, records the outcome and leaves the protected traffic alone. A separate test driver may verify the discovered identity against PostgreSQL. It provides no query ID to the setup form or deployed worker.
+
+### Task 57: Run job scheduling through the owner flow
+
+Use an exact owned target job, native scheduler permissions and an approved test window. Collect original and future Rookery scheduler cycles through the private recorder. The temporarily authorized read-only scheduler check can supply only required runtime settings and launcher identity to the exact fixture role. Continue to fence writes using native authorization and exact job identity. Verify the schedule, protected traffic and follow-up jobs in Railway before removing the fixture.
+
+### Task 58: Connect the two remaining repair settings
+
+Use the existing statistics and cleanup checkboxes for individual column statistics targets and cleanup-trigger settings. Require the exact allowed relation, evidence of the cause, recorded intent and a verified before-and-after result. Preserve the prior setting when evidence fails or a repair regresses. Cleanup must observe real autovacuum activity after an action. Keep the owner flow and raw evidence separate from the narrower component tests.
