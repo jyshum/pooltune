@@ -156,7 +156,9 @@ func diagnoseProjectClaim(ctx context.Context, state, target *pgx.Conn, project 
 					start = at
 				}
 			}
-			if plan := logs.read(ctx, project.Ref(), trafficGrant.login, claim.Query, start, now); plan != nil {
+			plan, providerStatus := logs.read(ctx, project.Ref(), trafficGrant.login, claim.Query, start, now)
+			result.TrafficPlanStatus = providerStatus
+			if plan != nil {
 				grant = lookupGrant{tableOID: trafficGrant.tableOID, column: trafficGrant.column}
 				evidence = LookupEvidence{TrafficPlan: plan, ObjectiveMS: windows.ObjectiveMS,
 					WindowMeansMS: windows.WindowMeansMS, WindowCalls: windows.WindowCalls, SharedBlockAccesses: windows.SharedBlockAccesses}

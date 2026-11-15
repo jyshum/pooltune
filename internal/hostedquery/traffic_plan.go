@@ -67,9 +67,9 @@ type trafficLogRow struct {
 	Duration  string `json:"execution_ms"`
 }
 
-func (r *TrafficPlanReader) read(ctx context.Context, ref, login string, query int64, start, end time.Time) *TrafficPlan {
+func (r *TrafficPlanReader) read(ctx context.Context, ref, login string, query int64, start, end time.Time) (*TrafficPlan, string) {
 	if !directLoginName.MatchString(login) || query == 0 || !start.Before(end) || end.Sub(start) > trafficPlanAge {
-		return nil
+		return nil, "invalid_request"
 	}
 	args := url.Values{
 		"sql":                 {trafficPlanQuery(ref, login, query, start, end)},
@@ -78,21 +78,21 @@ func (r *TrafficPlanReader) read(ctx context.Context, ref, login string, query i
 	}
 	request, err := http.NewRequestWithContext(ctx, http.MethodGet, r.endpoint+"/v1/projects/"+ref+"/analytics/endpoints/logs?"+args.Encode(), nil)
 	if err != nil {
-		return nil
+		return nil, "invalid_request"
 	}
 	request.Header.Set("Authorization", "Bearer "+r.token)
 	response, err := r.client.Do(request)
 	if err != nil {
-		return nil
+		return nil, "transport_error"
 	}
 	defer response.Body.Close()
 	if response.StatusCode != http.StatusOK {
-		return nil
+		return nil, fmt.Sprintf("http_%d", response.StatusCode)
 	}
 	const responseLimit = 8192
 	body, err := io.ReadAll(io.LimitReader(response.Body, responseLimit+1))
 	if err != nil || len(body) > responseLimit || !json.Valid(body) {
-		return nil
+		return nil, "invalid_response"
 	}
 	var data struct {
 		Result []trafficLogRow `json:"result"`
@@ -100,15 +100,21 @@ func (r *TrafficPlanReader) read(ctx context.Context, ref, login string, query i
 	}
 	decoder := json.NewDecoder(bytes.NewReader(body))
 	decoder.DisallowUnknownFields()
-	if decoder.Decode(&data) != nil || len(data.Result) > 4 || len(data.Error) > 0 && string(data.Error) != "null" {
-		return nil
+	if decoder.Decode(&data) != nil || len(data.Result) > 4 {
+		return nil, "invalid_response"
+	}
+	if len(data.Error) > 0 && string(data.Error) != "null" {
+		return nil, "provider_error"
 	}
 	for _, row := range data.Result {
 		if sample := row.sample(start, end); sample != nil {
-			return sample
+			return sample, "available"
 		}
 	}
-	return nil
+	if len(data.Result) == 0 {
+		return nil, "no_plans"
+	}
+	return nil, "invalid_plan"
 }
 
 func (row trafficLogRow) sample(start, end time.Time) *TrafficPlan {

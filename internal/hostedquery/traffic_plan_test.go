@@ -51,7 +51,7 @@ func TestReadTrafficPlanRejectsUnusableSamples(t *testing.T) {
 			}))
 			defer server.Close()
 			reader := TrafficPlanReader{client: server.Client(), endpoint: server.URL, token: "test-token"}
-			got := reader.read(context.Background(), "abcdefghijklmnopqrst", "fixture_reader", 17, now.Add(-time.Minute), now)
+			got, _ := reader.read(context.Background(), "abcdefghijklmnopqrst", "fixture_reader", 17, now.Add(-time.Minute), now)
 			if (got != nil) != item.valid {
 				t.Fatalf("got %#v, want usable=%v", got, item.valid)
 			}

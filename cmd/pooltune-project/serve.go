@@ -100,6 +100,9 @@ func consumeProject(ctx context.Context, queue *pgx.Conn, target *pgx.ConnConfig
 // operational fields, even if the model includes sensitive text in a diagnosis.
 func savedDiagnosisEvent(result *hostedquery.DispatchResult) map[string]any {
 	event := map[string]any{"job_id": result.JobID, "attempt": result.Attempt, "outcome": result.Outcome, "elapsed_ms": result.ElapsedMS}
+	if result.TrafficPlanStatus != "" {
+		event["plan_source_status"] = result.TrafficPlanStatus
+	}
 	if result.DiagnosticReason == "traffic_plan_unavailable" {
 		event["reason"] = result.DiagnosticReason
 	}

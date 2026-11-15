@@ -26,29 +26,30 @@ type investigationClaim struct {
 }
 
 type DispatchResult struct {
-	TrafficPlan      *TrafficPlan             `json:"traffic_plan,omitempty"`
-	LookupPlan       *LookupMeasuredPlan      `json:"lookup_plan,omitempty"`
-	LookupDiagnosis  *LookupDiagnosis         `json:"lookup_diagnosis,omitempty"`
-	JobID            int64                    `json:"job_id"`
-	Attempt          int                      `json:"attempt"`
-	Outcome          string                   `json:"outcome"`
-	ThreadID         string                   `json:"thread_id,omitempty"`
-	Estimate         *EstimatedLookupEvidence `json:"estimated_evidence,omitempty"`
-	ObservedLatency  *ObservedLookupLatency   `json:"observed_latency,omitempty"`
-	DiagnosticReason string                   `json:"diagnostic_reason,omitempty"`
-	Evidence         *IndexEvidence           `json:"evidence,omitempty"`
-	Proposal         *IndexProposal           `json:"proposal,omitempty"`
-	ElapsedMS        float64                  `json:"elapsed_ms"`
-	TargetPlanMS     float64                  `json:"target_plan_ms,omitempty"`
-	RecoveredIndex   string                   `json:"recovered_index,omitempty"`
-	Cron             *CronReport              `json:"cron,omitempty"`
-	Memory           *MemoryReport            `json:"memory,omitempty"`
-	Vacuum           *VacuumReport            `json:"vacuum,omitempty"`
-	Statistics       *StatisticsReport        `json:"statistics,omitempty"`
-	Analyze          *AnalyzeReport           `json:"analyze,omitempty"`
-	Repair           *IndexTrialReport        `json:"repair,omitempty"`
-	continuationAt   *time.Time
-	GraphMS          float64 `json:"graph_ms,omitempty"`
+	TrafficPlanStatus string                   `json:"traffic_plan_status,omitempty"`
+	TrafficPlan       *TrafficPlan             `json:"traffic_plan,omitempty"`
+	LookupPlan        *LookupMeasuredPlan      `json:"lookup_plan,omitempty"`
+	LookupDiagnosis   *LookupDiagnosis         `json:"lookup_diagnosis,omitempty"`
+	JobID             int64                    `json:"job_id"`
+	Attempt           int                      `json:"attempt"`
+	Outcome           string                   `json:"outcome"`
+	ThreadID          string                   `json:"thread_id,omitempty"`
+	Estimate          *EstimatedLookupEvidence `json:"estimated_evidence,omitempty"`
+	ObservedLatency   *ObservedLookupLatency   `json:"observed_latency,omitempty"`
+	DiagnosticReason  string                   `json:"diagnostic_reason,omitempty"`
+	Evidence          *IndexEvidence           `json:"evidence,omitempty"`
+	Proposal          *IndexProposal           `json:"proposal,omitempty"`
+	ElapsedMS         float64                  `json:"elapsed_ms"`
+	TargetPlanMS      float64                  `json:"target_plan_ms,omitempty"`
+	RecoveredIndex    string                   `json:"recovered_index,omitempty"`
+	Cron              *CronReport              `json:"cron,omitempty"`
+	Memory            *MemoryReport            `json:"memory,omitempty"`
+	Vacuum            *VacuumReport            `json:"vacuum,omitempty"`
+	Statistics        *StatisticsReport        `json:"statistics,omitempty"`
+	Analyze           *AnalyzeReport           `json:"analyze,omitempty"`
+	Repair            *IndexTrialReport        `json:"repair,omitempty"`
+	continuationAt    *time.Time
+	GraphMS           float64 `json:"graph_ms,omitempty"`
 }
 
 // InvestigationEvidence supplies fresh evidence for this exact enrolled job.
