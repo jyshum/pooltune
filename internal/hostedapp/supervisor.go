@@ -184,10 +184,11 @@ func (a *App) projectInvestigator(id string) hostedquery.EnrolledLookupInvestiga
 	return func(ctx context.Context, runID string, table uint32, column int16, at time.Time,
 		evidence hostedquery.LookupEvidence, admit func(context.Context) error) (*hostedquery.LookupDiagnosis, error) {
 		return a.investigate(ctx, runID, table, column, at, evidence, func(check context.Context) error {
-			if err := admit(check); err != nil {
+			if err := a.projects.admitModel(check, id); err != nil {
 				return err
 			}
-			return a.projects.admitModel(check, id)
+			// Keep the shared epoch, job and evidence check closest to model admission.
+			return admit(check)
 		})
 	}
 }

@@ -101,16 +101,21 @@ func run(ctx context.Context) error {
 	}()
 	server := &http.Server{Addr: address, Handler: app, ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout: 18 * time.Second, WriteTimeout: 22 * time.Second, IdleTimeout: time.Minute}
+	drained := make(chan struct{})
 	go func() {
+		defer close(drained)
 		<-ctx.Done()
 		shutdown, cancel := context.WithTimeout(context.Background(), 8*time.Second)
 		defer cancel()
-		_ = server.Shutdown(shutdown)
+		if server.Shutdown(shutdown) != nil {
+			_ = server.Close()
+		}
 	}()
 	slog.Info("dashboard listening", "origin", origin, "diagnosis", investigate != nil)
 	err = server.ListenAndServe()
 	stop()
 	<-workers
+	<-drained
 	if errors.Is(err, http.ErrServerClosed) {
 		return nil
 	}
