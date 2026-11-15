@@ -78,7 +78,11 @@ func consumeProject(ctx context.Context, queue *pgx.Conn, target *pgx.ConnConfig
 			}
 		}
 		if result != nil {
-			if err := emit("diagnosis_saved", savedDiagnosisEvent(result)); err != nil {
+			event := "diagnosis_saved"
+			if result.Outcome == "awaiting_evidence" {
+				event = "diagnosis_deferred"
+			}
+			if err := emit(event, savedDiagnosisEvent(result)); err != nil {
 				return err
 			}
 		}
@@ -96,8 +100,12 @@ func consumeProject(ctx context.Context, queue *pgx.Conn, target *pgx.ConnConfig
 // operational fields, even if the model includes sensitive text in a diagnosis.
 func savedDiagnosisEvent(result *hostedquery.DispatchResult) map[string]any {
 	event := map[string]any{"job_id": result.JobID, "attempt": result.Attempt, "outcome": result.Outcome, "elapsed_ms": result.ElapsedMS}
+	if result.DiagnosticReason == "traffic_plan_unavailable" {
+		event["reason"] = result.DiagnosticReason
+	}
 	if result.TrafficPlan != nil {
 		event["plan_source"] = "ordinary_traffic"
+		event["plan_captured_at"] = result.TrafficPlan.CapturedAt
 		event["plan_node"] = result.TrafficPlan.Node
 		if result.TrafficPlan.Child != "" {
 			event["plan_child_node"] = result.TrafficPlan.Child

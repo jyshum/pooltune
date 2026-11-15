@@ -78,6 +78,27 @@ func TestTrafficPlanGrantLocal(t *testing.T) {
 	if got, err := readProjectTrafficGrant(ctx, monitor, project, wrong, 1); got != nil || err != nil {
 		t.Fatalf("wrong database admitted: %v %v", got, err)
 	}
+	missing := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		fmt.Fprint(w, `{"result":[]}`)
+	}))
+	defer missing.Close()
+	missingLogs := &TrafficPlanReader{client: missing.Client(), endpoint: missing.URL, token: "test-token"}
+	unexpectedModel := func(context.Context, string, uint32, int16, time.Time, LookupEvidence, func(context.Context) error) (*LookupDiagnosis, error) {
+		t.Fatal("called model without plan evidence")
+		return nil, nil
+	}
+	for _, parent := range []int64{0, 77} {
+		attempt := claim
+		attempt.ParentID = parent
+		result := DispatchResult{Outcome: "insufficient_evidence"}
+		err := diagnoseProjectClaim(ctx, nil, monitor, project, 1, attempt,
+			&ObservedLookupLatency{ObjectiveMS: 1, Through: time.Now()}, unexpectedModel, missingLogs, &result)
+		if err != nil || (result.continuationAt != nil) != (parent == 0) ||
+			(result.Outcome == "awaiting_evidence") != (parent == 0) {
+			t.Fatalf("expected a single delayed plan read: parent=%d outcome=%s deferred=%v error=%v", parent, result.Outcome, result.continuationAt != nil, err)
+		}
+	}
+
 	var requested atomic.Bool
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
 		_, err := admin.Exec(ctx, `DELETE FROM `+owner+`.traffic_plan_grants`)

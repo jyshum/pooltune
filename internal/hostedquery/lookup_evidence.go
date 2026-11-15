@@ -124,7 +124,11 @@ func diagnoseLookup(ctx context.Context, state *pgx.Conn, project supabaseprojec
 		}
 	}
 	result.ElapsedMS = elapsedMS(started)
-	if err := finishInvestigation(ctx, state, *claim, result); err != nil {
+	if result.continuationAt != nil {
+		if _, err := continueInvestigation(ctx, state, *claim, result, *result.continuationAt); err != nil {
+			return nil, err
+		}
+	} else if err := finishInvestigation(ctx, state, *claim, result); err != nil {
 		return nil, err
 	}
 	return &result, nil
@@ -165,6 +169,12 @@ func diagnoseProjectClaim(ctx context.Context, state, target *pgx.Conn, project 
 		var err error
 		grant, evidence, err = readProjectLookup(ctx, target, project, claim, windows)
 		if errors.Is(err, errLookupScope) {
+			// Supabase's log index can lag normal traffic. Give a plan-only
+			// job one delayed read without holding the worker or calling Sonnet.
+			if trafficGrant != nil && claim.ParentID == 0 {
+				next := time.Now().Add(20 * time.Second)
+				result.Outcome, result.continuationAt = "awaiting_evidence", &next
+			}
 			return nil
 		}
 		if err != nil {
