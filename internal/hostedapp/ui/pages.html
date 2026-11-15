@@ -1,0 +1,281 @@
+{{define "header"}}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{if .Title}}{{.Title}} · {{end}}Pooltune</title>
+  <link rel="stylesheet" href="/assets/app.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="topbar">
+    <div class="shell topbar-inner">
+      <a class="brand" href="{{if .User}}/app{{else}}/{{end}}" aria-label="Pooltune {{if .User}}workspace{{else}}home{{end}}">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span>pooltune</span>
+      </a>
+      {{if .User}}
+      <nav class="topnav" aria-label="Account">
+        <a href="/app">Projects</a>
+        <span class="account">{{.User}}</span>
+        <form action="/signout" method="post"><button class="button button-quiet" type="submit">Sign out</button></form>
+      </nav>
+      {{else}}
+      <nav class="topnav" aria-label="Account"><a href="/signin">Sign in</a></nav>
+      {{end}}
+    </div>
+  </header>
+{{end}}
+
+{{define "footer"}}
+</body>
+</html>
+{{end}}
+
+{{define "error"}}{{if .Error}}<p class="error" role="alert">{{.Error}}</p>{{end}}{{end}}
+
+{{define "status"}}<span class="status{{if eq . "Monitoring"}} status-active{{else if eq . "Pending setup"}} status-pending{{end}}"><span aria-hidden="true"></span>{{.}}</span>{{end}}
+
+{{define "home"}}{{template "header" .}}
+<main class="shell welcome" id="main">
+  <div class="welcome-panel">
+    <p class="eyebrow">Supabase query monitoring</p>
+    <h1>Understand why your <em>queries slow down.</em></h1>
+    <p class="lead">Monitor selected queries from ordinary traffic, review their performance, and see read-only diagnoses when they slow down.</p>
+    <div class="actions">
+      {{if .User}}<a class="button button-primary" href="/app">Open workspace</a>
+      {{else}}<a class="button button-primary" href="/signup">Create account</a><a class="button button-secondary" href="/signin">Sign in</a>{{end}}
+    </div>
+  </div>
+</main>
+{{template "footer" .}}{{end}}
+
+{{define "signup"}}{{template "header" .}}
+<main class="shell auth-page" id="main">
+  <section class="form-panel" aria-labelledby="form-title">
+    <div class="section-intro">
+      <h1 id="form-title">Create an account</h1>
+      {{if .Invite}}<p>Enter your preview invite code to get started.</p>{{end}}
+    </div>
+    {{template "error" .}}
+    <form class="fields" action="/signup" method="post">
+      <div class="field"><label for="email">Email</label><input type="email" id="email" name="email" autocomplete="email" maxlength="254" required></div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" autocomplete="new-password" minlength="15" maxlength="1024" aria-describedby="password-help" required>
+        <p class="help" id="password-help">Use at least 15 characters.</p>
+      </div>
+      {{if .Invite}}<div class="field"><label for="invite-code">Invite code</label><input type="password" id="invite-code" name="invite_code" autocomplete="off" required></div>{{end}}
+      <button class="button button-primary" type="submit">Create account</button>
+    </form>
+    <p class="form-tail">Already have an account? <a href="/signin">Sign in</a></p>
+  </section>
+</main>
+{{template "footer" .}}{{end}}
+
+{{define "signin"}}{{template "header" .}}
+<main class="shell auth-page" id="main">
+  <section class="form-panel" aria-labelledby="form-title">
+    <div class="section-intro"><h1 id="form-title">Sign in</h1><p>Open your Pooltune workspace.</p></div>
+    {{template "error" .}}
+    <form class="fields" action="/signin" method="post">
+      <div class="field"><label for="email">Email</label><input type="email" id="email" name="email" autocomplete="username" maxlength="254" required></div>
+      <div class="field"><label for="password">Password</label><input type="password" id="password" name="password" autocomplete="current-password" required></div>
+      <button class="button button-primary" type="submit">Sign in</button>
+    </form>
+    <p class="form-tail">New to Pooltune? <a href="/signup">Create an account</a></p>
+  </section>
+</main>
+{{template "footer" .}}{{end}}
+
+{{define "dashboard"}}{{template "header" .}}
+<main class="shell workspace" id="main">
+  <div class="page-heading">
+    <div><h1>Projects</h1><p class="lead">Manage your Supabase connections and review query activity.</p></div>
+    <a class="button button-primary" href="/app/projects/new">Connect Supabase</a>
+  </div>
+  {{template "error" .}}
+  {{if .Projects}}
+  <ul class="project-grid" aria-label="Your projects">
+    {{range .Projects}}
+    <li class="project-card">
+      <a class="project-link" href="/app/projects/{{.ID}}">
+        <div class="project-card-heading"><h2>{{.Name}}</h2><span class="project-arrow" aria-hidden="true">→</span></div>
+        <p class="project-ref"><code>{{.Ref}}</code></p>
+        <div class="project-card-footer">{{template "status" .Status}}{{if .LastPoll}}<span class="last-poll">Last poll {{.LastPoll}}</span>{{end}}</div>
+      </a>
+    </li>
+    {{end}}
+  </ul>
+  {{else}}
+  <div class="panel empty-dashboard">
+    <div class="empty-mark" aria-hidden="true"><span class="brand-mark"><i></i><i></i><i></i></span></div>
+    <h2>No projects yet</h2>
+    <p>Connect a Supabase project to choose the queries you want to monitor.</p>
+  </div>
+  {{end}}
+</main>
+{{template "footer" .}}{{end}}
+
+{{define "new-project"}}{{template "header" .}}
+<main class="shell workspace narrow" id="main">
+  <a class="back-link" href="/app">← <span>Projects</span></a>
+  <div class="page-heading"><div><h1>Connect Supabase</h1><p class="lead">Add a project to get its database setup instructions.</p></div></div>
+  <section class="form-panel" aria-label="Project details">
+    {{template "error" .}}
+    <form class="fields" action="/app/projects/new" method="post">
+      <div class="field"><label for="name">Project name</label><input type="text" id="name" name="name" value="{{.Project.Name}}" maxlength="100" required></div>
+      <div class="field">
+        <label for="ref">Supabase project reference</label>
+        <input type="text" id="ref" name="ref" value="{{.Project.Ref}}" autocomplete="off" autocapitalize="off" spellcheck="false" pattern="[a-z0-9]{20}" minlength="20" maxlength="20" aria-describedby="ref-help" required>
+        <p class="help" id="ref-help">Copy the 20-character reference from Project Settings in Supabase.</p>
+      </div>
+      <div class="actions"><button class="button button-primary" type="submit">Continue to setup</button><a class="button button-secondary" href="/app">Cancel</a></div>
+    </form>
+  </section>
+</main>
+{{template "footer" .}}{{end}}
+
+{{define "project"}}{{template "header" .}}
+<main class="shell workspace" id="main">
+  <a class="back-link" href="/app">← <span>Projects</span></a>
+  {{$project := .Project}}
+  <div class="page-heading">
+    <div>
+      <h1>{{$project.Name}}</h1>
+      <div class="project-meta">{{template "status" $project.Status}}<code>{{$project.Ref}}</code>{{if $project.LastPoll}}<span>Last poll {{$project.LastPoll}}</span>{{end}}</div>
+    </div>
+    {{if eq $project.Status "Monitoring"}}
+    <div class="actions"><a class="button button-secondary" href="/app/projects/{{$project.ID}}/activity">Download history</a><a class="button button-secondary" href="/app/projects/{{$project.ID}}">Refresh activity</a></div>
+    {{end}}
+  </div>
+  {{template "error" .}}
+  {{if ne $project.Status "Monitoring"}}
+  {{template "project-setup" $project}}
+  {{end}}
+  {{template "project-activity" $project}}
+  {{if eq $project.Status "Monitoring"}}
+  <section class="panel disconnect" aria-labelledby="connection-title">
+    <div><h2 id="connection-title">Connection</h2><p>Disconnecting stops monitoring and keeps your saved activity.</p></div>
+    <form action="/app/projects/{{$project.ID}}/disconnect" method="post"><button class="button button-secondary" type="submit">Disconnect</button></form>
+  </section>
+  {{end}}
+</main>
+{{if ne $project.Status "Monitoring"}}<script src="/assets/app.js" defer></script>{{end}}
+{{template "footer" .}}{{end}}
+
+{{define "project-setup"}}
+<section class="setup-grid" aria-labelledby="setup-title">
+  <div class="section-intro setup-heading"><h2 id="setup-title">Database setup</h2>
+    {{if eq .Status "Disconnected"}}<p>Reconnect with your existing monitor login and certificate. Use the owner steps if you removed the installation.</p>
+    {{else}}<p>Have the database owner complete the steps below to grant read-only monitoring for the queries you choose.</p>{{end}}
+  </div>
+  <div class="panel setup-guide">
+    <ol class="steps">
+      {{if .SetupSQL}}
+      <li class="step">
+        <h3>Install the monitor</h3>
+        <p>Run this SQL in the project’s <code>postgres</code> database as the database owner. If the monitor is already installed, continue to the next step.</p>
+        <div class="snippet">
+          <div class="snippet-heading"><label for="setup-sql">Installation SQL</label><button class="button button-quiet" type="button" data-copy="setup-sql" hidden>Copy SQL</button></div>
+          <textarea id="setup-sql" rows="7" readonly spellcheck="false">{{.SetupSQL}}</textarea>
+        </div>
+      </li>
+      {{end}}
+      <li class="step">
+        <h3>Enable the dedicated login</h3>
+        <p>While connected as the database owner in <code>psql</code>, run the password command and set a fresh password at the prompt. Then enable the monitor login.</p>
+        <div class="snippet">
+          <div class="snippet-heading"><label for="login-commands">Owner commands</label><button class="button button-quiet" type="button" data-copy="login-commands" hidden>Copy commands</button></div>
+          <textarea id="login-commands" rows="2" readonly spellcheck="false">\password {{.Role}}
+ALTER ROLE {{.Role}} LOGIN;</textarea>
+        </div>
+      </li>
+      {{if .QuerySQL}}
+      <li class="step">
+        <h3>Choose queries to monitor</h3>
+        <p>Use the owner’s SQL editor to find the application role and query ID. Complete the enrollment with the queries and latency objectives you choose.</p>
+        <div class="snippet">
+          <div class="snippet-heading"><label for="query-sql">Query enrollment SQL</label><button class="button button-quiet" type="button" data-copy="query-sql" hidden>Copy SQL</button></div>
+          <textarea id="query-sql" rows="7" readonly spellcheck="false">{{.QuerySQL}}</textarea>
+        </div>
+      </li>
+      {{end}}
+    </ol>
+    <p class="copy-status" id="copy-status" role="status"></p>
+  </div>
+  <section class="form-panel connect-panel" aria-labelledby="credentials-title">
+    <div class="section-intro"><h2 id="credentials-title">Verify connection</h2></div>
+    <dl class="connection-info">
+      <div><dt>Host</dt><dd><code>db.{{.Ref}}.supabase.co:5432</code></dd></div>
+      <div><dt>Database</dt><dd><code>postgres</code></dd></div>
+      <div><dt>Monitor role</dt><dd><code>{{.Role}}</code></dd></div>
+    </dl>
+    <form class="fields" action="/app/projects/{{.ID}}/connect" method="post">
+      <div class="field"><label for="monitor-password">Monitor password</label><input type="password" id="monitor-password" name="password" autocomplete="off" required></div>
+      <div class="field">
+        <label for="ca">Supabase root certificate (PEM)</label>
+        <textarea id="ca" name="ca" rows="4" spellcheck="false" autocomplete="off" autocapitalize="off" aria-describedby="ca-help" placeholder="-----BEGIN CERTIFICATE-----" required></textarea>
+        <p class="help" id="ca-help">Paste the certificate from your project’s database connection settings.</p>
+      </div>
+      <details class="optional">
+        <summary>Ordinary-traffic plan access <span>(optional)</span></summary>
+        <div class="field">
+          <label for="logs-token">Supabase Logs Read token</label>
+          <input type="password" id="logs-token" name="logs_token" autocomplete="off" aria-describedby="logs-help">
+          <p class="help" id="logs-help">Use a token scoped to this project with Logs Read permissions. The database owner also needs to grant plan access for each enrolled query.</p>
+        </div>
+      </details>
+      <button class="button button-primary" type="submit">Start read-only monitoring</button>
+    </form>
+  </section>
+</section>
+{{end}}
+
+{{define "project-activity"}}
+<div class="activity">
+  <section class="panel" aria-labelledby="queries-title">
+    <div class="panel-heading"><h2 id="queries-title">Query windows</h2></div>
+    {{if .Queries}}
+    <div class="table-scroll" role="region" tabindex="0" aria-labelledby="queries-title">
+      <table class="query-table">
+        <thead><tr><th scope="col">Query ID</th><th scope="col">Calls</th><th scope="col">Mean latency</th><th scope="col">Objective</th><th scope="col">Block accesses</th><th scope="col">Decision</th><th scope="col">Observed</th></tr></thead>
+        <tbody>{{range .Queries}}<tr>
+          <th scope="row"><code>{{.ID}}</code></th><td>{{.Calls}}</td><td>{{.Mean}}</td><td>{{.Target}}</td><td>{{.Blocks}}</td><td>{{.Decision}}</td><td>{{.At}}</td>
+        </tr>{{end}}</tbody>
+      </table>
+    </div>
+    {{else}}<p class="panel-empty">No query windows recorded yet.</p>{{end}}
+  </section>
+  <section class="panel" aria-labelledby="runs-title">
+    <div class="panel-heading"><h2 id="runs-title">Investigations</h2></div>
+    {{if .Runs}}
+    <ul class="records">
+      {{range .Runs}}<li class="record">
+        <div class="record-heading"><h3>Run {{.ID}}</h3><p class="outcome">{{.Outcome}}</p></div>
+        <dl class="record-facts">
+          {{if .Query}}<div><dt>Query ID</dt><dd><code>{{.Query}}</code></dd></div>{{end}}
+          {{if .Started}}<div><dt>Started</dt><dd>{{.Started}}</dd></div>{{end}}
+          {{if .Finished}}<div><dt>Finished</dt><dd>{{.Finished}}</dd></div>{{end}}
+          {{if .Queue}}<div><dt>Queue time</dt><dd>{{.Queue}}</dd></div>{{end}}
+          {{if .Model}}<div><dt>Model time</dt><dd>{{.Model}}</dd></div>{{end}}
+          {{if .Plan}}<div><dt>Plan</dt><dd>{{.Plan}}</dd></div>{{end}}
+        </dl>
+        {{if .Reason}}<p class="record-reason">{{.Reason}}</p>{{end}}
+      </li>{{end}}
+    </ul>
+    {{else}}<p class="panel-empty">No investigations recorded yet.</p>{{end}}
+  </section>
+  <section class="panel" aria-labelledby="polls-title">
+    <div class="panel-heading"><h2 id="polls-title">Monitor activity</h2></div>
+    {{if .Polls}}
+    <div class="table-scroll" role="region" tabindex="0" aria-labelledby="polls-title">
+      <table>
+        <thead><tr><th scope="col">Checked at</th><th scope="col">Status</th></tr></thead>
+        <tbody>{{range .Polls}}<tr><th scope="row">{{.At}}</th><td>{{.Status}}</td></tr>{{end}}</tbody>
+      </table>
+    </div>
+    {{else}}<p class="panel-empty">No monitor checks recorded yet.</p>{{end}}
+  </section>
+</div>
+{{end}}

@@ -4,7 +4,7 @@ COPY go.mod go.sum ./
 RUN go mod download
 COPY cmd ./cmd
 COPY internal ./internal
-RUN CGO_ENABLED=0 go build -trimpath -o /out/ ./cmd/pooltune-worker ./cmd/pooltune-project ./cmd/pooltune-consumer ./cmd/pooltune-query-lab
+RUN CGO_ENABLED=0 go build -trimpath -o /out/ ./cmd/pooltune-worker ./cmd/pooltune-project ./cmd/pooltune-consumer ./cmd/pooltune-query-lab ./cmd/pooltune-web
 
 FROM node:26.3.0-bookworm-slim
 WORKDIR /app

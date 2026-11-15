@@ -38,6 +38,9 @@ type LookupDiagnosis struct {
 type EnrolledLookupInvestigator func(ctx context.Context, runID string, tableOID uint32, column int16, at time.Time,
 	evidence LookupEvidence, admit func(context.Context) error) (*LookupDiagnosis, error)
 
+// ErrProjectModelBudget indicates the project did not authorize a new provider request.
+var ErrProjectModelBudget = errors.New("project model call budget reached")
+
 var errLookupScope = errors.New("lookup evidence grant or queued observations unavailable")
 
 type lookupGrant struct {
@@ -245,6 +248,10 @@ func diagnoseProjectClaim(ctx context.Context, state, target *pgx.Conn, project 
 
 	runID := fmt.Sprintf("project-lookup-%d-%d", claim.ID, claim.Attempt)
 	diagnosis, err := investigate(ctx, runID, grant.tableOID, grant.column, time.Now().UTC(), evidence, recheck)
+	if errors.Is(err, ErrProjectModelBudget) {
+		result.Outcome, result.DiagnosticReason = "diagnosis_unavailable", "daily_model_limit"
+		return nil
+	}
 	if errors.Is(err, errLookupScope) {
 		return nil
 	}

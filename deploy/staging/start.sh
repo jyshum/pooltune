@@ -12,6 +12,10 @@ case "${POOLTUNE_STAGING_ROLE:?set POOLTUNE_STAGING_ROLE}" in
 esac
 
 case "${POOLTUNE_STAGING_ROLE:?set POOLTUNE_STAGING_ROLE}" in
+    web-preview)
+        exec pooltune-web -interval "${POOLTUNE_STAGING_INTERVAL:-1m}" \
+            -window "${POOLTUNE_STAGING_WINDOW:-5m}" -queue-interval "${POOLTUNE_STAGING_QUEUE_INTERVAL:-2s}"
+        ;;
     project-monitor)
         case "${POOLTUNE_PROJECT_MODE:-standby}" in
             standby)

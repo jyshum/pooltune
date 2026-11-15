@@ -90,17 +90,33 @@ func (w *ProjectMonitor) connect(ctx context.Context, reactivate bool) (Enrollme
 	if err != nil {
 		return Enrollment{}, err
 	}
-	err = w.state.QueryRow(ctx, `
+	w.epoch, err = ActivateProjectMonitor(ctx, w.state, w.project, reactivate)
+	return enrollment, err
+}
+
+// VerifyEnrollment checks the dedicated role and its current enrollment without registering a worker.
+func (w *ProjectMonitor) VerifyEnrollment(ctx context.Context) (Enrollment, error) {
+	enrollment, _, err := w.read(ctx)
+	return enrollment, err
+}
+
+// ActivateProjectMonitor registers a verified installation. An application can
+// pass its account registration transaction so both changes become visible together.
+func ActivateProjectMonitor(ctx context.Context, state interface {
+	QueryRow(context.Context, string, ...any) pgx.Row
+}, project supabaseproject.Project, reactivate bool) (int64, error) {
+	var epoch int64
+	err := state.QueryRow(ctx, `
 		INSERT INTO pooltune_worker.projects(project_id, monitor_epoch) VALUES ($1, 1)
 		ON CONFLICT (project_id) DO UPDATE
 		SET monitor_epoch = CASE WHEN projects.monitor_epoch < 0 THEN 1 - projects.monitor_epoch ELSE projects.monitor_epoch END
 		WHERE projects.monitor_epoch IS NOT NULL AND ($2::boolean OR projects.monitor_epoch>0)
 		RETURNING monitor_epoch
-	`, w.project.ID(), reactivate).Scan(&w.epoch)
+	`, project.ID(), reactivate).Scan(&epoch)
 	if errors.Is(err, pgx.ErrNoRows) {
-		return Enrollment{}, ErrProjectDisconnected
+		return 0, ErrProjectDisconnected
 	}
-	return enrollment, err
+	return epoch, err
 }
 
 // ProjectMonitorEpoch is read before connecting to Supabase. The runtime keeps
@@ -149,25 +165,30 @@ func (w *ProjectMonitor) Run(ctx context.Context, epoch int64, onPoll func(PollR
 
 func DisconnectProjectMonitor(ctx context.Context, state *pgx.Conn, project supabaseproject.Project) error {
 	return pgx.BeginFunc(ctx, state, func(tx pgx.Tx) error {
-		tag, err := tx.Exec(ctx, `
+		return DisconnectProjectMonitorTx(ctx, tx, project)
+	})
+}
+
+// DisconnectProjectMonitorTx retires jobs in the caller's account transaction.
+func DisconnectProjectMonitorTx(ctx context.Context, tx pgx.Tx, project supabaseproject.Project) error {
+	tag, err := tx.Exec(ctx, `
 			INSERT INTO pooltune_worker.projects(project_id, monitor_epoch) VALUES ($1, -1)
 			ON CONFLICT (project_id) DO UPDATE
 			SET monitor_epoch = -abs(projects.monitor_epoch), last_poll = NULL, evidence = '{}'
 			WHERE projects.monitor_epoch IS NOT NULL
 		`, project.ID())
-		if err != nil {
-			return err
-		}
-		if tag.RowsAffected() != 1 {
-			return ErrProjectDisconnected
-		}
-		_, err = tx.Exec(ctx, `
+	if err != nil {
+		return err
+	}
+	if tag.RowsAffected() != 1 {
+		return ErrProjectDisconnected
+	}
+	_, err = tx.Exec(ctx, `
 			UPDATE pooltune_worker.investigations
 			SET finished_at=clock_timestamp(), lease_until=NULL, result='{"outcome":"project_disconnected"}'
 			WHERE project_id=$1 AND finished_at IS NULL
 		`, project.ID())
-		return err
-	})
+	return err
 }
 
 func retireChangedEnrollments(ctx context.Context, tx pgx.Tx, enrollment Enrollment) error {
