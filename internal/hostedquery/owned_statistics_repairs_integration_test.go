@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"strings"
 	"testing"
 	"time"
 
@@ -136,6 +137,46 @@ func TestOwnedStatisticsRepairRestoresColumnTargetWhenGainIsInconclusive(t *test
 	}
 	assertOwnedStatisticsGuardPreserved(t, ctx, admin)
 }
+
+func TestOwnedStatisticsRepairKeepsTheActionSessionActiveDuringPrewriteSampling(t *testing.T) {
+	ctx, admin, writer, request := setupOwnedStatisticsPG(t, "column_target")
+	request.NextTarget = 2
+	writer.Tracer = statisticsSamplingLatency{}
+	var actions int
+	result, err := RunOwnedStatisticsRepair(ctx, writer, request, ownedStatisticsTestModel("statistics"),
+		ownedStatisticsTestGuards(func(any) error { actions++; return nil }))
+	if err != nil || result.Statistics == nil || result.Statistics.ColumnTarget == nil ||
+		result.Outcome != "inconclusive" || actions != 1 || !result.Statistics.ColumnTarget.Restored ||
+		!result.Statistics.After.Applied || result.Statistics.After.AnalyzeMS <= 0 {
+		t.Fatalf("bounded catalog round trips stranded the partial trial: actions=%d, reason=%q, err=%v", actions, result.DiagnosticReason, err)
+	}
+	if setting := readProjectStatisticsSetting(t, ctx, admin, request.Target, 2); setting != (ProjectStatisticsSetting{Value: 1}) {
+		t.Fatalf("prewrite sampling delay leaked a trial setting: %+v", setting)
+	}
+	assertOwnedStatisticsGuardPreserved(t, ctx, admin)
+}
+
+type statisticsSamplingLatency struct{}
+
+func (statisticsSamplingLatency) TraceQueryStart(ctx context.Context, _ *pgx.Conn, data pgx.TraceQueryStartData) context.Context {
+	// Model ordinary per-exchange latency around the sampler's PostgreSQL
+	// reads. No individual exchange is close to a database timeout.
+	if strings.Contains(data.SQL, "IN ACCESS SHARE MODE NOWAIT") ||
+		strings.Contains(data.SQL, "most_common_freqs") ||
+		strings.Contains(data.SQL, "JOIN pg_class g ON") ||
+		strings.Contains(data.SQL, "SELECT ARRAY(SELECT attname") ||
+		strings.HasPrefix(data.SQL, "EXPLAIN (VERBOSE, FORMAT JSON)") {
+		timer := time.NewTimer(380 * time.Millisecond)
+		defer timer.Stop()
+		select {
+		case <-timer.C:
+		case <-ctx.Done():
+		}
+	}
+	return ctx
+}
+
+func (statisticsSamplingLatency) TraceQueryEnd(context.Context, *pgx.Conn, pgx.TraceQueryEndData) {}
 
 func setupOwnedStatisticsPG(t *testing.T, operation string) (context.Context, *pgx.Conn, *pgx.ConnConfig, OwnedStatisticsRepairRequest) {
 	t.Helper()

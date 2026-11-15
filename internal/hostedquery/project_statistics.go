@@ -50,6 +50,12 @@ type ProjectStatisticsResult struct {
 	Restored        bool
 	Prior, Current  ProjectStatisticsSetting
 	AnalyzeDuration time.Duration
+	phase           string
+}
+
+type projectStatisticsTrial struct {
+	recheck func(context.Context, pgx.Tx, ProjectStatisticsIntent) error
+	verify  func(context.Context, pgx.Tx, ProjectStatisticsIntent) (bool, error)
 }
 
 // ApplyProjectStatisticsTarget changes one already authorized integer column and
@@ -57,12 +63,13 @@ type ProjectStatisticsResult struct {
 // readback, so callers still need workload observations to establish benefit.
 // An error after WriteAttempted requires checking the recorded intent before retry.
 func ApplyProjectStatisticsTarget(ctx context.Context, config *pgx.ConnConfig, request ProjectStatisticsRequest, guards ProjectStatisticsGuards) (result ProjectStatisticsResult, err error) {
-	return applyProjectStatisticsTarget(ctx, config, request, guards, nil)
+	return applyProjectStatisticsTarget(ctx, config, request, guards, projectStatisticsTrial{})
 }
 
 func applyProjectStatisticsTarget(ctx context.Context, config *pgx.ConnConfig, request ProjectStatisticsRequest, guards ProjectStatisticsGuards,
-	verify func(context.Context, pgx.Tx, ProjectStatisticsIntent) (bool, error),
+	trial projectStatisticsTrial,
 ) (result ProjectStatisticsResult, err error) {
+	result.phase = "prepare_write"
 	if config == nil || guards.CheckPermission == nil || guards.CheckCapacity == nil || guards.RecordIntent == nil ||
 		request.RunID == "" || len(request.RunID) > 128 || !freshStatisticsRequest(request, time.Now()) ||
 		request.NextTarget < 1 || request.NextTarget > projectStatisticsMaxTarget {
@@ -126,11 +133,27 @@ func applyProjectStatisticsTarget(ctx context.Context, config *pgx.ConnConfig, r
 	}
 	intent := ProjectStatisticsIntent{ProjectStatisticsRequest: request, Key: key, Prior: prior.setting,
 		PriorEffective: prior.effective, RelationBytes: prior.relationBytes}
-	for _, guard := range []func(context.Context, ProjectStatisticsIntent) error{guards.CheckPermission, guards.CheckCapacity, guards.RecordIntent, guards.CheckPermission} {
+	result.phase = "check_permission_and_capacity"
+	for _, guard := range []func(context.Context, ProjectStatisticsIntent) error{guards.CheckPermission, guards.CheckCapacity} {
 		if err := guard(ctx, intent); err != nil {
 			return result, err
 		}
 	}
+	if trial.recheck != nil {
+		result.phase = "recheck_measurements"
+		if err := trial.recheck(ctx, tx, intent); err != nil {
+			return result, err
+		}
+	}
+	result.phase = "record_intent"
+	if err := guards.RecordIntent(ctx, intent); err != nil {
+		return result, err
+	}
+	result.phase = "permission_before_write"
+	if err := guards.CheckPermission(ctx, intent); err != nil {
+		return result, err
+	}
+	result.phase = "catalog_before_write"
 	current, err := readProjectStatisticsState(ctx, tx, request.Target, key, true)
 	if err != nil {
 		return result, err
@@ -141,15 +164,18 @@ func applyProjectStatisticsTarget(ctx context.Context, config *pgx.ConnConfig, r
 	}
 
 	column := pgx.Identifier{key.Name}.Sanitize()
+	result.phase = "alter_target"
 	result.WriteAttempted = true
 	if _, err := tx.Exec(ctx, "ALTER TABLE ONLY "+relation+" ALTER COLUMN "+column+" SET STATISTICS "+strconv.FormatInt(int64(request.NextTarget), 10)); err != nil {
 		return result, err
 	}
+	result.phase = "analyze_column"
 	started := time.Now()
 	if _, err := tx.Exec(ctx, `ANALYZE (BUFFER_USAGE_LIMIT '256kB') `+relation+" ("+column+")"); err != nil {
 		return result, err
 	}
 	result.AnalyzeDuration = time.Since(started)
+	result.phase = "catalog_after_write"
 	current, err = readProjectStatisticsState(ctx, tx, request.Target, key, true)
 	if err != nil {
 		return result, err
@@ -162,12 +188,14 @@ func applyProjectStatisticsTarget(ctx context.Context, config *pgx.ConnConfig, r
 	if current.setting != (ProjectStatisticsSetting{Value: request.NextTarget}) || !hasSample {
 		return result, errors.New("statistics adjustment did not pass exact catalog readback")
 	}
-	if verify != nil {
-		retain, err := verify(ctx, tx, intent)
+	if trial.verify != nil {
+		result.phase = "verify_measurements"
+		retain, err := trial.verify(ctx, tx, intent)
 		if err != nil || !retain {
 			cleanup, finish := context.WithTimeout(context.Background(), time.Second)
 			defer finish()
 			if rollback := tx.Rollback(cleanup); rollback != nil {
+				result.phase = "rollback"
 				return result, errors.Join(err, rollback)
 			}
 			// Rolling back the action transaction also restores the planner's
@@ -176,6 +204,7 @@ func applyProjectStatisticsTarget(ctx context.Context, config *pgx.ConnConfig, r
 			return result, err
 		}
 	}
+	result.phase = "commit"
 	if err := tx.Commit(ctx); err != nil {
 		return result, err
 	}
