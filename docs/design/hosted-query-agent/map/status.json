@@ -1,5 +1,5 @@
 {
-  "sourceRevision": "6c2fe36bf0a4bcab9225609e1c7dc6195210adcf",
+  "sourceRevision": "073f6080631a8ca6e6e924c1283830fcfd5776a1",
   "summary": "Railway detects slow enrolled Rookery queries and saves Sonnet diagnoses using plans from ordinary app traffic. Two query shapes and six bounded repair cases passed in staging. Broader evidence, repair targeting, and customer setup remain.",
   "next": [
     "connect-project",
@@ -206,20 +206,24 @@
       ]
     },
     "backend": {
-      "status": "planned",
-      "scope": "Hosted project API remains to be built for configuration, permissions and result access.",
-      "remaining": "Wire account ownership, credentials, enrollment, pause/disconnect and authorized history.",
+      "status": "partial",
+      "scope": "The preview API has account sessions and owner-scoped project reads and setup routes.",
+      "remaining": "Qualify hosted connection and broader release operations, including credential rotation.",
       "evidence": [
-        "docs/design/hosted-query-agent/roadmap.md"
-      ]
+        "docs/design/hosted-query-agent/roadmap.md",
+        "docs/design/hosted-query-agent/hosted-preview.md"
+      ],
+      "statusLabel": "Owner routes verified locally"
     },
     "dashboard": {
-      "status": "planned",
-      "scope": "Customer application remains to be built: sign-in, projects and visible repair activity.",
-      "remaining": "The legacy dashboard is not the hosted product. No final frontend or auth provider is selected.",
+      "status": "partial",
+      "scope": "The preview has styled account, project and manual setup screens. The local test verified access from the owning account.",
+      "remaining": "Verify a connected Supabase project, saved investigation and disconnect through the hosted dashboard.",
       "evidence": [
-        "docs/design/hosted-query-agent/roadmap.md"
-      ]
+        "docs/design/hosted-query-agent/roadmap.md",
+        "docs/design/hosted-query-agent/hosted-preview.md"
+      ],
+      "statusLabel": "Account dashboard verified locally"
     },
     "studio": {
       "status": "partial",
@@ -310,12 +314,14 @@
       "remainingVerification": "Exercise deployed worker and secret-store failures, including disconnect across service replicas."
     },
     "auth": {
-      "status": "planned",
-      "scope": "Remaining: create accounts and restrict every project and action to its owner.",
-      "remaining": "Google/GitHub sign-in choices and auth provider remain open; account sign-in is separate from database access.",
+      "status": "partial",
+      "scope": "Invite signup, email/password sign-in, session expiry and sign-out work. Two test accounts were kept separate.",
+      "remaining": "Build email verification and password recovery for wider onboarding.",
       "evidence": [
-        "docs/design/hosted-query-agent/roadmap.md"
-      ]
+        "docs/design/hosted-query-agent/roadmap.md",
+        "docs/design/hosted-query-agent/hosted-preview.md"
+      ],
+      "statusLabel": "Preview sign-in tested"
     },
     "activity": {
       "status": "planned",
@@ -534,6 +540,17 @@
         "internal/hostedquery/project_activity_integration_test.go",
         "docs/design/hosted-query-agent/hosted-preview.md"
       ]
+    },
+    "preview-account-session": {
+      "status": "verified",
+      "statusLabel": "Preview accounts verified",
+      "scope": "Invite signup, email/password sign-in, session expiry and sign-out work. Two test accounts were kept separate.",
+      "remaining": "Public signup, email verification and password recovery remain.",
+      "evidence": [
+        "internal/hostedapp/app_integration_test.go",
+        "internal/hostedapp/auth/store.go",
+        "docs/design/hosted-query-agent/hosted-preview.md"
+      ]
     }
   },
   "colorMeaning": "Green verifies the stated case only. Yellow means the named area still contains concrete missing implementation or verification. It is not a percentage complete; inspect Build next and Verify next.",
@@ -582,6 +599,14 @@
       "summary": "Local PostgreSQL verified scoped poll and query history, missing measurements, and diagnosis timing.",
       "nodes": [
         "project-activity-history"
+      ]
+    },
+    {
+      "label": "Task 42 · Create accounts and sign in",
+      "summary": "Local PostgreSQL verified invite signup, sign-in, sign-out and project ownership. The signup and sign-in screens rendered at desktop and mobile widths.",
+      "nodes": [
+        "preview-account-session",
+        "dashboard"
       ]
     }
   ]

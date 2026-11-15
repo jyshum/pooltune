@@ -5,7 +5,7 @@
   "workType": "Build progress and remaining work",
   "summary": "Railway detects slow enrolled Rookery queries and saves Sonnet diagnoses using plans from ordinary app traffic. Two query shapes and six bounded repair cases passed in staging. Broader evidence, repair targeting, and customer setup remain.",
   "sourceRevision": {
-    "commit": "6c2fe36bf0a4bcab9225609e1c7dc6195210adcf",
+    "commit": "073f6080631a8ca6e6e924c1283830fcfd5776a1",
     "dirty": false
   },
   "components": [
@@ -30,7 +30,7 @@
       "id": "dashboard",
       "label": "Customer dashboard",
       "type": "interface",
-      "purpose": "Customer application remains to be built: sign-in, projects and visible repair activity.",
+      "purpose": "The preview has styled account, project and manual setup screens. The local test verified access from the owning account.",
       "decisionIds": [
         "d-hosting",
         "d-onboarding"
@@ -48,7 +48,7 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Customer application remains to be built: sign-in, projects and visible repair activity.",
+      "changeSummary": "The preview has styled account, project and manual setup screens. The local test verified access from the owning account.",
       "after": "Add project setup, evidence, action history, and stop controls; frontend integration remains open.",
       "expandWhy": "What will a customer use to connect a project and watch Pooltune work?"
     },
@@ -56,7 +56,7 @@
       "id": "backend",
       "label": "Hosted API",
       "type": "service",
-      "purpose": "Hosted project API remains to be built for configuration, permissions and result access.",
+      "purpose": "The preview API has account sessions and owner-scoped project reads and setup routes.",
       "decisionIds": [
         "d-language",
         "d-hosting",
@@ -76,7 +76,7 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Hosted project API remains to be built for configuration, permissions and result access.",
+      "changeSummary": "The preview API has account sessions and owner-scoped project reads and setup routes.",
       "stack": [
         "Go"
       ],
@@ -947,7 +947,7 @@
       "id": "auth",
       "label": "Sign-in and account access",
       "type": "service",
-      "purpose": "Remaining: create accounts and restrict every project and action to its owner.",
+      "purpose": "Invite signup, email/password sign-in, session expiry and sign-out work. Two test accounts were kept separate.",
       "decisionIds": [],
       "sources": [
         {
@@ -957,7 +957,7 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Remaining: create accounts and restrict every project and action to its owner.",
+      "changeSummary": "Invite signup, email/password sign-in, session expiry and sign-out work. Two test accounts were kept separate.",
       "after": "Remaining: create accounts and restrict every project and action to its owner.",
       "parent": "dashboard"
     },
@@ -1927,6 +1927,28 @@
         "Go",
         "PostgreSQL"
       ]
+    },
+    {
+      "id": "preview-account-session",
+      "label": "Preview accounts and sessions",
+      "type": "service",
+      "purpose": "Invite signup, email/password sign-in, session expiry and sign-out work. Two test accounts were kept separate.",
+      "decisionIds": [],
+      "sources": [
+        {
+          "path": "internal/hostedapp/app_integration_test.go",
+          "revision": "073f6080631a8ca6e6e924c1283830fcfd5776a1",
+          "kind": "verified"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Invite signup, email/password sign-in, session expiry and sign-out work. Two test accounts were kept separate.",
+      "after": "Invite signup, email/password sign-in, session expiry and sign-out work. Two test accounts were kept separate.",
+      "parent": "dashboard",
+      "stack": [
+        "Go",
+        "PostgreSQL"
+      ]
     }
   ],
   "edges": [
@@ -2151,6 +2173,12 @@
       "from": "state",
       "to": "project-activity-history",
       "label": "retains recent monitoring and diagnosis history"
+    },
+    {
+      "id": "e-preview-account-session",
+      "from": "dashboard",
+      "to": "preview-account-session",
+      "label": "provides this verified behavior"
     }
   ],
   "decisions": [

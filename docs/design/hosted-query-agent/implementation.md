@@ -452,8 +452,8 @@ Tasks 27–29 completed for the explicitly bounded diagnostic slice. Sonnet pass
 
 **Design:** Reuse Go, PostgreSQL and the landing-page visual language. Add invite-based account creation, password sign-in with server-side sessions, and account-owned project routes. The starter dashboard uses actual project activity and the current installer to guide explicit owner setup.
 
-- [ ] Verify creating an account, signing in/out, reopening the dashboard, and isolation across two test accounts.
-- [ ] Verify the project form, empty and error states, and account-scoped dashboard on desktop and mobile. Update the map for each verified capability.
+- [x] Verify creating an account, signing in/out, reopening the dashboard, and isolation across two test accounts.
+- [x] Verify project forms, empty and error states and the account-owned dashboard locally. Verify the signup and sign-in pages in desktop and mobile Chrome. Update the map with this scope.
 
 ### Task 43: Connect the monitor and investigator from the dashboard
 

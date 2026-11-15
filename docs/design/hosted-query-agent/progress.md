@@ -480,3 +480,5 @@ The Rookery fixtures were removed and the temporary Logs Read token was revoked.
 Jared said “no need to stop between milestones” and asked for account creation, sign-in, the dashboard and a working test flow so he can manually connect his project. This batch uses final-only review for routine milestones. Ask remains the approved design conflict mode. The prior boundary before automated customer changes remains in force. Follow Tasks 41–43 and update the map with each verified capability.
 
 Task 41 source `6c2fe36` passed disposable PostgreSQL integration for scoped poll/window and diagnosis history, reconnect, first-claim timing, missing versus zero, and indexed retention. The map records the verified local state slice.
+
+Task 42 verified invite-only signup, sign-in and logout, session expiry, two-account ownership boundaries, credential encryption and an eight-admission daily budget with PostgreSQL. Chrome rendered the live signup and sign-in forms at 1,280 px and 390 px without horizontal overflow. The map records the preview account scope.
