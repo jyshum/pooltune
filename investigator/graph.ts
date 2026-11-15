@@ -3,7 +3,21 @@ import type { BaseCheckpointSaver } from "@langchain/langgraph";
 import { z } from "zod";
 import {cronSchema,cronCause} from "./cron-schema.ts";
 
-export const orderedColumnsSchema=z.tuple([z.literal(2),z.literal(3)]);
+const columnNumberSchema = z.number().int().positive().max(32767);
+const orderedColumnsSchema = z.tuple([columnNumberSchema, columnNumberSchema]);
+export const indexIdentityShape = {
+  run_id: z.string().min(1).max(64),
+  table_oid: z.number().int().positive().max(4294967295),
+  column_number: columnNumberSchema,
+  column_numbers: orderedColumnsSchema.optional(),
+};
+
+export function indexKeysMatchAnchor(value: {column_number: number; column_numbers?: [number, number]}) {
+  const keys = value.column_numbers;
+  return !keys || (keys[0] === value.column_number && keys[0] !== keys[1]);
+}
+
+export const indexKeysIssue = {message: "Index keys must be distinct and start with the anchor column.", path: ["column_numbers"]};
 
 const planSchema = z.strictObject({
   node: z.string().max(60),
@@ -13,12 +27,9 @@ const planSchema = z.strictObject({
 });
 
 export const evidenceFields = z.strictObject({
-  run_id: z.string().min(1).max(64),
+  ...indexIdentityShape,
   observed_at: z.iso.datetime(),
   decision: z.enum(["investigate", "no_change", "insufficient_evidence"]),
-  table_oid: z.number().int().positive().max(4294967295),
-  column_number: z.number().int().positive().max(32767),
-  column_numbers: orderedColumnsSchema.optional(),
   lookup_column: z.literal("lookup"),
   covering_index: z.boolean(),
   plan: planSchema,
@@ -32,14 +43,13 @@ export const evidenceFields = z.strictObject({
   analyze: z.strictObject({ estimated_rows: z.number().int().positive(), actual_rows: z.number().int().positive(), sampled_lookup_fraction: z.number().min(0).max(1).optional() }).optional(),
 });
 
-export const evidenceSchema = evidenceFields.refine(e => [e.analyze,e.statistics,e.vacuum,e.memory,e.cron].filter(Boolean).length <= 1, "Evidence must contain at most one repair cause.");
+export const evidenceSchema = evidenceFields
+  .refine(indexKeysMatchAnchor, indexKeysIssue)
+  .refine(e => [e.analyze,e.statistics,e.vacuum,e.memory,e.cron].filter(Boolean).length <= 1, "Evidence must contain at most one repair cause.");
 
-export const proposalSchema = z.strictObject({
+const proposalFields = z.strictObject({
+  ...indexIdentityShape,
   outcome: z.enum(["propose", "no_change"]),
-  run_id: z.string().min(1).max(64),
-  table_oid: z.number().int().positive().max(4294967295),
-  column_number: z.number().int().positive().max(32767),
-  column_numbers: orderedColumnsSchema.optional(),
   repair: z.enum(["analyze", "statistics", "vacuum", "memory", "cron"]).optional(),
   reason: z.string().min(1).max(1000),
   model_call: z.strictObject({
@@ -47,9 +57,12 @@ export const proposalSchema = z.strictObject({
     input_tokens: z.number().int().nonnegative().optional(), output_tokens: z.number().int().nonnegative().optional(),
   }).optional(),
 });
+export const proposalSchema = proposalFields.refine(indexKeysMatchAnchor, indexKeysIssue);
+export const modelProposalSchema = proposalFields.omit({ model_call: true }).refine(indexKeysMatchAnchor, indexKeysIssue);
 
 export type Evidence = z.infer<typeof evidenceSchema>;
 export type Proposal = z.infer<typeof proposalSchema>;
+export type IndexIdentity = Pick<Evidence, keyof typeof indexIdentityShape>;
 export type EvidenceTool = "plan" | "indexes";
 export type Investigator = (read: (tool: EvidenceTool) => unknown, enrollment: Omit<Evidence, "plan" | "covering_index">) => Promise<unknown>;
 
@@ -63,8 +76,13 @@ function identity(evidence: Evidence) {
   return { run_id: evidence.run_id, table_oid: evidence.table_oid, column_number: evidence.column_number, ...(evidence.column_numbers?{column_numbers:evidence.column_numbers}:{}) };
 }
 
+export function sameIndexIdentity(a: IndexIdentity, b: IndexIdentity) {
+  return a.run_id === b.run_id && a.table_oid === b.table_oid && a.column_number === b.column_number &&
+    a.column_numbers?.[0] === b.column_numbers?.[0] && a.column_numbers?.[1] === b.column_numbers?.[1];
+}
+
 export function screenEvidence(evidence: Evidence) {
- if(evidence.column_numbers && (evidence.column_number!==2 || [evidence.analyze,evidence.statistics,evidence.vacuum,evidence.memory,evidence.cron].some(Boolean))) return {proposal:{...identity(evidence),outcome:"no_change" as const,reason:"Unsupported compound enrollment."}};
+ if(evidence.column_numbers && [evidence.analyze,evidence.statistics,evidence.vacuum,evidence.memory,evidence.cron].some(Boolean)) return {proposal:{...identity(evidence),outcome:"no_change" as const,reason:"Unsupported compound enrollment."}};
       if (evidence.cron) {
         if(evidence.decision === "investigate" && cronCause(evidence.cron)) return {};
         return {proposal:{...identity(evidence),outcome:"no_change" as const,reason:"Repeated attributed contention or enrolled schedule constraints are insufficient."}};
@@ -113,6 +131,9 @@ export function buildGraph(investigate: Investigator, checkpointer?: BaseCheckpo
         return tool === "plan" ? plan : { covering_index };
       }, enrollment);
       const proposal = proposalSchema.parse(result);
+      if (!sameIndexIdentity(proposal, evidence)) {
+        throw new Error("Proposal changed the enrolled index identity.");
+      }
       if (proposal.outcome === "propose" && (!used.has("plan") || !used.has("indexes"))) {
         throw new Error("A proposal needs both plan and catalog evidence.");
       }

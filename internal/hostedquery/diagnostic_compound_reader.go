@@ -3,8 +3,10 @@ package hostedquery
 import (
 	"context"
 	"errors"
-	"github.com/jackc/pgx/v5"
+	"slices"
 	"time"
+
+	"github.com/jackc/pgx/v5"
 )
 
 // CompoundDiagnosticEvidence reads only the enrolled two-column fixture. The
@@ -18,7 +20,7 @@ func CompoundDiagnosticEvidence(state *pgx.Conn, config *pgx.ConnConfig, route, 
 		default:
 			return out, false, errors.New("unknown diagnostic tool")
 		}
-		if ValidateConsumerFixtureID(fixture) != nil || (route != "local" && route != "rookery") || state == nil || config == nil || base.RunID == "" || base.TableOID == 0 || len(base.Columns) != 2 || !ValidIndexColumns(base.Column, base.Columns) || base.Decision != Investigate || base.At.IsZero() || time.Since(base.At) < 0 || time.Since(base.At) > 30*time.Second {
+		if ValidateConsumerFixtureID(fixture) != nil || (route != "local" && route != "rookery") || state == nil || config == nil || base.RunID == "" || base.TableOID == 0 || base.Column != 2 || !slices.Equal(base.Columns, []int16{2, 3}) || base.Decision != Investigate || base.At.IsZero() || time.Since(base.At) < 0 || time.Since(base.At) > 30*time.Second {
 			return out, false, errors.New("invalid compound enrollment")
 		}
 		ctx, cancel := context.WithTimeout(ctx, 2*time.Second)

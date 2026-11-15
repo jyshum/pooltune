@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// IndexEvidence is a bounded snapshot of an enrolled synthetic lookup.
+// IndexEvidence is a bounded snapshot of an enrolled lookup.
 type IndexEvidence struct {
 	RunID       string              `json:"run_id"`
 	At          time.Time           `json:"observed_at"`
@@ -67,7 +67,7 @@ func qualifyIndex(e IndexEvidence, p IndexProposal, now time.Time) error {
 	return nil
 }
 
-// ValidIndexColumns bounds the currently enrolled scalar and compound shapes.
+// ValidIndexColumns checks the scalar anchor and optional ordered two-key index.
 func ValidIndexColumns(column int16, columns []int16) bool {
-	return column > 0 && (len(columns) == 0 || (column == 2 && slices.Equal(columns, []int16{2, 3})))
+	return column > 0 && (len(columns) == 0 || (len(columns) == 2 && columns[0] == column && columns[1] > 0 && columns[1] != column))
 }

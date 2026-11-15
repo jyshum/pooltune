@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"pooltune/internal/hostedquery"
+	"slices"
 	"testing"
 	"time"
 )
@@ -41,6 +42,31 @@ func TestDiagnosticBridgeRequestsBoundReader(t *testing.T) {
 		t.Fatalf("wrong result: %+v reads %d", result, reads)
 	}
 }
+
+func TestDiagnosticBridgePreservesOrderedCompoundKeys(t *testing.T) {
+	input := diagnosticFixture()
+	input.Column, input.Columns = 15, []int16{15, 4}
+	for i := range input.Initial {
+		input.Initial[i].DiagnosticIdentity = input.DiagnosticIdentity
+	}
+	input.Initial[1].Data = json.RawMessage(`{"covering_index":false}`)
+	command := helperCommand(t, `
+		const expected = '[15,4]';
+		if ([input, ...input.initial].some(item => item.column_number !== 15 || JSON.stringify(item.column_numbers) !== expected)) process.exit(2);
+		console.log(JSON.stringify({type:'result',result:{
+			proposal:{outcome:'propose',run_id:'test',table_oid:42,column_number:15,column_numbers:[15,4],reason:'Selective scan'},
+			model_calls:1,reads:0,model_ms:10,tool_ms:0,stop_reason:'',
+			history:[{action:'propose',repair:'index',tools:[],reason:'Selective scan',assessments:[
+				{cause:'index',assessment:'supported',blocks_decision:false,reason:'No covering index'},
+				{cause:'analyze',assessment:'rejected',blocks_decision:false,reason:'No access path to refresh'},
+			]}],
+		}}));`)
+	result, err := runDiagnostic(context.Background(), input, nil, command)
+	if err != nil || result.Proposal.Outcome != "propose" || !slices.Equal(result.Proposal.Columns, []int16{15, 4}) {
+		t.Fatalf("ordered keys lost: %+v, error %v", result.Proposal, err)
+	}
+}
+
 func TestDiagnosticBridgeRejectsUntrustedFrames(t *testing.T) {
 	for _, tc := range []struct{ name, body string }{
 		{"unknown", `console.log(JSON.stringify({type:'read',tool:'raw_sql'}));`},

@@ -83,7 +83,12 @@ func TestModelCannotAddRemoveOrReorderCompoundIdentity(t *testing.T) {
 		enrolled, proposed []int16
 		cause              bool
 	}{
-		{"extra", nil, []int16{2, 3}, false}, {"missing", []int16{2, 3}, nil, false}, {"reversed", []int16{2, 3}, []int16{3, 2}, false}, {"unsupported", []int16{2, 4}, []int16{2, 4}, false}, {"other repair", []int16{2, 3}, []int16{2, 3}, true},
+		{"extra", nil, []int16{2, 3}, false},
+		{"missing", []int16{2, 3}, nil, false},
+		{"reversed", []int16{2, 3}, []int16{3, 2}, false},
+		{"changed valid key", []int16{2, 3}, []int16{2, 4}, false},
+		{"wrong enrolled anchor", []int16{4, 2}, []int16{4, 2}, false},
+		{"other repair", []int16{2, 3}, []int16{2, 3}, true},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			e := IndexEvidence{At: time.Now(), Decision: Investigate, TableOID: 42, Column: 2, Columns: tc.enrolled, Label: "lookup", Plan: PlanEvidence{Node: "Seq Scan"}}

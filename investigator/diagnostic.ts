@@ -1,16 +1,15 @@
 import { END, START, StateGraph, StateSchema } from '@langchain/langgraph';
 import type { BaseCheckpointSaver } from '@langchain/langgraph';
 import { z } from 'zod';
-import { evidenceFields, orderedColumnsSchema, screenEvidence, type Evidence, type Proposal } from './graph.ts';
+import { evidenceFields, indexIdentityShape, indexKeysIssue, indexKeysMatchAnchor, sameIndexIdentity, screenEvidence, type Evidence, type IndexIdentity, type Proposal } from './graph.ts';
 
 export const toolSchema=z.enum(['plan','indexes','analyze','statistics','vacuum','memory','cron']);
 export type DiagnosticTool=z.infer<typeof toolSchema>;
 const observationToolSchema=z.enum([...toolSchema.options,'lookup']);
 const repairSchema=z.enum(['index','analyze','statistics','vacuum','memory','cron']);
-const identityShape={run_id:z.string().min(1).max(64),table_oid:z.number().int().positive().max(4294967295),column_number:z.number().int().positive().max(32767),column_numbers:orderedColumnsSchema.optional()};
-export const observationSchema=z.strictObject({...identityShape,tool:observationToolSchema,observed_at:z.iso.datetime(),status:z.enum(['available','unavailable']),data:z.unknown().optional()});
+export const observationSchema=z.strictObject({...indexIdentityShape,tool:observationToolSchema,observed_at:z.iso.datetime(),status:z.enum(['available','unavailable']),data:z.unknown().optional()}).refine(indexKeysMatchAnchor,indexKeysIssue);
 export type Observation=z.infer<typeof observationSchema>;
-export const diagnosticInputSchema=z.strictObject({...identityShape,mode:z.literal('enrolled_lookup').optional(),decision:z.enum(['investigate','no_change','insufficient_evidence']),initial:z.array(observationSchema).max(7)});
+export const diagnosticInputSchema=z.strictObject({...indexIdentityShape,mode:z.literal('enrolled_lookup').optional(),decision:z.enum(['investigate','no_change','insufficient_evidence']),initial:z.array(observationSchema).max(7)}).refine(indexKeysMatchAnchor,indexKeysIssue);
 export type DiagnosticInput=z.infer<typeof diagnosticInputSchema>;
 export const diagnosticDecisionSchema=z.strictObject({
  action:z.enum(['request_evidence','propose','no_change']),repair:repairSchema.nullable(),tools:z.array(toolSchema).max(3),
@@ -18,7 +17,7 @@ export const diagnosticDecisionSchema=z.strictObject({
  reason:z.string().min(1).max(300),
 });
 export type DiagnosticDecision=z.infer<typeof diagnosticDecisionSchema>;
-export type DiagnosticView={mode?:'enrolled_lookup';identity:{run_id:string;table_oid:number;column_number:number;column_numbers?:[2,3]};observations:Observation[];history:DiagnosticDecision[];remaining_model_calls:number;remaining_reads:number};
+export type DiagnosticView={mode?:'enrolled_lookup';identity:IndexIdentity;observations:Observation[];history:DiagnosticDecision[];remaining_model_calls:number;remaining_reads:number};
 export type DiagnosticDecider=(view:DiagnosticView,signal:AbortSignal)=>Promise<{decision:unknown;model?:string;input_tokens?:number;output_tokens?:number}>;
 export type DiagnosticReader=(tool:DiagnosticTool,signal:AbortSignal)=>Promise<unknown>;
 const stateSchema=new StateSchema({input:diagnosticInputSchema,observations:z.array(observationSchema).default([]),history:z.array(diagnosticDecisionSchema).default([]),
@@ -49,7 +48,7 @@ const schemas={lookup:z.union([lookupSchema,trafficLookupSchema]),plan:evidenceF
 function identity(input:DiagnosticInput){return {run_id:input.run_id,table_oid:input.table_oid,column_number:input.column_number,...(input.column_numbers?{column_numbers:input.column_numbers}:{})};}
 function checkedObservation(raw:unknown,input:DiagnosticInput,now:number,expected?:DiagnosticTool):Observation {
  const o=observationSchema.parse(raw);
- if(o.run_id!==input.run_id||o.table_oid!==input.table_oid||o.column_number!==input.column_number||JSON.stringify(o.column_numbers)!==JSON.stringify(input.column_numbers)||(expected&&o.tool!==expected))throw Error('identity');
+ if(!sameIndexIdentity(o,input)||(expected&&o.tool!==expected))throw Error('identity');
  const age=now-Date.parse(o.observed_at);
  if(age<0||age>30000)throw Error('expired');
  if(o.status==='available')schemas[o.tool].parse(o.data);

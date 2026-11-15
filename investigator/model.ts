@@ -1,6 +1,6 @@
 import { ChatAnthropic } from "@langchain/anthropic";
 import { HumanMessage, SystemMessage, isAIMessage, type BaseMessage } from "@langchain/core/messages";
-import { buildGraph, proposalSchema, type Investigator } from "./graph.ts";
+import { buildGraph, modelProposalSchema, type Investigator } from "./graph.ts";
 
 export const investigationInstructions = `You investigate one enrolled synthetic PostgreSQL query using evidence collected by Go.
 Available repair operations:
@@ -32,7 +32,7 @@ export function buildSingleCallInvestigator(recommend: (messages: [SystemMessage
 // includeRaw hides SDK parser failures behind null. Inspect only to classify;
 // never recover a proposal from raw arguments or include them in an error.
 export function parseModelProposal(result: { parsed: unknown; raw: BaseMessage }) {
-  const schema = proposalSchema.omit({ model_call: true });
+  const schema = modelProposalSchema;
   if (result.parsed !== null) return schema.parse(result.parsed);
   const contentTool = Array.isArray(result.raw.content)
     ? result.raw.content.find(block => block.type === "tool_use") : undefined;
@@ -62,7 +62,7 @@ export function parseModelProposal(result: { parsed: unknown; raw: BaseMessage }
 
 export const anthropicInvestigator = buildSingleCallInvestigator(async (messages) => {
   const model = createAnthropicModel();
-  const structured = model.withStructuredOutput(proposalSchema.omit({ model_call: true }), { name: "repair_recommendation", includeRaw: true });
+  const structured = model.withStructuredOutput(modelProposalSchema, { name: "repair_recommendation", includeRaw: true });
   const start = performance.now();
   const result = await structured.invoke(messages);
   const duration = performance.now() - start;

@@ -19,7 +19,7 @@ func TestCompoundProposalPreservesOrderedKeys(t *testing.T) {
 			t.Fatalf("accepted keys %v", keys)
 		}
 	}
-	for _, keys := range [][]int16{{3, 2}, {2, 2}, {2, 4}} {
+	for _, keys := range [][]int16{{3, 2}, {2, 2}, {2, 0}, {2, -1}} {
 		badE, badP := e, p
 		badE.Columns = keys
 		badP.Columns = keys
@@ -35,6 +35,22 @@ func TestCompoundProposalPreservesOrderedKeys(t *testing.T) {
 	p.Repair = "analyze"
 	if ValidateDiagnosticProposal(e, p, now) == nil {
 		t.Fatal("compound identity accepted for other repair")
+	}
+}
+
+func TestIndexProposalPreservesGeneralOrderedKeys(t *testing.T) {
+	now := time.Now()
+	e := IndexEvidence{RunID: "compound", At: now, Decision: Investigate, TableOID: 42, Column: 15, Columns: []int16{15, 4}, Plan: PlanEvidence{Node: "Seq Scan", ExaminedRows: 100000, ReturnedRows: 1}}
+	p := IndexProposal{Outcome: "propose", RunID: e.RunID, TableOID: 42, Column: 15, Columns: []int16{15, 4}, Reason: "Selective scan with no covering index."}
+	if err := ValidateDiagnosticProposal(e, p, now); err != nil {
+		t.Fatal(err)
+	}
+	p.Columns = []int16{15, 3}
+	if err := ValidateDiagnosticProposal(e, p, now); err == nil {
+		t.Fatal("accepted a changed secondary key")
+	}
+	if !ValidIndexColumns(32767, []int16{32767, 1}) || !ValidIndexColumns(114, nil) || ValidIndexColumns(0, nil) {
+		t.Fatal("invalid column position bounds")
 	}
 }
 

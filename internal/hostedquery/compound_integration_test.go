@@ -131,7 +131,7 @@ func TestCompoundEvidenceReaderRevalidatesEnrolledIdentity(t *testing.T) {
 	if _, ok, err := read(ctx, "memory", e); err != nil || ok {
 		t.Fatal("unsupported tool available")
 	}
-	for _, change := range []func(*IndexEvidence){func(e *IndexEvidence) { e.Columns = []int16{3, 2} }, func(e *IndexEvidence) { e.TableOID++ }, func(e *IndexEvidence) { e.At = time.Now().Add(-time.Minute) }} {
+	for _, change := range []func(*IndexEvidence){func(e *IndexEvidence) { e.Columns = []int16{3, 2} }, func(e *IndexEvidence) { e.Columns = []int16{2, 4} }, func(e *IndexEvidence) { e.TableOID++ }, func(e *IndexEvidence) { e.At = time.Now().Add(-time.Minute) }} {
 		bad := e
 		change(&bad)
 		if _, ok, err := read(ctx, "plan", bad); err == nil || ok {
