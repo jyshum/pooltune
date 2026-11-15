@@ -332,3 +332,24 @@ Follow-up authorization: Rookery may be brought online for the test work. The ea
 
 
 Tasks 27–29 completed for the explicitly bounded diagnostic slice. Sonnet passed 15/15 cases and real fresh PostgreSQL evidence collection; Haiku remained 13/15. Public process resume and model-attempt persistence passed real local PostgreSQL tests. All earlier failed model evaluations remain in evidence/diagnostic-loop. Independent review material findings were fixed, and the remaining minor reporting defect was reproduced and fixed. The deployed Railway consumer is not switched to this loop; hosted integration/live-reader qualification is the next task. Final human review and any future deployment remain separate.
+
+### Task 30: Connect diagnostic investigations to the hosted index consumer
+
+**Authority:** Jared explicitly requested connecting the new investigator to the Railway consumer, testing the full Rookery flow with Sonnet, healthy traffic and restart, and committing on revamp. Ask + milestones and native execution persist. Existing decisions d-language r2, d-workflow r1 and d-reuse r1 apply. No new intermediate human stop; final review of this integration. No customer rollout, remote git push or expanded repair grants.
+**Design:** diagnostic-loop.md. First hosted adapter uses the already qualified index fixture. The other five executors retain the legacy path until separately qualified with the diagnostic adapter. Reuse sufficient initial evidence; never hide existing evidence just to force another model call.
+**Files:** internal/graphrunner/consumer.go and tests; internal/hostedquery/diagnostic_reader.go and integration tests; index_policy.go; cmd/pooltune-consumer/main.go and tests.
+**Interfaces:** AdaptDiagnostic(DiagnosticInvestigator, hostedquery.DiagnosticEvidenceReader) returns IndexInvestigator. FixtureDiagnosticEvidence(state, targetConfig, route, fixture) returns a named, identity-bound reader. Proposal retains diagnostic timings, request history and attempt counts in the existing action report.
+**Review focus:** changed enrollment/fixture, unknown evidence tools, incomplete observations, healthy bypass, and interrupted/duplicate execution. Existing action guards, 25-second consumer deadline and 30-second evidence expiry stay in force.
+- [x] Write failing tests for adapter evidence reuse, requested live evidence routing, unavailable tools, metadata persistence, errors and identity refusal. Add real PostgreSQL reader tests for exact ownership and read bounds.
+- [x] Implement opt-in diagnostic mode for the index fixture only; register bounded plan/index/statistics-inspection readers and retain all independent execution guards.
+- [x] Run Go race unit/vet, focused PostgreSQL integration and investigator tests/typecheck. Obtain fresh whole-change review and fix material findings before staging mutation.
+- [x] Commit the tested integration on feat/pooltune-revamp-dev.
+
+### Task 31: Hosted Sonnet flow, healthy traffic and restart
+
+**Dependencies:** Task 30 verification. Existing Railway staging and synthetic Rookery scope only. Source upload is authorized; no new provider/service/customer grant.
+**Files:** docs/design/hosted-query-agent/hosted-diagnostic.md, evidence/hosted-diagnostic, progress.md, roadmap.md, map/status.json and generated design.html.
+- [ ] Deploy the reviewed source to existing Consumer staging and verify the exact deployment succeeded. Use real Sonnet 5.5 with tracing disabled.
+- [ ] Run bounded enrolled candidate and healthy traffic. Preserve a queued, unclaimed job through an actual Railway consumer-service restart, then run the new diagnostic consumer through guarded index application and read/write verification. Record that this tests queued recovery, not an in-flight model resume; local checkpoint-resume proof remains separate.
+- [ ] Capture detection/window time, restart/queue wait, baseline evidence, model turns/tool requests, index build and verification separately. Assert healthy query creates no job or repair, no duplicate action, exact outcome readback, cleanup and unchanged public indexes. Preserve unsuccessful attempts.
+- [ ] Document results and limitations in plain English, update map scope truthfully, verify generated map and source checks, commit on revamp.

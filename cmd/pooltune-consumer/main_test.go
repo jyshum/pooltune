@@ -34,3 +34,24 @@ func TestReadLookupEnrollment(t *testing.T) {
 		})
 	}
 }
+
+func TestDiagnosticModeRequiresTheQualifiedIndexRoute(t *testing.T) {
+	for _, tc := range []struct {
+		mode, route  string
+		index, other bool
+		ok           bool
+	}{
+		{"diagnostic", "rookery", true, false, true},
+		{"diagnostic", "rookery", false, false, false},
+		{"diagnostic", "rookery", true, true, false},
+		{"diagnostic", "rookery-enrolled", true, false, false},
+		{"diagnostic", "local", true, false, false},
+		{"unknown", "rookery", true, false, false},
+		{"anthropic", "rookery", true, false, true},
+		{"scripted", "staging", false, false, true},
+	} {
+		if err := validateInvestigatorMode(tc.mode, tc.route, tc.index, tc.other); (err == nil) != tc.ok {
+			t.Errorf("%+v: %v", tc, err)
+		}
+	}
+}

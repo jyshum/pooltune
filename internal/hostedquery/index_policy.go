@@ -33,13 +33,14 @@ type ModelCall struct {
 }
 
 type IndexProposal struct {
-	ModelCall *ModelCall `json:"model_call,omitempty"`
-	Repair    string     `json:"repair,omitempty"`
-	Outcome   string     `json:"outcome"`
-	RunID     string     `json:"run_id"`
-	TableOID  uint32     `json:"table_oid"`
-	Column    int16      `json:"column_number"`
-	Reason    string     `json:"reason"`
+	Diagnostic *DiagnosticTrace `json:"diagnostic,omitempty"`
+	ModelCall  *ModelCall       `json:"model_call,omitempty"`
+	Repair     string           `json:"repair,omitempty"`
+	Outcome    string           `json:"outcome"`
+	RunID      string           `json:"run_id"`
+	TableOID   uint32           `json:"table_oid"`
+	Column     int16            `json:"column_number"`
+	Reason     string           `json:"reason"`
 }
 
 func qualifyIndex(e IndexEvidence, p IndexProposal, now time.Time) error {
