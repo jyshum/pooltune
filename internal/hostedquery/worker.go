@@ -1,11 +1,22 @@
 package hostedquery
 
-import "time"
+import (
+	"errors"
+	"time"
+)
 
 // SamplingPolicy sets the length of a polling interval and objective window.
 type SamplingPolicy struct {
 	Interval time.Duration
 	Window   time.Duration
+}
+
+func (policy SamplingPolicy) validate() error {
+	if policy.Interval < 100*time.Millisecond || policy.Window < policy.Interval ||
+		policy.Window > time.Hour || policy.Window%policy.Interval != 0 {
+		return errors.New("window must be a multiple of the sampling interval, from 100ms through 1h")
+	}
+	return nil
 }
 
 type WindowResult struct {

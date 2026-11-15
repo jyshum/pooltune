@@ -394,3 +394,15 @@ Tasks 27–29 completed for the explicitly bounded diagnostic slice. Sonnet pass
 - [x] Run local integration and fresh broad review; fix material findings before deployment.
 - [x] Deploy reviewed source to existing Railway staging and run repair trials serially against owned Rookery fixtures.
 - [x] Update map with only demonstrated scope, document trade-offs and results, commit locally and present final human review.
+
+### Task 36: Connect Supabase and enroll live queries for monitoring
+
+**Authority:** Jared requested connecting a real Supabase project, enrolling queries, following the design and committing on revamp. Inherited ask + milestones and native execution. Use the existing checkout at 9ffb545. The previously agreed stop before automatic database changes is unaffected. This slice grants no repair, and no intermediate review was agreed for the operator monitor.
+
+**Design:** [Connect Supabase for read-only monitoring](supabase-monitoring.md). Reuse d-onboarding r1, d-language r2, d-hosting r1, d-workflow r1, d-reuse r1 and existing design/approval records.
+
+**Files and interfaces:** `internal/supabaseproject/` derives the dedicated role and direct connection and generates owner setup SQL. `internal/hostedquery/project_monitor.go` reads the project snapshot and joins the existing state-backed detector. `cmd/pooltune-project` exposes setup, connect, run and disconnect. Existing fixture routes retain their contracts. Runbook and map record bounded results.
+
+- [x] Prove the owner setup and dedicated identity with a failing real PostgreSQL test first. Cover distinct app/monitor roles, exact statement identity, absent/unenrolled counters, unauthorized grants, TLS and revocation.
+- [x] Prove disconnect/unenroll with a failing queue test first. Implement registration, observation and disconnect using the existing polling lock/state and persist the detector handoff.
+- [x] Qualify the normal entry points on local PostgreSQL and synthetic traffic on the real Rookery direct TLS endpoint. Observe a healthy and a slow query, restarts, revoked access and cleanup. Run Go race/vet and affected PostgreSQL tests, review and commit locally.

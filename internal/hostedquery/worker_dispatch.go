@@ -55,7 +55,7 @@ func claimInvestigation(ctx context.Context, state *pgx.Conn, project string) (*
 	claim := investigationClaim{Project: project}
 	err := pgx.BeginTxFunc(ctx, state, pgx.TxOptions{IsoLevel: pgx.ReadCommitted}, func(tx pgx.Tx) error {
 		var locked string
-		if err := tx.QueryRow(ctx, "SELECT project_id FROM pooltune_worker.projects WHERE project_id=$1 FOR UPDATE", project).Scan(&locked); err != nil {
+		if err := tx.QueryRow(ctx, "SELECT project_id FROM pooltune_worker.projects WHERE project_id=$1 AND monitor_epoch IS NULL FOR UPDATE", project).Scan(&locked); err != nil {
 			return err
 		}
 		// A new statement after the project lock sees a competing consumer's committed claim.

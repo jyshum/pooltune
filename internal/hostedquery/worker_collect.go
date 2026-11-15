@@ -89,16 +89,20 @@ func (w *Worker) poll(ctx context.Context, started time.Time) (PollResult, error
 }
 
 func (w *Worker) Run(ctx context.Context, onPoll func(PollResult) error) error {
+	return runPolls(ctx, w.policy.Interval, w.poll, onPoll)
+}
+
+func runPolls(ctx context.Context, interval time.Duration, poll func(context.Context, time.Time) (PollResult, error), onPoll func(PollResult) error) error {
 	for ctx.Err() == nil {
 		started := time.Now()
-		result, err := w.poll(ctx, started)
+		result, err := poll(ctx, started)
 		if err != nil {
 			return err
 		}
 		if err := onPoll(result); err != nil {
 			return err
 		}
-		timer := time.NewTimer(time.Until(started.Add(w.policy.Interval)))
+		timer := time.NewTimer(time.Until(started.Add(interval)))
 		select {
 		case <-ctx.Done():
 			timer.Stop()

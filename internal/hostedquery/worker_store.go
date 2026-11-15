@@ -38,9 +38,8 @@ func (e Enrollment) validate(policy SamplingPolicy) error {
 	if len(e.Project) == 0 || len(e.Project) > 128 || len(e.Queries) == 0 || len(e.Queries) > maxWorkerQueries {
 		return errors.New("worker needs a project and 1 to 20 enrolled queries")
 	}
-	if policy.Interval < 100*time.Millisecond || policy.Window < policy.Interval ||
-		policy.Window > time.Hour || policy.Window%policy.Interval != 0 {
-		return errors.New("window must be a multiple of the sampling interval, from 100ms through 1h")
+	if err := policy.validate(); err != nil {
+		return err
 	}
 	seen := make(map[queryKey]bool, len(e.Queries))
 	for _, query := range e.Queries {
@@ -95,6 +94,7 @@ func PrepareWorkerState(ctx context.Context, state *pgx.Conn) error {
 				last_poll timestamptz,
 				evidence jsonb NOT NULL DEFAULT '{}'
 			);
+			ALTER TABLE pooltune_worker.projects ADD COLUMN IF NOT EXISTS monitor_epoch bigint;
 			CREATE TABLE IF NOT EXISTS pooltune_worker.investigations (
 				id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 				project_id text NOT NULL,
@@ -122,19 +122,36 @@ func PrepareWorkerState(ctx context.Context, state *pgx.Conn) error {
 }
 
 type collectCounters func(context.Context) (map[queryKey]Counter, error)
+type collectEnrollment func(context.Context) (Enrollment, map[queryKey]Counter, error)
 
 func recordPoll(ctx context.Context, state *pgx.Conn, enrollment Enrollment, policy SamplingPolicy, at time.Time, collect collectCounters) (PollResult, error) {
+	return recordProjectPoll(ctx, state, enrollment.Project, policy, at, 0, func(ctx context.Context) (Enrollment, map[queryKey]Counter, error) {
+		samples, err := collect(ctx)
+		return enrollment, samples, err
+	})
+}
+
+func recordProjectPoll(ctx context.Context, state *pgx.Conn, project string, policy SamplingPolicy, at time.Time, epoch int64, collect collectEnrollment) (PollResult, error) {
 	var result PollResult
+	managed := epoch > 0
 	err := pgx.BeginTxFunc(ctx, state, pgx.TxOptions{IsoLevel: pgx.ReadCommitted}, func(tx pgx.Tx) error {
-		_, err := tx.Exec(ctx, "INSERT INTO pooltune_worker.projects (project_id) VALUES ($1) ON CONFLICT DO NOTHING", enrollment.Project)
-		if err != nil {
-			return err
+		if !managed {
+			if _, err := tx.Exec(ctx, "INSERT INTO pooltune_worker.projects (project_id) VALUES ($1) ON CONFLICT DO NOTHING", project); err != nil {
+				return err
+			}
 		}
 		var last *time.Time
 		var raw []byte
-		err = tx.QueryRow(ctx, "SELECT last_poll, evidence FROM pooltune_worker.projects WHERE project_id=$1 FOR UPDATE", enrollment.Project).Scan(&last, &raw)
+		var registered *int64
+		err := tx.QueryRow(ctx, "SELECT last_poll, evidence, monitor_epoch FROM pooltune_worker.projects WHERE project_id=$1 FOR UPDATE", project).Scan(&last, &raw, &registered)
+		if managed && (errors.Is(err, pgx.ErrNoRows) || (err == nil && (registered == nil || *registered != epoch))) {
+			return ErrProjectDisconnected
+		}
 		if err != nil {
 			return err
+		}
+		if !managed && registered != nil {
+			return errors.New("managed projects require the Supabase monitor")
 		}
 		// A second worker cannot spend another target round trip for the same interval.
 		if last != nil && at.Sub(*last) < 3*policy.Interval/4 {
@@ -147,12 +164,17 @@ func recordPoll(ctx context.Context, state *pgx.Conn, enrollment Enrollment, pol
 		}
 
 		started := time.Now()
-		samples, err := collect(ctx)
+		enrollment, samples, err := collect(ctx)
 		result.TargetMS = elapsedMS(started)
 		if err != nil {
 			return err
 		}
 
+		if managed {
+			if err := retireChangedEnrollments(ctx, tx, enrollment); err != nil {
+				return err
+			}
+		}
 		prior := make(map[QueryObjective]windowState, len(previous.States))
 		if previous.Policy == policy {
 			for _, state := range previous.States {
@@ -187,7 +209,7 @@ func recordPoll(ctx context.Context, state *pgx.Conn, enrollment Enrollment, pol
 		if err != nil {
 			return err
 		}
-		_, err = tx.Exec(ctx, "UPDATE pooltune_worker.projects SET last_poll=$2, evidence=$3::jsonb WHERE project_id=$1", enrollment.Project, at, string(raw))
+		_, err = tx.Exec(ctx, "UPDATE pooltune_worker.projects SET last_poll=$2, evidence=$3::jsonb WHERE project_id=$1", project, at, string(raw))
 		return err
 	})
 	if err != nil {
@@ -227,6 +249,7 @@ func enqueueInvestigation(ctx context.Context, tx pgx.Tx, project string, object
 			    WHEN result->>'outcome' IN ('propose','no_change') THEN interval '60 minutes'
 			    ELSE interval '5 minutes'
 			  END
+			  AND COALESCE(result->>'outcome', '') NOT IN ('query_unenrolled', 'query_objective_changed', 'project_disconnected')
 			  AND evidence->'objective_ms'=($5::jsonb)->'objective_ms'
 			  AND evidence->'counter_generation'=($5::jsonb)->'counter_generation'
 		)
