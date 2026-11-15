@@ -270,14 +270,15 @@ func checkProject(ctx context.Context, project projectRecord, credentials projec
 }
 
 // Admission happens immediately before the provider request and survives restarts.
-func (s projectStore) admitModel(ctx context.Context, id string) error {
+func (s projectStore) admitModel(ctx context.Context, id string, epoch int64) error {
 	const maxCalls = 8
 	var calls int
 	err := s.db.QueryRow(ctx, `WITH current_day AS (SELECT (statement_timestamp() AT TIME ZONE 'UTC')::date AS day),
+		active AS (SELECT id FROM pooltune_app.projects WHERE id=$1 AND epoch=$3 AND epoch>0 FOR UPDATE),
 		cleanup AS (DELETE FROM pooltune_app.model_budgets WHERE project_id=$1 AND utc_day < (SELECT day-8 FROM current_day))
-		INSERT INTO pooltune_app.model_budgets(project_id,utc_day,calls) SELECT $1, day, 1 FROM current_day
+		INSERT INTO pooltune_app.model_budgets(project_id,utc_day,calls) SELECT id, day, 1 FROM current_day CROSS JOIN active
 		ON CONFLICT (project_id, utc_day) DO UPDATE SET calls=model_budgets.calls+1 WHERE model_budgets.calls < $2
-		RETURNING calls`, id, maxCalls).Scan(&calls)
+		RETURNING calls`, id, maxCalls, epoch).Scan(&calls)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return hostedquery.ErrProjectModelBudget
 	}

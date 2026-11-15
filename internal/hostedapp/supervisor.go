@@ -149,7 +149,7 @@ func (a *App) runProject(ctx context.Context, row projectRecord) error {
 	go func() { finished <- monitor.Run(ctx, epoch, func(hostedquery.PollResult) error { return nil }) }()
 	go func() {
 		for ctx.Err() == nil {
-			result, err := hostedquery.DiagnoseHostedProjectLookup(ctx, queue.Conn(), config, identity, epoch, a.projectInvestigator(row.ID), logs)
+			result, err := hostedquery.DiagnoseHostedProjectLookup(ctx, queue.Conn(), config, identity, epoch, a.projectInvestigator(row.ID, epoch), logs)
 			if err != nil && queue.Conn().IsClosed() {
 				finished <- err
 				return
@@ -180,11 +180,11 @@ func wait(ctx context.Context, duration time.Duration) bool {
 	}
 }
 
-func (a *App) projectInvestigator(id string) hostedquery.EnrolledLookupInvestigator {
+func (a *App) projectInvestigator(id string, epoch int64) hostedquery.EnrolledLookupInvestigator {
 	return func(ctx context.Context, runID string, table uint32, column int16, at time.Time,
 		evidence hostedquery.LookupEvidence, admit func(context.Context) error) (*hostedquery.LookupDiagnosis, error) {
 		return a.investigate(ctx, runID, table, column, at, evidence, func(check context.Context) error {
-			if err := a.projects.admitModel(check, id); err != nil {
+			if err := a.projects.admitModel(check, id, epoch); err != nil {
 				return err
 			}
 			// Keep the shared epoch, job and evidence check closest to model admission.

@@ -102,16 +102,43 @@ func TestAccountDashboardAndProjectOwnership(t *testing.T) {
 			t.Fatalf("cross-account %s %s allowed: %d", route.method, route.path, w.Code)
 		}
 	}
+	if w := request(http.MethodPost, projectPath+"/connect", url.Values{"password": {"test secret"}}, owner, origin); w.Code != 400 || strings.Contains(w.Body.String(), "test secret") {
+		t.Fatal("invalid connection accepted or credential echoed")
+	}
+	ownerUser, err := app.accounts.UserBySession(ctx, owner.Value)
+	if err != nil {
+		t.Fatal(err)
+	}
+	projectID := strings.TrimPrefix(projectPath, "/app/projects/")
+	row, err := app.projects.find(ctx, ownerUser.ID, projectID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// The live test exercises the actual target verification. Here we exercise
+	// the local account/worker registration transaction and provider budget.
+	if err := app.projects.activate(ctx, row, []byte("test ciphertext")); err != nil {
+		t.Fatal(err)
+	}
+	row, err = app.projects.find(ctx, ownerUser.ID, projectID)
+	if err != nil || row.Epoch <= 0 {
+		t.Fatalf("activation did not persist: %v", err)
+	}
+	if err := app.projects.admitModel(ctx, projectID, row.Epoch+1); !errors.Is(err, hostedquery.ErrProjectModelBudget) {
+		t.Fatalf("stale epoch reserved a provider call: %v", err)
+	}
 	for n := 0; n < 8; n++ {
-		if err := app.projects.admitModel(ctx, strings.TrimPrefix(projectPath, "/app/projects/")); err != nil {
+		if err := app.projects.admitModel(ctx, projectID, row.Epoch); err != nil {
 			t.Fatalf("model admission %d: %v", n, err)
 		}
 	}
-	if err := (projectStore{pool}).admitModel(ctx, strings.TrimPrefix(projectPath, "/app/projects/")); !errors.Is(err, hostedquery.ErrProjectModelBudget) {
+	if err := (projectStore{pool}).admitModel(ctx, projectID, row.Epoch); !errors.Is(err, hostedquery.ErrProjectModelBudget) {
 		t.Fatalf("budget did not survive store reconnect: %v", err)
 	}
-	if w := request(http.MethodPost, projectPath+"/connect", url.Values{"password": {"test secret"}}, owner, origin); w.Code != 400 || strings.Contains(w.Body.String(), "test secret") {
-		t.Fatal("invalid connection accepted or credential echoed")
+	if w := request(http.MethodPost, projectPath+"/disconnect", nil, owner, origin); w.Code != 303 {
+		t.Fatalf("disconnect returned %d", w.Code)
+	}
+	if stopped, err := app.projects.find(ctx, ownerUser.ID, projectID); err != nil || stopped.Configured || stopped.Epoch >= 0 {
+		t.Fatalf("disconnect kept the credentials or an active epoch: %v", err)
 	}
 	if w := request(http.MethodPost, "/signout", nil, owner, origin); w.Code != 303 {
 		t.Fatalf("sign out returned %d", w.Code)
