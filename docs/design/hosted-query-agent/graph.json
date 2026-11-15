@@ -3,9 +3,9 @@
   "id": "pooltune-hosted-agent",
   "title": "Maintain Supabase query performance",
   "workType": "Build progress and remaining work",
-  "summary": "The simple setup passed a complete compound-index repair on Railway with no manual query IDs. The other five repair families and hosted interruption recovery still need the same product-flow verification.",
+  "summary": "Railway verified simple compound indexes, restart recovery, statistics refresh, table cleanup and function memory on Rookery. The remaining owned paths are joint statistics and job scheduling.",
   "sourceRevision": {
-    "commit": "c76a49bb8b52127f9e3b58998afa6bee0c61b030",
+    "commit": "baf9ce564a592f0c4bfb3006ceb0367b733079a1",
     "dirty": false
   },
   "components": [
@@ -521,7 +521,7 @@
       "id": "refresh",
       "label": "Refresh statistics: tested case",
       "type": "service",
-      "purpose": "The enrolled statistics-refresh component refreshed one authorized column, changed the actual plan and refused stale or withdrawn evidence in local PostgreSQL.",
+      "purpose": "Railway saved a verified targeted statistics refresh on an owned Rookery lookup. PostgreSQL confirmed one refresh. The measured query went from 16.89 ms to 0.05 ms and protected traffic checks passed.",
       "decisionIds": [],
       "sources": [
         {
@@ -533,21 +533,31 @@
           "path": "docs/design/hosted-query-agent/targeted-analyze.md",
           "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
           "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/mvp-owned-analyze-railway.json",
+          "revision": "768607f",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/mvp-owned-analyze-first-railway.json",
+          "revision": "0554eeb",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "The enrolled statistics-refresh component refreshed one authorized column, changed the actual plan and refused stale or withdrawn evidence in local PostgreSQL.",
+      "changeSummary": "Railway saved a verified targeted statistics refresh on an owned Rookery lookup. PostgreSQL confirmed one refresh. The measured query went from 16.89 ms to 0.05 ms and protected traffic checks passed.",
       "stack": [
         "Go"
       ],
       "parent": "tools",
-      "after": "The enrolled statistics-refresh component refreshed one authorized column, changed the actual plan and refused stale or withdrawn evidence in local PostgreSQL."
+      "after": "Railway saved a verified targeted statistics refresh on an owned Rookery lookup. PostgreSQL confirmed one refresh. The measured query went from 16.89 ms to 0.05 ms and protected traffic checks passed."
     },
     {
       "id": "richer",
       "label": "Improve statistics detail",
       "type": "service",
-      "purpose": "An earlier joint-statistics case passed. The native driver can change and restore a bounded statistics target on an exact approved column.",
+      "purpose": "Local PostgreSQL verified joint statistics and a separate column adjustment. Two Rookery controls used a fast index and correctly did not trigger a change.",
       "decisionIds": [],
       "sources": [
         {
@@ -559,22 +569,27 @@
           "path": "docs/design/hosted-query-agent/richer-statistics.md",
           "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
           "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/mvp-owned-statistics-planner-control-railway.json",
+          "revision": "768607f",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "An earlier joint-statistics case passed. The native driver can change and restore a bounded statistics target on an exact approved column.",
+      "changeSummary": "Local PostgreSQL verified joint statistics and a separate column adjustment. Two Rookery controls used a fast index and correctly did not trigger a change.",
       "stack": [
         "Go"
       ],
       "parent": "tools",
-      "after": "An earlier joint-statistics case passed. The native driver can change and restore a bounded statistics target on an exact approved column.",
+      "after": "Local PostgreSQL verified joint statistics and a separate column adjustment. Two Rookery controls used a fast index and correctly did not trigger a change.",
       "expandWhy": "Which statistics improvements exist and which remain?"
     },
     {
       "id": "cleanup",
       "label": "Perform targeted cleanup",
       "type": "service",
-      "purpose": "Plain VACUUM passed in a bounded hosted case. Local PostgreSQL also verified a bounded cleanup-trigger change and restoration.",
+      "purpose": "Railway verified one targeted VACUUM on an owned Rookery table. Heap fetches went from 50,000 to zero and matched latency from 55.16 ms to 12.56 ms. Protected traffic passed.",
       "decisionIds": [],
       "sources": [
         {
@@ -586,22 +601,32 @@
           "path": "docs/design/hosted-query-agent/bounded-vacuum.md",
           "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
           "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/mvp-owned-vacuum-first-railway.json",
+          "revision": "3aee7cf",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/mvp-owned-vacuum-railway.json",
+          "revision": "768607f",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Plain VACUUM passed in a bounded hosted case. Local PostgreSQL also verified a bounded cleanup-trigger change and restoration.",
+      "changeSummary": "Railway verified one targeted VACUUM on an owned Rookery table. Heap fetches went from 50,000 to zero and matched latency from 55.16 ms to 12.56 ms. Protected traffic passed.",
       "stack": [
         "Go"
       ],
       "parent": "tools",
-      "after": "Plain VACUUM passed in a bounded hosted case. Local PostgreSQL also verified a bounded cleanup-trigger change and restoration.",
+      "after": "Railway verified one targeted VACUUM on an owned Rookery table. Heap fetches went from 50,000 to zero and matched latency from 55.16 ms to 12.56 ms. Protected traffic passed.",
       "expandWhy": "Which cleanup actions exist and which remain?"
     },
     {
       "id": "memory",
       "label": "Function memory: tested case",
       "type": "service",
-      "purpose": "The earlier attributed spill case passed. The native driver checks function ownership and locally demonstrated that the spill can be removed and the prior setting restored.",
+      "purpose": "Railway verified a private function-memory repair on Rookery from 4 MB to 32 MB. The same query dropped from 270.37 ms to 190.11 ms and its attributed temporary writes fell to zero. Protected traffic passed.",
       "decisionIds": [],
       "sources": [
         {
@@ -613,21 +638,31 @@
           "path": "docs/design/hosted-query-agent/function-memory.md",
           "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
           "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/mvp-owned-memory-first-railway.json",
+          "revision": "3aee7cf",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/mvp-owned-memory-railway.json",
+          "revision": "768607f",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "The earlier attributed spill case passed. The native driver checks function ownership and locally demonstrated that the spill can be removed and the prior setting restored.",
+      "changeSummary": "Railway verified a private function-memory repair on Rookery from 4 MB to 32 MB. The same query dropped from 270.37 ms to 190.11 ms and its attributed temporary writes fell to zero. Protected traffic passed.",
       "stack": [
         "Go"
       ],
       "parent": "tools",
-      "after": "The earlier attributed spill case passed. The native driver checks function ownership and locally demonstrated that the spill can be removed and the prior setting restored."
+      "after": "Railway verified a private function-memory repair on Rookery from 4 MB to 32 MB. The same query dropped from 270.37 ms to 190.11 ms and its attributed temporary writes fell to zero. Protected traffic passed."
     },
     {
       "id": "cron",
       "label": "Job scheduling: tested case",
       "type": "service",
-      "purpose": "The earlier real scheduling case passed. The new native guard checks bounded schedules and post-commit witnesses with a local scheduler substitute.",
+      "purpose": "The owned worker can resume scheduling verification locally and has a private period recorder. A restricted Rookery login could not read the required scheduler settings or launcher start time.",
       "decisionIds": [],
       "sources": [
         {
@@ -639,21 +674,41 @@
           "path": "docs/design/hosted-query-agent/cron-staging.md",
           "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
           "kind": "verified"
+        },
+        {
+          "path": "internal/hostedquery/owned_cron_dispatch_integration_test.go",
+          "revision": "9f7ff67",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/repair-expansion/cron-20261114-220423.json",
+          "revision": "517eb87",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/mvp-owned-cron-role-preflight-rookery.json",
+          "revision": "baf9ce5",
+          "kind": "verified"
+        },
+        {
+          "path": "internal/hostedquery/owned_cron_observer_test.go",
+          "revision": "baf9ce5",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "The earlier real scheduling case passed. The new native guard checks bounded schedules and post-commit witnesses with a local scheduler substitute.",
+      "changeSummary": "The owned worker can resume scheduling verification locally and has a private period recorder. A restricted Rookery login could not read the required scheduler settings or launcher start time.",
       "stack": [
         "Go"
       ],
       "parent": "tools",
-      "after": "The earlier real scheduling case passed. The new native guard checks bounded schedules and post-commit witnesses with a local scheduler substitute."
+      "after": "The owned worker can resume scheduling verification locally and has a private period recorder. A restricted Rookery login could not read the required scheduler settings or launcher start time."
     },
     {
       "id": "recovery",
       "label": "Verify and recover: tested cases",
       "type": "service",
-      "purpose": "Staging verification measures benefit and protected traffic; saved intent supports repair-specific recovery.",
+      "purpose": "The hosted worker inspected a recorded index after a restart and kept the original result honest. Local checks also cover an invalid index and repeated interruptions.",
       "decisionIds": [
         "d-reuse",
         "d-durability"
@@ -676,12 +731,12 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Staging verification measures benefit and protected traffic; saved intent supports repair-specific recovery.",
+      "changeSummary": "The hosted worker inspected a recorded index after a restart and kept the original result honest. Local checks also cover an invalid index and repeated interruptions.",
       "stack": [
         "Go"
       ],
       "parent": "tools",
-      "after": "Compare valid before/after observations; reconcile uncertain actions before retrying. Preserve improved, regressed, inconclusive and failed outcomes; recovery rules remain to be specified.",
+      "after": "The hosted worker inspected a recorded index after a restart and kept the original result honest. Local checks also cover an invalid index and repeated interruptions.",
       "expandWhy": "What can Pooltune verify after an interrupted database change?"
     },
     {
@@ -875,7 +930,7 @@
       "id": "repair-coverage",
       "label": "Qualify broader repairs",
       "type": "service",
-      "purpose": "Earlier fixtures verified all six bounded families. The compound case now passes through simple setup on Railway. The enrolled statistics-refresh component passed in local PostgreSQL.",
+      "purpose": "Compound indexes, targeted refresh, targeted cleanup and function memory have verified owner results on Railway. Scheduler recovery passed locally and the hosted index restart passed.",
       "decisionIds": [],
       "sources": [
         {
@@ -887,11 +942,41 @@
           "path": "internal/hostedapp/supervisor.go",
           "revision": "895620198f40338eb335d780fe092e05c932b7f9",
           "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/mvp-owned-analyze-railway.json",
+          "revision": "768607f",
+          "kind": "verified"
+        },
+        {
+          "path": "internal/hostedquery/worker_store_integration_test.go",
+          "revision": "768607f",
+          "kind": "verified"
+        },
+        {
+          "path": "internal/hostedquery/owned_cron_dispatch_integration_test.go",
+          "revision": "9f7ff67",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/mvp-owned-memory-railway.json",
+          "revision": "768607f",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/mvp-owned-vacuum-railway.json",
+          "revision": "768607f",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/mvp-owned-cron-role-preflight-rookery.json",
+          "revision": "baf9ce5",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Earlier fixtures verified all six bounded families. The compound case now passes through simple setup on Railway. The enrolled statistics-refresh component passed in local PostgreSQL.",
-      "after": "Earlier fixtures verified all six bounded families. The compound case now passes through simple setup on Railway. The enrolled statistics-refresh component passed in local PostgreSQL.",
+      "changeSummary": "Compound indexes, targeted refresh, targeted cleanup and function memory have verified owner results on Railway. Scheduler recovery passed locally and the hosted index restart passed.",
+      "after": "Compound indexes, targeted refresh, targeted cleanup and function memory have verified owner results on Railway. Scheduler recovery passed locally and the hosted index restart passed.",
       "parent": "tools",
       "stack": [
         "Go"
@@ -982,7 +1067,7 @@
       "id": "activity",
       "label": "Project activity and controls",
       "type": "service",
-      "purpose": "The signed-in dashboard recorded the automatically discovered compound repair and its before-and-after measurements. Local checks also cover interrupted-action history.",
+      "purpose": "The dashboard displays the successful simple-setup repair and an interrupted index action resolved after a Railway restart.",
       "decisionIds": [],
       "sources": [
         {
@@ -992,8 +1077,8 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "The signed-in dashboard recorded the automatically discovered compound repair and its before-and-after measurements. Local checks also cover interrupted-action history.",
-      "after": "The signed-in dashboard recorded the automatically discovered compound repair and its before-and-after measurements. Local checks also cover interrupted-action history.",
+      "changeSummary": "The dashboard displays the successful simple-setup repair and an interrupted index action resolved after a Railway restart.",
+      "after": "The dashboard displays the successful simple-setup repair and an interrupted index action resolved after a Railway restart.",
       "parent": "dashboard"
     },
     {
@@ -1028,7 +1113,7 @@
       "id": "operations",
       "label": "Production operations",
       "type": "service",
-      "purpose": "Railway passed the simple form, discovery, repair and verification on owned Rookery. The token and fixture were removed and regular monitoring resumed.",
+      "purpose": "The owned compound repair passed through simple setup. A separate Railway restart after the database write verified catalog-only recovery.",
       "decisionIds": [],
       "sources": [
         {
@@ -1038,8 +1123,8 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Railway passed the simple form, discovery, repair and verification on owned Rookery. The token and fixture were removed and regular monitoring resumed.",
-      "after": "Railway passed the simple form, discovery, repair and verification on owned Rookery. The token and fixture were removed and regular monitoring resumed.",
+      "changeSummary": "The owned compound repair passed through simple setup. A separate Railway restart after the database write verified catalog-only recovery.",
+      "after": "The owned compound repair passed through simple setup. A separate Railway restart after the database write verified catalog-only recovery.",
       "stack": [
         "Go",
         "PostgreSQL",
@@ -2190,7 +2275,7 @@
       "id": "owned-index-recovery",
       "label": "Inspect an interrupted index action",
       "type": "service",
-      "purpose": "Local PostgreSQL verified interrupted index inspection and publication, including repeated restarts and an authorized reconnect.",
+      "purpose": "Railway restarted after PostgreSQL built the index and before performance verification. Attempt two inspected and reported the same index. PostgreSQL recorded one completed build.",
       "decisionIds": [],
       "sources": [
         {
@@ -2200,8 +2285,8 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Local PostgreSQL verified interrupted index inspection and publication, including repeated restarts and an authorized reconnect.",
-      "after": "Local PostgreSQL verified interrupted index inspection and publication, including repeated restarts and an authorized reconnect.",
+      "changeSummary": "Railway restarted after PostgreSQL built the index and before performance verification. Attempt two inspected and reported the same index. PostgreSQL recorded one completed build.",
+      "after": "Railway restarted after PostgreSQL built the index and before performance verification. Attempt two inspected and reported the same index. PostgreSQL recorded one completed build.",
       "parent": "recovery",
       "stack": [
         "Go",

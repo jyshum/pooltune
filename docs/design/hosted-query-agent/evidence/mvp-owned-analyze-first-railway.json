@@ -1,0 +1,171 @@
+{
+  "phase": "mixed_traffic",
+  "deployment": "caa0bf01-4686-40ba-905f-08094fab091f",
+  "operation": "analyze",
+  "setup_path": "owned_advanced_connect_form",
+  "initial_relation_bytes": 23461888,
+  "configured_query_ids": 3,
+  "capability": "analyze",
+  "polls_seen": 24,
+  "job_outcomes": [
+    "repair_interrupted"
+  ],
+  "worker_result_observed_seconds": 53.58336887496989,
+  "mixed_traffic": {
+    "candidate": {
+      "before": {
+        "calls": 99,
+        "client_mean_ms": 45.09127441078726
+      },
+      "during": {
+        "calls": 140,
+        "client_mean_ms": 31.141618467102358
+      },
+      "after": {
+        "calls": 36,
+        "client_mean_ms": 24.549336811307715
+      }
+    },
+    "healthy": {
+      "before": {
+        "calls": 99,
+        "client_mean_ms": 23.910683870781213
+      },
+      "during": {
+        "calls": 141,
+        "client_mean_ms": 22.1274372930011
+      },
+      "after": {
+        "calls": 36,
+        "client_mean_ms": 21.99204042133513
+      }
+    },
+    "write": {
+      "before": {
+        "calls": 99,
+        "client_mean_ms": 27.95139143321042
+      },
+      "during": {
+        "calls": 141,
+        "client_mean_ms": 26.01845984236529
+      },
+      "after": {
+        "calls": 36,
+        "client_mean_ms": 27.407428222229807
+      }
+    }
+  },
+  "traffic_errors": {},
+  "postgres_counters_before": {
+    "candidate": {
+      "database": 5,
+      "role": 28705,
+      "query": 5924952410938473284,
+      "calls": 2,
+      "time_ms": 44.058915,
+      "blocks": 3952
+    },
+    "write": {
+      "database": 5,
+      "role": 28705,
+      "query": 5308419555690240332,
+      "calls": 2,
+      "time_ms": 0.339175,
+      "blocks": 8
+    },
+    "healthy": {
+      "database": 5,
+      "role": 28705,
+      "query": -4187769025503830443,
+      "calls": 2,
+      "time_ms": 0.234694,
+      "blocks": 4
+    }
+  },
+  "postgres_counters_after": {
+    "candidate": {
+      "database": 5,
+      "role": 28705,
+      "query": 5924952410938473284,
+      "calls": 277,
+      "time_ms": 2809.09675,
+      "blocks": 328460
+    },
+    "write": {
+      "database": 5,
+      "role": 28705,
+      "query": 5308419555690240332,
+      "calls": 278,
+      "time_ms": 12.32347,
+      "blocks": 1112
+    },
+    "healthy": {
+      "database": 5,
+      "role": 28705,
+      "query": -4187769025503830443,
+      "calls": 278,
+      "time_ms": 7.525973,
+      "blocks": 556
+    }
+  },
+  "healthy_control_queued": false,
+  "job_id": 227,
+  "attempts": 2,
+  "outcome": "repair_interrupted",
+  "reason": "A recorded repair needs reconciliation",
+  "graph_ms": null,
+  "model_ms": null,
+  "repair": {
+    "kind": "analyze",
+    "action": "interrupted"
+  },
+  "catalog_before": {
+    "analyze_count": 1,
+    "statistics": [],
+    "indexes": [
+      {
+        "oid": "28714",
+        "keys": "1",
+        "live": true
+      },
+      {
+        "oid": "28719",
+        "keys": "1",
+        "live": true
+      },
+      {
+        "oid": "28721",
+        "keys": "2",
+        "live": true
+      }
+    ],
+    "protected_row": 0
+  },
+  "catalog_after": {
+    "analyze_count": 2,
+    "statistics": [],
+    "indexes": [
+      {
+        "oid": "28714",
+        "keys": "1",
+        "live": true
+      },
+      {
+        "oid": "28719",
+        "keys": "1",
+        "live": true
+      },
+      {
+        "oid": "28721",
+        "keys": "2",
+        "live": true
+      }
+    ],
+    "protected_row": 0
+  },
+  "dashboard_disconnected": true,
+  "owned_database_objects_removed": true,
+  "public_index_fingerprint_unchanged": true,
+  "source": "0554eeb905420c5d1343d16cab871d7aa7663adb",
+  "qualification": "interrupted; no verified dashboard benefit result"
+}

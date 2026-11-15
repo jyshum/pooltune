@@ -1,0 +1,17 @@
+{
+  "environment": "Rookery staging",
+  "scope": "read-only capability comparison using a disposable restricted repair login and the existing fixture operator",
+  "pg_cron_version": "1.6.4",
+  "restricted_login": {
+    "cron_schema_usage": false,
+    "visible_launcher_with_start_time": 0,
+    "cron_use_background_workers_sqlstate": "42501"
+  },
+  "fixture_operator": {
+    "cron_schema_usage": true,
+    "visible_launcher_with_start_time": 1,
+    "cron_use_background_workers": "off"
+  },
+  "outcome": "scheduler_authority_unqualified",
+  "scheduler_job_changed": false
+}

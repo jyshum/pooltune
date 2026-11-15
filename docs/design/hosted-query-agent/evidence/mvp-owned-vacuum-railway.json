@@ -1,0 +1,113 @@
+{
+  "operation": "vacuum",
+  "deployment": "174d8e84-0635-4501-8798-dcf69c8c5ffe",
+  "installation": "76b04ccdc755873f",
+  "phase": "verified",
+  "setup_path": "advanced_owner_setup",
+  "manually_enrolled_query_ids": 3,
+  "initial_relation_bytes": 19611648,
+  "before_catalog": 0,
+  "fixture_padding_bytes": 104,
+  "polls_seen": 19,
+  "job_outcomes": [
+    "improved_tested_inputs"
+  ],
+  "job_id": 249,
+  "outcome": "improved_tested_inputs",
+  "model_ms": 3447.668315,
+  "last_reason": "visibility work and measured query latency improved with no sampled regression",
+  "metrics": {
+    "Query mean latency": {
+      "label": "Query mean latency",
+      "unit": "ms",
+      "before": 55.15690000000001,
+      "after": 12.560500000000001
+    },
+    "Protected read mean latency": {
+      "label": "Protected read mean latency",
+      "unit": "ms",
+      "before": 0.0345,
+      "after": 0.038900000000000004
+    },
+    "Protected write mean latency": {
+      "label": "Protected write mean latency",
+      "unit": "ms",
+      "before": 0.06240000000000001,
+      "after": 0.1102
+    },
+    "Block accesses per read": {
+      "label": "Block accesses per read",
+      "unit": "",
+      "before": 50138,
+      "after": 139
+    },
+    "Heap fetches": {
+      "label": "Heap fetches",
+      "unit": "",
+      "before": 50000,
+      "after": 0
+    },
+    "Row estimate error ratio": {
+      "label": "Row estimate error ratio",
+      "unit": "\u00d7",
+      "before": 0,
+      "after": 0
+    }
+  },
+  "after_catalog": 1,
+  "mixed_traffic": {
+    "candidate": {
+      "before": {
+        "calls": 176,
+        "client_mean_ms": 75.60180846452236
+      },
+      "after": {
+        "calls": 33,
+        "client_mean_ms": 33.4059431228194
+      }
+    },
+    "healthy": {
+      "before": {
+        "calls": 181,
+        "client_mean_ms": 26.557511775124077
+      },
+      "after": {
+        "calls": 33,
+        "client_mean_ms": 22.61834588981318
+      }
+    },
+    "write": {
+      "before": {
+        "calls": 181,
+        "client_mean_ms": 27.327624093985587
+      },
+      "after": {
+        "calls": 33,
+        "client_mean_ms": 24.647484879206978
+      }
+    }
+  },
+  "postgres_app_counter_delta": {
+    "candidate": {
+      "ordinary": 209,
+      "measurement_reads": 2,
+      "total": 211
+    },
+    "healthy": {
+      "ordinary": 214,
+      "measurement_reads": 0,
+      "total": 214
+    },
+    "write": {
+      "ordinary": 214,
+      "measurement_reads": 0,
+      "total": 214
+    }
+  },
+  "active_dashboard_verified": true,
+  "protected_controls_queued": false,
+  "public_index_fingerprint_unchanged": true,
+  "dashboard_disconnected": true,
+  "owned_database_objects_removed": true,
+  "revision": "768607f"
+}

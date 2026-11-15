@@ -1,0 +1,97 @@
+{
+  "phase": "mixed_traffic",
+  "deployment": "dd9bd7db-57fd-48cc-8f56-622186993bb9",
+  "operation": "statistics",
+  "setup_path": "owned_advanced_connect_form",
+  "initial_relation_bytes": 22077440,
+  "configured_query_ids": 3,
+  "fixture_profile": "default",
+  "candidate_planner": "bitmap_disabled",
+  "capability": "statistics",
+  "catalog_before": {
+    "analyze_count": 1,
+    "statistics": [],
+    "indexes": [
+      {
+        "oid": "29144",
+        "keys": "1",
+        "live": true
+      },
+      {
+        "oid": "29149",
+        "keys": "1",
+        "live": true
+      },
+      {
+        "oid": "29151",
+        "keys": "2 3",
+        "live": true
+      }
+    ],
+    "protected_row": 0
+  },
+  "polls_seen": 65,
+  "job_outcomes": [],
+  "mixed_traffic": {
+    "candidate": {
+      "before": {
+        "calls": 554,
+        "client_mean_ms": 42.34372984575081
+      },
+      "during": {
+        "calls": 0,
+        "client_mean_ms": null
+      },
+      "after": {
+        "calls": 0,
+        "client_mean_ms": null
+      }
+    },
+    "healthy": {
+      "before": {
+        "calls": 555,
+        "client_mean_ms": 39.30136105832266
+      },
+      "during": {
+        "calls": 0,
+        "client_mean_ms": null
+      },
+      "after": {
+        "calls": 0,
+        "client_mean_ms": null
+      }
+    },
+    "write": {
+      "before": {
+        "calls": 555,
+        "client_mean_ms": 41.353284472469575
+      },
+      "during": {
+        "calls": 0,
+        "client_mean_ms": null
+      },
+      "after": {
+        "calls": 0,
+        "client_mean_ms": null
+      }
+    }
+  },
+  "traffic_errors": {},
+  "dashboard_disconnected": true,
+  "owned_database_objects_removed": true,
+  "public_index_fingerprint_unchanged": true,
+  "revision": "768607f",
+  "plan_readback": {
+    "fixture_default_random_page_cost": 1.1,
+    "serial_no_bitmap_with_default_cost": {
+      "plan": "Index Only Scan",
+      "rows": 100,
+      "execution_ms": 0.227
+    },
+    "separate_serial_test_with_cost_8": {
+      "plan": "Seq Scan",
+      "rows": 100,
+      "execution_ms": 17.908
+    }
+  }
+}

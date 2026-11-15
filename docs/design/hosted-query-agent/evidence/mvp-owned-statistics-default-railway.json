@@ -1,0 +1,95 @@
+{
+  "phase": "mixed_traffic",
+  "deployment": "122748a5-0b99-4c68-bdc9-4253f98acb92",
+  "operation": "statistics",
+  "setup_path": "owned_advanced_connect_form",
+  "initial_relation_bytes": 22077440,
+  "configured_query_ids": 3,
+  "capability": "statistics",
+  "catalog_before": {
+    "analyze_count": 1,
+    "statistics": [],
+    "indexes": [
+      {
+        "oid": "28799",
+        "keys": "1",
+        "live": true
+      },
+      {
+        "oid": "28804",
+        "keys": "1",
+        "live": true
+      },
+      {
+        "oid": "28806",
+        "keys": "2 3",
+        "live": true
+      }
+    ],
+    "protected_row": 0
+  },
+  "polls_seen": 63,
+  "job_outcomes": [],
+  "mixed_traffic": {
+    "candidate": {
+      "before": {
+        "calls": 560,
+        "client_mean_ms": 25.210434951129304
+      },
+      "during": {
+        "calls": 0,
+        "client_mean_ms": null
+      },
+      "after": {
+        "calls": 0,
+        "client_mean_ms": null
+      }
+    },
+    "healthy": {
+      "before": {
+        "calls": 560,
+        "client_mean_ms": 23.779687253201182
+      },
+      "during": {
+        "calls": 0,
+        "client_mean_ms": null
+      },
+      "after": {
+        "calls": 0,
+        "client_mean_ms": null
+      }
+    },
+    "write": {
+      "before": {
+        "calls": 560,
+        "client_mean_ms": 24.535295899425233
+      },
+      "during": {
+        "calls": 0,
+        "client_mean_ms": null
+      },
+      "after": {
+        "calls": 0,
+        "client_mean_ms": null
+      }
+    }
+  },
+  "traffic_errors": {},
+  "dashboard_disconnected": true,
+  "owned_database_objects_removed": true,
+  "public_index_fingerprint_unchanged": true,
+  "source": "0554eeb905420c5d1343d16cab871d7aa7663adb",
+  "qualification": "default planner used the existing access path and did not trigger a repair",
+  "observation": {
+    "recent_candidate_database_means_ms": [
+      0.323643647,
+      0.311476222,
+      0.304841222,
+      0.301412765,
+      0.307674389,
+      0.304837556
+    ],
+    "objective_ms": 2.0,
+    "candidate_calls_observed": 464
+  }
+}

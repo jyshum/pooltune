@@ -1,0 +1,90 @@
+{
+  "deployment": "30d8e61e-2cf2-4657-9249-7b4947fe1d01",
+  "mode": "advanced owned enrollment",
+  "phase": "verified",
+  "target_table_oid": 28630,
+  "index_before_restart": {
+    "oid": 28635,
+    "name": "pooltune_ix_28630_2_4",
+    "definition": "CREATE INDEX pooltune_ix_28630_2_4 ON pt_hosted_ix_d78f4d4d04335952.workload USING btree (customer, category)",
+    "keys": "2 4",
+    "live": true,
+    "unique": false,
+    "bytes": 3620864
+  },
+  "original_job": 220,
+  "original_attempts": 1,
+  "restart_response": {
+    "id": "30d8e61e-2cf2-4657-9249-7b4947fe1d01"
+  },
+  "index_after_restart": {
+    "oid": 28635,
+    "name": "pooltune_ix_28630_2_4",
+    "definition": "CREATE INDEX pooltune_ix_28630_2_4 ON pt_hosted_ix_d78f4d4d04335952.workload USING btree (customer, category)",
+    "keys": "2 4",
+    "live": true,
+    "unique": false,
+    "bytes": 3620864
+  },
+  "outcome": "repair_interrupted",
+  "recovery_status": "exact_index_present",
+  "recovery_attempts": 2,
+  "completed_ddl_calls": 1,
+  "recovery_has_performance_claim": false,
+  "healthy_control_queued": false,
+  "mixed_traffic": {
+    "candidate": {
+      "before": {
+        "calls": 170,
+        "client_mean_ms": 42.48813405078288
+      },
+      "after": {
+        "calls": 85,
+        "client_mean_ms": 26.392084340263597
+      }
+    },
+    "healthy": {
+      "before": {
+        "calls": 170,
+        "client_mean_ms": 25.86653899634257
+      },
+      "after": {
+        "calls": 85,
+        "client_mean_ms": 25.69257158868234
+      }
+    },
+    "write": {
+      "before": {
+        "calls": 171,
+        "client_mean_ms": 26.936694696118064
+      },
+      "after": {
+        "calls": 84,
+        "client_mean_ms": 26.872217763974774
+      }
+    }
+  },
+  "dashboard_disconnected": true,
+  "owned_database_objects_removed": true,
+  "public_index_fingerprint_unchanged": true,
+  "source": "90779696952a5ce2884b85bedc5bd8a70615b6c5",
+  "railway_events": [
+    {
+      "timestamp": "2026-11-15T21:40:48.758601111Z",
+      "event": "worker_started"
+    },
+    {
+      "timestamp": "2026-11-15T21:41:48.870844496Z",
+      "event": "index_write_before_verification"
+    },
+    {
+      "timestamp": "2026-11-15T21:41:48.870848666Z",
+      "event": "worker_started"
+    },
+    {
+      "timestamp": "2026-11-15T21:42:08.844916178Z",
+      "event": "result_saved"
+    }
+  ],
+  "limits": "Advanced owned enrollment. The worker restarted after the index write was acknowledged and before performance verification. Recovery checked the catalog and made no performance claim."
+}

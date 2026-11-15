@@ -1,0 +1,56 @@
+{
+  "operation": "vacuum",
+  "deployment": "3f9e120e-1cb4-4f19-b650-a373691131a3",
+  "installation": "c9f27cdb1173818b",
+  "phase": "mixed_traffic",
+  "setup_path": "advanced_owner_setup",
+  "manually_enrolled_query_ids": 3,
+  "initial_relation_bytes": 15638528,
+  "before_catalog": 0,
+  "polls_seen": 23,
+  "job_outcomes": [
+    "repair_interrupted"
+  ],
+  "job_id": 231,
+  "outcome": "repair_interrupted",
+  "model_ms": null,
+  "last_reason": "A recorded repair needs reconciliation",
+  "mixed_traffic": {
+    "candidate": {
+      "before": {
+        "calls": 209,
+        "client_mean_ms": 66.35443897194867
+      },
+      "after": {
+        "calls": 0,
+        "client_mean_ms": null
+      }
+    },
+    "healthy": {
+      "before": {
+        "calls": 216,
+        "client_mean_ms": 28.179479900077073
+      },
+      "after": {
+        "calls": 0,
+        "client_mean_ms": null
+      }
+    },
+    "write": {
+      "before": {
+        "calls": 216,
+        "client_mean_ms": 30.567217992804082
+      },
+      "after": {
+        "calls": 0,
+        "client_mean_ms": null
+      }
+    }
+  },
+  "dashboard_disconnected": true,
+  "owned_database_objects_removed": true,
+  "public_index_fingerprint_unchanged": true,
+  "revision": "3aee7cf",
+  "worker_evaluation_outcome": "inconclusive",
+  "monitor_restarted_before_publication": true
+}

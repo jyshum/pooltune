@@ -1,0 +1,167 @@
+{
+  "phase": "refused",
+  "deployment": "9ec986bd-3c1a-40b5-932e-a2844fe7e250",
+  "operation": "statistics",
+  "setup_path": "owned_advanced_connect_form",
+  "initial_relation_bytes": 17907712,
+  "configured_query_ids": 3,
+  "fixture_profile": "dense",
+  "candidate_planner": "fixture_role_random_page_cost_4_serial_no_bitmap_no_jit",
+  "capability": "statistics",
+  "catalog_before": {
+    "analyze_count": 1,
+    "statistics": [],
+    "indexes": [
+      {
+        "oid": "29410",
+        "keys": "1",
+        "live": true
+      },
+      {
+        "oid": "29412",
+        "keys": "2 3",
+        "live": true
+      }
+    ],
+    "protected_row": 0
+  },
+  "polls_seen": 13,
+  "job_outcomes": [
+    "insufficient_evidence"
+  ],
+  "job_id": 253,
+  "attempts": 1,
+  "outcome": "insufficient_evidence",
+  "reason": "the owned statistics workload could not be verified",
+  "graph_ms": null,
+  "model_ms": null,
+  "repair": {},
+  "terminal_job": {
+    "id": 253,
+    "attempts": 1,
+    "outcome": "insufficient_evidence",
+    "claimed_at": "2026-11-15T22:37:00.452431Z",
+    "finished_at": "2026-11-15T22:37:04.892168Z",
+    "elapsed_ms": 4441.98292
+  },
+  "worker_result_observed_seconds": 26.642144665995147,
+  "catalog_after": {
+    "analyze_count": 1,
+    "statistics": [],
+    "indexes": [
+      {
+        "oid": "29410",
+        "keys": "1",
+        "live": true
+      },
+      {
+        "oid": "29412",
+        "keys": "2 3",
+        "live": true
+      }
+    ],
+    "protected_row": 0
+  },
+  "mixed_traffic": {
+    "candidate": {
+      "before": {
+        "calls": 96,
+        "client_mean_ms": 81.78371528447315
+      },
+      "during": {
+        "calls": 19,
+        "client_mean_ms": 66.54596478849845
+      },
+      "after": {
+        "calls": 35,
+        "client_mean_ms": 64.28866543075335
+      }
+    },
+    "healthy": {
+      "before": {
+        "calls": 101,
+        "client_mean_ms": 24.049341525896313
+      },
+      "during": {
+        "calls": 18,
+        "client_mean_ms": 19.853236218396987
+      },
+      "after": {
+        "calls": 36,
+        "client_mean_ms": 22.985788086468045
+      }
+    },
+    "write": {
+      "before": {
+        "calls": 101,
+        "client_mean_ms": 25.84819635549228
+      },
+      "during": {
+        "calls": 19,
+        "client_mean_ms": 23.914179786132944
+      },
+      "after": {
+        "calls": 35,
+        "client_mean_ms": 23.578927458064364
+      }
+    }
+  },
+  "traffic_errors": {},
+  "postgres_counters_before": {
+    "candidate": {
+      "database": 5,
+      "role": 29398,
+      "query": -755689020520328030,
+      "calls": 2,
+      "time_ms": 88.860224,
+      "blocks": 3806
+    },
+    "healthy": {
+      "database": 5,
+      "role": 29398,
+      "query": 4511701715476721038,
+      "calls": 1,
+      "time_ms": 0.048421,
+      "blocks": 2
+    },
+    "write": {
+      "database": 5,
+      "role": 29398,
+      "query": -599825883422785436,
+      "calls": 1,
+      "time_ms": 0.081901,
+      "blocks": 4
+    }
+  },
+  "postgres_counters_after": {
+    "candidate": {
+      "database": 5,
+      "role": 29398,
+      "query": -755689020520328030,
+      "calls": 152,
+      "time_ms": 6828.615113,
+      "blocks": 289256
+    },
+    "healthy": {
+      "database": 5,
+      "role": 29398,
+      "query": 4511701715476721038,
+      "calls": 156,
+      "time_ms": 7.655388,
+      "blocks": 157
+    },
+    "write": {
+      "database": 5,
+      "role": 29398,
+      "query": -599825883422785436,
+      "calls": 156,
+      "time_ms": 10.148418,
+      "blocks": 469
+    }
+  },
+  "healthy_control_queued": false,
+  "dashboard_disconnected": true,
+  "owned_database_objects_removed": true,
+  "public_index_fingerprint_unchanged": true,
+  "revision": "768607f"
+}

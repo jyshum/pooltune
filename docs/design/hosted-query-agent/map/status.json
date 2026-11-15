@@ -1,6 +1,6 @@
 {
-  "sourceRevision": "c76a49bb8b52127f9e3b58998afa6bee0c61b030",
-  "summary": "The simple setup passed a complete compound-index repair on Railway with no manual query IDs. The other five repair families and hosted interruption recovery still need the same product-flow verification.",
+  "sourceRevision": "baf9ce564a592f0c4bfb3006ceb0367b733079a1",
+  "summary": "Railway verified simple compound indexes, restart recovery, statistics refresh, table cleanup and function memory on Rookery. The remaining owned paths are joint statistics and job scheduling.",
   "next": [
     "repair-coverage",
     "inspection",
@@ -162,73 +162,87 @@
     },
     "refresh": {
       "status": "verified",
-      "scope": "The enrolled statistics-refresh component refreshed one authorized column, changed the actual plan and refused stale or withdrawn evidence in local PostgreSQL.",
-      "remaining": "Connect to the hosted project evidence reader, action journal, Sonnet dispatch and dashboard.",
+      "scope": "Railway saved a verified targeted statistics refresh on an owned Rookery lookup. PostgreSQL confirmed one refresh. The measured query went from 16.89 ms to 0.05 ms and protected traffic checks passed.",
+      "remaining": "Qualify broader customer evidence and repair authority. This proof used advanced owner enrollment.",
       "evidence": [
         "docs/design/hosted-query-agent/targeted-analyze.md",
         "internal/hostedquery/project_maintenance.go",
         "internal/hostedquery/project_analyze.go",
-        "internal/hostedquery/project_analyze_integration_test.go"
+        "internal/hostedquery/project_analyze_integration_test.go",
+        "internal/hostedquery/owned_statistics_repairs_integration_test.go",
+        "docs/design/hosted-query-agent/evidence/mvp-owned-analyze-railway.json",
+        "docs/design/hosted-query-agent/evidence/mvp-owned-analyze-first-railway.json"
       ],
-      "statusLabel": "Enrolled refresh tested locally"
+      "statusLabel": "Railway refresh verified"
     },
     "richer": {
       "status": "partial",
-      "scope": "An earlier joint-statistics case passed. The native driver can change and restore a bounded statistics target on an exact approved column.",
-      "remaining": "Wire the new driver into the hosted worker and generalize joint statistics. Verify representative traffic, analysis cost and restoration.",
+      "scope": "Local PostgreSQL verified joint statistics and a separate column adjustment. Two Rookery controls used a fast index and correctly did not trigger a change.",
+      "remaining": "Verify joint statistics end to end against the qualified slow-plan fixture. Wire the individual-column settings case.",
       "evidence": [
         "docs/design/hosted-query-agent/richer-statistics.md",
         "internal/hostedquery/statistics_samples.go",
         "docs/product/query-performance-v1.md",
-        "internal/hostedquery/project_statistics.go"
+        "internal/hostedquery/project_statistics.go",
+        "internal/hostedquery/owned_statistics_repairs_integration_test.go",
+        "docs/design/hosted-query-agent/evidence/mvp-owned-statistics-planner-control-railway.json"
       ],
-      "remainingBuild": "Connect owner permissions and runtime evidence to the column adjustment. Generalize extended statistics targeting.",
-      "remainingVerification": "Verify analysis cost, benefit and safe restoration through the connected project dashboard.",
-      "statusLabel": "Column adjustment tested locally"
+      "statusLabel": "Joint statistics under qualification"
     },
     "cleanup": {
-      "status": "partial",
-      "scope": "Plain VACUUM passed in a bounded hosted case. Local PostgreSQL also verified a bounded cleanup-trigger change and restoration.",
-      "remaining": "Wire both cleanup actions to the hosted worker and measure recurring backlog and interference.",
+      "status": "verified",
+      "scope": "Railway verified one targeted VACUUM on an owned Rookery table. Heap fetches went from 50,000 to zero and matched latency from 55.16 ms to 12.56 ms. Protected traffic passed.",
+      "remaining": "Wire the separate cleanup-trigger settings and qualify simple setup on regular connected projects.",
       "evidence": [
         "docs/design/hosted-query-agent/bounded-vacuum.md",
         "docs/product/query-performance-v1.md",
         "internal/hostedquery/vacuum_fixture.go",
         "internal/hostedquery/project_cleanup_settings.go",
-        "internal/hostedquery/project_maintenance.go"
+        "internal/hostedquery/project_maintenance.go",
+        "internal/hostedquery/owned_cleanup_repair_integration_test.go",
+        "docs/design/hosted-query-agent/evidence/mvp-owned-vacuum-first-railway.json",
+        "docs/design/hosted-query-agent/evidence/mvp-owned-vacuum-railway.json"
       ],
-      "remainingBuild": "Connect the two cleanup actions to hosted evidence and owner permissions.",
-      "remainingVerification": "Verify real backlog improvement and protected traffic through the connected project dashboard.",
-      "statusLabel": "Cleanup adjustment tested locally"
+      "statusLabel": "Railway cleanup verified"
     },
     "memory": {
       "status": "verified",
-      "scope": "The earlier attributed spill case passed. The native driver checks function ownership and locally demonstrated that the spill can be removed and the prior setting restored.",
-      "remaining": "Connect the repair to hosted worker permissions. Qualify broader concurrency and memory headroom.",
+      "scope": "Railway verified a private function-memory repair on Rookery from 4 MB to 32 MB. The same query dropped from 270.37 ms to 190.11 ms and its attributed temporary writes fell to zero. Protected traffic passed.",
+      "remaining": "Qualify wider project capacity, concurrency and simple setup for function memory.",
       "evidence": [
         "docs/design/hosted-query-agent/function-memory.md",
-        "internal/hostedquery/project_function_memory.go"
+        "internal/hostedquery/project_function_memory.go",
+        "internal/hostedquery/owned_memory_repair_integration_test.go",
+        "docs/design/hosted-query-agent/evidence/mvp-owned-memory-first-railway.json",
+        "docs/design/hosted-query-agent/evidence/mvp-owned-memory-railway.json"
       ],
-      "statusLabel": "Native memory guard tested locally"
+      "statusLabel": "Railway memory repair verified"
     },
     "cron": {
-      "status": "verified",
-      "scope": "The earlier real scheduling case passed. The new native guard checks bounded schedules and post-commit witnesses with a local scheduler substitute.",
-      "remaining": "Connect the new guard to the hosted worker and verify real scheduled periods on an enrolled project.",
+      "status": "partial",
+      "scope": "The owned worker can resume scheduling verification locally and has a private period recorder. A restricted Rookery login could not read the required scheduler settings or launcher start time.",
+      "remaining": "Qualify scoped provider permissions and drive three original and three future cycles through the signed-in owner flow.",
       "evidence": [
         "docs/design/hosted-query-agent/cron-staging.md",
-        "internal/hostedquery/project_cron.go"
+        "internal/hostedquery/project_cron.go",
+        "internal/hostedquery/owned_cron_repair_integration_test.go",
+        "internal/hostedquery/owned_cron_dispatch_integration_test.go",
+        "docs/design/hosted-query-agent/evidence/repair-expansion/cron-20261114-220423.json",
+        "docs/design/hosted-query-agent/evidence/mvp-owned-cron-role-preflight-rookery.json",
+        "internal/hostedquery/owned_cron_observer_test.go"
       ],
-      "statusLabel": "Native schedule guard tested locally"
+      "statusLabel": "Scheduler authority unqualified"
     },
     "recovery": {
       "status": "verified",
-      "scope": "Staging verification measures benefit and protected traffic; saved intent supports repair-specific recovery.",
-      "remaining": "Customer lifecycle, uncertain external changes and broader failure coverage remain.",
+      "scope": "The hosted worker inspected a recorded index after a restart and kept the original result honest. Local checks also cover an invalid index and repeated interruptions.",
+      "remaining": "Qualify recovery across other repairs, during the database command itself, and under wider project lifecycle changes.",
       "evidence": [
         "docs/design/hosted-query-agent/cron-staging.md",
-        "docs/design/hosted-query-agent/function-memory.md"
-      ]
+        "docs/design/hosted-query-agent/function-memory.md",
+        "docs/design/hosted-query-agent/evidence/mvp-owned-index-restart-railway.json"
+      ],
+      "statusLabel": "Hosted index restart tested"
     },
     "backend": {
       "status": "partial",
@@ -307,8 +321,8 @@
     },
     "repair-coverage": {
       "status": "partial",
-      "scope": "Earlier fixtures verified all six bounded families. The compound case now passes through simple setup on Railway. The enrolled statistics-refresh component passed in local PostgreSQL.",
-      "remaining": "Wire statistics refresh and the other four remaining repair families through hosted evidence, authorization and results.",
+      "scope": "Compound indexes, targeted refresh, targeted cleanup and function memory have verified owner results on Railway. Scheduler recovery passed locally and the hosted index restart passed.",
+      "remaining": "Finish joint statistics and job scheduling in the owner flow. Hook remaining settings variants and qualify repair permissions on a generally connected project.",
       "evidence": [
         "docs/design/hosted-query-agent/roadmap.md",
         "internal/hostedapp/supervisor.go",
@@ -316,9 +330,16 @@
         "docs/design/hosted-query-agent/evidence/mvp-compound-rookery.json",
         "docs/design/hosted-query-agent/evidence/mvp-hosted-owned-index.json",
         "internal/hostedquery/project_analyze_integration_test.go",
-        "docs/design/hosted-query-agent/evidence/mvp-simple-index-railway.json"
+        "docs/design/hosted-query-agent/evidence/mvp-simple-index-railway.json",
+        "internal/hostedquery/owned_project_repair_integration_test.go",
+        "docs/design/hosted-query-agent/evidence/mvp-owned-analyze-railway.json",
+        "internal/hostedquery/worker_store_integration_test.go",
+        "internal/hostedquery/owned_cron_dispatch_integration_test.go",
+        "docs/design/hosted-query-agent/evidence/mvp-owned-memory-railway.json",
+        "docs/design/hosted-query-agent/evidence/mvp-owned-vacuum-railway.json",
+        "docs/design/hosted-query-agent/evidence/mvp-owned-cron-role-preflight-rookery.json"
       ],
-      "statusLabel": "One of six through simple setup"
+      "statusLabel": "Owner repair qualification continues"
     },
     "connect-project": {
       "status": "partial",
@@ -365,8 +386,8 @@
     },
     "activity": {
       "status": "partial",
-      "scope": "The signed-in dashboard recorded the automatically discovered compound repair and its before-and-after measurements. Local checks also cover interrupted-action history.",
-      "remaining": "Qualify a real Railway restart and show the rest of the repair families and protected traffic measures.",
+      "scope": "The dashboard displays the successful simple-setup repair and an interrupted index action resolved after a Railway restart.",
+      "remaining": "Verify the other repair result types through normal setup and expose protected traffic measurements.",
       "evidence": [
         "docs/design/hosted-query-agent/roadmap.md",
         "docs/design/hosted-query-agent/hosted-preview.md",
@@ -374,9 +395,10 @@
         "internal/hostedquery/project_activity_integration_test.go",
         "docs/design/hosted-query-agent/evidence/mvp-hosted-owned-index.json",
         "internal/hostedquery/owned_index_recovery_integration_test.go",
-        "docs/design/hosted-query-agent/evidence/mvp-simple-index-railway.json"
+        "docs/design/hosted-query-agent/evidence/mvp-simple-index-railway.json",
+        "docs/design/hosted-query-agent/evidence/mvp-owned-index-restart-railway.json"
       ],
-      "statusLabel": "Live automatic result verified"
+      "statusLabel": "Hosted repair and recovery results"
     },
     "landing": {
       "status": "verified",
@@ -392,8 +414,8 @@
     },
     "operations": {
       "status": "planned",
-      "scope": "Railway passed the simple form, discovery, repair and verification on owned Rookery. The token and fixture were removed and regular monitoring resumed.",
-      "remaining": "Run the six-family walkthrough, a live restart during repair, credential expiry and database restore.",
+      "scope": "The owned compound repair passed through simple setup. A separate Railway restart after the database write verified catalog-only recovery.",
+      "remaining": "Finish the remaining repair qualification, general authority, credential expiry, and state database restore.",
       "evidence": [
         "docs/design/hosted-query-agent/roadmap.md",
         "docs/design/hosted-query-agent/hosted-preview.md",
@@ -401,9 +423,10 @@
         "docs/design/hosted-query-agent/evidence/mvp-hosted-owned-index.json",
         "docs/design/hosted-query-agent/progress.md",
         "docs/design/hosted-query-agent/evidence/mvp-simple-index-preflight.json",
-        "docs/design/hosted-query-agent/evidence/mvp-simple-index-railway.json"
+        "docs/design/hosted-query-agent/evidence/mvp-simple-index-railway.json",
+        "docs/design/hosted-query-agent/evidence/mvp-owned-index-restart-railway.json"
       ],
-      "statusLabel": "Simple Rookery flow verified"
+      "statusLabel": "Railway restart verified"
     },
     "hosted-diagnostic-integration": {
       "status": "verified",
@@ -714,12 +737,14 @@
     },
     "owned-index-recovery": {
       "status": "verified",
-      "scope": "Local PostgreSQL verified interrupted index inspection and publication, including repeated restarts and an authorized reconnect. The recovery worker sends no new index command.",
-      "remaining": "Verify an actual mid-action Railway process stop. After the bounded retries, unresolved actions remain open for review.",
+      "scope": "Railway restarted after PostgreSQL built the index and before performance verification. Attempt two inspected and reported the same index. PostgreSQL recorded one completed build.",
+      "remaining": "This test stops the worker between the database write and performance verification. Extend hosted reconciliation to the other repair families.",
       "evidence": [
         "internal/hostedquery/owned_index_recovery_integration_test.go",
-        "internal/hostedquery/owned_index_recovery.go"
-      ]
+        "internal/hostedquery/owned_index_recovery.go",
+        "docs/design/hosted-query-agent/evidence/mvp-owned-index-restart-railway.json"
+      ],
+      "statusLabel": "Railway restart verified"
     }
   },
   "colorMeaning": "Green covers the verified scope on each card. Yellow means part of the card works and more remains. Dashed cards track pending work or qualification.",
@@ -833,6 +858,28 @@
         "automatic-hosted-index",
         "automatic-workload-discovery",
         "activity",
+        "repair-coverage"
+      ]
+    },
+    {
+      "label": "Task 54 · Restart during index verification",
+      "summary": "Railway restarted after the index write. The original dashboard job reconciled the exact same PostgreSQL index on attempt two, with one completed build.",
+      "nodes": [
+        "owned-index-recovery",
+        "recovery",
+        "activity",
+        "operations"
+      ]
+    },
+    {
+      "label": "Task 55 · Qualify the remaining owner repairs",
+      "summary": "Railway saved verified refresh, function-memory and cleanup repairs. The monitor fix lets a repair finish while its permission lock is held.",
+      "nodes": [
+        "refresh",
+        "memory",
+        "richer",
+        "cleanup",
+        "cron",
         "repair-coverage"
       ]
     }
