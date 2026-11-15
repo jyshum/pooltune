@@ -116,6 +116,18 @@ func readProjectCronJob(ctx context.Context, db trialReader, t ProjectCronTarget
 	return out, nil
 }
 
+func readProjectCronWitness(ctx context.Context, db trialReader, target ProjectCronTarget) (string, error) {
+	var fingerprint string
+	err := db.QueryRow(ctx, `
+		SELECT pg_catalog.encode(pg_catalog.sha256(pg_catalog.convert_to(pg_catalog.to_jsonb(w)::text,'UTF8')),'hex')
+		FROM cron.job w JOIN cron.job t ON t.jobid=$1
+		WHERE w.jobid=$2 AND t.username::text=current_user AND t.database::text=current_database()
+		  AND w.username=t.username AND w.database=t.database AND w.active
+		  AND w.command='SELECT 1' AND w.schedule='2 seconds'
+	`, target.JobID, target.WitnessJobID).Scan(&fingerprint)
+	return fingerprint, err
+}
+
 func checkProjectCronProvider(ctx context.Context, db trialReader) error {
 	var valid bool
 	err := db.QueryRow(ctx, `SELECT EXISTS (
@@ -167,6 +179,7 @@ func applyProjectCron(ctx context.Context, cfg *pgx.ConnConfig, req ProjectCronR
 		return out, err
 	}
 	var expected ProjectCronSnapshot
+	var witnessBefore string
 	var lastClock time.Time
 	err = pgx.BeginTxFunc(ctx, db, pgx.TxOptions{IsoLevel: pgx.RepeatableRead}, func(tx pgx.Tx) error {
 		if _, err := tx.Exec(ctx, "SET LOCAL idle_in_transaction_session_timeout='5s'"); err != nil {
@@ -188,6 +201,10 @@ func applyProjectCron(ctx context.Context, cfg *pgx.ConnConfig, req ProjectCronR
 		if err != nil || before != req.Baseline {
 			return errors.New("Cron job identity or schedule changed before its handoff")
 		}
+		witnessBefore, err = readProjectCronWitness(ctx, tx, req.Target)
+		if err != nil {
+			return errors.New("owned Cron scheduler witness changed before handoff")
+		}
 		intent := ProjectCronIntent{Target: req.Target, Window: req.Window, Before: before, Generation: generation,
 			RunID: req.RunID, ProposedSchedule: proposed, FirstFutureCycle: firstFuture}
 		for _, check := range []func(context.Context, ProjectCronIntent) error{guards.CheckPermission, guards.CheckCapacity, guards.RecordIntent, guards.CheckPermission} {
@@ -200,12 +217,21 @@ func applyProjectCron(ctx context.Context, cfg *pgx.ConnConfig, req ProjectCronR
 			return errors.New("Cron scheduler changed or passed its safe handoff window")
 		}
 		out.WriteAttempted = true
+		// The witness is already active in this snapshot. Its same-value API
+		// update detects concurrent stops or edits and holds its row until commit.
+		if _, err := tx.Exec(ctx, `SELECT cron.alter_job($1::bigint,active := true)`, req.Target.WitnessJobID); err != nil {
+			return err
+		}
 		if _, err := tx.Exec(ctx, `SELECT cron.alter_job($1::bigint,schedule := $2::text)`, req.Target.JobID, proposed); err != nil {
 			return err
 		}
 		expected, err = readProjectCronJob(ctx, tx, req.Target)
 		if err != nil || expected.Schedule != proposed || expected.Fingerprint != before.Fingerprint || expected.Generation == before.Generation {
 			return errors.New("Cron provider changed fields outside the approved schedule")
+		}
+		witness, err := readProjectCronWitness(ctx, tx, req.Target)
+		if err != nil || witness != witnessBefore {
+			return errors.New("Cron provider changed the owned scheduler witness")
 		}
 		out.FirstFutureCycle = firstFuture
 		return nil
@@ -228,6 +254,10 @@ func applyProjectCron(ctx context.Context, cfg *pgx.ConnConfig, req ProjectCronR
 	actual, err = readProjectCronJob(ctx, db, req.Target)
 	if err != nil || actual != expected {
 		return out, errors.New("Cron job changed before scheduler acknowledgement")
+	}
+	witness, err := readProjectCronWitness(ctx, db, req.Target)
+	if err != nil || witness != witnessBefore {
+		return out, errors.New("owned Cron witness changed before scheduler acknowledgement")
 	}
 	out.After = actual
 	out.CommitAt = committed

@@ -156,6 +156,15 @@ func (a *App) runProject(ctx context.Context, row projectRecord) error {
 		}
 		repair = &fixture
 	}
+	var cron *hostedquery.OwnedProjectCron
+	if a.ownedCron.Matches(identity) && (a.ownedCron.QueryID == 0) == credentials.Automatic &&
+		!credentials.RepairsPaused && slices.Contains(credentials.Capabilities, "cron") {
+		fixture := *a.ownedCron
+		fixture.AdmitModel = func(ctx context.Context) error {
+			return a.projects.admitModel(ctx, row.ID, epoch)
+		}
+		cron = &fixture
+	}
 	queue, err := a.projects.db.Acquire(setup)
 	if err != nil {
 		return err
@@ -168,7 +177,7 @@ func (a *App) runProject(ctx context.Context, row projectRecord) error {
 	go func() { finished <- monitor.Run(ctx, epoch, func(hostedquery.PollResult) error { return nil }) }()
 	go func() {
 		for ctx.Err() == nil {
-			result, err := hostedquery.DiagnoseHostedProjectWithRepair(ctx, queue.Conn(), config, identity, epoch, a.projectInvestigator(row.ID, epoch), logs, owned, repair)
+			result, err := hostedquery.DiagnoseHostedProjectWithRepair(ctx, queue.Conn(), config, identity, epoch, a.projectInvestigator(row.ID, epoch), logs, owned, repair, cron)
 			if err != nil && queue.Conn().IsClosed() {
 				finished <- err
 				return

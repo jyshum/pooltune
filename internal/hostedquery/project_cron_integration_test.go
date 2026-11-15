@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"pooltune/internal/testpg"
 )
 
@@ -30,13 +31,13 @@ func TestProjectCronChangesOnlyApprovedSchedule(t *testing.T) {
 	exec(`CREATE SCHEMA cron;
 		CREATE TABLE cron.job(jobid bigint PRIMARY KEY,jobname text,username text,database text,command text,schedule text,active boolean);
 		CREATE TABLE cron.job_run_details(runid bigint,jobid bigint,job_pid integer,start_time timestamptz,end_time timestamptz,status text);
-		CREATE FUNCTION cron.alter_job(id bigint,schedule text DEFAULT NULL) RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $$
-		BEGIN UPDATE cron.job j SET schedule=$2 WHERE j.jobid=$1 AND j.username=session_user;
+		CREATE FUNCTION cron.alter_job(id bigint,schedule text DEFAULT NULL,active boolean DEFAULT NULL) RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $$
+		BEGIN UPDATE cron.job j SET schedule=coalesce($2,j.schedule),active=coalesce($3,j.active) WHERE j.jobid=$1 AND j.username=session_user;
 		IF NOT FOUND THEN RAISE EXCEPTION 'foreign cron job'; END IF; END $$;
-		REVOKE ALL ON FUNCTION cron.alter_job(bigint,text) FROM PUBLIC;
+		REVOKE ALL ON FUNCTION cron.alter_job(bigint,text,boolean) FROM PUBLIC;
 		GRANT USAGE ON SCHEMA cron TO fixture_app;
 		GRANT SELECT ON cron.job,cron.job_run_details TO fixture_app;
-		GRANT EXECUTE ON FUNCTION cron.alter_job(bigint,text) TO fixture_app;
+		GRANT EXECUTE ON FUNCTION cron.alter_job(bigint,text,boolean) TO fixture_app;
 		CREATE TABLE cron_intent (name text, original text, alternate text);
 		INSERT INTO cron.job VALUES (17,'refresh_shipments','fixture_app',current_database(),'SELECT 101','2-59/10 * * * *',true),
 		(18,'owner_scheduler_witness','fixture_app',current_database(),'SELECT 1','2 seconds',true),
@@ -153,6 +154,36 @@ func TestProjectCronChangesOnlyApprovedSchedule(t *testing.T) {
 	req.Baseline, err = ReadProjectCron(ctx, conn, job)
 	if err != nil {
 		t.Fatal(err)
+	}
+	for _, change := range []struct {
+		sql      string
+		command  string
+		isActive bool
+	}{
+		{"UPDATE cron.job SET command='SELECT 9' WHERE jobid=18", "SELECT 9", true},
+		{"UPDATE cron.job SET active=false WHERE jobid=18", "SELECT 1", false},
+	} {
+		racingWitness := guard
+		racingWitness.RecordIntent = func(ctx context.Context, i ProjectCronIntent) error {
+			if err := guard.RecordIntent(ctx, i); err != nil {
+				return err
+			}
+			_, err := admin.Exec(ctx, change.sql)
+			return err
+		}
+		got, err := applyProjectCron(ctx, cfg, req, racingWitness, provider)
+		var conflict *pgconn.PgError
+		if !errors.As(err, &conflict) || conflict.Code != "40001" || !got.WriteAttempted || !got.CommitAt.IsZero() {
+			t.Fatalf("independent witness edit reached schedule change: %+v %v", got, err)
+		}
+		var active bool
+		var saved int
+		err = admin.QueryRow(ctx, `SELECT command,active,(SELECT schedule FROM cron.job WHERE jobid=17),
+			(SELECT count(*) FROM cron_intent) FROM cron.job WHERE jobid=18`).Scan(&command, &active, &schedule, &saved)
+		if err != nil || command != change.command || active != change.isActive || schedule != req.Baseline.Schedule || saved != 1 {
+			t.Fatalf("independent witness edit or committed intent was overwritten: %q %t %q %d %v", command, active, schedule, saved, err)
+		}
+		exec(`UPDATE cron.job SET command='SELECT 1', active=true WHERE jobid=18; DELETE FROM cron_intent`)
 	}
 	result, err := applyProjectCron(ctx, cfg, req, guard, provider)
 	if err != nil || !result.WriteAttempted || result.After.Schedule != "7-59/10 * * * *" || !result.FirstFutureCycle.Equal(cycle.Add(10*time.Minute)) || len(result.PostCommitWitnesses) != 2 {

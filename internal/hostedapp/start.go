@@ -159,6 +159,10 @@ func (a *App) installAutomaticMonitor(ctx context.Context, row projectRecord, id
 		setup = func(ctx context.Context, token, password string) error {
 			return identity.BootstrapOwnedRepairProbe(ctx, token, password, a.ownedRepair.Operation)
 		}
+	} else if a.ownedCron.Matches(identity) && a.ownedCron.QueryID == 0 {
+		setup = func(ctx context.Context, token, password string) error {
+			return identity.BootstrapOwnedRepairProbe(ctx, token, password, "cron")
+		}
 	}
 	if err := setup(ctx, token, credentials.Password); err != nil {
 		return err

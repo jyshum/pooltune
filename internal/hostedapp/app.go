@@ -36,6 +36,7 @@ type Config struct {
 	Investigate        hostedquery.EnrolledLookupInvestigator
 	OwnedIndex         *hostedquery.OwnedProjectIndex
 	OwnedRepair        *hostedquery.OwnedProjectRepair
+	OwnedCron          *hostedquery.OwnedProjectCron
 }
 
 type App struct {
@@ -47,6 +48,7 @@ type App struct {
 	investigate   hostedquery.EnrolledLookupInvestigator
 	ownedIndex    *hostedquery.OwnedProjectIndex
 	ownedRepair   *hostedquery.OwnedProjectRepair
+	ownedCron     *hostedquery.OwnedProjectCron
 	origin        *url.URL
 	invite        [32]byte
 	cookie        string
@@ -104,6 +106,9 @@ func New(ctx context.Context, db *pgxpool.Pool, cfg Config) (*App, error) {
 		return nil, err
 	}
 	err = hostedquery.PrepareWorkerState(ctx, conn.Conn())
+	if err == nil && cfg.OwnedCron != nil {
+		err = hostedquery.PrepareOwnedCronCheckpoints(ctx, conn.Conn())
+	}
 	conn.Release()
 	if err != nil {
 		return nil, err
@@ -115,7 +120,7 @@ func New(ctx context.Context, db *pgxpool.Pool, cfg Config) (*App, error) {
 	a := &App{
 		projects: projectStore{db}, accounts: accounts, vault: vault, policy: cfg.Sampling,
 		queueInterval: cfg.QueueInterval, investigate: cfg.Investigate,
-		ownedIndex: cfg.OwnedIndex, ownedRepair: cfg.OwnedRepair,
+		ownedIndex: cfg.OwnedIndex, ownedRepair: cfg.OwnedRepair, ownedCron: cfg.OwnedCron,
 		origin: origin, invite: sha256.Sum256([]byte(cfg.InviteCode)), templates: templates, cookie: "__Host-pooltune",
 	}
 	if origin.Scheme == "http" {
@@ -352,6 +357,8 @@ func (a *App) connectProject(w http.ResponseWriter, r *http.Request, user auth.U
 			operation = "index"
 		} else if a.ownedRepair.Matches(project) && !a.ownedRepair.Automatic {
 			operation = a.ownedRepair.Operation
+		} else if a.ownedCron.Matches(project) && a.ownedCron.QueryID != 0 {
+			operation = "cron"
 		}
 		if operation != "" {
 			requested, err := capabilityChoices(r.PostForm)

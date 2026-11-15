@@ -96,7 +96,7 @@ func readProjectLookup(ctx context.Context, target *pgx.Conn, project supabasepr
 // DiagnoseProjectLookup consumes only an active managed project's queue. Its
 // result has no repair proposal, action or continuation.
 func DiagnoseProjectLookup(ctx context.Context, state, target *pgx.Conn, project supabaseproject.Project, epoch int64, investigate EnrolledLookupInvestigator) (*DispatchResult, error) {
-	return diagnoseLookup(ctx, state, project, epoch, investigate, nil, nil, nil, func(context.Context) (*pgx.Conn, func(), error) {
+	return diagnoseLookup(ctx, state, project, epoch, investigate, nil, nil, nil, nil, func(context.Context) (*pgx.Conn, func(), error) {
 		return target, func() {}, nil
 	})
 }
@@ -108,20 +108,20 @@ func DiagnoseHostedProjectLookup(ctx context.Context, state *pgx.Conn, target *p
 	if len(owned) > 0 {
 		fixture = owned[0]
 	}
-	return DiagnoseHostedProjectWithRepair(ctx, state, target, project, epoch, investigate, logs, fixture, nil)
+	return DiagnoseHostedProjectWithRepair(ctx, state, target, project, epoch, investigate, logs, fixture, nil, nil)
 }
 
 func DiagnoseHostedProjectWithRepair(ctx context.Context, state *pgx.Conn, target *pgx.ConnConfig, project supabaseproject.Project,
 	epoch int64, investigate EnrolledLookupInvestigator, logs *TrafficPlanReader, fixture *OwnedProjectIndex,
-	repair *OwnedProjectRepair) (*DispatchResult, error) {
-	return diagnoseLookup(ctx, state, project, epoch, investigate, logs, fixture, repair, func(ctx context.Context) (*pgx.Conn, func(), error) {
+	repair *OwnedProjectRepair, cron *OwnedProjectCron) (*DispatchResult, error) {
+	return diagnoseLookup(ctx, state, project, epoch, investigate, logs, fixture, repair, cron, func(ctx context.Context) (*pgx.Conn, func(), error) {
 		conn, err := pgx.ConnectConfig(ctx, target)
 		return conn, func() { labdb.Close(conn) }, err
 	})
 }
 
 func diagnoseLookup(ctx context.Context, state *pgx.Conn, project supabaseproject.Project, epoch int64, investigate EnrolledLookupInvestigator,
-	logs *TrafficPlanReader, fixture *OwnedProjectIndex, repair *OwnedProjectRepair,
+	logs *TrafficPlanReader, fixture *OwnedProjectIndex, repair *OwnedProjectRepair, cron *OwnedProjectCron,
 	targetSession func(context.Context) (*pgx.Conn, func(), error)) (*DispatchResult, error) {
 	if epoch <= 0 || investigate == nil {
 		return nil, ErrProjectDisconnected
@@ -132,6 +132,9 @@ func diagnoseLookup(ctx context.Context, state *pgx.Conn, project supabaseprojec
 	var scope []ownedIndexRecoveryScope
 	if fixture.Matches(project) {
 		scope = append(scope, ownedIndexRecoveryScope{Database: fixture.Target.DatabaseOID, Role: fixture.OwnerRoleOID, Query: fixture.QueryID})
+	}
+	if err := cron.ensureClaim(ctx, state, project, epoch); err != nil {
+		return nil, err
 	}
 	claim, err := claimProjectInvestigation(ctx, state, project.ID(), &epoch, scope...)
 	if err != nil || claim == nil {
@@ -146,6 +149,12 @@ func diagnoseLookup(ctx context.Context, state *pgx.Conn, project supabaseprojec
 		return nil, errClaimLost
 	}
 	windows := observedLookupLatency(claim.queueEvidence, started)
+	if !recovered {
+		report, err := cron.dispatch(ctx, state, project, epoch, *claim, windows, targetSession)
+		if err != nil || report != nil {
+			return report, err
+		}
+	}
 	if !recovered && windows != nil && len(windows.SharedBlockAccesses) == 5 {
 		target, closeTarget, err := targetSession(ctx)
 		if err != nil {

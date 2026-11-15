@@ -110,12 +110,17 @@ func (a *App) showProject(w http.ResponseWriter, r *http.Request, user auth.User
 	fixtureMatches := a.ownedIndex.Matches(identity)
 	view.FixtureIndex = fixtureMatches && !a.ownedIndex.Discover
 	repairMatches := a.ownedRepair.Matches(identity)
+	cronMatches := a.ownedCron.Matches(identity)
+	fixtureOperation := ""
 	if repairMatches && !a.ownedRepair.Automatic {
-		for _, capability := range projectCapabilities {
-			if capability.Key == a.ownedRepair.Operation {
-				view.FixtureRepair = &capability
-				break
-			}
+		fixtureOperation = a.ownedRepair.Operation
+	} else if cronMatches && a.ownedCron.QueryID != 0 {
+		fixtureOperation = "cron"
+	}
+	for _, capability := range projectCapabilities {
+		if capability.Key == fixtureOperation {
+			view.FixtureRepair = &capability
+			break
 		}
 	}
 	if !row.Configured {
@@ -141,6 +146,9 @@ func (a *App) showProject(w http.ResponseWriter, r *http.Request, user auth.User
 					option.Availability = "Available for the owned Rookery fixture"
 				}
 				if repairMatches && a.ownedRepair.Automatic == configured.Automatic && option.Key == a.ownedRepair.Operation {
+					option.Availability = "Available for the owned Rookery fixture"
+				}
+				if cronMatches && (a.ownedCron.QueryID == 0) == configured.Automatic && option.Key == "cron" {
 					option.Availability = "Available for the owned Rookery fixture"
 				}
 				if configured.RepairsPaused {

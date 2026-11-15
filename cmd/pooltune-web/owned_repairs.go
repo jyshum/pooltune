@@ -23,6 +23,41 @@ type ownedRepairSettings struct {
 	Memory                  hostedquery.OwnedMemoryRequest
 }
 
+func readOwnedCronFixture(stateDSN string) (*hostedquery.OwnedProjectCron, error) {
+	binding := os.Getenv("POOLTUNE_OWNED_CRON_FIXTURE")
+	if binding == "" {
+		return nil, nil
+	}
+	invalid := errors.New("the owned Rookery Cron fixture configuration is invalid")
+	var settings struct {
+		Installation string
+		Query        int64
+		Request      hostedquery.OwnedCronRequest
+	}
+	if os.Getenv("POOLTUNE_STAGING_PRIVATE_STATE") != "1" || json.Unmarshal([]byte(binding), &settings) != nil {
+		return nil, invalid
+	}
+	project, err := supabaseproject.New(hostedquery.OwnedIndexRookeryRef, settings.Installation)
+	if err != nil {
+		return nil, invalid
+	}
+	writer, err := supabaseproject.DirectConfig(project.Ref(), project.OwnedRepairProbeRole("cron"),
+		os.Getenv("POOLTUNE_OWNED_CRON_PASSWORD"), []byte(os.Getenv("POOLTUNE_OWNED_CRON_CA")))
+	if err != nil {
+		return nil, invalid
+	}
+	diagnose, err := graphrunner.DiagnosticProcess(stateDSN)
+	if err != nil {
+		return nil, invalid
+	}
+	fixture := &hostedquery.OwnedProjectCron{Config: writer, Request: settings.Request, QueryID: settings.Query,
+		Investigate: graphrunner.AdaptDiagnostic(diagnose, nil)}
+	if !fixture.Matches(project) {
+		return nil, invalid
+	}
+	return fixture, nil
+}
+
 func readOwnedRepairFixture(stateDSN string) (*hostedquery.OwnedProjectRepair, error) {
 	binding := os.Getenv("POOLTUNE_OWNED_REPAIR_FIXTURE")
 	if binding == "" {

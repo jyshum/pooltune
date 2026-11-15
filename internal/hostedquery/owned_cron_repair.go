@@ -195,6 +195,12 @@ func RunOwnedCronRepair(ctx context.Context, cfg *pgx.ConnConfig, req OwnedCronR
 }
 
 func validOwnedCronRoute(cfg *pgx.ConnConfig, req OwnedCronRequest) bool {
+	return validOwnedCronFixtureRoute(cfg, req) && req.Target.DatabaseOID == req.Observed.Database &&
+		req.Target.OwnerOID == req.Observed.Role && req.Observed.Query != 0 &&
+		!req.Observed.Boot.IsZero() && !req.Observed.Reset.IsZero() && !req.Observed.Entry.IsZero()
+}
+
+func validOwnedCronFixtureRoute(cfg *pgx.ConnConfig, req OwnedCronRequest) bool {
 	prefix := "supabase/" + OwnedIndexRookeryRef + "/"
 	installation, match := strings.CutPrefix(req.Target.Project, prefix)
 	project, err := supabaseproject.New(OwnedIndexRookeryRef, installation)
@@ -202,8 +208,7 @@ func validOwnedCronRoute(cfg *pgx.ConnConfig, req OwnedCronRequest) bool {
 		req.FirstCycle.IsZero() || !req.FirstCycle.Equal(cronCycle(req.FirstCycle)) || req.Expires.IsZero() ||
 		req.Candidate.Schema != "pt_hosted_cr_"+installation || req.Candidate.Relation != "candidate" ||
 		req.Candidate.TableOID == 0 || req.Candidate.DatabaseOID == 0 || req.Candidate.DatabaseOID != req.Target.DatabaseOID ||
-		req.Target.DatabaseOID != req.Observed.Database || req.Target.OwnerOID == 0 || req.Target.OwnerOID != req.Observed.Role ||
-		req.Observed.Query == 0 || req.Observed.Boot.IsZero() || req.Observed.Reset.IsZero() || req.Observed.Entry.IsZero() ||
+		req.Target.OwnerOID == 0 ||
 		req.ReadOID == 0 || req.ProcedureOID == 0 || req.ReadOID == req.ProcedureOID ||
 		len(req.ReadDigest) != 64 || len(req.ProcedureDigest) != 64 ||
 		req.Target.JobID <= 0 || req.Target.WitnessJobID <= 0 || req.Target.WitnessJobID == req.Target.JobID ||
