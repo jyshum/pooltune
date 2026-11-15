@@ -3,9 +3,9 @@
   "id": "pooltune-hosted-agent",
   "title": "Maintain Supabase query performance",
   "workType": "Build progress and remaining work",
-  "summary": "Six bounded repair tools and their diagnostic connections are implemented. 6 of six cases in this expansion passed hosted Sonnet traffic qualification. Requested fresh evidence also passed a separate hosted check. Green means only the stated verified scope, amber is partial, gray is remaining. Offline snapshot; customer rollout is unfinished.",
+  "summary": "Six bounded repair cases passed hosted Sonnet. A separate operator test used live Rookery to verify direct TLS, monitor owner-enrolled app statements, queue the slow statement and disconnect. The ordinary-query evidence reader, hosted rollout and customer setup screen remain to be built.",
   "sourceRevision": {
-    "commit": "687899729324c8c9ec1a25b6db2be2c9efe1a6ad",
+    "commit": "cb9a6eb6d3213f6ced8d1f8a32b328dcdd00ba8b",
     "dirty": false
   },
   "components": [
@@ -849,9 +849,14 @@
       "id": "connect-project",
       "label": "Connect and enroll a project",
       "type": "service",
-      "purpose": "Next: accept an authorized project connection and select the queries and objects Pooltune may manage.",
+      "purpose": "An operator can verify a direct Supabase connection and monitor exact app-role statements chosen by the database owner.",
       "decisionIds": [],
       "sources": [
+        {
+          "path": "docs/design/hosted-query-agent/supabase-monitoring.md",
+          "revision": "cb9a6eb6d3213f6ced8d1f8a32b328dcdd00ba8b",
+          "kind": "verified"
+        },
         {
           "path": "docs/design/hosted-query-agent/enrolled-staging.md",
           "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
@@ -864,8 +869,8 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Next: accept an authorized project connection and select the queries and objects Pooltune may manage.",
-      "after": "Next: accept an authorized project connection and select the queries and objects Pooltune may manage.",
+      "changeSummary": "An operator can verify a direct Supabase connection and monitor exact app-role statements chosen by the database owner.",
+      "after": "An operator can verify a direct Supabase connection and monitor exact app-role statements chosen by the database owner.",
       "parent": "backend",
       "stack": [
         "Go",
@@ -876,9 +881,14 @@
       "id": "credential-lifecycle",
       "label": "Credentials and disconnect",
       "type": "service",
-      "purpose": "Remaining: store credentials securely, rotate them and stop access/work when disconnected.",
+      "purpose": "A dedicated role can be revoked or rotated manually. Disconnect retires queued work and stops the worker.",
       "decisionIds": [],
       "sources": [
+        {
+          "path": "docs/design/hosted-query-agent/supabase-monitoring.md",
+          "revision": "cb9a6eb6d3213f6ced8d1f8a32b328dcdd00ba8b",
+          "kind": "verified"
+        },
         {
           "path": "docs/design/hosted-query-agent/roadmap.md",
           "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
@@ -886,8 +896,8 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Remaining: store credentials securely, rotate them and stop access/work when disconnected.",
-      "after": "Remaining: store credentials securely, rotate them and stop access/work when disconnected.",
+      "changeSummary": "A dedicated role can be revoked or rotated manually. Disconnect retires queued work and stops the worker.",
+      "after": "A dedicated role can be revoked or rotated manually. Disconnect retires queued work and stops the worker.",
       "parent": "backend",
       "stack": [
         "Go"
@@ -1887,7 +1897,7 @@
       "id": "e-connect-credentials",
       "from": "connect-project",
       "to": "credential-lifecycle",
-      "label": "planned: manages enrolled project access"
+      "label": "checks the dedicated role and disconnects monitoring"
     },
     {
       "id": "e-activity-api",

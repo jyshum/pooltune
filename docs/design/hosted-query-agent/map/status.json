@@ -1,6 +1,6 @@
 {
-  "sourceRevision": "687899729324c8c9ec1a25b6db2be2c9efe1a6ad",
-  "summary": "Six bounded repair tools and their diagnostic connections are implemented. 6 of six cases in this expansion passed hosted Sonnet traffic qualification. Requested fresh evidence also passed a separate hosted check. Green means only the stated verified scope, amber is partial, gray is remaining. Offline snapshot; customer rollout is unfinished.",
+  "sourceRevision": "cb9a6eb6d3213f6ced8d1f8a32b328dcdd00ba8b",
+  "summary": "Six bounded repair cases passed hosted Sonnet. A separate operator test used live Rookery to verify direct TLS, monitor owner-enrolled app statements, queue the slow statement and disconnect. The ordinary-query evidence reader, hosted rollout and customer setup screen remain to be built.",
   "next": [
     "connect-project",
     "activity",
@@ -22,9 +22,10 @@
     "customer-db": {
       "status": "external",
       "scope": "Rookery on Supabase supplies the measured staging workload.",
-      "remaining": "General project connections and additional providers are not implemented.",
+      "remaining": "Live Rookery also verified the operator monitor with owned synthetic traffic. Ordinary customer workloads and additional providers remain unqualified.",
       "evidence": [
-        "docs/design/hosted-query-agent/cron-staging.md"
+        "docs/design/hosted-query-agent/cron-staging.md",
+        "docs/design/hosted-query-agent/supabase-monitoring.md"
       ]
     },
     "model": {
@@ -269,20 +270,28 @@
     },
     "connect-project": {
       "status": "partial",
-      "scope": "Next: accept an authorized project connection and select the queries and objects Pooltune may manage.",
-      "remaining": "Dedicated Rookery evidence/revocation passed; general onboarding and repair grants are unfinished.",
+      "scope": "The operator command verified direct TLS, read two owner-enrolled app-role statements and queued only the slow one on live Rookery.",
+      "remaining": "Build: Build the customer setup screen and an evidence reader for live enrolled statements. Tie project registration to an authenticated owner. Verify: Run the monitor against the hosted Pooltune state database, then qualify more projects and representative app workloads.",
       "evidence": [
-        "docs/design/hosted-query-agent/enrolled-staging.md",
-        "docs/design/hosted-query-agent/dedicated-login.md"
-      ]
+        "docs/design/hosted-query-agent/supabase-monitoring.md",
+        "cmd/pooltune-project/main.go",
+        "internal/supabaseproject/install.sql"
+      ],
+      "statusLabel": "Operator monitoring verified on Rookery",
+      "remainingBuild": "Build the customer setup screen and an evidence reader for live enrolled statements. Tie project registration to an authenticated owner.",
+      "remainingVerification": "Run the monitor against the hosted Pooltune state database, then qualify more projects and representative app workloads."
     },
     "credential-lifecycle": {
-      "status": "planned",
-      "scope": "Remaining: store credentials securely, rotate them and stop access/work when disconnected.",
-      "remaining": "Customer credential lifecycle and shutdown of in-flight sessions/jobs need implementation.",
+      "status": "partial",
+      "scope": "Disconnect stopped the worker and retired pending work. Rookery refused access after owner revocation and rejected the previous password after manual rotation.",
+      "remaining": "Build: Add account-scoped secret storage and automated rotation for the hosted service. Verify: Exercise deployed worker and secret-store failures, including disconnect across service replicas.",
       "evidence": [
-        "docs/design/hosted-query-agent/roadmap.md"
-      ]
+        "docs/design/hosted-query-agent/supabase-monitoring.md",
+        "internal/hostedquery/project_monitor.go"
+      ],
+      "statusLabel": "Operator disconnect and rotation verified",
+      "remainingBuild": "Add account-scoped secret storage and automated rotation for the hosted service.",
+      "remainingVerification": "Exercise deployed worker and secret-store failures, including disconnect across service replicas."
     },
     "auth": {
       "status": "planned",
