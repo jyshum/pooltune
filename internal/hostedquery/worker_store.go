@@ -108,6 +108,7 @@ func PrepareWorkerState(ctx context.Context, state *pgx.Conn) error {
 			ALTER TABLE pooltune_worker.investigations
 				ADD COLUMN IF NOT EXISTS attempts integer NOT NULL DEFAULT 0,
 				ADD COLUMN IF NOT EXISTS lease_until timestamptz,
+				ADD COLUMN IF NOT EXISTS claimed_at timestamptz,
 				ADD COLUMN IF NOT EXISTS result jsonb,
                 ADD COLUMN IF NOT EXISTS not_before timestamptz NOT NULL DEFAULT now(),
                 ADD COLUMN IF NOT EXISTS parent_id bigint UNIQUE REFERENCES pooltune_worker.investigations(id);
@@ -116,7 +117,7 @@ func PrepareWorkerState(ctx context.Context, state *pgx.Conn) error {
 			CREATE UNIQUE INDEX IF NOT EXISTS one_open_investigation
 				ON pooltune_worker.investigations (project_id, database_oid, role_oid, query_id)
 				WHERE finished_at IS NULL;
-		`)
+		`+projectActivitySchema)
 		return err
 	})
 }
@@ -182,6 +183,7 @@ func recordProjectPoll(ctx context.Context, state *pgx.Conn, project string, pol
 			}
 		}
 		next := savedPoll{Policy: policy, States: make([]savedQuery, 0, len(enrollment.Queries))}
+		var activityWindows []ProjectWindow
 		for _, objective := range enrollment.Queries {
 			history := prior[objective]
 			key := objective.key()
@@ -195,6 +197,9 @@ func recordProjectPoll(ctx context.Context, state *pgx.Conn, project string, pol
 				continue
 			}
 			result.Windows = append(result.Windows, QueryWindow{key, *window})
+			if managed {
+				activityWindows = append(activityWindows, projectActivityWindow(objective, *window))
+			}
 			if window.Decision == Investigate {
 				job, err := enqueueInvestigation(ctx, tx, enrollment.Project, objective, history, *window)
 				if err != nil {
@@ -208,6 +213,11 @@ func recordProjectPoll(ctx context.Context, state *pgx.Conn, project string, pol
 		raw, err = json.Marshal(next)
 		if err != nil {
 			return err
+		}
+		if managed {
+			if err := recordProjectActivity(ctx, tx, project, at, last, result.TargetMS, activityWindows); err != nil {
+				return err
+			}
 		}
 		_, err = tx.Exec(ctx, "UPDATE pooltune_worker.projects SET last_poll=$2, evidence=$3::jsonb WHERE project_id=$1", project, at, string(raw))
 		return err

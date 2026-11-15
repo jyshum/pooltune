@@ -20,11 +20,12 @@ func (policy SamplingPolicy) validate() error {
 }
 
 type WindowResult struct {
-	Start    time.Time `json:"start"`
-	End      time.Time `json:"end"`
-	Calls    int64     `json:"calls"`
-	MeanMS   float64   `json:"mean_execution_ms,omitempty"`
-	Decision Decision  `json:"decision"`
+	Start       time.Time `json:"start"`
+	End         time.Time `json:"end"`
+	Calls       int64     `json:"calls"`
+	MeanMS      float64   `json:"mean_execution_ms,omitempty"`
+	Decision    Decision  `json:"decision"`
+	measurement *counterChange
 }
 
 // The exported fields allow the worker to resume an unfinished window from PostgreSQL.
@@ -75,7 +76,13 @@ func (s *windowState) advance(at time.Time, sample *Counter, policy SamplingPoli
 
 	result := unknown
 	result.Calls = s.Pending.Calls
-	if s.Pending.Calls <= 0 || !nonnegativeFinite(s.Pending.ExecutionMS) || s.Pending.Blocks < 0 {
+	if s.Pending.Calls < 0 || !nonnegativeFinite(s.Pending.ExecutionMS) || s.Pending.Blocks < 0 {
+		s.restart(at, sample)
+		return &result
+	}
+	measured := s.Pending
+	result.measurement = &measured
+	if measured.Calls == 0 {
 		s.restart(at, sample)
 		return &result
 	}

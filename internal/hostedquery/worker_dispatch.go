@@ -86,7 +86,8 @@ func claimProjectInvestigation(ctx context.Context, state *pgx.Conn, project str
 				ORDER BY id LIMIT 1
 			)
 			UPDATE pooltune_worker.investigations AS jobs
-			SET attempts=jobs.attempts+1, lease_until=clock_timestamp()+make_interval(secs=>$3)
+			SET attempts=jobs.attempts+1, lease_until=clock_timestamp()+make_interval(secs=>$3),
+			    claimed_at=COALESCE(jobs.claimed_at, CASE WHEN jobs.attempts=0 THEN clock_timestamp() END)
 			FROM available WHERE jobs.id=available.id
 			RETURNING jobs.id,jobs.database_oid,jobs.role_oid,jobs.query_id,jobs.attempts,
 			          jobs.evidence->'counter_generation',jobs.evidence,COALESCE(jobs.parent_id,0)
