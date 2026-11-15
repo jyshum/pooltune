@@ -140,9 +140,11 @@ func (a *App) startAutomaticProject(parent context.Context, row projectRecord, t
 }
 
 func (a *App) installAutomaticMonitor(ctx context.Context, row projectRecord, identity supabaseproject.Project, token string, credentials projectSecrets, retry bool, sealed []byte) error {
+	ownedProbe := a.ownedIndex.Matches(identity) && a.ownedIndex.Discover
+	requireDiscoveredIndex := ownedProbe && slices.Contains(credentials.Capabilities, "index")
 	if retry {
 		check, cancel := context.WithTimeout(ctx, 3*time.Second)
-		installed := checkProject(check, row, credentials, a.policy) == nil
+		installed := checkProject(check, row, credentials, a.policy, requireDiscoveredIndex) == nil
 		cancel()
 		if installed {
 			return a.activateAutomaticProject(ctx, row, sealed)
@@ -151,11 +153,13 @@ func (a *App) installAutomaticMonitor(ctx context.Context, row projectRecord, id
 	setup := identity.Bootstrap
 	if row.Epoch < 0 {
 		setup = identity.Reconnect
+	} else if ownedProbe {
+		setup = identity.BootstrapOwnedIndexProbe
 	}
 	if err := setup(ctx, token, credentials.Password); err != nil {
 		return err
 	}
-	if err := checkProject(ctx, row, credentials, a.policy); err != nil {
+	if err := checkProject(ctx, row, credentials, a.policy, requireDiscoveredIndex); err != nil {
 		return err
 	}
 	return a.activateAutomaticProject(ctx, row, sealed)

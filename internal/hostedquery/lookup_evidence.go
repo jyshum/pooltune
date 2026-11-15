@@ -127,15 +127,23 @@ func diagnoseLookup(ctx context.Context, state *pgx.Conn, project supabaseprojec
 		return nil, err
 	}
 	result := DispatchResult{JobID: claim.ID, Attempt: claim.Attempt, Outcome: "insufficient_evidence", DiagnosticReason: "lookup_grant_or_fresh_windows_unavailable"}
+	recovered, err := fixture.recover(ctx, state, project, *claim, &result)
+	if err != nil {
+		return nil, err
+	}
 	windows := observedLookupLatency(claim.queueEvidence, started)
-	if windows != nil && len(windows.SharedBlockAccesses) == 5 {
+	if !recovered && windows != nil && len(windows.SharedBlockAccesses) == 5 {
 		target, closeTarget, err := targetSession(ctx)
 		if err != nil {
 			return nil, err
 		}
 		defer closeTarget()
-		if fixture.matchesClaim(project, *claim) {
-			err = fixture.run(ctx, state, target, project, epoch, *claim, windows, &result)
+		bound, err := fixture.bindClaim(ctx, target, project, *claim, windows.ObjectiveMS)
+		if err != nil {
+			return nil, err
+		}
+		if bound != nil {
+			err = bound.run(ctx, state, target, project, epoch, *claim, windows, &result)
 		} else {
 			err = diagnoseProjectClaim(ctx, state, target, project, epoch, *claim, windows, investigate, logs, &result)
 		}

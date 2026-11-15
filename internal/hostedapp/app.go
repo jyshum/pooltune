@@ -343,7 +343,7 @@ func (a *App) connectProject(w http.ResponseWriter, r *http.Request, user auth.U
 		return
 	}
 	var selected []string
-	if project, err := row.identity(); err == nil && a.ownedIndex.Matches(project) {
+	if project, err := row.identity(); err == nil && a.ownedIndex.Matches(project) && !a.ownedIndex.Discover {
 		var err error
 		selected, err = capabilityChoices(r.PostForm)
 		if err != nil {
@@ -355,7 +355,7 @@ func (a *App) connectProject(w http.ResponseWriter, r *http.Request, user auth.U
 		Password: r.PostForm.Get("password"), CA: strings.TrimSpace(r.PostForm.Get("ca")), LogsToken: strings.TrimSpace(r.PostForm.Get("logs_token")),
 		Capabilities: selected,
 	}
-	if err := checkProject(r.Context(), row, credentials, a.policy); err != nil {
+	if err := checkProject(r.Context(), row, credentials, a.policy, false); err != nil {
 		a.showProject(w, r, user, row, err.Error())
 		return
 	}

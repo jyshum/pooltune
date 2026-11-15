@@ -51,7 +51,7 @@ RETURN QUERY
                 UNION ALL
                 (
                     -- stats_since is the entry's start time. Counter deltas establish actual activity.
-                    SELECT 21::smallint, a.userid, a.queryid, 1000::double precision
+                    SELECT 21::smallint, a.userid, a.queryid, (/* POOLTUNE_DISCOVERY_OBJECTIVE */ 1000)::double precision
                     FROM ranked a
                     ORDER BY least(a.impact_rank, a.newest_rank * 3), a.impact_rank
                     LIMIT (20 - (SELECT count(*) FROM manual))

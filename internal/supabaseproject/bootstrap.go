@@ -28,14 +28,26 @@ var setupHTTP = &http.Client{
 	},
 }
 
+const OwnedIndexProbeRef = "osdjqwpzgyzwfaxyufze"
+
 // Bootstrap uses the one-time setup token only to install the project's
 // dedicated monitor. The hosted worker never receives this token.
 func (p Project) Bootstrap(ctx context.Context, token, password string) error {
+	return p.bootstrap(ctx, token, password, false)
+}
+
+// BootstrapOwnedIndexProbe changes the discovery objective for only the
+// separate synthetic workload login belonging to this Rookery installation.
+func (p Project) BootstrapOwnedIndexProbe(ctx context.Context, token, password string) error {
+	return p.bootstrap(ctx, token, password, true)
+}
+
+func (p Project) bootstrap(ctx context.Context, token, password string, ownedProbe bool) error {
 	if p.ref == "" || p.key == "" || len(token) == 0 || len(token) > 512 ||
 		strings.ContainsAny(token, " \t\r\n") || password == "" {
 		return ErrSetupPermission
 	}
-	script, err := p.bootstrapSQL(password)
+	script, err := p.bootstrapSQLWithDiscovery(password, ownedProbe)
 	if err != nil {
 		return err
 	}
@@ -110,9 +122,23 @@ func (p Project) postSetup(ctx context.Context, client *http.Client, token, scri
 }
 
 func (p Project) bootstrapSQL(password string) (string, error) {
+	return p.bootstrapSQLWithDiscovery(password, false)
+}
+
+func (p Project) bootstrapSQLWithDiscovery(password string, ownedProbe bool) (string, error) {
+	discovery := p.AutomaticDiscoverySQL()
+	installers := []string{p.InstallSQL(), discovery, p.discoveredLookupSQL()}
+	if ownedProbe {
+		if p.Ref() != OwnedIndexProbeRef || p.key == "" {
+			return "", ErrSetupPermission
+		}
+		objective := "CASE WHEN a.userid = to_regrole('pt_hosted_ix_" + p.key + "')::oid THEN 2.0 ELSE 1000.0 END"
+		installers[1] = strings.Replace(discovery, "/* POOLTUNE_DISCOVERY_OBJECTIVE */ 1000", objective, 1)
+		installers = append(installers, p.DiscoveredIndexEvidenceSQL())
+	}
 	var script strings.Builder
 	script.WriteString("BEGIN;\n")
-	for _, installer := range []string{p.InstallSQL(), p.AutomaticDiscoverySQL(), p.discoveredLookupSQL()} {
+	for _, installer := range installers {
 		body, ok := strings.CutPrefix(strings.TrimSpace(installer), "BEGIN;")
 		if !ok {
 			return "", ErrSetupUnavailable

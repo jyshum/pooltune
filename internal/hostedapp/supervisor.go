@@ -139,8 +139,9 @@ func (a *App) runProject(ctx context.Context, row projectRecord) error {
 		return monitor.Run(ctx, epoch, func(hostedquery.PollResult) error { return nil })
 	}
 	var owned *hostedquery.OwnedProjectIndex
-	if a.ownedIndex.Matches(identity) && !credentials.RepairsPaused && slices.Contains(credentials.Capabilities, "index") {
+	if a.ownedIndex.Matches(identity) && a.ownedIndex.Discover == credentials.Automatic && slices.Contains(credentials.Capabilities, "index") {
 		fixture := *a.ownedIndex
+		fixture.Paused = credentials.RepairsPaused
 		fixture.AdmitModel = func(ctx context.Context) error {
 			return a.projects.admitModel(ctx, row.ID, epoch)
 		}

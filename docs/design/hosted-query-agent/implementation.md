@@ -498,3 +498,19 @@ Connect the shared worker to the six owner-enabled repair families, with operati
 ### Task 49: Qualify the connected dashboard with the owned index fixture
 
 Run the real project detector, investigation queue and dashboard through one concurrent compound-index action. Use an explicit staging binding to one signed-in project's installation, exact enrolled workload identity and individually owned Rookery schema. Require the selected index capability and a current permission epoch. Keep the normal connector's runtime credentials read-only. Record action intent before DDL, mark interrupted attempts for reconciliation and save comparable scoped measurements to the investigation. Keep customer-wide credential provisioning and all other repair types outside this staging binding.
+
+### Task 50: Connect the simple setup to an owned repair
+
+Run the existing signup and simple project form with a scoped Rookery setup token, the certificate and the index checkbox. Use the token once to install the dedicated read-only monitor. The staging executor has a separate login and a storage bound for one owned fixture. It receives no query ID at deployment. Only the fixture application role uses a 2 ms discovery objective for the short staging test. Ordinary monitoring keeps the existing objective. Require exact discovered membership, current permissions and measured verification before showing a repair result.
+
+### Task 51: Bind discovered evidence and qualify experiments
+
+Read the identity and ordered keys of ordinary scalar and two-key integer equality queries from the exact observed database role and statistics generation. Keep raw statement text and application inputs inside the database reader. The rebuilt query must have the same identity. Reuse sufficient evidence and admit a live measurement only for an approved fixture and inputs. Keep wider query shapes, other causes and representative customer inputs independently tracked.
+
+### Task 52: Bring the remaining repair families into the worker
+
+Start with stale statistics and use the existing native operation, proposal contract and reporting fields. Admit the exact target and require fresh reasons, capacity, current permission and a journal write before the action. Run matched before and after measurements. Wire the rest of the approved families through the same product entry as each evidence and authority path qualifies.
+
+### Task 53: Reconcile interrupted repairs and verify the hosted flow
+
+Inspect a recorded exact action before any new attempt executes. Record what PostgreSQL did in the same state transaction as the dashboard result. Preserve unknown and inconclusive outcomes. Verify restart and pause fencing independently. Run the simple onboarding, ordinary traffic, real diagnosis and verified outcome on Railway. Retain fixture cleanup and healthy traffic evidence. Frontend iteration and Jared's own manual connection follow this backend verification.

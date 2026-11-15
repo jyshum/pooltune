@@ -48,6 +48,7 @@ type DispatchResult struct {
 	Statistics        *StatisticsReport        `json:"statistics,omitempty"`
 	Analyze           *AnalyzeReport           `json:"analyze,omitempty"`
 	Repair            *IndexTrialReport        `json:"repair,omitempty"`
+	IndexRecovery     *ownedIndexRecovery      `json:"index_recovery,omitempty"`
 	continuationAt    *time.Time
 	GraphMS           float64 `json:"graph_ms,omitempty"`
 }
@@ -105,38 +106,55 @@ func claimProjectInvestigation(ctx context.Context, state *pgx.Conn, project str
 }
 
 func finishInvestigation(ctx context.Context, state *pgx.Conn, claim investigationClaim, result DispatchResult, expectedEpoch ...int64) error {
-	payload, err := json.Marshal(result)
-	if err != nil {
-		return err
-	}
 	var epoch *int64
 	if len(expectedEpoch) > 0 {
 		epoch = &expectedEpoch[0]
 	}
 	terminalOwnedIndex := ""
-	if result.Repair != nil && result.Repair.Measurement == "owned_single_input" &&
+	var recordedIntent *string
+	if recovery := result.IndexRecovery; recovery != nil {
+		if recovery.Status == "action_active" {
+			return errOwnedIndexActionActive
+		}
+		if epoch == nil || result.Outcome != "repair_interrupted" || !recovery.settled() ||
+			!json.Valid(recovery.intent) || recovery.Reason == "" || result.Repair != nil {
+			return errors.New("index recovery publication requires a settled observation, recorded intent and active project")
+		}
+		terminalOwnedIndex = recovery.Status
+		intent := string(recovery.intent)
+		recordedIntent = &intent
+	} else if result.Repair != nil && result.Repair.Measurement == "owned_single_input" &&
 		(result.Outcome == "improved_tested_inputs" || result.Outcome == "inconclusive") {
 		terminalOwnedIndex = result.Outcome
+	}
+	payload, err := json.Marshal(result)
+	if err != nil {
+		return err
 	}
 	var published bool
 	err = state.QueryRow(ctx, `
 		WITH locked_project AS MATERIALIZED (
 			SELECT project_id FROM pooltune_worker.projects WHERE project_id=$4
 			  AND ($5::bigint IS NULL OR monitor_epoch=$5) FOR UPDATE
+		), pending_action AS MATERIALIZED (
+			SELECT a.job_id, a.project_id
+			FROM pooltune_worker.owned_index_actions a JOIN locked_project USING(project_id)
+			WHERE $6<>'' AND a.job_id=$1 AND a.outcome='pending'
+			  AND ($7::jsonb IS NULL OR a.intent=$7::jsonb)
+			FOR UPDATE OF a
 		), published AS (
 			UPDATE pooltune_worker.investigations SET finished_at=clock_timestamp(), lease_until=NULL, result=$3::jsonb
 			WHERE project_id=(SELECT project_id FROM locked_project) AND id=$1 AND attempts=$2
 			  AND finished_at IS NULL AND lease_until>clock_timestamp()
-			  AND ($6='' OR EXISTS (SELECT FROM pooltune_worker.owned_index_actions
-			      WHERE job_id=$1 AND project_id=$4 AND outcome='pending'))
+			  AND ($6='' OR EXISTS (SELECT FROM pending_action))
 			RETURNING id,project_id
 		), settled_owned_index AS (
 			UPDATE pooltune_worker.owned_index_actions a SET outcome=$6
-			FROM published p WHERE a.job_id=p.id AND a.project_id=p.project_id
-			  AND $6<>'' AND a.outcome='pending'
+			FROM published p JOIN pending_action b ON b.job_id=p.id AND b.project_id=p.project_id
+			WHERE a.job_id=b.job_id AND a.project_id=b.project_id
 		)
 		SELECT EXISTS (SELECT FROM published)
-	`, claim.ID, claim.Attempt, string(payload), claim.Project, epoch, terminalOwnedIndex).Scan(&published)
+	`, claim.ID, claim.Attempt, string(payload), claim.Project, epoch, terminalOwnedIndex, recordedIntent).Scan(&published)
 	if err == nil && !published {
 		return errClaimLost
 	}

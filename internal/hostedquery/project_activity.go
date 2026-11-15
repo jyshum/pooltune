@@ -94,9 +94,10 @@ type ProjectJob struct {
 }
 
 type ProjectRepair struct {
-	Kind    string                `json:"kind"`
-	Action  string                `json:"action"`
-	Metrics []ProjectRepairMetric `json:"metrics,omitempty"`
+	Kind           string                `json:"kind"`
+	Action         string                `json:"action"`
+	RecoveryStatus string                `json:"recovery_status,omitempty"`
+	Metrics        []ProjectRepairMetric `json:"metrics,omitempty"`
 }
 
 type ProjectRepairMetric struct {
@@ -285,7 +286,8 @@ func readProjectJobs(ctx context.Context, tx pgx.Tx, projectID string, cutoff ti
 			END,
 			CASE WHEN owned.needs_review THEN jsonb_build_object('index','{}'::jsonb)
 			WHEN finished_at IS NOT NULL THEN jsonb_strip_nulls(jsonb_build_object(
-				'index', result->'repair', 'analyze', result->'analyze', 'statistics', result->'statistics',
+				'index', COALESCE(result->'index_recovery',result->'repair'),
+				'analyze', result->'analyze', 'statistics', result->'statistics',
 				'vacuum', result->'vacuum', 'memory', result->'memory', 'cron', result->'cron'
 			)) END
 		FROM pooltune_worker.investigations j
@@ -325,6 +327,7 @@ func readProjectRepair(job *ProjectJob, encoded []byte) {
 	for kind, raw := range reports {
 		var report struct {
 			Reason      string          `json:"reason"`
+			Status      string          `json:"status"`
 			Measurement string          `json:"measurement_scope"`
 			Before      json.RawMessage `json:"before"`
 			After       json.RawMessage `json:"after"`
@@ -346,6 +349,9 @@ func readProjectRepair(job *ProjectJob, encoded []byte) {
 		}
 		if job.Outcome == "repair_interrupted" {
 			job.Repair = &ProjectRepair{Kind: kind, Action: "interrupted"}
+			if kind == "index" {
+				job.Repair.RecoveryStatus = report.Status
+			}
 			if kind == "memory" && report.Restored {
 				job.Repair.Action = "restored"
 			}

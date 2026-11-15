@@ -16,7 +16,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-const OwnedIndexRookeryRef = "osdjqwpzgyzwfaxyufze"
+const OwnedIndexRookeryRef = supabaseproject.OwnedIndexProbeRef
 
 var ownedIndexScope = regexp.MustCompile(`^pt_hosted_ix_[0-9a-f]{16}$`)
 
@@ -24,18 +24,22 @@ type OwnedProjectIndex struct {
 	Installation string
 	OwnerRoleOID uint32
 	QueryID      int64
+	Discover     bool
 	Target       ProjectIndexTarget
 	Columns      []int16
 	Inputs       []int32
 	Config       *pgx.ConnConfig             `json:"-"`
 	Investigate  IndexInvestigator           `json:"-"`
 	AdmitModel   func(context.Context) error `json:"-"`
+	Paused       bool                        `json:"-"`
+	planNode     string
 }
 
 func (f *OwnedProjectIndex) Valid() bool {
 	if f == nil || f.Config == nil || f.Investigate == nil || f.Target.DatabaseOID == 0 ||
 		f.Target.TableOID == 0 || !ownedIndexScope.MatchString(f.Target.Schema) ||
-		f.Target.Relation != "workload" || f.OwnerRoleOID == 0 || f.QueryID == 0 ||
+		f.Target.Schema != "pt_hosted_ix_"+f.Installation || f.Target.Relation != "workload" ||
+		f.OwnerRoleOID == 0 || f.Discover != (f.QueryID == 0) ||
 		len(f.Columns) != 2 || len(f.Inputs) != 2 || !ValidIndexColumns(f.Columns[0], f.Columns) {
 		return false
 	}
@@ -63,20 +67,79 @@ const projectIndexIntentSchema = `
 
 func (f *OwnedProjectIndex) matchesClaim(project supabaseproject.Project, claim investigationClaim) bool {
 	return f.Matches(project) && claim.Database == f.Target.DatabaseOID &&
-		claim.Role == f.OwnerRoleOID && claim.Query == f.QueryID
+		claim.Role == f.OwnerRoleOID && (f.Discover || claim.Query == f.QueryID)
+}
+
+func (f *OwnedProjectIndex) matchesDiscoveredEvidence(claim investigationClaim, objective float64, e supabaseproject.DiscoveredIndexEvidence) bool {
+	return e.Only && e.DatabaseOID == f.Target.DatabaseOID && e.DatabaseOID == claim.Database &&
+		e.RoleOID == f.OwnerRoleOID && e.RoleOID == claim.Role && e.QueryID == claim.Query &&
+		e.TableOID == f.Target.TableOID && e.Schema == f.Target.Schema && e.Relation == f.Target.Relation &&
+		slices.Equal(e.Columns, f.Columns) && e.ObjectiveMS == objective && len(claim.Generation) == 3 &&
+		e.Boot.Equal(claim.Generation[0]) && e.ResetAt.Equal(claim.Generation[1]) && e.EntrySince.Equal(claim.Generation[2])
+}
+
+func (f *OwnedProjectIndex) bindClaim(ctx context.Context, monitor *pgx.Conn, project supabaseproject.Project,
+	claim investigationClaim, objective float64) (*OwnedProjectIndex, error) {
+	if !f.matchesClaim(project, claim) || f.Paused {
+		return nil, nil
+	}
+	if !f.Discover {
+		return f, nil
+	}
+	evidence, err := project.ReadDiscoveredIndexEvidence(ctx, monitor, claim.Role, claim.Query)
+	if errors.Is(err, supabaseproject.ErrDiscoveredIndexEvidenceUnavailable) {
+		return nil, nil
+	}
+	if err != nil || !f.matchesDiscoveredEvidence(claim, objective, evidence) {
+		return nil, err
+	}
+	bound := *f
+	bound.QueryID = claim.Query
+	bound.planNode = evidence.PlanNode
+	return &bound, nil
+}
+
+func (f *OwnedProjectIndex) recover(ctx context.Context, state *pgx.Conn, project supabaseproject.Project,
+	claim investigationClaim, result *DispatchResult) (bool, error) {
+	if !f.matchesClaim(project, claim) {
+		return false, nil
+	}
+	var rawIntent json.RawMessage
+	err := state.QueryRow(ctx, `SELECT intent FROM pooltune_worker.owned_index_actions
+		WHERE job_id=$1 AND project_id=$2 AND outcome='pending'`, claim.ID, project.ID()).Scan(&rawIntent)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return false, nil
+	}
+	if err != nil {
+		return true, err
+	}
+	var intent ProjectIndexActionIntent
+	if err := json.Unmarshal(rawIntent, &intent); err != nil {
+		return true, err
+	}
+	target, err := pgx.ConnectConfig(ctx, f.Config.Copy())
+	if err != nil {
+		return true, err
+	}
+	defer labdb.Close(target)
+	recovery, err := inspectOwnedIndexIntent(ctx, target, project.ID(), f.Target, f.OwnerRoleOID, f.Columns, intent)
+	if err != nil {
+		return true, err
+	}
+	if recovery.Status == "action_active" {
+		return true, errOwnedIndexActionActive
+	}
+	recovery.intent = rawIntent
+	result.IndexRecovery = &recovery
+	result.Outcome, result.DiagnosticReason = "repair_interrupted", recovery.Reason
+	return true, nil
 }
 
 func (f *OwnedProjectIndex) run(ctx context.Context, state, monitor *pgx.Conn, project supabaseproject.Project,
 	epoch int64, claim investigationClaim, windows *ObservedLookupLatency, result *DispatchResult) error {
 	result.ObservedLatency = windows
-	var interrupted bool
-	err := state.QueryRow(ctx, "SELECT EXISTS (SELECT FROM pooltune_worker.owned_index_actions WHERE job_id=$1 AND project_id=$2)",
-		claim.ID, project.ID()).Scan(&interrupted)
-	if err != nil {
-		return err
-	}
-	if interrupted {
-		result.Outcome, result.DiagnosticReason = "repair_interrupted", "a prior index action requires reconciliation"
+	if f.planNode == "Index Scan" || f.planNode == "Index Only Scan" {
+		result.Outcome, result.DiagnosticReason = "no_change", "the discovered lookup already has an index plan"
 		return nil
 	}
 	owner, err := pgx.ConnectConfig(ctx, f.Config.Copy())
@@ -150,6 +213,7 @@ func (f *OwnedProjectIndex) run(ctx context.Context, state, monitor *pgx.Conn, p
 	started = time.Now()
 	var fence pgx.Tx
 	var indexName string
+	var recorded bool
 	action, err := ApplyProjectIndex(ctx, f.Config, f.Target, evidence, proposal, ProjectIndexActionGuards{
 		CheckPermission: lockedGate,
 		CheckCapacity: func(ctx context.Context, i ProjectIndexActionIntent) error {
@@ -167,6 +231,7 @@ func (f *OwnedProjectIndex) run(ctx context.Context, state, monitor *pgx.Conn, p
 			if err := recordOwnedIndexIntent(ctx, state, project.ID(), epoch, claim, i); err != nil {
 				return err
 			}
+			recorded = true
 			indexName = i.IndexName
 			var err error
 			fence, err = lockOwnedIndexEpoch(ctx, state, project.ID(), epoch, claim)
@@ -178,13 +243,15 @@ func (f *OwnedProjectIndex) run(ctx context.Context, state, monitor *pgx.Conn, p
 	}
 	report.BuildWallMS = elapsedMS(started)
 	if err != nil {
-		if action.WriteAttempted {
-			result.Outcome, result.DiagnosticReason, result.Repair = "repair_interrupted", "an index write was attempted and requires reconciliation", &report
-			return nil
+		if recorded {
+			return fmt.Errorf("index action requires reconciliation: %w", err)
 		}
 		return err
 	}
 	if action.AlreadyCovered {
+		if recorded {
+			return errors.New("an equivalent index appeared after recording the action")
+		}
 		result.Outcome, result.DiagnosticReason = "no_change", "an equivalent index appeared before the action"
 		return nil
 	}
@@ -193,8 +260,7 @@ func (f *OwnedProjectIndex) run(ctx context.Context, state, monitor *pgx.Conn, p
 	after, err := f.measure(ctx, owner, project, catalog.Keys)
 	report.VerifyWallMS = elapsedMS(started)
 	if err != nil {
-		result.Outcome, result.DiagnosticReason, result.Repair = "repair_interrupted", "the new index needs verification", &report
-		return nil
+		return fmt.Errorf("index verification requires reconciliation: %w", err)
 	}
 	report.After = fixtureTiming(after)
 	report.Outcome, report.Reason = "inconclusive", "the isolated input did not demonstrate a useful improvement"
@@ -290,6 +356,16 @@ func (f *OwnedProjectIndex) measure(ctx context.Context, owner *pgx.Conn, projec
 
 func (f *OwnedProjectIndex) recheck(ctx context.Context, state, monitor *pgx.Conn, project supabaseproject.Project,
 	epoch int64, claim investigationClaim, windows *ObservedLookupLatency) error {
+	if f.Discover {
+		evidence, err := project.ReadDiscoveredIndexEvidence(ctx, monitor, claim.Role, claim.Query)
+		if err != nil {
+			return err
+		}
+		if !f.matchesDiscoveredEvidence(claim, windows.ObjectiveMS, evidence) {
+			return errLookupScope
+		}
+		return checkOwnedIndexClaim(ctx, state, project, epoch, claim)
+	}
 	var started, reset, entry time.Time
 	var objective float64
 	var calls int64
@@ -303,8 +379,13 @@ func (f *OwnedProjectIndex) recheck(ctx context.Context, state, monitor *pgx.Con
 		!reset.Equal(claim.Generation[1]) || !entry.Equal(claim.Generation[2]) || objective != windows.ObjectiveMS || calls < 1 {
 		return errLookupScope
 	}
+	return checkOwnedIndexClaim(ctx, state, project, epoch, claim)
+}
+
+func checkOwnedIndexClaim(ctx context.Context, state *pgx.Conn, project supabaseproject.Project,
+	epoch int64, claim investigationClaim) error {
 	var active bool
-	err = state.QueryRow(ctx, `SELECT EXISTS (SELECT FROM pooltune_worker.projects p JOIN pooltune_worker.investigations j USING(project_id)
+	err := state.QueryRow(ctx, `SELECT EXISTS (SELECT FROM pooltune_worker.projects p JOIN pooltune_worker.investigations j USING(project_id)
 		WHERE p.project_id=$1 AND p.monitor_epoch=$2 AND j.id=$3 AND j.attempts=$4 AND j.finished_at IS NULL AND j.lease_until>clock_timestamp())`,
 		project.ID(), epoch, claim.ID, claim.Attempt).Scan(&active)
 	if err == nil && !active {

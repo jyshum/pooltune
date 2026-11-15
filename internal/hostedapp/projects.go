@@ -260,7 +260,7 @@ func (s projectStore) replaceActivePermissions(ctx context.Context, project proj
 	})
 }
 
-func checkProject(ctx context.Context, project projectRecord, credentials projectSecrets, policy hostedquery.SamplingPolicy) error {
+func checkProject(ctx context.Context, project projectRecord, credentials projectSecrets, policy hostedquery.SamplingPolicy, requireDiscoveredIndex bool) error {
 	if credentials.Password == "" || len(credentials.Password) > 1024 || len(credentials.CA) > 32768 || len(credentials.LogsToken) > 512 {
 		return errors.New("enter the dedicated monitor password and Supabase root certificate")
 	}
@@ -292,6 +292,14 @@ func checkProject(ctx context.Context, project projectRecord, credentials projec
 	}
 	if len(enrollment.Queries) == 0 && !credentials.Automatic {
 		return errors.New("enroll at least one application query in Supabase before connecting")
+	}
+	if requireDiscoveredIndex {
+		var available bool
+		err := target.QueryRow(ctx, "SELECT coalesce(has_function_privilege(session_user,to_regprocedure($1),'EXECUTE'),false)",
+			identity.Role()+".read_discovered_index(oid,bigint)").Scan(&available)
+		if err != nil || !available {
+			return errors.New("the monitor cannot read the evidence needed for the selected index repair")
+		}
 	}
 	return nil
 }

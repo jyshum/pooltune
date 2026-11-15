@@ -3,12 +3,117 @@
 package supabaseproject
 
 import (
+	"context"
+	"encoding/json"
+	"io"
+	"net/http"
+	"strings"
 	"testing"
 
 	"pooltune/internal/testpg"
 
 	"github.com/jackc/pgx/v5"
 )
+
+func TestOwnedIndexProbeBootstrapsWithoutManualEnrollment(t *testing.T) {
+	ctx, config, _ := testpg.Start(t, "-c", "shared_preload_libraries=pg_stat_statements")
+	const scopedToken = "sbp_fc_local_request_double"
+	const password = "one disposable bootstrap password"
+	const scope = "pt_hosted_ix_0123456789abcdef"
+	admin, err := pgx.ConnectConfig(ctx, config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer admin.Close(ctx)
+	_, err = admin.Exec(ctx, `CREATE EXTENSION pg_stat_statements;
+		CREATE ROLE pt_hosted_ix_0123456789abcdef LOGIN;
+		CREATE SCHEMA pt_hosted_ix_0123456789abcdef AUTHORIZATION pt_hosted_ix_0123456789abcdef;
+		SET ROLE pt_hosted_ix_0123456789abcdef;
+		CREATE TABLE pt_hosted_ix_0123456789abcdef.workload (id int PRIMARY KEY, lookup int, group_key int);
+		INSERT INTO pt_hosted_ix_0123456789abcdef.workload VALUES (1, 17, 23);
+		RESET ROLE;
+		GRANT USAGE ON SCHEMA pt_hosted_ix_0123456789abcdef TO fixture_app;
+		GRANT SELECT ON TABLE pt_hosted_ix_0123456789abcdef.workload TO fixture_app`, pgx.QueryExecModeSimpleProtocol)
+	if err != nil {
+		t.Fatal(err)
+	}
+	project, err := New(OwnedIndexProbeRef, "0123456789abcdef")
+	if err != nil {
+		t.Fatal(err)
+	}
+	client := &http.Client{Transport: setupTransport(func(request *http.Request) (*http.Response, error) {
+		if request.URL.String() != "https://api.supabase.com/v1/projects/"+OwnedIndexProbeRef+"/database/query" ||
+			request.Header.Get("Authorization") != "Bearer "+scopedToken {
+			t.Fatal("setup request missed the exact provider project")
+		}
+		var body struct{ Query string }
+		if err := json.NewDecoder(request.Body).Decode(&body); err != nil {
+			t.Fatal(err)
+		}
+		if strings.Contains(body.Query, scopedToken) || strings.Contains(body.Query, password) {
+			t.Fatal("setup SQL included plaintext credentials")
+		}
+		_, err := admin.Exec(request.Context(), body.Query, pgx.QueryExecModeSimpleProtocol)
+		if err != nil {
+			return nil, err
+		}
+		return &http.Response{StatusCode: 201, Body: io.NopCloser(strings.NewReader("[]"))}, nil
+	})}
+	script, err := project.bootstrapSQLWithDiscovery(password, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := project.postSetup(ctx, client, scopedToken, script); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := admin.Exec(ctx, "SELECT pg_stat_statements_reset()"); err != nil {
+		t.Fatal(err)
+	}
+	const query = `SELECT lookup FROM ONLY pt_hosted_ix_0123456789abcdef.workload WHERE lookup = $1 AND group_key = $2`
+	for _, role := range []string{scope, "fixture_app"} {
+		if _, err := admin.Exec(ctx, "SET ROLE "+role); err != nil {
+			t.Fatal(err)
+		}
+		var lookup int32
+		if err := admin.QueryRow(ctx, query, int32(17), int32(23)).Scan(&lookup); err != nil || lookup != 17 {
+			t.Fatalf("fixture traffic did not run: %d %v", lookup, err)
+		}
+	}
+	if _, err := admin.Exec(ctx, "RESET ROLE; SELECT pg_stat_force_next_flush()", pgx.QueryExecModeSimpleProtocol); err != nil {
+		t.Fatal(err)
+	}
+	monitorConfig := config.Copy()
+	monitorConfig.User, monitorConfig.Password = project.Role(), password
+	monitorConfig.RuntimeParams["default_transaction_read_only"] = "on"
+	monitorConfig.RuntimeParams["statement_timeout"] = "2s"
+	monitor, err := pgx.ConnectConfig(ctx, monitorConfig)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer monitor.Close(context.Background())
+	var manual int
+	if err := admin.QueryRow(ctx, "SELECT count(*) FROM "+project.Role()+".enrolled_queries").Scan(&manual); err != nil || manual != 0 {
+		t.Fatalf("simple setup unexpectedly enrolled queries: %d %v", manual, err)
+	}
+	type candidate struct {
+		Role      uint32
+		Query     int64
+		Objective float64
+	}
+	counters := "SELECT role_oid,query_id,mean_execution_ms FROM " + project.Role() + ".snapshot() WHERE role_oid IN ($1::regrole::oid, 'fixture_app'::regrole::oid) ORDER BY mean_execution_ms"
+	rows, err := monitor.Query(ctx, counters, scope)
+	if err != nil {
+		t.Fatal(err)
+	}
+	observed, err := pgx.CollectRows(rows, pgx.RowToStructByPos[candidate])
+	if err != nil || len(observed) != 2 || observed[0].Objective != 2 || observed[1].Objective != 1000 {
+		t.Fatalf("discovery objective was not scoped to the test role: %+v %v", observed, err)
+	}
+	evidence, err := project.ReadDiscoveredIndexEvidence(ctx, monitor, observed[0].Role, observed[0].Query)
+	if err != nil || !evidence.Only || evidence.Schema != scope || len(evidence.Columns) != 2 || evidence.Columns[0] != 2 || evidence.Columns[1] != 3 {
+		t.Fatalf("installed monitor did not bind ordinary traffic: %+v %v", evidence, err)
+	}
+}
 
 func TestBootstrapSQLAndReconnect(t *testing.T) {
 	ctx, config, _ := testpg.Start(t, "-c", "shared_preload_libraries=pg_stat_statements")

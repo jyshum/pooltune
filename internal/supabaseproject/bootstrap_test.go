@@ -47,3 +47,26 @@ func TestSetupDefaultScope(t *testing.T) {
 		t.Fatalf("provider permission error = %v", err)
 	}
 }
+
+func TestOwnedIndexProbeDiscoveryOnlyChangesFixtureRole(t *testing.T) {
+	project, err := New(OwnedIndexProbeRef, "0123456789abcdef")
+	if err != nil {
+		t.Fatal(err)
+	}
+	script, err := project.bootstrapSQLWithDiscovery("test-password", true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	const scope = "CASE WHEN a.userid = to_regrole('pt_hosted_ix_0123456789abcdef')::oid THEN 2.0 ELSE 1000.0 END"
+	if !strings.Contains(script, scope) || strings.Count(script, "COMMIT;") != 1 {
+		t.Fatal("owned probe did not bind the discovery objective to its test role")
+	}
+	other, _ := New("abcdefghijklmnopqrst", "0123456789abcdef")
+	if _, err := other.bootstrapSQLWithDiscovery("test-password", true); !errors.Is(err, ErrSetupPermission) {
+		t.Fatalf("unsupported project admitted owned test objective: %v", err)
+	}
+	normal, err := project.bootstrapSQL("test-password")
+	if err != nil || strings.Contains(normal, "pt_hosted_ix_") {
+		t.Fatalf("ordinary project setup received the test objective: %v", err)
+	}
+}

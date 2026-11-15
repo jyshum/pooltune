@@ -106,7 +106,8 @@ func (a *App) showProject(w http.ResponseWriter, r *http.Request, user auth.User
 	}
 	view := baseProjectView(row)
 	view.Role = identity.Role()
-	view.FixtureIndex = a.ownedIndex.Matches(identity)
+	fixtureMatches := a.ownedIndex.Matches(identity)
+	view.FixtureIndex = fixtureMatches && !a.ownedIndex.Discover
 	if !row.Configured {
 		view.QuickStart = true
 		view.Capabilities = slices.Clone(projectCapabilities)
@@ -126,7 +127,7 @@ func (a *App) showProject(w http.ResponseWriter, r *http.Request, user auth.User
 			option.Selected = slices.Contains(configured.Capabilities, option.Key)
 			if option.Selected {
 				option.Availability = "Waiting for repair support"
-				if view.FixtureIndex && option.Key == "index" {
+				if fixtureMatches && a.ownedIndex.Discover == configured.Automatic && option.Key == "index" {
 					option.Availability = "Available for the owned Rookery fixture"
 				}
 				if configured.RepairsPaused {
