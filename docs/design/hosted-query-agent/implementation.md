@@ -349,7 +349,7 @@ Tasks 27–29 completed for the explicitly bounded diagnostic slice. Sonnet pass
 
 **Dependencies:** Task 30 verification. Existing Railway staging and synthetic Rookery scope only. Source upload is authorized; no new provider/service/customer grant.
 **Files:** docs/design/hosted-query-agent/hosted-diagnostic.md, evidence/hosted-diagnostic, progress.md, roadmap.md, map/status.json and generated design.html.
-- [ ] Deploy the reviewed source to existing Consumer staging and verify the exact deployment succeeded. Use real Sonnet 5.5 with tracing disabled.
-- [ ] Run bounded enrolled candidate and healthy traffic. Preserve a queued, unclaimed job through an actual Railway consumer-service restart, then run the new diagnostic consumer through guarded index application and read/write verification. Record that this tests queued recovery, not an in-flight model resume; local checkpoint-resume proof remains separate.
-- [ ] Capture detection/window time, restart/queue wait, baseline evidence, model turns/tool requests, index build and verification separately. Assert healthy query creates no job or repair, no duplicate action, exact outcome readback, cleanup and unchanged public indexes. Preserve unsuccessful attempts.
-- [ ] Document results and limitations in plain English, update map scope truthfully, verify generated map and source checks, commit on revamp.
+- [x] Deploy the reviewed source to existing Consumer staging and verify the exact deployment succeeded. Use real Sonnet 5.5 with tracing disabled.
+- [x] Run bounded enrolled candidate and healthy traffic. Preserve a queued, unclaimed job through an actual Railway consumer-service restart, then run the new diagnostic consumer through guarded index application and read/write verification. Record that this tests queued recovery, not an in-flight model resume; local checkpoint-resume proof remains separate.
+- [x] Capture detection/window time, restart/queue wait, baseline evidence, model turns/tool requests, index build and verification separately. Assert healthy query creates no job or repair, no duplicate action, exact outcome readback, cleanup and unchanged public indexes. Preserve unsuccessful attempts.
+- [x] Document results and limitations in plain English, update map scope truthfully, verify generated map and source checks, commit on revamp.

@@ -1,6 +1,6 @@
 # Pooltune: build status and remaining architecture
 
-Updated November 14, 2026, against source `f3f01c7`. This map now distinguishes implemented staging behavior from the complete V1 design. It is an offline snapshot, not a live agent dashboard. The archived design context below records earlier decisions and open questions at the time; current build status is in this section and `map/status.json`.
+Updated November 14, 2026, against source `4918260`. This map now distinguishes implemented staging behavior from the complete V1 design. It is an offline snapshot, not a live agent dashboard. The archived design context below records earlier decisions and open questions at the time; current build status is in this section and `map/status.json`.
 
 ## How to read the colors
 
@@ -9,22 +9,22 @@ Updated November 14, 2026, against source `f3f01c7`. This map now distinguishes 
 - **Gray dashed / Remaining:** still needs implementation or broader qualification.
 - **External:** the owner, customer database or model provider; these are context, not Pooltune completion claims.
 
-Click any card for its current scope, remaining work and source references. Explore Controlled database tools for the six tested repairs and broader qualification. Explore Investigator graph for the existing recommendation path, the newly qualified diagnostic loop and the remaining hosted connection. Explore Hosted API or Customer dashboard for customer connection, credentials, sign-in and visible activity. Build status is available from every view and lists the next work. Existing node IDs and the tools deep link are preserved.
+Click any card for its current scope, remaining work and source references. Explore Controlled database tools for the six tested repairs and broader qualification. Explore Investigator graph for the existing recommendation path, the diagnostic loop, its verified hosted index connection and the remaining repair adapters. Explore Hosted API or Customer dashboard for customer connection, credentials, sign-in and visible activity. Build status is available from every view and lists the next work. Existing node IDs and the tools deep link are preserved.
 
 ## What is built, and what is not
 
 The Go collector, PostgreSQL queue, continuous consumer and six guarded repair cases have staging evidence. A separate diagnostic LangGraph now compares multiple cause observations and requests named Go evidence. Sonnet passed 15/15 bounded diagnostic cases and a fresh local PostgreSQL test. Go-owned evidence receipts and graph checkpoints survived a process restart without repeating the completed measurement. [Full result and trade-offs](diagnostic-loop.md).
 
-The earlier tests supplied one known cause category. The new graph removes that input restriction and can investigate missing evidence. However, the staged Railway consumer still uses the earlier fixed-evidence path. **Connect the hosted investigator** marks the remaining wiring and live-reader qualification. General customer onboarding, dashboard and sign-in remain unfinished.
+The earlier tests supplied one known cause category. The new graph removes that input restriction and can investigate missing evidence. The diagnostic graph is now connected to the Railway index consumer: real Sonnet chose an index, Go verified improvement, and the queued job survived a service restart. **Connect the other five repairs** marks the remaining diagnostic adapters. [Hosted result](hosted-diagnostic.md). General customer onboarding, dashboard and sign-in remain unfinished.
 
-Green means the scope stated on that card was verified. The new diagnostic nodes were qualified locally and with retained-evidence replay, not deployed to Railway. The investigator parent remains amber because hosted integration and general customer coverage remain.
+Green means the scope stated on that card was verified. The diagnostic index adapter now has hosted evidence. Additional requested reads and mid-model checkpoint recovery have local PostgreSQL evidence, not a new hosted claim. The investigator parent remains amber because five diagnostic execution adapters and general customer coverage remain.
 
 ## Changes from the earlier map
 
 - Replaced the stale “no running agent” claim with measured staging status.
 - Made the actual PostgreSQL queue, continuous consumer and delayed follow-up behavior explicit in the scheduling scope.
 - Recorded the single-call model boundary: supplied evidence goes to Claude once; a typed proposal returns to independently checked Go execution.
-- Split out diagnostic work and customer-product responsibilities; cause comparison and evidence requests are now locally qualified, with hosted integration still visible as remaining work.
+- Split out diagnostic work and customer-product responsibilities; cause comparison and evidence requests are now locally qualified, with the hosted index connection verified and other diagnostic repair adapters visible as remaining work.
 - Kept broader repair variants visible: compound indexes, column statistics targets, cleanup settings, candidate-table writes, real memory budgets and owner schedules.
 - Preserved every decision revision and approval record. Build status is a separate evidence annotation and does not approve proposed production contracts.
 
@@ -32,7 +32,7 @@ The Go + TypeScript/LangGraph architecture and six repair families remain consis
 
 ## Next work and trade-offs
 
-The next sequence is a proposal within the existing roadmap: connect the qualified diagnostic loop to the hosted consumer and live readers; general project connection/enrollment; a simple end-to-end activity view; representative repair coverage; account/credential and production operating controls. The scope of a first pilot must be explicit before customer mutations. A public landing page is not a prerequisite for an internal pilot.
+The next sequence is a proposal within the existing roadmap: qualify the other five repairs through the hosted diagnostic loop and their live readers; general project connection/enrollment; a simple end-to-end activity view; representative repair coverage; account/credential and production operating controls. The scope of a first pilot must be explicit before customer mutations. A public landing page is not a prerequisite for an internal pilot.
 
 Current assessment: keeping one investigator and deterministic Go execution avoids creating six disconnected agents. The alternative is separate agents per repair; they could specialize prompts but would duplicate evidence, budgets and recovery coordination. The diagnostic loop requests additional calls only for decision-changing gaps, preserving the speed benefit of the existing one-call path when evidence is already sufficient.
 

@@ -1,5 +1,7 @@
 # Investigator: compare causes and request evidence
 
+**Current follow-up:** the diagnostic graph is now connected to the Railway index consumer and passed a real Sonnet repair run plus queued-job restart. [Hosted results](hosted-diagnostic.md). The local/replay results below describe the original diagnostic qualification. The other five diagnostic execution adapters remain.
+
 ## Problem and intended behavior
 
 The six repair tools work on bounded cases, but the old input admits one cause category. A slow query may have several plausible explanations. The investigator needs to compare evidence, request a missing measurement, and decline unsupported changes. Jared explicitly requested this implementation on November 14: “build that investigator next so Claude can compare causes and request more evidence. Follow the design docs, test it with real Claude”.
@@ -29,7 +31,7 @@ See Tasks 27–29 in implementation.md and progress.md. Results will be appended
 
 ## What was built
 
-The new graph has **screen_evidence → compare_causes → request_evidence → compare_causes → finish**. It reuses supplied measurements when enough evidence exists. Claude chooses which named measurement to request, Go supplies it, and the loop stops with a supported proposal or an honest no-change result. This is separate from the existing staged repair path.
+The new graph has **screen_evidence → compare_causes → request_evidence → compare_causes → finish**. It reuses supplied measurements when enough evidence exists. Claude chooses which named measurement to request, Go supplies it, and the loop stops with a supported proposal or an honest no-change result. The original qualification was separate from staged execution; the hosted index adapter is now qualified in the follow-up linked above.
 
 Go saves requested evidence before sending it to the graph. After interruption, the public protocol restores the same checkpoint and retrieves the same Go-owned evidence receipt. It rejects a changed enrollment and prevents two processes from owning the same investigation. A persisted reservation caps real provider attempts at three across restarts, including a call whose completion is unknown. A graph can report two completed turns while Go reports three reserved attempts after a crash. Failed attempts retain their elapsed time.
 
@@ -69,7 +71,7 @@ Three model attempts, six reads, 30-second observation freshness, a 20-second gr
 
 ## What remains
 
-**Connect the hosted investigator** is the next map node. The Railway consumer still uses the earlier fixed-evidence investigator. Wire the new API to that consumer and register qualified live readers under actual project enrollment and grants, then test queued diagnosis through the existing guarded repair executor and outcome verification. The current Go API accepts such readers, but this slice qualified only one fresh local database reader plus retained evidence for all six families.
+**Connect the other five repairs** is the next investigator map node. The new graph now runs through the Railway index consumer and existing guarded index executor. Its current reader registers bounded plan, index and lookup-statistics inspection for the owned fixture. The one-call live run reused initial evidence; it did not need extra reads. Qualify the other five diagnostic execution adapters and their live readers with real Sonnet, healthy controls and recovery before enabling them. Do not confuse the earlier six-family legacy qualification with new-adapter qualification.
 
 Other remaining work is unchanged: broader repair variants, customer project connection, account isolation, auth/dashboard, retention and operational rollout. This implementation does not make the whole product production-ready.
 

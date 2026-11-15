@@ -1,0 +1,387 @@
+{
+  "source_revision": "4918260",
+  "deployment": "58b9a26c-db3b-4c71-8c19-8cee332d24ce",
+  "model": "claude-sonnet-5-5",
+  "restart_scope": "queued unclaimed job; not in-flight graph resume",
+  "public_indexes_before": [
+    12,
+    "f56ad07a58d2b60570ee6b64a8978936"
+  ],
+  "fixture": {
+    "id": "d47289bb6a1afa7f74b0dc2d",
+    "schema": "pooltune_trial_d47289bb6a1afa7f74b0dc2d",
+    "enrollment": {
+      "project": "rookery/consumer/d47289bb6a1afa7f74b0dc2d",
+      "queries": [
+        {
+          "database_oid": 5,
+          "role_oid": 16388,
+          "query_id": "-6536673811369131980",
+          "mean_execution_ms": 3
+        },
+        {
+          "database_oid": 5,
+          "role_oid": 16388,
+          "query_id": "-9063266435287050972",
+          "mean_execution_ms": 3
+        }
+      ]
+    }
+  },
+  "traffic_start": "2026-11-15T01:48:55.050196+00:00",
+  "queued_before_restart": {
+    "id": 113,
+    "query": "-9063266435287050972",
+    "created": "2026-11-15T01:49:15.867555+00:00",
+    "finished": null,
+    "result": null,
+    "attempts": 0
+  },
+  "detection_seconds": 20.817359,
+  "healthy_windows": [
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-6536673811369131980",
+      "start": "2026-11-15T01:49:11.863285Z",
+      "end": "2026-11-15T01:49:15.866632Z",
+      "calls": 21,
+      "mean_execution_ms": 0.023828380952380893,
+      "decision": "no_change"
+    }
+  ],
+  "restart_requested_at": "2026-11-15T01:49:17.593370+00:00",
+  "restart_ack": {
+    "deployment_id": "58b9a26c-db3b-4c71-8c19-8cee332d24ce",
+    "service_id": "a7363b8b-5b77-4ead-b9e1-9af52e7cd462",
+    "acknowledged_at": "2026-11-15T01:49:32.273715+00:00",
+    "method": "Railway restart-service"
+  },
+  "queued_after_restart": {
+    "id": 113,
+    "query": "-9063266435287050972",
+    "created": "2026-11-15T01:49:15.867555+00:00",
+    "finished": null,
+    "result": null,
+    "attempts": 0
+  },
+  "replacement_ready_at": "2026-11-15T01:49:38.284975+00:00",
+  "consumer_launch_at": "2026-11-15T01:49:38.285007+00:00",
+  "jobs": [
+    {
+      "id": 113,
+      "query": "-9063266435287050972",
+      "created": "2026-11-15T01:49:15.867555+00:00",
+      "finished": "2026-11-15T01:49:55.962812+00:00",
+      "result": {
+        "job_id": 113,
+        "repair": {
+          "after": {
+            "plan": "Index Scan",
+            "errors": 0,
+            "inputs": [
+              {
+                "input": 43,
+                "read_mad_ms": 0.0019999999999999983,
+                "read_mean_ms": 0.0377,
+                "write_mad_ms": 0.0015000000000000013,
+                "write_mean_ms": 0.0698,
+                "healthy_mad_ms": 0.0010000000000000009,
+                "healthy_mean_ms": 0.022299999999999997
+              },
+              {
+                "input": 8015,
+                "read_mad_ms": 0,
+                "read_mean_ms": 0.020999999999999998,
+                "write_mad_ms": 0.0019999999999999983,
+                "write_mean_ms": 0.049699999999999994,
+                "healthy_mad_ms": 0.0005000000000000004,
+                "healthy_mean_ms": 0.018399999999999996
+              },
+              {
+                "input": 36592,
+                "read_mad_ms": 0.0015000000000000013,
+                "read_mean_ms": 0.031000000000000007,
+                "write_mad_ms": 0.003499999999999996,
+                "write_mean_ms": 0.0536,
+                "healthy_mad_ms": 0,
+                "healthy_mean_ms": 0.021799999999999996
+              },
+              {
+                "input": 97043,
+                "read_mad_ms": 0,
+                "read_mean_ms": 0.0209,
+                "write_mad_ms": 0.0040000000000000036,
+                "write_mean_ms": 0.06509999999999999,
+                "healthy_mad_ms": 0.0005000000000000004,
+                "healthy_mean_ms": 0.019299999999999998
+              }
+            ],
+            "read_calls": 40,
+            "read_mad_ms": 0.0020000000000000018,
+            "write_calls": 40,
+            "read_mean_ms": 0.02765,
+            "write_mad_ms": 0.005499999999999998,
+            "examined_rows": 1,
+            "returned_rows": 1,
+            "write_mean_ms": 0.05955000000000001,
+            "healthy_mad_ms": 0.0010000000000000009,
+            "blocks_per_read": 3,
+            "healthy_mean_ms": 0.02045000000000001,
+            "healthy_read_calls": 40,
+            "healthy_objective_breaches": 0,
+            "candidate_objective_breaches": 0
+          },
+          "before": {
+            "plan": "Seq Scan",
+            "errors": 0,
+            "inputs": [
+              {
+                "input": 43,
+                "read_mad_ms": 0.19950000000000045,
+                "read_mean_ms": 9.4609,
+                "write_mad_ms": 0.0024999999999999953,
+                "write_mean_ms": 0.4015000000000001,
+                "healthy_mad_ms": 0.0004999999999999987,
+                "healthy_mean_ms": 0.029400000000000003
+              },
+              {
+                "input": 8015,
+                "read_mad_ms": 0.24650000000000105,
+                "read_mean_ms": 9.3757,
+                "write_mad_ms": 0.004500000000000004,
+                "write_mean_ms": 0.0553,
+                "healthy_mad_ms": 0.0014999999999999979,
+                "healthy_mean_ms": 0.029100000000000004
+              },
+              {
+                "input": 36592,
+                "read_mad_ms": 0.06050000000000022,
+                "read_mean_ms": 9.488400000000002,
+                "write_mad_ms": 0.0010000000000000009,
+                "write_mean_ms": 0.0519,
+                "healthy_mad_ms": 0.0014999999999999979,
+                "healthy_mean_ms": 0.030700000000000005
+              },
+              {
+                "input": 97043,
+                "read_mad_ms": 0.13650000000000073,
+                "read_mean_ms": 8.9412,
+                "write_mad_ms": 0.004,
+                "write_mean_ms": 0.059300000000000005,
+                "healthy_mad_ms": 0.0009999999999999992,
+                "healthy_mean_ms": 0.029300000000000003
+              }
+            ],
+            "read_calls": 40,
+            "read_mad_ms": 0.16299999999999937,
+            "write_calls": 40,
+            "read_mean_ms": 9.31655,
+            "write_mad_ms": 0.003499999999999996,
+            "examined_rows": 100000,
+            "returned_rows": 1,
+            "write_mean_ms": 0.14200000000000004,
+            "healthy_mad_ms": 0.0009999999999999992,
+            "blocks_per_read": 1334,
+            "healthy_mean_ms": 0.029625000000000005,
+            "healthy_read_calls": 40,
+            "healthy_objective_breaches": 0,
+            "candidate_objective_breaches": 5
+          },
+          "job_id": 113,
+          "reason": "target latency and logical block work improved with observed fixture guards",
+          "run_id": "d47289bb6a1afa7f74b0dc2d",
+          "outcome": "improved_tested_inputs",
+          "evidence": {
+            "plan": {
+              "node": "Seq Scan",
+              "examined_rows": 100000,
+              "returned_rows": 1,
+              "shared_blocks": 1334
+            },
+            "run_id": "worker-113-1",
+            "decision": "investigate",
+            "table_oid": 27160,
+            "observed_at": "2026-11-15T01:49:45.992251285Z",
+            "column_number": 2,
+            "lookup_column": "lookup",
+            "covering_index": false
+          },
+          "proposal": {
+            "reason": "Seq Scan examined 100000 rows to return 1 with no covering index, which meets the index repair criteria; alternatives lack supporting evidence.",
+            "run_id": "worker-113-1",
+            "outcome": "propose",
+            "table_oid": 27160,
+            "diagnostic": {
+              "reads": 0,
+              "history": [
+                {
+                  "tools": [],
+                  "action": "propose",
+                  "reason": "Seq Scan examined 100000 rows to return 1 with no covering index, which meets the index repair criteria; alternatives lack supporting evidence.",
+                  "repair": "index",
+                  "assessments": [
+                    {
+                      "cause": "index",
+                      "reason": "Selective Seq Scan examined 100000 rows for 1 returned and no covering index exists.",
+                      "assessment": "supported",
+                      "blocks_decision": false
+                    },
+                    {
+                      "cause": "analyze",
+                      "reason": "No usable index exists to be ignored, so stale statistics are not needed to explain the Seq Scan.",
+                      "assessment": "rejected",
+                      "blocks_decision": false
+                    },
+                    {
+                      "cause": "vacuum",
+                      "reason": "Plan shows a Seq Scan, not an Index Only Scan, and no covering index exists, so heap fetches are irrelevant.",
+                      "assessment": "rejected",
+                      "blocks_decision": false
+                    }
+                  ]
+                }
+              ],
+              "tool_ms": 0,
+              "model_ms": 3582.2126540000004,
+              "total_ms": 4097.096169,
+              "model_calls": 1,
+              "stop_reason": "",
+              "model_attempts": 1
+            },
+            "model_call": {
+              "model": "claude-sonnet-5-5",
+              "requests": 1,
+              "duration_ms": 3582.2126540000004,
+              "input_tokens": 2931,
+              "output_tokens": 291
+            },
+            "column_number": 2
+          },
+          "index_bytes": 2260992,
+          "index_valid": true,
+          "build_wall_ms": 1502.093231,
+          "total_wall_ms": 13440.344567,
+          "detect_wall_ms": 3475.37283,
+          "verify_wall_ms": 3230.338763,
+          "healthy_index_built": false,
+          "investigation_wall_ms": 4097.165358
+        },
+        "attempt": 1,
+        "outcome": "improved_tested_inputs",
+        "evidence": {
+          "plan": {
+            "node": "Seq Scan",
+            "examined_rows": 100000,
+            "returned_rows": 1,
+            "shared_blocks": 1334
+          },
+          "run_id": "worker-113-1",
+          "decision": "investigate",
+          "table_oid": 27160,
+          "observed_at": "2026-11-15T01:49:45.992251285Z",
+          "column_number": 2,
+          "lookup_column": "lookup",
+          "covering_index": false
+        },
+        "graph_ms": 4097.165358,
+        "proposal": {
+          "reason": "Seq Scan examined 100000 rows to return 1 with no covering index, which meets the index repair criteria; alternatives lack supporting evidence.",
+          "run_id": "worker-113-1",
+          "outcome": "propose",
+          "table_oid": 27160,
+          "diagnostic": {
+            "reads": 0,
+            "history": [
+              {
+                "tools": [],
+                "action": "propose",
+                "reason": "Seq Scan examined 100000 rows to return 1 with no covering index, which meets the index repair criteria; alternatives lack supporting evidence.",
+                "repair": "index",
+                "assessments": [
+                  {
+                    "cause": "index",
+                    "reason": "Selective Seq Scan examined 100000 rows for 1 returned and no covering index exists.",
+                    "assessment": "supported",
+                    "blocks_decision": false
+                  },
+                  {
+                    "cause": "analyze",
+                    "reason": "No usable index exists to be ignored, so stale statistics are not needed to explain the Seq Scan.",
+                    "assessment": "rejected",
+                    "blocks_decision": false
+                  },
+                  {
+                    "cause": "vacuum",
+                    "reason": "Plan shows a Seq Scan, not an Index Only Scan, and no covering index exists, so heap fetches are irrelevant.",
+                    "assessment": "rejected",
+                    "blocks_decision": false
+                  }
+                ]
+              }
+            ],
+            "tool_ms": 0,
+            "model_ms": 3582.2126540000004,
+            "total_ms": 4097.096169,
+            "model_calls": 1,
+            "stop_reason": "",
+            "model_attempts": 1
+          },
+          "model_call": {
+            "model": "claude-sonnet-5-5",
+            "requests": 1,
+            "duration_ms": 3582.2126540000004,
+            "input_tokens": 2931,
+            "output_tokens": 291
+          },
+          "column_number": 2
+        },
+        "thread_id": "worker-113-1",
+        "elapsed_ms": 16123.550657,
+        "observed_latency": {
+          "objective_ms": 3,
+          "observed_through": "2026-11-15T01:49:15.866632Z",
+          "recent_window_calls": [
+            20,
+            20,
+            20,
+            19,
+            21
+          ],
+          "recent_window_mean_ms": [
+            10.0345355,
+            10.096854499999997,
+            10.095421549999992,
+            8.637195052631586,
+            8.561616285714276
+          ],
+          "recent_window_shared_block_accesses": [
+            26680,
+            26680,
+            26680,
+            25346,
+            28014
+          ]
+        }
+      },
+      "attempts": 1
+    }
+  ],
+  "durable_graph": {
+    "model_attempts": 1,
+    "checkpoints": 5,
+    "evidence_receipts": 0
+  },
+  "pairs": 360,
+  "traffic_queries": 720,
+  "traffic_errors": 0,
+  "traffic_wrong_results": 0,
+  "queue_to_result_seconds": 40.095257,
+  "traffic_to_result_seconds": 60.912616,
+  "passed": true,
+  "fixture_removed": true,
+  "public_indexes_after": [
+    12,
+    "f56ad07a58d2b60570ee6b64a8978936"
+  ]
+}

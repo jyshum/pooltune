@@ -1,0 +1,24 @@
+{
+  "source_revision": "4918260",
+  "deployment": "58b9a26c-db3b-4c71-8c19-8cee332d24ce",
+  "job_id": 113,
+  "passed": true,
+  "healthy_query_jobs": 0,
+  "model_calls": 1,
+  "requested_evidence_reads": 0,
+  "timings_seconds": {
+    "detection": 20.817359,
+    "worker_total": 16.123550657,
+    "baseline": 3.47537283,
+    "investigation": 4.097165358,
+    "model_only": 3.5822126540000006,
+    "index_build": 1.5020932310000001,
+    "verification": 3.2303387630000002,
+    "remaining_checks_connections_and_bookkeeping": 3.8185804749999988,
+    "traffic_to_verified_result_including_restart": 60.912616,
+    "queue_restart_coordination_and_result_publication_residual": 23.971706342999997
+  },
+  "target_speedup": 336.94575045207955,
+  "target_latency_reduction_percent": 99.70321631934567,
+  "cleanup_verified": true
+}

@@ -1,8 +1,8 @@
 {
-  "sourceRevision": "f3f01c7940c644161535d3fbae0ebdf6d37b8542",
-  "summary": "Green means verified in the stated scope, which may be staging, local database testing or recorded-evidence replay. Amber means partly built. Gray means remaining. The diagnostic loop is qualified locally; Railway consumer integration is next. This is a snapshot, not live execution.",
+  "sourceRevision": "49182605a05d94d7a437a09223f9771ee27d8cbc",
+  "summary": "Green means verified in the stated scope. The diagnostic index consumer passed a hosted Sonnet repair and queued-job restart. The other five diagnostic repair adapters remain. Amber is partial; gray is remaining. This snapshot is not a live dashboard.",
   "next": [
-    "hosted-diagnostic-integration",
+    "diagnostic-adapter-coverage",
     "connect-project",
     "activity",
     "repair-coverage",
@@ -65,11 +65,12 @@
     },
     "investigator": {
       "status": "partial",
-      "scope": "The existing staged recommendation path remains. A new diagnostic graph compares causes and requests evidence through Go.",
-      "remaining": "The new graph is not yet wired to the Railway consumer or general customer evidence collectors.",
+      "scope": "One diagnostic graph compares causes and requests evidence. Its index adapter now runs through the Railway consumer and guarded repair executor.",
+      "remaining": "Five diagnostic execution adapters, general customer collectors and broader workload qualification remain.",
       "evidence": [
         "investigator/diagnostic.ts",
-        "docs/design/hosted-query-agent/diagnostic-loop.md"
+        "docs/design/hosted-query-agent/diagnostic-loop.md",
+        "docs/design/hosted-query-agent/hosted-diagnostic.md"
       ]
     },
     "tools": {
@@ -83,11 +84,13 @@
     },
     "inspection": {
       "status": "partial",
-      "scope": "Go collects the existing fixture evidence. The new named-reader bridge can supply requested measurements and reuse saved evidence.",
-      "remaining": "Only a bounded fresh PostgreSQL statistics reader was exercised through the new loop. General project readers for all six families remain.",
+      "scope": "Go reuses initial evidence and exposes bounded plan/index/statistics readers for the owned index fixture, with real PostgreSQL identity checks.",
+      "remaining": "The hosted index run needed no extra read. Requested live Rookery reads for broader cases and general readers for all six families remain.",
       "evidence": [
         "internal/graphrunner/diagnostic.go",
-        "docs/design/hosted-query-agent/diagnostic-loop.md"
+        "docs/design/hosted-query-agent/diagnostic-loop.md",
+        "internal/hostedquery/diagnostic_reader.go",
+        "internal/hostedquery/diagnostic_reader_integration_test.go"
       ]
     },
     "experiments": {
@@ -200,18 +203,19 @@
     },
     "diagnose-causes": {
       "status": "verified",
-      "scope": "Built and locally qualified: compare simultaneous cause evidence, request missing facts, and decline relevant unresolved alternatives. Sonnet passed 15/15 diagnostic cases.",
-      "remaining": "These are retained Rookery measurements and controlled variations, not broad customer workload qualification. Hosted integration remains.",
+      "scope": "Sonnet passed 15/15 bounded local/replay cases. In Railway it selected an index and rejected statistics/cleanup explanations before a verified repair.",
+      "remaining": "Broad customer workloads and the other five diagnostic execution adapters remain unqualified.",
       "evidence": [
         "investigator/diagnostic.ts",
         "investigator/diagnostic-model.ts",
-        "docs/design/hosted-query-agent/evidence/diagnostic-loop/summary.json"
+        "docs/design/hosted-query-agent/evidence/diagnostic-loop/summary.json",
+        "docs/design/hosted-query-agent/hosted-diagnostic.md"
       ]
     },
     "request-evidence": {
       "status": "verified",
       "scope": "Built: named Go readers, fresh local PostgreSQL evidence with real Claude, persisted evidence receipts, restart recovery and model-attempt limits.",
-      "remaining": "General live adapters for all six families and Railway consumer wiring remain. The new bridge cannot invent unregistered readers or permissions.",
+      "remaining": "The index consumer is wired, but its live run needed no extra read. General live readers for the other five adapters and hosted mid-model resume remain.",
       "evidence": [
         "internal/graphrunner/diagnostic.go",
         "internal/graphrunner/diagnostic_journal.go",
@@ -276,12 +280,23 @@
       ]
     },
     "hosted-diagnostic-integration": {
-      "status": "planned",
-      "scope": "Next: wire the diagnostic loop into the Railway consumer with admitted live evidence readers.",
-      "remaining": "Register and qualify live readers under existing enrollment/grants, then test queued diagnosis and repair in staging. Do not replace guarded repair executors.",
+      "status": "verified",
+      "scope": "Connected and verified for the owned index fixture: Railway queue \u2192 diagnostic Sonnet graph \u2192 Go index repair \u2192 measured improvement. Queued job survived an actual service restart.",
+      "remaining": "Only the index adapter is enabled. The live run reused initial evidence; requested reads and mid-model resume have separate local tests. See the remaining five-adapter node.",
       "evidence": [
-        "docs/design/hosted-query-agent/diagnostic-loop.md",
-        "cmd/pooltune-consumer/main.go"
+        "cmd/pooltune-consumer/main.go",
+        "internal/graphrunner/consumer.go",
+        "docs/design/hosted-query-agent/hosted-diagnostic.md",
+        "docs/design/hosted-query-agent/evidence/hosted-diagnostic/run.json"
+      ]
+    },
+    "diagnostic-adapter-coverage": {
+      "status": "planned",
+      "scope": "Next: connect ANALYZE, richer statistics, cleanup, function memory and scheduling to the diagnostic consumer.",
+      "remaining": "Qualify each live evidence reader and diagnostic-to-action adapter with real Sonnet, healthy controls, timings and recovery. The existing six-family legacy tests remain valid but are not new-adapter qualification.",
+      "evidence": [
+        "docs/design/hosted-query-agent/roadmap.md",
+        "docs/design/hosted-query-agent/hosted-diagnostic.md"
       ]
     }
   }
