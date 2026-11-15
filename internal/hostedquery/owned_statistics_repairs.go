@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"regexp"
 	"slices"
 	"strings"
@@ -54,13 +55,16 @@ func RunOwnedStatisticsRepair(ctx context.Context, writer *pgx.ConnConfig, reque
 		guards.CheckPermission == nil || guards.CheckCapacity == nil || guards.RecordIntent == nil {
 		return deferred, nil
 	}
-	for _, gate := range []func(context.Context) error{guards.CheckPermission, guards.CheckCapacity} {
-		if err := gate(ctx); err != nil {
-			return deferred, err
-		}
+	if err := guards.CheckPermission(ctx); err != nil {
+		return deferred, err
+	}
+	if err := guards.CheckCapacity(ctx); err != nil {
+		return deferred, err
 	}
 
+	start := time.Now()
 	db, err := pgx.ConnectConfig(ctx, writer.Copy())
+	logOwnedStatisticsPhase(request, "connect_sampler", start, err)
 	if err != nil {
 		return deferred, err
 	}
@@ -107,9 +111,13 @@ func runOwnedAnalyze(ctx context.Context, db *pgx.Conn, writer *pgx.ConnConfig, 
 		Target: request.Target, RunID: request.RunID, DatabaseRoleOID: request.OwnerRoleOID,
 		QueryID: request.QueryID, Column: request.Columns[0], Decision: Investigate,
 	}
-	report, err := RunProjectAnalyze(ctx, writer, req,
+	sampleNumber := 0
+	report, err := runProjectAnalyze(ctx, writer, req,
 		func(ctx context.Context, exact ProjectAnalyzeRequest) (observation ProjectAnalyzeObservation, err error) {
+			sampleNumber++
+			start := time.Now()
 			samples, info, err := readOwnedStatisticsSamples(ctx, db, request)
+			logOwnedStatisticsPhase(request, "matched_samples", start, err, "sample_number", sampleNumber)
 			if err != nil {
 				return observation, err
 			}
@@ -117,15 +125,44 @@ func runOwnedAnalyze(ctx context.Context, db *pgx.Conn, writer *pgx.ConnConfig, 
 				Request: exact, At: time.Now().UTC(), Sample: samples[0],
 				CoveringIndex: info.covering, SampledValueFraction: info.selectedFraction,
 			}, nil
-		}, investigate, ProjectMaintenanceGuards{
+		}, func(ctx context.Context, evidence IndexEvidence) (IndexProposal, error) {
+			start := time.Now()
+			proposal, err := investigate(ctx, evidence)
+			logOwnedStatisticsPhase(request, "investigation", start, err)
+			return proposal, err
+		}, ProjectMaintenanceGuards{
 			CheckPermission: func(ctx context.Context, _ ProjectMaintenanceIntent) error { return guards.CheckPermission(ctx) },
 			CheckCapacity:   func(ctx context.Context, _ ProjectMaintenanceIntent) error { return guards.CheckCapacity(ctx) },
-			RecordIntent:    func(ctx context.Context, i ProjectMaintenanceIntent) error { return guards.RecordIntent(ctx, i) },
+			RecordIntent: func(ctx context.Context, i ProjectMaintenanceIntent) error {
+				start := time.Now()
+				err := guards.RecordIntent(ctx, i)
+				logOwnedStatisticsPhase(request, "record_intent", start, err)
+				return err
+			},
+		}, func(start time.Time, observed ProjectMaintenanceResult, err error) {
+			readBack := !observed.After.At.IsZero()
+			logOwnedStatisticsPhase(request, "postgres_action", start, err,
+				"write_attempted", observed.WriteAttempted, "confirmed", observed.Confirmed,
+				"counter_readback", readBack, "counter_delta", observed.After.Count-observed.Before.Count,
+				"last_run_in_window", readBack && !observed.After.LastRun.Before(observed.Before.At) && !observed.After.LastRun.After(observed.After.At))
 		})
 	return DispatchResult{
 		Outcome: report.Outcome, DiagnosticReason: report.Reason, ThreadID: request.RunID,
 		Analyze: &report, Evidence: &report.Evidence, Proposal: &report.Proposal, GraphMS: report.GraphMS,
 	}, err
+}
+
+func logOwnedStatisticsPhase(request OwnedStatisticsRepairRequest, phase string, start time.Time, err error, fields ...any) {
+	category := "ok"
+	if err != nil {
+		category = ownedRepairErrorCategory(err)
+		if errors.Is(err, errOwnedStatisticsEvidence) {
+			category = "evidence_changed"
+		}
+	}
+	fields = append(fields, "operation", request.Operation, "run_id", request.RunID,
+		"phase", phase, "elapsed_ms", elapsedMS(start), "category", category)
+	slog.Info("owned statistics repair phase", fields...)
 }
 
 func runOwnedExtendedStatistics(ctx context.Context, db *pgx.Conn, request OwnedStatisticsRepairRequest,
@@ -140,6 +177,7 @@ func runOwnedExtendedStatistics(ctx context.Context, db *pgx.Conn, request Owned
 	start := time.Now()
 	samples, info, err := readOwnedStatisticsSamples(ctx, db, request)
 	report.BaselineMS = elapsedMS(start)
+	logOwnedStatisticsPhase(request, "matched_samples", start, err, "sample_number", 1)
 	if err != nil {
 		return result, err
 	}
@@ -165,6 +203,7 @@ func runOwnedExtendedStatistics(ctx context.Context, db *pgx.Conn, request Owned
 	start = time.Now()
 	proposal, err := investigate(ctx, evidence)
 	report.GraphMS = elapsedMS(start)
+	logOwnedStatisticsPhase(request, "investigation", start, err)
 	if err != nil {
 		return result, err
 	}
@@ -184,6 +223,8 @@ func runOwnedExtendedStatistics(ctx context.Context, db *pgx.Conn, request Owned
 	start = time.Now()
 	outcome, reason, err := applyOwnedExtendedStatistics(ctx, db, request, info, guards, &report)
 	report.ApplyMS = elapsedMS(start)
+	logOwnedStatisticsPhase(request, "postgres_action", start, err, "outcome", outcome,
+		"create_ms", report.After.CreateMS, "analyze_ms", report.After.AnalyzeMS, "verify_ms", report.After.VerifyMS)
 	if err != nil {
 		return result, err
 	}

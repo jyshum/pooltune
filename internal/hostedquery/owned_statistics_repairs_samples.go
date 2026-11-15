@@ -42,29 +42,20 @@ func readOwnedStatisticsSamples(ctx context.Context, db *pgx.Conn, request Owned
 
 func lockOwnedStatisticsRelations(ctx context.Context, tx pgx.Tx, request OwnedStatisticsRepairRequest, action bool) error {
 	const settings = "SET LOCAL search_path=pg_catalog; SET LOCAL statement_timeout='750ms'; SET LOCAL lock_timeout='200ms'; " +
-		"SET LOCAL max_parallel_workers_per_gather=0; SET LOCAL enable_bitmapscan=off; SET LOCAL jit=off"
-	if _, err := tx.Exec(ctx, settings); err != nil {
-		return err
-	}
+		"SET LOCAL max_parallel_workers_per_gather=0; SET LOCAL enable_bitmapscan=off; SET LOCAL jit=off; "
 	mode := "ACCESS SHARE"
 	if action {
 		mode = "SHARE UPDATE EXCLUSIVE"
 	}
-	for _, statement := range []string{
-		"LOCK TABLE ONLY " + qualified(request.Target.Schema, request.Target.Relation) + " IN " + mode + " MODE NOWAIT",
-		"LOCK TABLE ONLY " + qualified(request.Target.Schema, "guard") + " IN ROW EXCLUSIVE MODE NOWAIT",
-	} {
-		if _, err := tx.Exec(ctx, statement); err != nil {
-			return err
-		}
-	}
-	return nil
+	_, err := tx.Exec(ctx, settings+
+		"LOCK TABLE ONLY "+qualified(request.Target.Schema, request.Target.Relation)+" IN "+mode+" MODE NOWAIT; "+
+		"LOCK TABLE ONLY "+qualified(request.Target.Schema, "guard")+" IN ROW EXCLUSIVE MODE NOWAIT")
+	return err
 }
 
 func ownedStatisticsCatalogRead(ctx context.Context, tx pgx.Tx, request OwnedStatisticsRepairRequest) (info ownedStatisticsCatalog, err error) {
-	var matched bool
 	err = tx.QueryRow(ctx, `
-		SELECT c.oid IS NOT NULL AND g.oid IS NOT NULL
+		SELECT pg_total_relation_size(c.oid)
 		FROM pg_namespace n JOIN pg_database d ON d.datname=current_database()
 		JOIN pg_class c ON c.relnamespace=n.oid
 		JOIN pg_class g ON g.relnamespace=n.oid
@@ -86,20 +77,17 @@ func ownedStatisticsCatalogRead(ctx context.Context, tx pgx.Tx, request OwnedSta
 			AND (SELECT count(*) FROM pg_attribute WHERE attrelid=c.oid AND attnum=ANY($7::smallint[])
 				AND NOT attisdropped AND atttypid='int4'::regtype AND attgenerated='')=cardinality($7::smallint[])
 	`, request.Target.DatabaseOID, request.Target.Schema, request.Target.TableOID, request.GuardTableOID, request.OwnerRoleOID,
-		"Pooltune hosted statistics fixture "+request.ProjectID, request.Columns).Scan(&matched)
-	if errors.Is(err, pgx.ErrNoRows) || (err == nil && !matched) {
+		"Pooltune hosted statistics fixture "+request.ProjectID, request.Columns).Scan(&info.bytes)
+	if errors.Is(err, pgx.ErrNoRows) {
 		return info, errOwnedStatisticsEvidence
 	}
 	if err != nil {
 		return info, err
 	}
-	table := request.Target
-	if err := tx.QueryRow(ctx, "SELECT pg_total_relation_size($1)", table.TableOID).Scan(&info.bytes); err != nil {
-		return info, err
-	}
 	if info.bytes <= 0 || info.bytes > projectMaintenanceMaxRelationBytes {
 		return info, errOwnedStatisticsEvidence
 	}
+	table := request.Target
 	err = tx.QueryRow(ctx, projectIndexCatalogSQL, table.DatabaseOID, table.TableOID, table.Schema, table.Relation, request.Columns).
 		Scan(&info.names, &info.covering)
 	if err != nil {

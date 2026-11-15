@@ -5,12 +5,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"pooltune/internal/labdb"
 	"pooltune/internal/supabaseproject"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 // OwnedProjectRepair is a single privately configured Rookery test operation.
@@ -78,6 +80,7 @@ func (r *OwnedProjectRepair) matchesClaim(project supabaseproject.Project, job i
 
 func (r *OwnedProjectRepair) run(ctx context.Context, state, monitor *pgx.Conn, project supabaseproject.Project,
 	epoch int64, claim investigationClaim, windows *ObservedLookupLatency, result *DispatchResult) error {
+	started := time.Now()
 	result.ObservedLatency = windows
 	var pending bool
 	err := state.QueryRow(ctx, `SELECT EXISTS (SELECT FROM pooltune_worker.owned_project_actions
@@ -176,6 +179,7 @@ func (r *OwnedProjectRepair) run(ctx context.Context, state, monitor *pgx.Conn, 
 				return err
 			}
 			journaled = true
+			slog.Info("owned repair intent saved", "operation", r.Operation, "job", claim.ID, "elapsed_ms", elapsedMS(started))
 			if memory, ok := intent.(ProjectFunctionMemoryIntent); ok && memory.Phase == "apply" {
 				memoryIntent = &memory
 			}
@@ -192,6 +196,8 @@ func (r *OwnedProjectRepair) run(ctx context.Context, state, monitor *pgx.Conn, 
 		return nil
 	}
 	if runErr != nil {
+		slog.Info("owned repair did not finish", "operation", r.Operation, "job", claim.ID,
+			"elapsed_ms", elapsedMS(started), "action_recorded", journaled, "category", ownedRepairErrorCategory(runErr))
 		return runErr
 	}
 	if out.Outcome == "" {
@@ -211,7 +217,26 @@ func (r *OwnedProjectRepair) run(ctx context.Context, state, monitor *pgx.Conn, 
 		}
 	}
 	*result = out
+	slog.Info("owned repair evaluation finished", "operation", r.Operation, "job", claim.ID,
+		"elapsed_ms", elapsedMS(started), "outcome", out.Outcome)
 	return nil
+}
+
+func ownedRepairErrorCategory(err error) string {
+	if errors.Is(err, context.DeadlineExceeded) {
+		return "deadline"
+	}
+	if errors.Is(err, context.Canceled) {
+		return "canceled"
+	}
+	var sqlError *pgconn.PgError
+	if errors.As(err, &sqlError) {
+		return sqlError.Code
+	}
+	if errors.Is(err, errClaimLost) {
+		return "claim_lost"
+	}
+	return "other"
 }
 
 func recordOwnedMemoryRestore(ctx context.Context, state *pgx.Conn, project string, epoch int64,

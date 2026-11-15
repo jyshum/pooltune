@@ -39,6 +39,13 @@ type ProjectAnalyzeReader func(context.Context, ProjectAnalyzeRequest) (ProjectA
 // inconclusive because PostgreSQL provides no exact undo.
 func RunProjectAnalyze(ctx context.Context, config *pgx.ConnConfig, req ProjectAnalyzeRequest, read ProjectAnalyzeReader,
 	investigate IndexInvestigator, guards ProjectMaintenanceGuards,
+) (AnalyzeReport, error) {
+	return runProjectAnalyze(ctx, config, req, read, investigate, guards, nil)
+}
+
+func runProjectAnalyze(ctx context.Context, config *pgx.ConnConfig, req ProjectAnalyzeRequest, read ProjectAnalyzeReader,
+	investigate IndexInvestigator, guards ProjectMaintenanceGuards,
+	traceMaintenance func(time.Time, ProjectMaintenanceResult, error),
 ) (report AnalyzeReport, err error) {
 	if config == nil || read == nil || investigate == nil || guards.CheckPermission == nil ||
 		guards.CheckCapacity == nil || guards.RecordIntent == nil || req.Target.DatabaseOID == 0 ||
@@ -113,6 +120,9 @@ func RunProjectAnalyze(ctx context.Context, config *pgx.ConnConfig, req ProjectA
 	applied, err := ApplyProjectMaintenance(ctx, config, ProjectMaintenanceRequest{
 		Target: req.Target, RunID: req.RunID, Operation: ProjectAnalyze, ObservedAt: evidence.At, Columns: []int16{req.Column},
 	}, guards)
+	if traceMaintenance != nil {
+		traceMaintenance(actionStart, applied, err)
+	}
 	if errors.Is(err, stale) {
 		report.Outcome, report.Reason = "no_change", stale.Error()
 		return report, nil
