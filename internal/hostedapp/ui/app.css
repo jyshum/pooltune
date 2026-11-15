@@ -60,53 +60,22 @@ code { font: .9em var(--mono); }
 .button-quiet:hover { background: var(--raised); border-color: var(--strong); }
 .actions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
 
-.lead { color: var(--muted); font-size: 1rem; }
-.landing { padding-bottom: clamp(40px, 8vw, 88px); }
-.landing-hero {
+.welcome { padding-block: clamp(36px, 9vw, 104px); }
+.welcome-panel {
   display: grid;
-  grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
-  align-items: center;
-  gap: clamp(24px, 5vw, 64px);
-  padding-block: clamp(48px, 8vw, 112px);
+  justify-items: start;
+  gap: 24px;
+  padding: clamp(28px, 8vw, 92px);
+  background-color: var(--panel);
+  background-image: radial-gradient(ellipse at right top, #213436 0, transparent 55%);
+  border: 1px solid var(--border);
+  border-radius: 20px;
 }
-.landing-provider { margin-bottom: 14px; color: var(--brand-hover); font-size: .88rem; font-weight: 650; }
-.landing-intro h1 { max-width: 13ch; font-size: clamp(2.55rem, 5.6vw, 4.8rem); line-height: 1.01; }
-.landing-intro em { color: var(--brand-hover); font-style: normal; }
-.landing-intro .lead { max-width: 43ch; margin-top: 20px; font-size: clamp(1rem, 1.8vw, 1.13rem); }
-.landing-intro .actions { margin-top: 24px; }
-.landing-access { margin-top: 12px; color: var(--muted); font-size: .82rem; }
-.landing-example {
-  min-width: 0;
-  margin: 0;
-  border: 1px solid var(--strong);
-  border-radius: 18px;
-  background: radial-gradient(ellipse at 77% 0, #243638, transparent 66%), var(--panel);
-  box-shadow: 0 16px 48px #0005;
-}
-.landing-example figcaption { padding: 14px 20px; border-bottom: 1px solid var(--strong); color: var(--muted); font: .78rem/1.45 var(--mono); }
-.landing-example-body { padding: clamp(16px, 3vw, 28px); }
-.landing-example h2 { font-size: 1.2rem; }
-.landing-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 16px 0; }
-.landing-metrics div { padding: clamp(10px, 2vw, 16px); border: 1px solid var(--border); border-radius: 10px; background: var(--inset); }
-.landing-metrics dt { color: var(--muted); font-size: .78rem; }
-.landing-metrics dd { margin: 4px 0 0; font: 650 clamp(1.5rem, 2.8vw, 2.25rem)/1.25 var(--mono); }
-.landing-metrics dd span { color: var(--muted); font-size: .78rem; }
-.landing-finding { padding: 4px 0 4px 12px; border-left: 2px solid var(--brand); }
-.landing-finding p, .landing-steps p, .landing-questions dd { margin: 6px 0 0; color: var(--muted); }
-.landing-workflow, .landing-questions { padding-block: clamp(28px, 5vw, 54px); border-top: 1px solid var(--border); }
-.landing-workflow h2, .landing-questions h2 { font-size: clamp(1.5rem, 3vw, 2rem); }
-.landing-steps, .landing-questions dl { margin: 20px 0 0; }
-.landing-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px 36px; padding-left: 24px; }
-.landing-steps li { padding-left: 4px; }
-.landing-steps li::marker { color: var(--brand-hover); font: .85rem var(--mono); }
-.landing-questions dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 36px; }
-.landing-questions dt { font-weight: 650; }
-
-@media (max-width: 780px) {
-  .landing-hero, .landing-steps, .landing-questions dl { grid-template-columns: minmax(0, 1fr); }
-  .landing-hero { align-items: start; }
-  .landing-example { max-width: 520px; }
-}
+.welcome-panel h1 { max-width: 16ch; font-size: clamp(2.55rem, 7vw, 5rem); line-height: 1.03; }
+.welcome-panel em { font-style: normal; color: var(--brand-hover); }
+.eyebrow { color: var(--brand-hover); font: .83rem/1.5 var(--mono); }
+.lead { color: var(--muted); font-size: 1rem; }
+.welcome-panel .lead { max-width: 48ch; font-size: clamp(1rem, 2vw, 1.13rem); }
 
 .auth-page { display: grid; justify-items: center; padding-block: clamp(36px, 9vw, 96px); }
 .form-panel, .panel { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); min-width: 0; }
