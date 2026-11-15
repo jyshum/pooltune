@@ -276,13 +276,13 @@ func (a *App) signIn(w http.ResponseWriter, r *http.Request, creating bool) {
 }
 
 func (a *App) signOut(w http.ResponseWriter, r *http.Request) {
-	a.setSession(w, "", -1)
 	if cookie, err := r.Cookie(a.cookie); err == nil {
 		if err := a.accounts.SignOut(r.Context(), cookie.Value); err != nil {
 			http.Error(w, "Could not close the server session. Try again.", http.StatusServiceUnavailable)
 			return
 		}
 	}
+	a.setSession(w, "", -1)
 	http.Redirect(w, r, "/signin", http.StatusSeeOther)
 }
 
