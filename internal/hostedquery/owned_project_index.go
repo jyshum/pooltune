@@ -395,19 +395,31 @@ func checkOwnedIndexClaim(ctx context.Context, state *pgx.Conn, project supabase
 }
 
 func recordOwnedIndexIntent(ctx context.Context, state *pgx.Conn, project string, epoch int64, claim investigationClaim, i ProjectIndexActionIntent) error {
+	if claim.RecoveryOnly {
+		return errClaimLost
+	}
 	payload, err := json.Marshal(i)
 	if err != nil {
 		return err
 	}
-	tag, err := state.Exec(ctx, `WITH active AS MATERIALIZED (
-			SELECT project_id FROM pooltune_worker.projects WHERE project_id=$1 AND monitor_epoch=$2 FOR UPDATE
-		)
-		INSERT INTO pooltune_worker.owned_index_actions(job_id,project_id,intent)
-		SELECT j.id,j.project_id,$5::jsonb FROM pooltune_worker.investigations j JOIN active USING(project_id)
-		WHERE j.id=$3 AND j.attempts=$4 AND j.finished_at IS NULL AND j.lease_until>clock_timestamp()
-		ON CONFLICT (job_id) DO NOTHING`, project, epoch, claim.ID, claim.Attempt, string(payload))
-	if err == nil && tag.RowsAffected() != 1 {
-		return errClaimLost
-	}
-	return err
+	return pgx.BeginTxFunc(ctx, state, pgx.TxOptions{IsoLevel: pgx.ReadCommitted}, func(tx pgx.Tx) error {
+		var locked string
+		err := tx.QueryRow(ctx, `SELECT project_id FROM pooltune_worker.projects
+			WHERE project_id=$1 AND monitor_epoch=$2 FOR UPDATE`, project, epoch).Scan(&locked)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return errClaimLost
+		}
+		if err != nil {
+			return err
+		}
+		tag, err := tx.Exec(ctx, `INSERT INTO pooltune_worker.owned_index_actions(job_id,project_id,intent)
+			SELECT j.id,j.project_id,$4::jsonb FROM pooltune_worker.investigations j
+			WHERE j.project_id=$1 AND j.id=$2 AND j.attempts=$3 AND j.finished_at IS NULL AND j.lease_until>clock_timestamp()
+			  AND NOT EXISTS (SELECT FROM pooltune_worker.owned_index_actions a WHERE a.project_id=j.project_id AND a.outcome='pending')
+			ON CONFLICT (job_id) DO NOTHING`, locked, claim.ID, claim.Attempt, string(payload))
+		if err == nil && tag.RowsAffected() != 1 {
+			return errClaimLost
+		}
+		return err
+	})
 }

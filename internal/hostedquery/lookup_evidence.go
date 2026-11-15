@@ -122,7 +122,11 @@ func diagnoseLookup(ctx context.Context, state *pgx.Conn, project supabaseprojec
 	started := time.Now()
 	ctx, cancel := context.WithTimeout(ctx, investigationTimeout)
 	defer cancel()
-	claim, err := claimProjectInvestigation(ctx, state, project.ID(), &epoch)
+	var scope []ownedIndexRecoveryScope
+	if fixture.Matches(project) {
+		scope = append(scope, ownedIndexRecoveryScope{Database: fixture.Target.DatabaseOID, Role: fixture.OwnerRoleOID, Query: fixture.QueryID})
+	}
+	claim, err := claimProjectInvestigation(ctx, state, project.ID(), &epoch, scope...)
 	if err != nil || claim == nil {
 		return nil, err
 	}
@@ -130,6 +134,9 @@ func diagnoseLookup(ctx context.Context, state *pgx.Conn, project supabaseprojec
 	recovered, err := fixture.recover(ctx, state, project, *claim, &result)
 	if err != nil {
 		return nil, err
+	}
+	if claim.RecoveryOnly && !recovered {
+		return nil, errClaimLost
 	}
 	windows := observedLookupLatency(claim.queueEvidence, started)
 	if !recovered && windows != nil && len(windows.SharedBlockAccesses) == 5 {

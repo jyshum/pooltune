@@ -12,6 +12,7 @@ import (
 )
 
 const maxInvestigationAttempts = 2
+const maxOwnedIndexRecoveryAttempts = 4
 const investigationLease = 30 * time.Second
 const investigationTimeout = 25 * time.Second
 
@@ -22,7 +23,15 @@ type investigationClaim struct {
 	ParentID      int64
 	Attempt       int
 	Project       string
+	RecoveryOnly  bool
 	queueEvidence []byte
+}
+
+// ownedIndexRecoveryScope comes from the active, explicitly enabled fixture.
+// A zero query permits discovery within the exact database and role.
+type ownedIndexRecoveryScope struct {
+	Database, Role uint32
+	Query          int64
 }
 
 type DispatchResult struct {
@@ -60,7 +69,15 @@ func claimInvestigation(ctx context.Context, state *pgx.Conn, project string) (*
 	return claimProjectInvestigation(ctx, state, project, nil)
 }
 
-func claimProjectInvestigation(ctx context.Context, state *pgx.Conn, project string, epoch *int64) (*investigationClaim, error) {
+func claimProjectInvestigation(ctx context.Context, state *pgx.Conn, project string, epoch *int64,
+	recovery ...ownedIndexRecoveryScope) (*investigationClaim, error) {
+	if epoch != nil && *epoch <= 0 {
+		return nil, nil
+	}
+	var scope ownedIndexRecoveryScope
+	if epoch != nil && len(recovery) == 1 && recovery[0].Database != 0 && recovery[0].Role != 0 {
+		scope = recovery[0]
+	}
 	claim := investigationClaim{Project: project}
 	err := pgx.BeginTxFunc(ctx, state, pgx.TxOptions{IsoLevel: pgx.ReadCommitted}, func(tx pgx.Tx) error {
 		var locked string
@@ -69,20 +86,28 @@ func claimProjectInvestigation(ctx context.Context, state *pgx.Conn, project str
 		}
 		// A new statement after the project lock sees a competing consumer's committed claim.
 		err := tx.QueryRow(ctx, `
-			WITH exhausted AS (
-				UPDATE pooltune_worker.investigations
+			WITH open_jobs AS MATERIALIZED (
+				SELECT j.id, j.attempts, j.not_before, j.lease_until, a.job_id IS NOT NULL AS has_pending_index,
+				       a.job_id IS NOT NULL AND $4::oid<>0 AND $5::oid<>0
+				         AND j.database_oid=$4::oid AND j.role_oid=$5::oid
+				         AND ($6::bigint=0 OR j.query_id=$6) AS recovery_allowed
+				FROM pooltune_worker.investigations j
+				LEFT JOIN pooltune_worker.owned_index_actions a ON a.job_id=j.id AND a.project_id=j.project_id AND a.outcome='pending'
+				WHERE j.project_id=$1 AND j.finished_at IS NULL
+			), exhausted AS (
+				UPDATE pooltune_worker.investigations j
 				SET finished_at=statement_timestamp(), lease_until=NULL,
 				    result=jsonb_build_object('outcome','retry_exhausted')
-				WHERE project_id=$1 AND finished_at IS NULL AND attempts >= $2
-				  AND lease_until <= statement_timestamp()
+				FROM open_jobs o
+				WHERE j.id=o.id AND NOT o.has_pending_index AND o.attempts >= $2
+				  AND o.lease_until <= statement_timestamp()
 			), available AS (
-				SELECT id FROM pooltune_worker.investigations
-				WHERE project_id=$1 AND finished_at IS NULL AND attempts < $2
+				SELECT id, has_pending_index FROM open_jobs
+				WHERE ((NOT has_pending_index AND attempts < $2) OR (recovery_allowed AND attempts < $7))
 				  AND not_before <= statement_timestamp()
 				  AND (lease_until IS NULL OR lease_until <= statement_timestamp())
 				  AND NOT EXISTS (
-					SELECT FROM pooltune_worker.investigations
-					WHERE project_id=$1 AND finished_at IS NULL AND lease_until>statement_timestamp()
+					SELECT FROM open_jobs WHERE lease_until>statement_timestamp()
 				  )
 				ORDER BY id LIMIT 1
 			)
@@ -91,9 +116,10 @@ func claimProjectInvestigation(ctx context.Context, state *pgx.Conn, project str
 			    claimed_at=COALESCE(jobs.claimed_at, CASE WHEN jobs.attempts=0 THEN clock_timestamp() END)
 			FROM available WHERE jobs.id=available.id
 			RETURNING jobs.id,jobs.database_oid,jobs.role_oid,jobs.query_id,jobs.attempts,
-			          jobs.evidence->'counter_generation',jobs.evidence,COALESCE(jobs.parent_id,0)
-		`, project, maxInvestigationAttempts, investigationLease.Seconds()).
-			Scan(&claim.ID, &claim.Database, &claim.Role, &claim.Query, &claim.Attempt, &claim.Generation, &claim.queueEvidence, &claim.ParentID)
+			          jobs.evidence->'counter_generation',jobs.evidence,COALESCE(jobs.parent_id,0),available.has_pending_index
+		`, project, maxInvestigationAttempts, investigationLease.Seconds(), scope.Database, scope.Role, scope.Query, maxOwnedIndexRecoveryAttempts).
+			Scan(&claim.ID, &claim.Database, &claim.Role, &claim.Query, &claim.Attempt, &claim.Generation, &claim.queueEvidence,
+				&claim.ParentID, &claim.RecoveryOnly)
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil
 		}
@@ -106,6 +132,9 @@ func claimProjectInvestigation(ctx context.Context, state *pgx.Conn, project str
 }
 
 func finishInvestigation(ctx context.Context, state *pgx.Conn, claim investigationClaim, result DispatchResult, expectedEpoch ...int64) error {
+	if claim.RecoveryOnly && result.IndexRecovery == nil {
+		return errClaimLost
+	}
 	var epoch *int64
 	if len(expectedEpoch) > 0 {
 		epoch = &expectedEpoch[0]

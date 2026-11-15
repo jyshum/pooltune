@@ -54,6 +54,19 @@ func TestOwnedIndexIntentFencesExpiredAndReplacedClaims(t *testing.T) {
 	if err := recordOwnedIndexIntent(ctx, state, project, 3, claim, intent); !errors.Is(err, errClaimLost) {
 		t.Fatalf("duplicate action intent was accepted: %v", err)
 	}
+	other := claim
+	err = state.QueryRow(ctx, `INSERT INTO pooltune_worker.investigations
+		(project_id,database_oid,role_oid,query_id,evidence,attempts,lease_until)
+		VALUES($1,1,2,4,'{}'::jsonb,1,clock_timestamp()+interval '30 seconds') RETURNING id`, project).Scan(&other.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := recordOwnedIndexIntent(ctx, state, project, 3, other, intent); !errors.Is(err, errClaimLost) {
+		t.Fatalf("different query recorded an action while a prior intent is unresolved: %v", err)
+	}
+	if _, err := state.Exec(ctx, "DELETE FROM pooltune_worker.investigations WHERE id=$1", other.ID); err != nil {
+		t.Fatal(err)
+	}
 	fence, err := lockOwnedIndexEpoch(ctx, state, project, 3, claim)
 	if err != nil {
 		t.Fatal(err)

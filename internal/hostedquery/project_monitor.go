@@ -169,7 +169,8 @@ func DisconnectProjectMonitor(ctx context.Context, state *pgx.Conn, project supa
 	})
 }
 
-// DisconnectProjectMonitorTx retires jobs in the caller's account transaction.
+// DisconnectProjectMonitorTx retires ordinary jobs in the caller's account
+// transaction. Recorded index actions remain available for recovery after reconnect.
 func DisconnectProjectMonitorTx(ctx context.Context, tx pgx.Tx, project supabaseproject.Project) error {
 	tag, err := tx.Exec(ctx, `
 			INSERT INTO pooltune_worker.projects(project_id, monitor_epoch) VALUES ($1, -1)
@@ -184,9 +185,17 @@ func DisconnectProjectMonitorTx(ctx context.Context, tx pgx.Tx, project supabase
 		return ErrProjectDisconnected
 	}
 	_, err = tx.Exec(ctx, `
-			UPDATE pooltune_worker.investigations
-			SET finished_at=clock_timestamp(), lease_until=NULL, result='{"outcome":"project_disconnected"}'
-			WHERE project_id=$1 AND finished_at IS NULL
+			WITH open_jobs AS (
+				SELECT j.id, a.job_id IS NOT NULL AS has_pending_index
+				FROM pooltune_worker.investigations j
+				LEFT JOIN pooltune_worker.owned_index_actions a ON a.job_id=j.id AND a.project_id=j.project_id AND a.outcome='pending'
+				WHERE j.project_id=$1 AND j.finished_at IS NULL
+			)
+			UPDATE pooltune_worker.investigations j
+			SET finished_at=CASE WHEN NOT o.has_pending_index THEN clock_timestamp() END,
+			    lease_until=CASE WHEN o.has_pending_index THEN clock_timestamp() END,
+			    result=CASE WHEN o.has_pending_index THEN j.result ELSE '{"outcome":"project_disconnected"}'::jsonb END
+			FROM open_jobs o WHERE j.id=o.id
 		`, project.ID())
 	return err
 }
@@ -211,6 +220,10 @@ func retireChangedEnrollments(ctx context.Context, tx pgx.Tx, enrollment Enrollm
 				ON j.database_oid=$2 AND e.role_oid=j.role_oid AND e.query_id=j.query_id
 			WHERE j.project_id=$1 AND j.finished_at IS NULL
 			  AND (e.role_oid IS NULL OR j.evidence->'objective_ms' IS DISTINCT FROM to_jsonb(e.objective_ms))
+			  AND NOT EXISTS (
+				SELECT FROM pooltune_worker.owned_index_actions a
+				WHERE a.job_id=j.id AND a.project_id=j.project_id AND a.outcome='pending'
+			  )
 		)
 		UPDATE pooltune_worker.investigations j
 		SET finished_at=clock_timestamp(), lease_until=NULL,

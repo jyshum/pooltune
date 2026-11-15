@@ -9,11 +9,115 @@ import (
 	"testing"
 	"time"
 
+	"pooltune/internal/supabaseproject"
 	"pooltune/internal/testpg"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 )
+
+func TestPendingOwnedIndexRecoveryUsesBoundedClaimsAcrossDisconnects(t *testing.T) {
+	ctx, config, _ := testpg.Start(t)
+	state, err := pgx.ConnectConfig(ctx, config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer state.Close(ctx)
+	if err := PrepareWorkerState(ctx, state); err != nil {
+		t.Fatal(err)
+	}
+	project, err := supabaseproject.New(OwnedIndexRookeryRef, "abcdef0123456789")
+	if err != nil {
+		t.Fatal(err)
+	}
+	epoch, err := ActivateProjectMonitor(ctx, state, project, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	exec := func(sql string, args ...any) {
+		t.Helper()
+		if _, err := state.Exec(ctx, sql, args...); err != nil {
+			t.Fatal(err)
+		}
+	}
+	exec(`INSERT INTO pooltune_worker.investigations (project_id,database_oid,role_oid,query_id,evidence)
+		VALUES ($1,1,2,3,'{}'::jsonb), ($1,1,2,4,'{}'::jsonb)`, project.ID())
+	scope := ownedIndexRecoveryScope{Database: 1, Role: 2, Query: 3}
+	first, err := claimProjectInvestigation(ctx, state, project.ID(), &epoch, scope)
+	if err != nil || first == nil || first.Query != 3 || first.RecoveryOnly {
+		t.Fatalf("the ordinary claim was not eligible to investigate: %+v %v", first, err)
+	}
+	if err := recordOwnedIndexIntent(ctx, state, project.ID(), epoch, *first, ProjectIndexActionIntent{RunID: "interrupted"}); err != nil {
+		t.Fatal(err)
+	}
+	reconnect := func() {
+		t.Helper()
+		priorEpoch := epoch
+		if err := DisconnectProjectMonitor(ctx, state, project); err != nil {
+			t.Fatal(err)
+		}
+		for _, disabled := range []int64{priorEpoch, -priorEpoch} {
+			if claim, err := claimProjectInvestigation(ctx, state, project.ID(), &disabled, scope); err != nil || claim != nil {
+				t.Fatalf("old or disconnected epoch claimed pending action: %+v %v", claim, err)
+			}
+		}
+		var disconnected string
+		if err := state.QueryRow(ctx, `SELECT result->>'outcome' FROM pooltune_worker.investigations
+			WHERE project_id=$1 AND query_id=4 AND finished_at IS NOT NULL`, project.ID()).Scan(&disconnected); err != nil || disconnected != "project_disconnected" {
+			t.Fatalf("ordinary investigation survived disconnect: %q %v", disconnected, err)
+		}
+		var err error
+		epoch, err = ActivateProjectMonitor(ctx, state, project, true)
+		if err != nil || epoch <= priorEpoch {
+			t.Fatalf("reconnect did not advance permission epoch: %d %v", epoch, err)
+		}
+	}
+	reconnect()
+	if err := pgx.BeginFunc(ctx, state, func(tx pgx.Tx) error {
+		return retireChangedEnrollments(ctx, tx, Enrollment{Project: project.ID()})
+	}); err != nil {
+		t.Fatal(err)
+	}
+	for _, wrong := range [][]ownedIndexRecoveryScope{
+		nil, {{Database: 2, Role: 2, Query: 3}}, {{Database: 1, Role: 3, Query: 3}}, {{Database: 1, Role: 2, Query: 4}},
+	} {
+		if claim, err := claimProjectInvestigation(ctx, state, project.ID(), &epoch, wrong...); err != nil || claim != nil {
+			t.Fatalf("wrong recovery authority claimed the pending action: %+v %v", claim, err)
+		}
+	}
+	for attempt := 2; attempt <= 4; attempt++ {
+		retry, err := claimProjectInvestigation(ctx, state, project.ID(), &epoch, scope)
+		if err != nil || retry == nil || retry.ID != first.ID || retry.Attempt != attempt || !retry.RecoveryOnly {
+			t.Fatalf("expected read-only attempt %d for exact pending action: %+v %v", attempt, retry, err)
+		}
+		if err := finishInvestigation(ctx, state, *retry, DispatchResult{Outcome: "no_change"}, epoch); !errors.Is(err, errClaimLost) {
+			t.Fatalf("recovery-only claim published an ordinary result: %v", err)
+		}
+		if attempt == 2 {
+			reconnect()
+		} else {
+			exec("UPDATE pooltune_worker.investigations SET lease_until=clock_timestamp() WHERE id=$1", retry.ID)
+		}
+	}
+
+	exec(`INSERT INTO pooltune_worker.investigations (project_id,database_oid,role_oid,query_id,evidence,attempts,lease_until)
+		VALUES ($1,1,2,5,'{}'::jsonb,2,clock_timestamp()), ($1,1,2,6,'{}'::jsonb,0,NULL)`, project.ID())
+	ordinary, err := claimProjectInvestigation(ctx, state, project.ID(), &epoch, scope)
+	if err != nil || ordinary == nil || ordinary.Query != 6 || ordinary.RecoveryOnly {
+		t.Fatalf("capped pending action blocked or authorized an unrelated job: %+v %v", ordinary, err)
+	}
+	var pending, open bool
+	if err := state.QueryRow(ctx, `SELECT a.outcome='pending', j.finished_at IS NULL
+		FROM pooltune_worker.owned_index_actions a JOIN pooltune_worker.investigations j ON j.id=a.job_id
+		WHERE a.job_id=$1`, first.ID).Scan(&pending, &open); err != nil || !pending || !open {
+		t.Fatalf("exhaustion discarded the journal or the original query's open-job guard: %v %v %v", pending, open, err)
+	}
+	var exhausted string
+	if err := state.QueryRow(ctx, `SELECT result->>'outcome' FROM pooltune_worker.investigations
+		WHERE project_id=$1 AND query_id=5 AND finished_at IS NOT NULL`, project.ID()).Scan(&exhausted); err != nil || exhausted != "retry_exhausted" {
+		t.Fatalf("ordinary attempt policy was changed: %q %v", exhausted, err)
+	}
+}
 
 func TestPublishOwnedIndexRecoveryOnlyForMatchingCurrentClaim(t *testing.T) {
 	ctx, config, _ := testpg.Start(t)
@@ -75,8 +179,8 @@ func TestPublishOwnedIndexRecoveryOnlyForMatchingCurrentClaim(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer state.Close(ctx)
-	second, err := claimProjectInvestigation(ctx, state, project, &epoch)
-	if err != nil || second == nil || second.ID != first.ID || second.Attempt != 2 {
+	second, err := claimProjectInvestigation(ctx, state, project, &epoch, ownedIndexRecoveryScope{Database: 1, Role: 2})
+	if err != nil || second == nil || second.ID != first.ID || second.Attempt != 2 || !second.RecoveryOnly {
 		t.Fatalf("recorded action was not reclaimed: %+v %v", second, err)
 	}
 	if err := finishInvestigation(ctx, state, *first, result, epoch); !errors.Is(err, errClaimLost) {
