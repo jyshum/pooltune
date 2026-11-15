@@ -206,7 +206,8 @@ async function main() {
       const client = new pg.Client(targetOptions); client.on("error", () => {});
       await client.connect(); clients.push(client);
       await client.query(`SET lock_timeout='250ms'; SET statement_timeout='1500ms'; SET max_parallel_workers_per_gather=0; SET random_page_cost=${repair === "vacuum" ? 1 : 5}`);
-      if (repair !== "vacuum" && repair !== "memory") await client.query("SET enable_bitmapscan=off");
+      // Compound equality predicates legitimately use bitmap index access; keep that normal path enabled.
+      if (repair !== "vacuum" && repair !== "memory" && repair !== "compound") await client.query("SET enable_bitmapscan=off");
     }
     await admin.query("SET lock_timeout='250ms'; SET statement_timeout='5s'");
     async function createBaselineIndex() {

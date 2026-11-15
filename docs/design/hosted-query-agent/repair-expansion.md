@@ -34,3 +34,9 @@ Implementation and isolated local tests ran in parallel. Hosted repair trials st
 ## Remaining work in this batch
 
 Finish recovery review, qualify each connected path with real Sonnet in Railway against Rookery, record read/write outcomes and timing breakdowns, verify cleanup, and update map colors only to match demonstrated scope. General customer onboarding, permissions, dashboard, sign-in and operating controls remain separate roadmap work.
+
+## First hosted finding: the test disabled a useful PostgreSQL plan
+
+The first compound run failed before repair. Its supposedly healthy query was still slow because an inherited test setting disabled bitmap index access. PostgreSQL can use an index to gather matching row locations, then fetch those rows together; that is a valid index plan, not a failed repair.
+
+The detector correctly flagged the actual slowdown. Go recognized the existing index and made no change. A local reproduction changed only the disabled bitmap setting and reduced examined rows from 100,000 to one. The corrected driver preserves PostgreSQL's normal bitmap choice for the compound case. Thresholds and fixture data are unchanged. The failed run and cleanup evidence remain recorded; a new hosted run is required.
