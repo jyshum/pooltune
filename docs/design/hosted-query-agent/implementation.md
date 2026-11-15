@@ -310,22 +310,25 @@ Follow-up authorization: Rookery may be brought online for the test work. The ea
 **Authority/dependencies:** November 14 explicit build request above, existing architecture d-language r2/d-workflow r1/d-reuse r1 and approvals.json. Ask + milestones persist. No new intermediate human stop was agreed; final review covers this diagnostic slice. Earlier repair qualification is evidence, not customer rollout approval.
 **Files:** investigator/diagnostic.ts, diagnostic-model.ts, diagnostic.test.ts; reuse graph.ts evidence field schemas; package.json and langgraph.json registration. Design: diagnostic-loop.md. Keep legacy graph behavior intact.
 **Interfaces:** buildDiagnosticGraph(decide, read, checkpointer?, clock?) accepts typed identity, initial named observations and yields a proposal plus per-turn decisions/read timings. decide receives all available evidence and remaining budgets. read accepts only a named tool and an AbortSignal.
-- [ ] Write and observe failing behavior tests for multi-cause evidence and request→read→compare→proposal, one-call reuse, missing/repeated tools, expiry, identity, model failures and bounded turns.
-- [ ] Implement explicit screen_evidence, compare_causes, request_evidence and finish nodes with typed structured turns and deterministic final eligibility. Register the diagnostic Studio graph with unavailable tools when no Go reader is attached.
-- [ ] Run npm test and npm run typecheck; commit scoped implementation.
+- [x] Write and observe failing behavior tests for multi-cause evidence and request→read→compare→proposal, one-call reuse, missing/repeated tools, expiry, identity, model failures and bounded turns.
+- [x] Implement explicit screen_evidence, compare_causes, request_evidence and finish nodes with typed structured turns and deterministic final eligibility. Register the diagnostic Studio graph with unavailable tools when no Go reader is attached.
+- [x] Run npm test and npm run typecheck; commit scoped implementation.
 
 ### Task 28: Go-controlled evidence requests
 
 **Files:** internal/graphrunner/diagnostic.go and tests, investigator/diagnostic-run.ts. Existing Process/qualified repair route remains available.
 **Interfaces:** DiagnosticProcess(stateDSN) returns a callable taking diagnostic identity/input and a named Go evidence reader. JSON lines carry one bounded request/response at a time, then a final result. No model SQL or target input. Reuse existing evidence via a snapshot adapter; allow supplied Go callbacks for fresh reads.
-- [ ] Write failing tests for real subprocess tool routing, repeated/unknown requests, cancellation, oversized/malformed frames, changed identity and proposal guard validation.
-- [ ] Implement bounded protocol, sanitized failures, inherited deadline and independently checked proposal identity/evidence. Persist graph state using existing Pooltune PostgreSQL route rules.
-- [ ] Exercise an actual local PostgreSQL reader and replay through the process; run Go tests/vet and TS suites; commit.
+- [x] Write failing tests for real subprocess tool routing, repeated/unknown requests, cancellation, oversized/malformed frames, changed identity and proposal guard validation.
+- [x] Implement bounded protocol, sanitized failures, inherited deadline and independently checked proposal identity/evidence. Persist graph state using existing Pooltune PostgreSQL route rules.
+- [x] Exercise an actual local PostgreSQL reader and replay through the process; run Go tests/vet and TS suites; commit.
 
 ### Task 29: Real-Claude diagnostic qualification and map update
 
 **Files:** diagnostic evaluation command/tests and evidence/diagnostic-loop results; diagnostic-loop.md, progress.md, roadmap.md, map/status.json and generated design.html.
-- [ ] Predeclare positive six-repair replay cases, competing statistics explanations, withheld evidence, healthy, insufficient and unsupported controls. Keep expected answers outside Claude input. Preserve original measurement timestamps/provenance; replay has no mutation authority.
-- [ ] Use real Claude through the Go request bridge, save decisions and model/tool/total timings, including failed attempts. Demonstrate fresh local PostgreSQL reader separately. No new Rookery mutations or Railway deployment required by this diagnostic-only qualification.
-- [ ] Obtain fresh code review, fix material issues with regressions, run required suites, update scoped map status and report remaining collector/production gaps.
-- [ ] Commit on feat/pooltune-revamp-dev; final human review. No push/merge or customer deployment.
+- [x] Predeclare positive six-repair replay cases, competing statistics explanations, withheld evidence, healthy, insufficient and unsupported controls. Keep expected answers outside Claude input. Preserve original measurement timestamps/provenance; replay has no mutation authority.
+- [x] Use real Claude through the Go request bridge, save decisions and model/tool/total timings, including failed attempts. Demonstrate fresh local PostgreSQL reader separately. No new Rookery mutations or Railway deployment required by this diagnostic-only qualification.
+- [x] Obtain fresh code review, fix material issues with regressions, run required suites, update scoped map status and report remaining collector/production gaps.
+- [x] Commit on feat/pooltune-revamp-dev; final human review. No push/merge or customer deployment.
+
+
+Tasks 27–29 completed for the explicitly bounded diagnostic slice. Sonnet passed 15/15 cases and real fresh PostgreSQL evidence collection; Haiku remained 13/15. Public process resume and model-attempt persistence passed real local PostgreSQL tests. All earlier failed model evaluations remain in evidence/diagnostic-loop. Independent review material findings were fixed, and the remaining minor reporting defect was reproduced and fixed. The deployed Railway consumer is not switched to this loop; hosted integration/live-reader qualification is the next task. Final human review and any future deployment remain separate.

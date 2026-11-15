@@ -3,9 +3,9 @@
   "id": "pooltune-hosted-agent",
   "title": "Maintain Supabase query performance",
   "workType": "Build progress and remaining work",
-  "summary": "Six repair cases verified in staging; broader diagnosis, customer connection and the hosted product remain unfinished.",
+  "summary": "Six staged repairs and a locally qualified diagnostic loop; hosted diagnostic integration and the customer product remain.",
   "sourceRevision": {
-    "commit": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
+    "commit": "f3f01c7940c644161535d3fbae0ebdf6d37b8542",
     "dirty": false
   },
   "components": [
@@ -162,7 +162,7 @@
       "id": "investigator",
       "label": "Investigator graph",
       "type": "service",
-      "purpose": "Working graph screens supplied evidence and asks Claude for one bounded repair recommendation.",
+      "purpose": "The existing staged recommendation path remains. A new diagnostic graph compares causes and requests evidence through Go.",
       "decisionIds": [
         "d-workflow"
       ],
@@ -186,10 +186,20 @@
           "path": "docs/design/hosted-query-agent/live-repairs.md",
           "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
           "kind": "verified"
+        },
+        {
+          "path": "investigator/diagnostic.ts",
+          "revision": "10d91a040de6a0226cdaacd49d18a13852b8b918",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/diagnostic-loop.md",
+          "revision": "10d91a040de6a0226cdaacd49d18a13852b8b918",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Working graph screens supplied evidence and asks Claude for one bounded repair recommendation.",
+      "changeSummary": "The existing staged recommendation path remains. A new diagnostic graph compares causes and requests evidence through Go.",
       "stack": [
         "TypeScript",
         "LangGraph"
@@ -352,7 +362,7 @@
       "id": "inspection",
       "label": "Inspect existing evidence",
       "type": "service",
-      "purpose": "Go gathers measured plans, existing-index checks and repair-specific evidence for enrolled test cases.",
+      "purpose": "Go collects the existing fixture evidence. The new named-reader bridge can supply requested measurements and reuse saved evidence.",
       "decisionIds": [
         "d-reuse",
         "d-identity"
@@ -372,10 +382,20 @@
           "path": "docs/design/hosted-query-agent/live-repairs.md",
           "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
           "kind": "verified"
+        },
+        {
+          "path": "internal/graphrunner/diagnostic.go",
+          "revision": "10d91a040de6a0226cdaacd49d18a13852b8b918",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/diagnostic-loop.md",
+          "revision": "10d91a040de6a0226cdaacd49d18a13852b8b918",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Go gathers measured plans, existing-index checks and repair-specific evidence for enrolled test cases.",
+      "changeSummary": "Go collects the existing fixture evidence. The new named-reader bridge can supply requested measurements and reuse saved evidence.",
       "stack": [
         "Go"
       ],
@@ -661,7 +681,7 @@
       "id": "diagnose-causes",
       "label": "Compare possible causes",
       "type": "service",
-      "purpose": "Next: investigate why an unfamiliar query is slow before choosing a repair.",
+      "purpose": "Built and locally qualified: compare simultaneous cause evidence, request missing facts, and decline relevant unresolved alternatives. Sonnet passed 15/15 diagnostic cases.",
       "decisionIds": [],
       "sources": [
         {
@@ -673,11 +693,26 @@
           "path": "docs/design/hosted-query-agent/roadmap.md",
           "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
           "kind": "intended"
+        },
+        {
+          "path": "investigator/diagnostic.ts",
+          "revision": "10d91a040de6a0226cdaacd49d18a13852b8b918",
+          "kind": "verified"
+        },
+        {
+          "path": "investigator/diagnostic-model.ts",
+          "revision": "10d91a040de6a0226cdaacd49d18a13852b8b918",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/diagnostic-loop/summary.json",
+          "revision": "10d91a040de6a0226cdaacd49d18a13852b8b918",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Next: investigate why an unfamiliar query is slow before choosing a repair.",
-      "after": "Next: investigate why an unfamiliar query is slow before choosing a repair.",
+      "changeSummary": "Built and locally qualified: compare simultaneous cause evidence, request missing facts, and decline relevant unresolved alternatives. Sonnet passed 15/15 diagnostic cases.",
+      "after": "Built and locally qualified: compare simultaneous cause evidence, request missing facts, and decline relevant unresolved alternatives. Sonnet passed 15/15 diagnostic cases.",
       "parent": "investigator",
       "stack": [
         "TypeScript",
@@ -688,7 +723,7 @@
       "id": "request-evidence",
       "label": "Ask for missing evidence",
       "type": "service",
-      "purpose": "Next: let the investigator request useful Go measurements within permissions and cost limits.",
+      "purpose": "Built: named Go readers, fresh local PostgreSQL evidence with real Claude, persisted evidence receipts, restart recovery and model-attempt limits.",
       "decisionIds": [],
       "sources": [
         {
@@ -700,11 +735,26 @@
           "path": "docs/design/hosted-query-agent/roadmap.md",
           "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
           "kind": "intended"
+        },
+        {
+          "path": "internal/graphrunner/diagnostic.go",
+          "revision": "10d91a040de6a0226cdaacd49d18a13852b8b918",
+          "kind": "verified"
+        },
+        {
+          "path": "internal/graphrunner/diagnostic_journal.go",
+          "revision": "10d91a040de6a0226cdaacd49d18a13852b8b918",
+          "kind": "verified"
+        },
+        {
+          "path": "internal/graphrunner/diagnostic_integration_test.go",
+          "revision": "10d91a040de6a0226cdaacd49d18a13852b8b918",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Next: let the investigator request useful Go measurements within permissions and cost limits.",
-      "after": "Next: let the investigator request useful Go measurements within permissions and cost limits.",
+      "changeSummary": "Built: named Go readers, fresh local PostgreSQL evidence with real Claude, persisted evidence receipts, restart recovery and model-attempt limits.",
+      "after": "Built: named Go readers, fresh local PostgreSQL evidence with real Claude, persisted evidence receipts, restart recovery and model-attempt limits.",
       "parent": "investigator",
       "stack": [
         "TypeScript",
@@ -855,6 +905,29 @@
         "PostgreSQL",
         "Hosting choice open for production"
       ]
+    },
+    {
+      "id": "hosted-diagnostic-integration",
+      "label": "Connect the hosted investigator",
+      "type": "service",
+      "parent": "investigator",
+      "purpose": "Next: wire the diagnostic loop into the Railway consumer with admitted live evidence readers.",
+      "decisionIds": [],
+      "sources": [
+        {
+          "path": "docs/design/hosted-query-agent/diagnostic-loop.md",
+          "revision": "10d91a040de6a0226cdaacd49d18a13852b8b918",
+          "kind": "intended"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Remaining integration; the staged consumer still uses the earlier fixed-evidence graph.",
+      "after": "Queued investigations use the qualified diagnostic graph, per-project readers, existing repair guards and durable receipts.",
+      "stack": [
+        "Go",
+        "TypeScript",
+        "Railway"
+      ]
     }
   ],
   "edges": [
@@ -1000,13 +1073,13 @@
       "id": "e-diagnose-request",
       "from": "diagnose-causes",
       "to": "request-evidence",
-      "label": "planned: asks for a missing observation"
+      "label": "qualified locally: asks for a missing observation"
     },
     {
       "id": "e-request-inspect",
       "from": "request-evidence",
       "to": "inspection",
-      "label": "planned: requests a permitted Go measurement"
+      "label": "qualified locally: requests a permitted Go measurement"
     },
     {
       "id": "e-auth-api",
@@ -1031,6 +1104,18 @@
       "from": "operations",
       "to": "state",
       "label": "planned: governs isolation, retention and recovery"
+    },
+    {
+      "id": "e-evidence-return",
+      "from": "inspection",
+      "to": "diagnose-causes",
+      "label": "returns a measured result or explicit unavailable status"
+    },
+    {
+      "id": "e-hosted-diagnostic",
+      "from": "scheduler",
+      "to": "hosted-diagnostic-integration",
+      "label": "planned: runs queued work through the diagnostic loop"
     }
   ],
   "decisions": [
@@ -1321,11 +1406,19 @@
     },
     {
       "id": "remaining-diagnosis",
-      "title": "Remaining diagnostic loop",
+      "title": "Locally qualified diagnostic loop",
       "kind": "secondary",
       "edgeIds": [
         "e-diagnose-request",
         "e-request-inspect"
+      ]
+    },
+    {
+      "id": "diagnostic-return",
+      "title": "Measured evidence returns for comparison",
+      "kind": "secondary",
+      "edgeIds": [
+        "e-evidence-return"
       ]
     }
   ]

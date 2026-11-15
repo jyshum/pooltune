@@ -1,30 +1,30 @@
 # Pooltune: build status and remaining architecture
 
-Updated November 14, 2026, against source `2a96b52`. This map now distinguishes implemented staging behavior from the complete V1 design. It is an offline snapshot, not a live agent dashboard. The archived design context below records earlier decisions and open questions at the time; current build status is in this section and `map/status.json`.
+Updated November 14, 2026, against source `f3f01c7`. This map now distinguishes implemented staging behavior from the complete V1 design. It is an offline snapshot, not a live agent dashboard. The archived design context below records earlier decisions and open questions at the time; current build status is in this section and `map/status.json`.
 
 ## How to read the colors
 
-- **Light green / Staging verified:** implemented and demonstrated for the scope stated on the card. This does not mean customer production readiness.
+- **Light green / Verified scope:** implemented and demonstrated for the scope stated on the card (staging, local database testing or replay). This does not mean customer production readiness.
 - **Amber / Partly built:** a working piece exists, but the stated responsibility is not fully implemented.
 - **Gray dashed / Remaining:** still needs implementation or broader qualification.
 - **External:** the owner, customer database or model provider; these are context, not Pooltune completion claims.
 
-Click any card for its current scope, remaining work and source references. Explore Controlled database tools for the six tested repairs and broader qualification. Explore Investigator graph for the working screen/recommendation path and the unfinished diagnostic loop. Explore Hosted API or Customer dashboard for customer connection, credentials, sign-in and visible activity. Build status is available from every view and lists the next work. Existing node IDs and the tools deep link are preserved.
+Click any card for its current scope, remaining work and source references. Explore Controlled database tools for the six tested repairs and broader qualification. Explore Investigator graph for the existing recommendation path, the newly qualified diagnostic loop and the remaining hosted connection. Explore Hosted API or Customer dashboard for customer connection, credentials, sign-in and visible activity. Build status is available from every view and lists the next work. Existing node IDs and the tools deep link are preserved.
 
 ## What is built, and what is not
 
-The Go collector, PostgreSQL queue, continuous consumer, TypeScript/LangGraph recommendation path, guarded repair execution and recovery have staging evidence. Six bounded cases used real Claude and measured outcomes. There is no completed general customer onboarding flow, hosted dashboard or sign-in system.
+The Go collector, PostgreSQL queue, continuous consumer and six guarded repair cases have staging evidence. A separate diagnostic LangGraph now compares multiple cause observations and requests named Go evidence. Sonnet passed 15/15 bounded diagnostic cases and a fresh local PostgreSQL test. Go-owned evidence receipts and graph checkpoints survived a process restart without repeating the completed measurement. [Full result and trade-offs](diagnostic-loop.md).
 
-A **known cause** means the harness deliberately creates one kind of problem and selects its Go evidence adapter. For the index case, it creates a selective lookup without an index. For scheduling, it creates a job that holds locks during the query's busy period. Claude receives actual measured evidence and can propose or decline; its answer is not scripted. But the application currently admits at most one repair-cause object, and the fixture dispatch expects that repair family. This does not establish general diagnosis of an unfamiliar slowdown.
+The earlier tests supplied one known cause category. The new graph removes that input restriction and can investigate missing evidence. However, the staged Railway consumer still uses the earlier fixed-evidence path. **Connect the hosted investigator** marks the remaining wiring and live-reader qualification. General customer onboarding, dashboard and sign-in remain unfinished.
 
-The broader design calls for one investigator to compare plausible causes, request missing evidence through Go tools, reuse useful measurements and stop when no supported repair is justified. Those are existing planned responsibilities, now explicit unfinished cards. They are not a newly added repair family. The current graph still consists of evidence screening and one investigation step; Go executes and verifies outside those graph nodes.
+Green means the scope stated on that card was verified. The new diagnostic nodes were qualified locally and with retained-evidence replay, not deployed to Railway. The investigator parent remains amber because hosted integration and general customer coverage remain.
 
 ## Changes from the earlier map
 
 - Replaced the stale “no running agent” claim with measured staging status.
 - Made the actual PostgreSQL queue, continuous consumer and delayed follow-up behavior explicit in the scheduling scope.
 - Recorded the single-call model boundary: supplied evidence goes to Claude once; a typed proposal returns to independently checked Go execution.
-- Split out the unfinished diagnostic work, customer connection, credentials, account sign-in, activity view, landing/onboarding and production operations.
+- Split out diagnostic work and customer-product responsibilities; cause comparison and evidence requests are now locally qualified, with hosted integration still visible as remaining work.
 - Kept broader repair variants visible: compound indexes, column statistics targets, cleanup settings, candidate-table writes, real memory budgets and owner schedules.
 - Preserved every decision revision and approval record. Build status is a separate evidence annotation and does not approve proposed production contracts.
 
@@ -32,9 +32,9 @@ The Go + TypeScript/LangGraph architecture and six repair families remain consis
 
 ## Next work and trade-offs
 
-The next sequence is a proposal within the existing roadmap: general project connection/enrollment; broader cause diagnosis and bounded evidence requests; a simple end-to-end activity view; representative repair coverage; account/credential and production operating controls. The scope of a first pilot must be explicit before customer mutations. A public landing page is not a prerequisite for an internal pilot.
+The next sequence is a proposal within the existing roadmap: connect the qualified diagnostic loop to the hosted consumer and live readers; general project connection/enrollment; a simple end-to-end activity view; representative repair coverage; account/credential and production operating controls. The scope of a first pilot must be explicit before customer mutations. A public landing page is not a prerequisite for an internal pilot.
 
-Current assessment: keeping one investigator and deterministic Go execution avoids creating six disconnected agents. The alternative is separate agents per repair; they could specialize prompts but would duplicate evidence, budgets and recovery coordination. The unfinished diagnostic loop should use additional calls only for decision-changing gaps, preserving the speed benefit of the existing one-call path when evidence is already sufficient.
+Current assessment: keeping one investigator and deterministic Go execution avoids creating six disconnected agents. The alternative is separate agents per repair; they could specialize prompts but would duplicate evidence, budgets and recovery coordination. The diagnostic loop requests additional calls only for decision-changing gaps, preserving the speed benefit of the existing one-call path when evidence is already sufficient.
 
 The database-backed queue makes evidence updates and job creation transactional. An external queue could offload delivery operations but introduces another service and coordination boundary. Staging uses PostgreSQL successfully; production scale, lifecycle and outage behavior remain open.
 

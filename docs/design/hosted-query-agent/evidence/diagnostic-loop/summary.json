@@ -1,0 +1,153 @@
+{
+  "code_revision": "10d91a040de6a0226cdaacd49d18a13852b8b918",
+  "scope": "diagnostic qualification, not a new Rookery repair or Railway deployment",
+  "models": {
+    "sonnet-native": {
+      "cases": 15,
+      "passed": 15,
+      "failed": [],
+      "by_calls": {
+        "0": {
+          "count": 1,
+          "total_ms_min": 263.569292,
+          "total_ms_median": 263.569292,
+          "total_ms_max": 263.569292,
+          "model_ms_median": 0
+        },
+        "1": {
+          "count": 11,
+          "total_ms_min": 3011.805583,
+          "total_ms_median": 3638.745792,
+          "total_ms_max": 6501.206916,
+          "model_ms_median": 3361.368916
+        },
+        "2": {
+          "count": 3,
+          "total_ms_min": 6928.251708,
+          "total_ms_median": 8690.652292,
+          "total_ms_max": 10673.320459,
+          "model_ms_median": 8401.120792000002
+        }
+      }
+    },
+    "haiku-native": {
+      "cases": 15,
+      "passed": 13,
+      "failed": [
+        "index-retained",
+        "cron-retained"
+      ],
+      "by_calls": {
+        "0": {
+          "count": 1,
+          "total_ms_min": 262.87,
+          "total_ms_median": 262.87,
+          "total_ms_max": 262.87,
+          "model_ms_median": 0
+        },
+        "1": {
+          "count": 9,
+          "total_ms_min": 3896.341125,
+          "total_ms_median": 4945.035917,
+          "total_ms_max": 6592.973458,
+          "model_ms_median": 4666.281625
+        },
+        "2": {
+          "count": 5,
+          "total_ms_min": 8184.08975,
+          "total_ms_median": 9091.934709,
+          "total_ms_max": 12409.759084,
+          "model_ms_median": 8805.053790999998
+        }
+      }
+    }
+  },
+  "fresh_local_postgres": {
+    "proposal": {
+      "model_call": {
+        "model": "claude-sonnet-5-5",
+        "duration_ms": 8670.430667,
+        "requests": 2,
+        "input_tokens": 6373,
+        "output_tokens": 923
+      },
+      "repair": "analyze",
+      "outcome": "propose",
+      "run_id": "test",
+      "table_oid": 16385,
+      "column_number": 2,
+      "reason": "Stored lookup fraction of 1 contradicts 1 actual match in 10000 examined rows, and the estimate is off by 19778x despite an existing covering index, so stale statistics support an ANALYZE repair."
+    },
+    "model_attempts": 2,
+    "model_calls": 2,
+    "reads": 2,
+    "model_ms": 8670.430667,
+    "tool_ms": 4.015000000000327,
+    "total_ms": 9007.548209,
+    "stop_reason": "",
+    "history": [
+      {
+        "action": "request_evidence",
+        "repair": null,
+        "tools": [
+          "analyze",
+          "statistics"
+        ],
+        "assessments": [
+          {
+            "cause": "index",
+            "assessment": "rejected",
+            "blocks_decision": false,
+            "reason": "A covering index already exists, so an index repair is ruled out even though the Seq Scan examined 10000 rows for 1 returned."
+          },
+          {
+            "cause": "analyze",
+            "assessment": "uncertain",
+            "blocks_decision": true,
+            "reason": "The planner chose a Seq Scan despite a covering index. Estimated vs actual rows and the stored frequency could show stale statistics."
+          },
+          {
+            "cause": "statistics",
+            "assessment": "uncertain",
+            "blocks_decision": true,
+            "reason": "Correlated-column misestimation could also explain the Seq Scan. Two measured input cases are needed to tell."
+          }
+        ],
+        "reason": "The covering index rules out an index repair, but the Seq Scan despite that index leaves stale statistics or correlated-column misestimation unresolved. Analyze and statistics evidence are needed."
+      },
+      {
+        "action": "propose",
+        "repair": "analyze",
+        "tools": [],
+        "assessments": [
+          {
+            "cause": "analyze",
+            "assessment": "supported",
+            "blocks_decision": false,
+            "reason": "Stored frequency 1 vs 1 actual match in 10000 rows and a 19778x estimate error show stale distribution; the index is ignored due to this."
+          },
+          {
+            "cause": "statistics",
+            "assessment": "uncertain",
+            "blocks_decision": false,
+            "reason": "Statistics tool was unavailable (unknown), but single-column stale evidence is direct and no correlated columns are indicated."
+          },
+          {
+            "cause": "index",
+            "assessment": "rejected",
+            "blocks_decision": false,
+            "reason": "A covering index already exists, so an index repair is ruled out."
+          }
+        ],
+        "reason": "Stored lookup fraction of 1 contradicts 1 actual match in 10000 examined rows, and the estimate is off by 19778x despite an existing covering index, so stale statistics support an ANALYZE repair."
+      }
+    ]
+  },
+  "source_hashes": {
+    "investigator/diagnostic.ts": "54423b076e3c3f2048055c7a912da87897940852dabb94de2cb61f9d3c6e215a",
+    "investigator/diagnostic-model.ts": "4b77e765fd11719fa704fb35f5f608f293d87a7e515c7ff0cc6f88ad4e24e170",
+    "investigator/diagnostic-protocol.ts": "4056a6b0edec8d470571752ac2b6233f811376676d2c253a2fb1e462e23b2848",
+    "internal/graphrunner/diagnostic.go": "889b5ee8a99da9c26e1ee52314addc210c19648709d0c431a2809e16fa60cc97",
+    "internal/graphrunner/diagnostic_journal.go": "c2ce6ccd10518a4f8e28a72fd86d387ec01263ef9aed5f04e83218c7b5797d85"
+  }
+}
