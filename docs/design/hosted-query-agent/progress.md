@@ -493,8 +493,28 @@ Jared clarified that the existing basic landing page is already the account entr
 
 The full map audit corrected stale claims about the existing landing, hosted history, account scope and encrypted credentials. Build status lists the verified trial flow, the pending seven-day run and every partial or planned card. Browser checks confirmed that card links open details when a card is already selected and from a mobile viewport. Independent review found the stale wording and same-card link issue, which were corrected and verified. The read-only trial can begin after the owner connects the intended project. The full V1 path still needs owner-enrolled repair execution and verification, broader evidence, missing repair variants and production qualification. [Full audit](map-audit.md)
 
-### Full MVP plan awaiting confirmation
+### Full MVP plan approved
 
 On November 15 Jared requested one numbered plan for the whole MVP before implementation, with links to unfinished map nodes and parallel work after he confirms. The [proposed build plan](mvp-build-plan.md) is the next work reference. Each step records a practical pass condition, including one connected-project flow through detection, diagnosis, repair and verification. Use the seven-day pilot as a possible rollout check after the product flow works.
 
 Jared approved the plan with capability checkboxes, a select-all option, project connection and automatic workload discovery. He asked for regular plain-English updates and to be told when the frontend is ready. Keep the existing theme and defer optional free-text preferences to V2. Routine work can continue through the frontend milestone. Retain the existing boundary before writes on a real customer database.
+
+### Tasks 45 and 46: Simpler project setup and automatic query discovery
+
+The existing landing page still opens the account flow. The Railway preview at source `3515654` serves agent setup with six repair choices and Select all. The owner can start setup without entering table names, query IDs or performance thresholds. The advanced manual setup remains available. The hosted check covered account creation, project creation, capability selection, rejection of an invalid certificate and sign-out. It did not submit a valid provider credential through Railway.
+
+On owned Rookery, the exact generated installer ran through an authenticated Supabase management request. The monitor found two ordinary query shapes with eight queries each, and one had provider and catalog evidence bound to the expected identity. This is proof of the installer and discovery components. Wider automatic evidence and their use through the same hosted connection remain open. [Setup evidence](evidence/mvp-agent-setup.json)
+
+### Tasks 47 and 48: Real column identities and native repair components
+
+Source `13cfd6c` carried the real ordered positions `[5,3]` through Sonnet and Go. The native index executor used the catalog identities `account_slot, dispatch_day`. The measured sample improved from 11.293 ms to 0.048 ms and from 1,476 to 3 shared block accesses. The driver recorded 36 committed writes before, during and after the action and kept the healthy lookup running. It removed the owned fixture and preserved unrelated indexes. This was a separate Rookery action run. [Compound-index evidence](evidence/mvp-compound-rookery.json)
+
+Source `c048df5` added and locally verified native drivers for targeted statistics refresh, plain cleanup, the cleanup threshold, individual column statistics, function memory and guarded Cron scheduling. The repair families already have earlier bounded hosted cases. The newer native drivers still need hosted permissions, evidence, dispatch and recovery. The newer Cron checks use a local provider substitute. The activity screen can read the six existing repair report types and shows the owner's pause state.
+
+### Task 49: First dashboard-triggered repair
+
+Source `c964e67` adds an exact owned Rookery binding for one manually enrolled compound lookup. The worker checks the owner's index permission and locks the current permission version through the action. An interrupted index build leaves a recorded intent, and a verified result and its action record are published together. Local race tests, PostgreSQL checks, Go vet and 99 investigator tests passed.
+
+Railway deployment `825a33ff` detected the slow lookup from ordinary Rookery traffic and saved job `212` on its first attempt. Sonnet took 4.167 seconds. PostgreSQL built the approved nonunique index concurrently on the real column positions `[2,4]`. The dashboard showed one measured input improve from 16.472 ms to 0.060 ms and from 866 to 4 shared block accesses. PostgreSQL counters matched 194 candidate reads, 196 healthy reads and 196 committed writes. The healthy query queued no investigation. App traffic used the verified Supabase session pooler while the Railway agents used the direct connection.
+
+The test account disconnected the project, and the owned roles and schemas were removed after the pooler released idle sessions. The public index fingerprint was unchanged. The temporary Railway variables were removed, regular monitoring resumed on healthy deployment `57b2014e`, and the owned action remains disabled there. The dashboard proof used the advanced enrollment route and one prepared input. Automatic repair permissions from the simplified setup, wider evidence, restart reconciliation and the other five repairs through this same path remain open. [Dashboard repair evidence](evidence/mvp-hosted-owned-index.json)

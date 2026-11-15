@@ -1,0 +1,83 @@
+{
+  "fixture": "pt_mvp_ix_fe3a9ec9c418244f",
+  "cleanup_verified": true,
+  "after_plan": {
+    "Plan": {
+      "Node Type": "Index Scan",
+      "Actual Rows": 1,
+      "Rows Removed by Filter": 0,
+      "Shared Hit Blocks": 3,
+      "Shared Read Blocks": 0
+    },
+    "Execution Time": 0.048
+  },
+  "after_traffic": {
+    "candidate_reads": 12,
+    "healthy_reads": 12,
+    "committed_writes": 12,
+    "candidate_client_mean_ms": 14.749833333333335,
+    "healthy_client_mean_ms": 23.008750000000003,
+    "write_client_mean_ms": 17.451166666666666
+  },
+  "apply_ms": 1075.839,
+  "before_plan": {
+    "Plan": {
+      "Node Type": "Seq Scan",
+      "Actual Rows": 1,
+      "Rows Removed by Filter": 90011,
+      "Shared Hit Blocks": 1476,
+      "Shared Read Blocks": 0
+    },
+    "Execution Time": 11.293
+  },
+  "before_traffic": {
+    "candidate_reads": 12,
+    "healthy_reads": 12,
+    "committed_writes": 12,
+    "candidate_client_mean_ms": 29.88258333333333,
+    "healthy_client_mean_ms": 21.809250000000002,
+    "write_client_mean_ms": 18.011666666666667
+  },
+  "diagnostic_model_calls": 1,
+  "diagnostic_stop": "",
+  "diagnostic_total_ms": 3654.811542,
+  "durable_intent_verified": true,
+  "error_count": 0,
+  "index_bytes": 2031616,
+  "investigation_ms": 3654.932,
+  "keys": [
+    {
+      "Number": 5,
+      "Name": "account_slot"
+    },
+    {
+      "Number": 3,
+      "Name": "dispatch_day"
+    }
+  ],
+  "model_call": {
+    "model": "claude-sonnet-5-5",
+    "duration_ms": 3216.3080840000002,
+    "requests": 1,
+    "input_tokens": 3116,
+    "output_tokens": 300
+  },
+  "model_outcome": "propose",
+  "no_target_lock_wait": true,
+  "parallel_traffic": {
+    "candidate_reads": 12,
+    "healthy_reads": 12,
+    "committed_writes": 12,
+    "candidate_client_mean_ms": 34.875083333333336,
+    "healthy_client_mean_ms": 17.543499999999998,
+    "write_client_mean_ms": 26.214250000000003
+  },
+  "relation_bytes": 14155776,
+  "verified_committed_writes": 36,
+  "write_attempted": true,
+  "public_index_fingerprint_unchanged": true,
+  "independent_cleanup_readback": {
+    "schemas_or_roles_or_sessions_remaining": 0
+  },
+  "limits": "Owned fixture using the real diagnostic process and generalized native executor. Standalone run, without the hosted dashboard dispatching the repair."
+}

@@ -1,0 +1,46 @@
+{
+  "source": "3515654b68bdcfc38d812f1e8c17d6dca18cdc74",
+  "railway_deployment": "83f47bd3-c4da-4346-86ec-82345ca3e9fa",
+  "railway_health_http": 200,
+  "railway_entry_and_permissions": {
+    "live_landing_to_signup": true,
+    "created_owned_project": true,
+    "setup_fields": [
+      "setup_token",
+      "ca"
+    ],
+    "capability_choices": [
+      "index",
+      "analyze",
+      "statistics",
+      "vacuum",
+      "memory",
+      "cron"
+    ],
+    "select_all_fallback": true,
+    "kept_selection_on_error": true,
+    "secret_echo": false,
+    "advanced_manual_setup": true,
+    "sign_out": true
+  },
+  "local_chrome": {
+    "widths": [
+      1280,
+      390,
+      320
+    ],
+    "keyboard_select_all": true,
+    "select_all_without_javascript": true
+  },
+  "rookery_generated_installer": {
+    "setup_via_real_project_management_api": true,
+    "read_only_tls_monitor": true,
+    "discovered_query_shapes": 2,
+    "actual_ordinary_calls_per_query": 8,
+    "passive_diagnosis_evidence_shapes": 1,
+    "project_objects_preconfigured_by_owner": 0,
+    "cleanup_owned_roles_and_schemas": true,
+    "public_index_fingerprint_unchanged": true
+  },
+  "limits": "Railway verified the sign-up, project form, and permission handling. The Rookery provider call used the generated SQL through the authenticated Supabase CLI. The public form did not submit a real setup token in this check."
+}

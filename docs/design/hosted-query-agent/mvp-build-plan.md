@@ -2,13 +2,15 @@
 
 **Approved by Jared on November 15, 2026, with the simplified onboarding below.** The existing [V1 product scope](../../product/query-performance-v1.md) defines the six repair families. Use this page for build order, ownership and pass conditions. Record completed work and evidence in [implementation](implementation.md), [progress](progress.md) and the [design map](design.html).
 
-## What works today
+## Starting point when approved
 
 - The existing landing page leads to invite signup and sign-in. An owner can connect a Supabase project, choose queries to watch, read saved latency and Sonnet diagnoses, and disconnect. The Railway dashboard completed that flow on an owned Rookery fixture. [Hosted proof](evidence/hosted-preview-railway.json)
 - The investigator can use an owner-captured execution plan and measured plans from two kinds of ordinary app queries. It can request named evidence and return a reasoned no-change result. [Plan evidence](traffic-plans.md) · [Investigator proof](hosted-diagnostic.md)
 - All six repair families have a working bounded case in staging. Single-column and two-column nonunique indexes both ran. The compound case uses fixed columns and positions. The repair worker runs on separate staging fixtures. The dashboard's connected-project worker currently ends after diagnosis. [Repair evidence](repair-expansion.md) · [Dashboard worker](../../../internal/hostedapp/supervisor.go#L152)
 
 The MVP is the joined flow. An owner connects an existing Supabase project and grants specific repair powers. Pooltune watches the chosen workload in the background, investigates a problem, carries out an eligible repair, checks its effect, and shows what happened. A healthy query, insufficient evidence or denied permission produces an explained no-change outcome.
+
+See the [latest build progress](progress.md#tasks-45-and-46-simpler-project-setup-and-automatic-query-discovery) for the simplified onboarding, automatic discovery and the first owned dashboard repair.
 
 ## Build in this order
 

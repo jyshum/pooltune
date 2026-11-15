@@ -1,0 +1,78 @@
+{
+  "deployment": "825a33ff-273d-4ba8-9888-9fc0787f094a",
+  "project": "ca44a2b01e3d6245",
+  "phase": "verified",
+  "initial_relation_bytes": 10731520,
+  "polls_seen": 18,
+  "job_outcomes": [
+    "improved_tested_inputs"
+  ],
+  "mixed_traffic": {
+    "candidate": {
+      "before": {
+        "calls": 158,
+        "client_mean_ms": 67.24843565194833
+      },
+      "after": {
+        "calls": 36,
+        "client_mean_ms": 42.60207052478412
+      }
+    },
+    "healthy": {
+      "before": {
+        "calls": 160,
+        "client_mean_ms": 49.3302971135563
+      },
+      "after": {
+        "calls": 36,
+        "client_mean_ms": 49.05770017325671
+      }
+    },
+    "write": {
+      "before": {
+        "calls": 160,
+        "client_mean_ms": 52.013663348407135
+      },
+      "after": {
+        "calls": 36,
+        "client_mean_ms": 46.212773136277164
+      }
+    }
+  },
+  "job_id": 212,
+  "outcome": "improved_tested_inputs",
+  "model_ms": 4167.266363,
+  "index_bytes": 3620864,
+  "metrics": {
+    "Measured latency for one input": {
+      "label": "Measured latency for one input",
+      "unit": "ms",
+      "before": 16.472,
+      "after": 0.06
+    },
+    "Block accesses for one input": {
+      "label": "Block accesses for one input",
+      "unit": "",
+      "before": 866,
+      "after": 4
+    }
+  },
+  "prior_indexes_preserved": true,
+  "active_dashboard_verified": true,
+  "durable_intent_readback": "Database journal and result publication were verified together in local PostgreSQL. Hosted evidence comes from the signed-in activity view and independent target catalog check.",
+  "dashboard_disconnected": true,
+  "owned_database_objects_removed": true,
+  "public_index_fingerprint_unchanged": true,
+  "source": "c964e6705d2210f53d965c526c15ed4c12a1d616",
+  "driver_app_route": "Verified TLS Supabase session pooler; Railway monitor and index role used direct verified TLS.",
+  "regular_preview": {
+    "deployment": "57b2014e-a462-4905-864e-d350af6f3d33",
+    "health_http": 200,
+    "fixture_variables_removed": true,
+    "sampling_interval": "1m",
+    "window": "5m",
+    "other_four_services_unchanged": true,
+    "pending_work": 0
+  },
+  "limits": "Advanced signed-in enrollment on an exact owned installation. Ordinary traffic triggered the worker. Before/after database measurements use one separate bound input. No hosted automatic repair authorization, restart reconciliation or other repair families were exercised here."
+}

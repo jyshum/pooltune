@@ -1,11 +1,11 @@
 {
-  "sourceRevision": "895620198f40338eb335d780fe092e05c932b7f9",
-  "summary": "The existing landing, invite signup, manual Supabase connection and read-only dashboard are ready for the first real-project trial. The full V1 plan still has implementation work in customer repair targeting, evidence, reporting and production operations.",
+  "sourceRevision": "c964e6705d2210f53d965c526c15ed4c12a1d616",
+  "summary": "Railway serves simpler project setup. Rookery verified automatic query discovery and one dashboard-triggered compound repair. The full MVP still needs broader evidence, the other five repairs through the same project flow, and recovery.",
   "next": [
-    "preview-week-pilot",
     "repair-coverage",
     "inspection",
-    "auth",
+    "experiments",
+    "activity",
     "credential-lifecycle",
     "operations"
   ],
@@ -37,12 +37,14 @@
     },
     "collector": {
       "status": "verified",
-      "scope": "Built in staging: collect enrolled query counters and detect repeated slowdowns.",
-      "remaining": "Broader signals, workload calibration and automatic query enrollment remain.",
+      "scope": "The monitor collects fixed or automatically discovered app-query counters and detects sustained slowdowns.",
+      "remaining": "Calibrate the automatic objective and qualify broader workload signals.",
       "evidence": [
         "internal/hostedquery/worker.go",
-        "docs/design/hosted-query-agent/mixed-traffic.md"
-      ]
+        "docs/design/hosted-query-agent/mixed-traffic.md",
+        "docs/design/hosted-query-agent/evidence/mvp-agent-setup.json"
+      ],
+      "statusLabel": "Automatic counters tested"
     },
     "scheduler": {
       "status": "verified",
@@ -100,8 +102,8 @@
     },
     "inspection": {
       "status": "partial",
-      "scope": "One owner-captured lookup and two ordinary-traffic plan shapes work through Railway.",
-      "remaining": "Build: Expand ordinary capture to more workloads and add evidence for statistics, visibility, spill and scheduling. Verify: Qualify more plan shapes, distinct input patterns and pooled or Data API sessions.",
+      "scope": "The monitor auto-discovers app counters. One Rookery query also passed passive identity and catalog checks. The previous two ordinary plan shapes remain verified.",
+      "remaining": "Broaden plan and cause-specific evidence, including pooled and Data API scenarios.",
       "evidence": [
         "internal/graphrunner/diagnostic.go",
         "docs/design/hosted-query-agent/diagnostic-loop.md",
@@ -113,88 +115,103 @@
         "docs/design/hosted-query-agent/enrolled-diagnosis.md",
         "docs/design/hosted-query-agent/enrolled-railway.md",
         "docs/design/hosted-query-agent/enrolled-plans.md",
-        "docs/design/hosted-query-agent/traffic-plans.md"
+        "docs/design/hosted-query-agent/traffic-plans.md",
+        "docs/design/hosted-query-agent/evidence/mvp-agent-setup.json",
+        "internal/supabaseproject/discovered_lookup.sql"
       ],
-      "remainingBuild": "Expand ordinary capture to more workloads and add evidence for statistics, visibility, spill and scheduling.",
-      "remainingVerification": "Qualify more plan shapes, distinct input patterns and pooled or Data API sessions.",
-      "statusLabel": "Two traffic plan shapes verified"
+      "statusLabel": "Automatic discovery verified",
+      "remainingBuild": "Broaden ordinary plans and evidence for statistics, visibility, spill and scheduling.",
+      "remainingVerification": "Qualify more query shapes, distinct inputs and pooled or Data API sessions."
     },
     "experiments": {
       "status": "partial",
-      "scope": "Controlled before-and-after trials passed in owned repair fixtures.",
-      "remaining": "Build: Choose representative inputs and admit justified experiments for ordinary enrolled queries. Verify: Measure customer resource headroom and check interference with other traffic.",
+      "scope": "Controlled trials passed on fixtures. The hosted index action measured one scoped input before and after while normal app traffic continued.",
+      "remaining": "Choose representative inputs and safely admit more experiments for ordinary enrolled queries. Prove useful, unnecessary and denied experiments on a connected project.",
       "evidence": [
         "docs/design/hosted-query-agent/mixed-traffic.md",
         "docs/design/hosted-query-agent/function-memory.md",
-        "docs/design/hosted-query-agent/enrolled-railway.md"
+        "docs/design/hosted-query-agent/enrolled-railway.md",
+        "docs/design/hosted-query-agent/evidence/mvp-hosted-owned-index.json"
       ],
-      "remainingBuild": "Choose representative inputs and admit justified experiments for ordinary enrolled queries.",
-      "remainingVerification": "Measure customer resource headroom and check interference with other traffic.",
-      "statusLabel": "Fixture trials verified"
+      "remainingBuild": "Choose representative inputs and limit project workload impact for eligible experiments.",
+      "remainingVerification": "Verify a completed requested measurement and a rejected one through Railway.",
+      "statusLabel": "One hosted measurement verified"
     },
     "index": {
       "status": "partial",
-      "scope": "Single-column and two-column index repairs passed. The compound executor uses the fixed lookup,padding test columns.",
-      "remaining": "Build: Derive permitted table, columns and key order from an enrolled customer query. The current validator accepts only the scalar case or column numbers [2,3], and construction uses fixed names. Verify: Qualify each newly supported query shape, existing-index equivalence, storage cost and concurrent committed writes. Other shapes are not merely untested generic support.",
+      "scope": "Single-column and compound repairs passed in bounded cases. Railway ran the compound repair from a signed-in owned project and verified app traffic continued.",
+      "remaining": "Complete automatic permissions, broader shape selection and recovery. Qualify the single-column repair through the same joined route.",
       "evidence": [
         "docs/design/hosted-query-agent/mixed-traffic.md",
         "internal/hostedquery/index_policy.go",
         "internal/hostedquery/index_trial.go",
-        "internal/hostedquery/compound_index.go"
+        "internal/hostedquery/compound_index.go",
+        "docs/design/hosted-query-agent/evidence/mvp-compound-rookery.json",
+        "internal/hostedquery/project_index_action.go",
+        "docs/design/hosted-query-agent/evidence/mvp-hosted-owned-index.json"
       ],
-      "remainingBuild": "Derive permitted table, columns and key order from an enrolled customer query. The current validator accepts only the scalar case or column numbers [2,3], and construction uses fixed names.",
-      "remainingVerification": "Qualify each newly supported query shape, existing-index equivalence, storage cost and concurrent committed writes. Other shapes are not merely untested generic support.",
-      "statusLabel": "Two index cases tested"
+      "statusLabel": "Dashboard compound tested",
+      "remainingBuild": "Connect the ordinary setup capability to verified native permissions for both index forms.",
+      "remainingVerification": "Qualify single-column, range and ordering, equivalent indexes and interruption on enrolled projects."
     },
     "refresh": {
       "status": "verified",
-      "scope": "Targeted ANALYZE case verified: refresh stale statistics and measure the result.",
-      "remaining": "Broader stale-statistics signals and representative customer traffic remain.",
+      "scope": "Targeted ANALYZE passed in a bounded case. The native driver also checks the real relation and its maintenance permission.",
+      "remaining": "Connect stale-statistics evidence and action to the full hosted worker.",
       "evidence": [
-        "docs/design/hosted-query-agent/targeted-analyze.md"
-      ]
+        "docs/design/hosted-query-agent/targeted-analyze.md",
+        "internal/hostedquery/project_maintenance.go"
+      ],
+      "statusLabel": "Native refresh guard tested locally"
     },
     "richer": {
       "status": "partial",
-      "scope": "Joint statistics for lookup,padding work. The planned individual-column detail adjustment is not implemented.",
-      "remaining": "Build: Add bounded ALTER COLUMN SET STATISTICS: read and save the old target, choose an allowed target, analyze, and restore when appropriate. Generalize joint-statistics targeting beyond the fixed pair. Verify: Test uneven value distributions, read benefit, analysis cost and restoration with real Claude.",
+      "scope": "An earlier joint-statistics case passed. The native driver can change and restore a bounded statistics target on an exact approved column.",
+      "remaining": "Wire the new driver into the hosted worker and generalize joint statistics. Verify representative traffic, analysis cost and restoration.",
       "evidence": [
         "docs/design/hosted-query-agent/richer-statistics.md",
         "internal/hostedquery/statistics_samples.go",
-        "docs/product/query-performance-v1.md"
+        "docs/product/query-performance-v1.md",
+        "internal/hostedquery/project_statistics.go"
       ],
-      "remainingBuild": "Add bounded ALTER COLUMN SET STATISTICS: read and save the old target, choose an allowed target, analyze, and restore when appropriate. Generalize joint-statistics targeting beyond the fixed pair.",
-      "remainingVerification": "Test uneven value distributions, read benefit, analysis cost and restoration with real Claude.",
-      "statusLabel": "Joint statistics tested"
+      "remainingBuild": "Connect owner permissions and runtime evidence to the column adjustment. Generalize extended statistics targeting.",
+      "remainingVerification": "Verify analysis cost, benefit and safe restoration through the connected project dashboard.",
+      "statusLabel": "Column adjustment tested locally"
     },
     "cleanup": {
       "status": "partial",
-      "scope": "Plain VACUUM passed. Planned changes to table cleanup-trigger thresholds are not implemented.",
-      "remaining": "Build: Add bounded table cleanup-threshold adjustments, including saved prior values, owner grants and restoration. Verify: Prove late cleanup triggering is the cause and that changed thresholds reduce recurring backlog without excess interference.",
+      "scope": "Plain VACUUM passed in a bounded hosted case. Local PostgreSQL also verified a bounded cleanup-trigger change and restoration.",
+      "remaining": "Wire both cleanup actions to the hosted worker and measure recurring backlog and interference.",
       "evidence": [
         "docs/design/hosted-query-agent/bounded-vacuum.md",
         "docs/product/query-performance-v1.md",
-        "internal/hostedquery/vacuum_fixture.go"
+        "internal/hostedquery/vacuum_fixture.go",
+        "internal/hostedquery/project_cleanup_settings.go",
+        "internal/hostedquery/project_maintenance.go"
       ],
-      "remainingBuild": "Add bounded table cleanup-threshold adjustments, including saved prior values, owner grants and restoration.",
-      "remainingVerification": "Prove late cleanup triggering is the cause and that changed thresholds reduce recurring backlog without excess interference.",
-      "statusLabel": "Plain VACUUM tested"
+      "remainingBuild": "Connect the two cleanup actions to hosted evidence and owner permissions.",
+      "remainingVerification": "Verify real backlog improvement and protected traffic through the connected project dashboard.",
+      "statusLabel": "Cleanup adjustment tested locally"
     },
     "memory": {
       "status": "verified",
-      "scope": "Function-memory case verified with attributed disk spill and a fixed test memory budget.",
-      "remaining": "Customer memory headroom, representative functions and wider concurrency remain.",
+      "scope": "The earlier attributed spill case passed. The native driver checks function ownership and locally demonstrated that the spill can be removed and the prior setting restored.",
+      "remaining": "Connect the repair to hosted worker permissions. Qualify broader concurrency and memory headroom.",
       "evidence": [
-        "docs/design/hosted-query-agent/function-memory.md"
-      ]
+        "docs/design/hosted-query-agent/function-memory.md",
+        "internal/hostedquery/project_function_memory.go"
+      ],
+      "statusLabel": "Native memory guard tested locally"
     },
     "cron": {
       "status": "verified",
-      "scope": "Scheduling case verified: move one job to an allowed quiet minute and preserve deadlines after restart.",
-      "remaining": "Real customer schedules, broader interference and safe recovery windows remain.",
+      "scope": "The earlier real scheduling case passed. The new native guard checks bounded schedules and post-commit witnesses with a local scheduler substitute.",
+      "remaining": "Connect the new guard to the hosted worker and verify real scheduled periods on an enrolled project.",
       "evidence": [
-        "docs/design/hosted-query-agent/cron-staging.md"
-      ]
+        "docs/design/hosted-query-agent/cron-staging.md",
+        "internal/hostedquery/project_cron.go"
+      ],
+      "statusLabel": "Native schedule guard tested locally"
     },
     "recovery": {
       "status": "verified",
@@ -217,13 +234,14 @@
     },
     "dashboard": {
       "status": "partial",
-      "scope": "An invited account connected to Rookery through the dashboard, read a measured-plan Sonnet diagnosis and resumed polling after reconnect.",
-      "remaining": "Public onboarding, account recovery, and a seven-day workload pilot remain.",
+      "scope": "Railway serves the original landing, account signup, agent setup and saved activity. Repair choices and pause are stored per project.",
+      "remaining": "Drive the new screens from actual hosted repair runs. Complete wider account and operations work.",
       "evidence": [
         "docs/design/hosted-query-agent/roadmap.md",
-        "docs/design/hosted-query-agent/hosted-preview.md"
+        "docs/design/hosted-query-agent/hosted-preview.md",
+        "docs/design/hosted-query-agent/evidence/mvp-agent-setup.json"
       ],
-      "statusLabel": "Hosted preview verified"
+      "statusLabel": "Agent setup live on Railway"
     },
     "studio": {
       "status": "partial",
@@ -281,27 +299,31 @@
     },
     "repair-coverage": {
       "status": "planned",
-      "scope": "The six bounded repair families ran on owned fixtures. The hosted customer project worker currently ends at a read-only diagnosis.",
-      "remaining": "Connect the owner-granted repair and verification workflow to hosted projects. Implement real-query index candidate selection, individual-column statistics targets and cleanup-threshold changes. Qualify committed writes, resource limits and owner schedules.",
+      "scope": "Six bounded families ran on staging fixtures. One compound index also completed in the signed-in Railway project flow. New native repair components passed local checks.",
+      "remaining": "Wire the other five families, complete supported variants and qualify permissions and recovery in the joined project flow.",
       "evidence": [
         "docs/design/hosted-query-agent/roadmap.md",
         "internal/hostedapp/supervisor.go",
-        "docs/design/hosted-query-agent/map-audit.md"
-      ]
+        "docs/design/hosted-query-agent/map-audit.md",
+        "docs/design/hosted-query-agent/evidence/mvp-compound-rookery.json",
+        "docs/design/hosted-query-agent/evidence/mvp-hosted-owned-index.json"
+      ],
+      "statusLabel": "One hosted project repair verified"
     },
     "connect-project": {
       "status": "partial",
-      "scope": "The hosted preview verifies a manually installed Rookery role, activates its worker and shows an enrolled diagnosis.",
-      "remaining": "Qualify the intended pilot project and additional query routes. Expand onboarding beyond the preview.",
+      "scope": "The owner can start agent setup with a project token, certificate and six repair choices. Rookery verified the generated installer.",
+      "remaining": "Verify valid token submission through Railway and link the selected repairs to verified project execution authority.",
       "evidence": [
         "docs/design/hosted-query-agent/supabase-monitoring.md",
         "cmd/pooltune-project/main.go",
         "internal/supabaseproject/install.sql",
         "docs/design/hosted-query-agent/enrolled-diagnosis.md",
         "docs/design/hosted-query-agent/enrolled-railway.md",
-        "docs/design/hosted-query-agent/hosted-preview.md"
+        "docs/design/hosted-query-agent/hosted-preview.md",
+        "docs/design/hosted-query-agent/evidence/mvp-agent-setup.json"
       ],
-      "statusLabel": "Manual connection verified"
+      "statusLabel": "Setup and discovery built"
     },
     "credential-lifecycle": {
       "status": "partial",
@@ -329,13 +351,16 @@
     },
     "activity": {
       "status": "partial",
-      "scope": "The dashboard showed query windows, a healthy control, monitor checks and a Sonnet diagnosis with a measured plan. The diagnosis remained visible after reconnect.",
-      "remaining": "Qualify a full pilot week and broaden customer-facing repair history and reporting.",
+      "scope": "Owner-scoped activity displayed a real compound-index result. The pause control and action publication were tested against PostgreSQL.",
+      "remaining": "Show all six live outcomes and protected traffic measures. Qualify pause, restart and uncertain-action reconciliation on Railway.",
       "evidence": [
         "docs/design/hosted-query-agent/roadmap.md",
-        "docs/design/hosted-query-agent/hosted-preview.md"
+        "docs/design/hosted-query-agent/hosted-preview.md",
+        "internal/hostedapp/repair_activity_test.go",
+        "internal/hostedquery/project_activity_integration_test.go",
+        "docs/design/hosted-query-agent/evidence/mvp-hosted-owned-index.json"
       ],
-      "statusLabel": "Live read-only activity verified"
+      "statusLabel": "Live index result verified"
     },
     "landing": {
       "status": "verified",
@@ -351,12 +376,15 @@
     },
     "operations": {
       "status": "planned",
-      "scope": "Staging has a healthy single-replica preview and tested account isolation and limits. Production recovery and operations still need qualification.",
-      "remaining": "Qualify backup and restore, credential rotation, deploy and outage behavior, and the seven-day pilot.",
+      "scope": "The Railway preview returned to healthy regular monitoring after the owned dashboard repair. Temporary database objects and deploy settings were removed.",
+      "remaining": "Verify all six families and restart recovery through the joined flow, backup and restore, credential rotation and outage behavior.",
       "evidence": [
         "docs/design/hosted-query-agent/roadmap.md",
-        "docs/design/hosted-query-agent/hosted-preview.md"
-      ]
+        "docs/design/hosted-query-agent/hosted-preview.md",
+        "docs/design/hosted-query-agent/evidence/mvp-agent-setup.json",
+        "docs/design/hosted-query-agent/evidence/mvp-hosted-owned-index.json"
+      ],
+      "statusLabel": "First owned dashboard repair verified"
     },
     "hosted-diagnostic-integration": {
       "status": "verified",
@@ -476,17 +504,19 @@
       ]
     },
     "index-compound-general": {
-      "status": "planned",
-      "scope": "Build candidate selection beyond the fixed two-equality test query, then qualify the accepted query shapes.",
-      "remaining": "Build: Represent authorized real table/column identities and choose key order from query predicates. Define supported combinations such as equality with a range or ordering; do not assume all shapes are supported. Verify: Test accepted shapes with real Sonnet, representative inputs, existing indexes, writes, storage cost and interrupted recovery.",
+      "status": "partial",
+      "scope": "The native executor resolved and verified ordered pairs [5,3] and [2,4]. The [2,4] case used the connected dashboard worker.",
+      "remaining": "Attach automatic candidate selection and owner-authorized setup to the worker. Verify range or ordering queries and interrupted-action reconciliation.",
       "evidence": [
         "docs/product/query-performance-v1.md",
         "internal/hostedquery/index_policy.go",
         "internal/hostedquery/index_trial.go",
-        "internal/hostedquery/compound_index.go"
+        "internal/hostedquery/compound_index.go",
+        "docs/design/hosted-query-agent/evidence/mvp-compound-rookery.json",
+        "internal/hostedquery/project_index.go",
+        "docs/design/hosted-query-agent/evidence/mvp-hosted-owned-index.json"
       ],
-      "remainingBuild": "Represent authorized real table/column identities and choose key order from query predicates. Define supported combinations such as equality with a range or ordering; do not assume all shapes are supported.",
-      "remainingVerification": "Test accepted shapes with real Sonnet, representative inputs, existing indexes, writes, storage cost and interrupted recovery."
+      "statusLabel": "Owned dashboard compound tested"
     },
     "enrolled-lookup-diagnosis": {
       "status": "verified",
@@ -585,6 +615,55 @@
         "docs/design/hosted-query-agent/hosted-preview.md",
         "docs/design/hosted-query-agent/roadmap.md"
       ]
+    },
+    "agent-permission-setup": {
+      "status": "verified",
+      "scope": "Railway shows a scoped setup token and six repair choices, including Select all. No query IDs or table list are required.",
+      "remaining": "Verify a scoped token delivered through the hosted form and attach checked repair types to native action privileges.",
+      "evidence": [
+        "internal/hostedapp/ui/pages.html",
+        "docs/design/hosted-query-agent/evidence/mvp-agent-setup.json"
+      ]
+    },
+    "automatic-workload-discovery": {
+      "status": "verified",
+      "scope": "The installed monitor found two ordinary Rookery query shapes without manual query enrollment. One also returned bound passive evidence.",
+      "remaining": "Wider ordinary-traffic plan coverage, relative baselines, and proof through the same managed Railway worker remain.",
+      "evidence": [
+        "internal/supabaseproject/automatic_snapshot.sql",
+        "docs/design/hosted-query-agent/evidence/mvp-agent-setup.json"
+      ]
+    },
+    "generalized-compound-action": {
+      "status": "verified",
+      "scope": "Real Sonnet and the native executor verified two different two-column pairs on owned Rookery. One ran through the Railway dashboard.",
+      "remaining": "General permissions, wider filters and ordering, and interrupted-action recovery remain.",
+      "evidence": [
+        "internal/hostedquery/project_index_action.go",
+        "docs/design/hosted-query-agent/evidence/mvp-compound-rookery.json",
+        "docs/design/hosted-query-agent/evidence/mvp-hosted-owned-index.json"
+      ],
+      "statusLabel": "Two real column pairs tested"
+    },
+    "dashboard-repair-results": {
+      "status": "verified",
+      "scope": "The dashboard displays each existing report type. A live Railway job showed the confirmed compound-index action and measurements for one input.",
+      "remaining": "Exercise the other five families and show recovery outcomes on the same hosted dashboard.",
+      "evidence": [
+        "internal/hostedquery/project_activity.go",
+        "internal/hostedquery/project_activity_integration_test.go",
+        "docs/design/hosted-query-agent/evidence/mvp-hosted-owned-index.json"
+      ],
+      "statusLabel": "Live compound outcome verified"
+    },
+    "hosted-owned-index-action": {
+      "status": "verified",
+      "scope": "A signed-in Rookery project detected ordinary slow traffic, ran real Sonnet, built the approved two-column index, and displayed measured before-and-after results on Railway.",
+      "remaining": "This proof used one manually enrolled owned fixture and one measured input. Automatic setup permissions, more shapes and interrupted-action reconciliation remain.",
+      "evidence": [
+        "docs/design/hosted-query-agent/evidence/mvp-hosted-owned-index.json",
+        "internal/hostedquery/owned_project_index.go"
+      ]
     }
   },
   "colorMeaning": "Green covers the verified scope on each card. Yellow means part of the card works and more remains. Dashed cards track pending work or qualification.",
@@ -660,11 +739,33 @@
         "preview-week-pilot",
         "repair-coverage"
       ]
+    },
+    {
+      "label": "Tasks 45–48 · Simplify setup and move repair work onto project identities",
+      "summary": "Railway now serves the capability screen. Rookery verified workload discovery and a separate real compound-index repair. The dashboard shows saved repair data.",
+      "nodes": [
+        "agent-permission-setup",
+        "automatic-workload-discovery",
+        "generalized-compound-action",
+        "dashboard-repair-results"
+      ]
+    },
+    {
+      "label": "Task 49 · Run a compound repair from the dashboard",
+      "summary": "Railway detected ordinary slow Rookery traffic, Sonnet picked the approved index and the dashboard displayed one measured input improve from 16.472 ms to 0.060 ms. The healthy lookup queued no job.",
+      "nodes": [
+        "hosted-owned-index-action",
+        "index",
+        "activity",
+        "repair-coverage"
+      ]
     }
   ],
   "preview": [
     "landing",
     "preview-account-session",
+    "agent-permission-setup",
+    "automatic-workload-discovery",
     "hosted-preview-project"
   ]
 }

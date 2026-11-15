@@ -3,9 +3,9 @@
   "id": "pooltune-hosted-agent",
   "title": "Maintain Supabase query performance",
   "workType": "Build progress and remaining work",
-  "summary": "The existing landing, invite signup, manual Supabase connection and read-only dashboard are ready for the first real-project trial. The full V1 plan still has implementation work in customer repair targeting, evidence, reporting and production operations.",
+  "summary": "Railway serves simpler project setup. Rookery verified automatic query discovery and one dashboard-triggered compound repair. The full MVP still needs broader evidence, the other five repairs through the same project flow, and recovery.",
   "sourceRevision": {
-    "commit": "895620198f40338eb335d780fe092e05c932b7f9",
+    "commit": "c964e6705d2210f53d965c526c15ed4c12a1d616",
     "dirty": false
   },
   "components": [
@@ -30,7 +30,7 @@
       "id": "dashboard",
       "label": "Customer dashboard",
       "type": "interface",
-      "purpose": "An invited account connected to Rookery through the dashboard, read a measured-plan Sonnet diagnosis and resumed polling after reconnect.",
+      "purpose": "Railway serves the original landing, account signup, agent setup and saved activity. Repair choices and pause are stored per project.",
       "decisionIds": [
         "d-hosting",
         "d-onboarding"
@@ -48,8 +48,8 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "An invited account connected to Rookery through the dashboard, read a measured-plan Sonnet diagnosis and resumed polling after reconnect.",
-      "after": "An invited account connected to Rookery through the dashboard, read a measured-plan Sonnet diagnosis and resumed polling after reconnect.",
+      "changeSummary": "Railway serves the original landing, account signup, agent setup and saved activity. Repair choices and pause are stored per project.",
+      "after": "Railway serves the original landing, account signup, agent setup and saved activity. Repair choices and pause are stored per project.",
       "expandWhy": "What will a customer use to connect a project and watch Pooltune work?"
     },
     {
@@ -87,7 +87,7 @@
       "id": "collector",
       "label": "Collector and detector: staging",
       "type": "service",
-      "purpose": "Built in staging: collect enrolled query counters and detect repeated slowdowns.",
+      "purpose": "The monitor collects fixed or automatically discovered app-query counters and detects sustained slowdowns.",
       "decisionIds": [
         "d-language",
         "d-hosting",
@@ -111,11 +111,11 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Built in staging: collect enrolled query counters and detect repeated slowdowns.",
+      "changeSummary": "The monitor collects fixed or automatically discovered app-query counters and detects sustained slowdowns.",
       "stack": [
         "Go"
       ],
-      "after": "Collect bounded telemetry, reuse valid evidence, and identify worthwhile investigations; cadence and thresholds remain open."
+      "after": "The monitor collects fixed or automatically discovered app-query counters and detects sustained slowdowns."
     },
     {
       "id": "scheduler",
@@ -387,7 +387,7 @@
       "id": "inspection",
       "label": "Inspect existing evidence",
       "type": "service",
-      "purpose": "Read one owner-captured lookup plan and two ordinary-traffic query plans. More query shapes and cause-specific evidence remain.",
+      "purpose": "The monitor auto-discovers app counters. One Rookery query also passed passive identity and catalog checks. The previous two ordinary plan shapes remain verified.",
       "decisionIds": [
         "d-reuse",
         "d-identity"
@@ -445,18 +445,18 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Read one owner-captured lookup plan and two ordinary-traffic query plans. More query shapes and cause-specific evidence remain.",
+      "changeSummary": "The monitor auto-discovers app counters. One Rookery query also passed passive identity and catalog checks. The previous two ordinary plan shapes remain verified.",
       "stack": [
         "Go"
       ],
       "parent": "tools",
-      "after": "Named readers cover six fixture types; a hosted Sonnet request for fresh ANALYZE evidence passed."
+      "after": "The monitor auto-discovers app counters. One Rookery query also passed passive identity and catalog checks. The previous two ordinary plan shapes remain verified."
     },
     {
       "id": "experiments",
       "label": "Run a justified experiment",
       "type": "service",
-      "purpose": "Controlled before/after trials test whether a permitted change helps and harms other traffic.",
+      "purpose": "Controlled trials passed on fixtures. The hosted index action measured one scoped input before and after while normal app traffic continued.",
       "decisionIds": [
         "d-reuse",
         "d-trials",
@@ -480,18 +480,18 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Controlled before/after trials test whether a permitted change helps and harms other traffic.",
+      "changeSummary": "Controlled trials passed on fixtures. The hosted index action measured one scoped input before and after while normal app traffic continued.",
       "stack": [
         "Go"
       ],
       "parent": "tools",
-      "after": "Require an enrolled query and approved role/context; request only evidence missing from a decision. Live-trial budgets and limits remain open."
+      "after": "Controlled trials passed on fixtures. The hosted index action measured one scoped input before and after while normal app traffic continued."
     },
     {
       "id": "index",
       "label": "Add a nonunique index",
       "type": "service",
-      "purpose": "Single-column and two-column index repairs passed. The compound executor uses the fixed lookup,padding test columns.",
+      "purpose": "Single-column and compound repairs passed in bounded cases. Railway ran the compound repair from a signed-in owned project and verified app traffic continued.",
       "decisionIds": [
         "d-trials"
       ],
@@ -508,19 +508,19 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Single-column and two-column index repairs passed. The compound executor uses the fixed lookup,padding test columns.",
+      "changeSummary": "Single-column and compound repairs passed in bounded cases. Railway ran the compound repair from a signed-in owned project and verified app traffic continued.",
       "stack": [
         "Go"
       ],
       "parent": "tools",
-      "after": "Single-column and two-column index repairs passed. The compound executor uses the fixed lookup,padding test columns.",
+      "after": "Single-column and compound repairs passed in bounded cases. Railway ran the compound repair from a signed-in owned project and verified app traffic continued.",
       "expandWhy": "Which index shapes can Pooltune create today?"
     },
     {
       "id": "refresh",
       "label": "Refresh statistics: tested case",
       "type": "service",
-      "purpose": "Targeted ANALYZE case verified: refresh stale statistics and measure the result.",
+      "purpose": "Targeted ANALYZE passed in a bounded case. The native driver also checks the real relation and its maintenance permission.",
       "decisionIds": [],
       "sources": [
         {
@@ -535,18 +535,18 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Targeted ANALYZE case verified: refresh stale statistics and measure the result.",
+      "changeSummary": "Targeted ANALYZE passed in a bounded case. The native driver also checks the real relation and its maintenance permission.",
       "stack": [
         "Go"
       ],
       "parent": "tools",
-      "after": "Use change history and estimate errors to qualify targeted ANALYZE. Verify useful execution outcomes; exact undo of gathered statistics is unavailable."
+      "after": "Targeted ANALYZE passed in a bounded case. The native driver also checks the real relation and its maintenance permission."
     },
     {
       "id": "richer",
       "label": "Improve statistics detail",
       "type": "service",
-      "purpose": "Joint statistics for lookup,padding work. The planned individual-column detail adjustment is not implemented.",
+      "purpose": "An earlier joint-statistics case passed. The native driver can change and restore a bounded statistics target on an exact approved column.",
       "decisionIds": [],
       "sources": [
         {
@@ -561,19 +561,19 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Joint statistics for lookup,padding work. The planned individual-column detail adjustment is not implemented.",
+      "changeSummary": "An earlier joint-statistics case passed. The native driver can change and restore a bounded statistics target on an exact approved column.",
       "stack": [
         "Go"
       ],
       "parent": "tools",
-      "after": "Joint statistics for lookup,padding work. The planned individual-column detail adjustment is not implemented.",
+      "after": "An earlier joint-statistics case passed. The native driver can change and restore a bounded statistics target on an exact approved column.",
       "expandWhy": "Which statistics improvements exist and which remain?"
     },
     {
       "id": "cleanup",
       "label": "Perform targeted cleanup",
       "type": "service",
-      "purpose": "Plain VACUUM passed. Planned changes to table cleanup-trigger thresholds are not implemented.",
+      "purpose": "Plain VACUUM passed in a bounded hosted case. Local PostgreSQL also verified a bounded cleanup-trigger change and restoration.",
       "decisionIds": [],
       "sources": [
         {
@@ -588,19 +588,19 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Plain VACUUM passed. Planned changes to table cleanup-trigger thresholds are not implemented.",
+      "changeSummary": "Plain VACUUM passed in a bounded hosted case. Local PostgreSQL also verified a bounded cleanup-trigger change and restoration.",
       "stack": [
         "Go"
       ],
       "parent": "tools",
-      "after": "Plain VACUUM passed. Planned changes to table cleanup-trigger thresholds are not implemented.",
+      "after": "Plain VACUUM passed in a bounded hosted case. Local PostgreSQL also verified a bounded cleanup-trigger change and restoration.",
       "expandWhy": "Which cleanup actions exist and which remain?"
     },
     {
       "id": "memory",
       "label": "Function memory: tested case",
       "type": "service",
-      "purpose": "Function-memory case verified with attributed disk spill and a fixed test memory budget.",
+      "purpose": "The earlier attributed spill case passed. The native driver checks function ownership and locally demonstrated that the spill can be removed and the prior setting restored.",
       "decisionIds": [],
       "sources": [
         {
@@ -615,18 +615,18 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Function-memory case verified with attributed disk spill and a fixed test memory budget.",
+      "changeSummary": "The earlier attributed spill case passed. The native driver checks function ownership and locally demonstrated that the spill can be removed and the prior setting restored.",
       "stack": [
         "Go"
       ],
       "parent": "tools",
-      "after": "Require internal spill evidence and a concurrency-aware memory budget before function-scoped work_mem tuning. Restore the previous setting when recovery is qualified."
+      "after": "The earlier attributed spill case passed. The native driver checks function ownership and locally demonstrated that the spill can be removed and the prior setting restored."
     },
     {
       "id": "cron",
       "label": "Job scheduling: tested case",
       "type": "service",
-      "purpose": "Scheduling case verified: move one job to an allowed quiet minute and preserve deadlines after restart.",
+      "purpose": "The earlier real scheduling case passed. The new native guard checks bounded schedules and post-commit witnesses with a local scheduler substitute.",
       "decisionIds": [],
       "sources": [
         {
@@ -641,12 +641,12 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Scheduling case verified: move one job to an allowed quiet minute and preserve deadlines after restart.",
+      "changeSummary": "The earlier real scheduling case passed. The new native guard checks bounded schedules and post-commit witnesses with a local scheduler substitute.",
       "stack": [
         "Go"
       ],
       "parent": "tools",
-      "after": "Require repeated interference evidence and owner-approved windows/deadlines. Change future schedules only; never cancel running customer jobs."
+      "after": "The earlier real scheduling case passed. The new native guard checks bounded schedules and post-commit witnesses with a local scheduler substitute."
     },
     {
       "id": "recovery",
@@ -873,7 +873,7 @@
       "id": "repair-coverage",
       "label": "Qualify broader repairs",
       "type": "service",
-      "purpose": "The six bounded repair families ran on owned fixtures. The hosted customer project worker currently ends at a read-only diagnosis.",
+      "purpose": "Six bounded families ran on staging fixtures. One compound index also completed in the signed-in Railway project flow. New native repair components passed local checks.",
       "decisionIds": [],
       "sources": [
         {
@@ -888,8 +888,8 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "The six bounded repair families ran on owned fixtures. The hosted customer project worker currently ends at a read-only diagnosis.",
-      "after": "The six bounded repair families ran on owned fixtures. The hosted customer project worker currently ends at a read-only diagnosis.",
+      "changeSummary": "Six bounded families ran on staging fixtures. One compound index also completed in the signed-in Railway project flow. New native repair components passed local checks.",
+      "after": "Six bounded families ran on staging fixtures. One compound index also completed in the signed-in Railway project flow. New native repair components passed local checks.",
       "parent": "tools",
       "stack": [
         "Go"
@@ -899,7 +899,7 @@
       "id": "connect-project",
       "label": "Connect and enroll a project",
       "type": "service",
-      "purpose": "The hosted preview verifies a manually installed Rookery role, activates its worker and shows an enrolled diagnosis.",
+      "purpose": "The owner can start agent setup with a project token, certificate and six repair choices. Rookery verified the generated installer.",
       "decisionIds": [],
       "sources": [
         {
@@ -919,8 +919,8 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "The hosted preview verifies a manually installed Rookery role, activates its worker and shows an enrolled diagnosis.",
-      "after": "The hosted preview verifies a manually installed Rookery role, activates its worker and shows an enrolled diagnosis.",
+      "changeSummary": "The owner can start agent setup with a project token, certificate and six repair choices. Rookery verified the generated installer.",
+      "after": "The owner can start agent setup with a project token, certificate and six repair choices. Rookery verified the generated installer.",
       "parent": "backend",
       "stack": [
         "Go",
@@ -980,7 +980,7 @@
       "id": "activity",
       "label": "Project activity and controls",
       "type": "service",
-      "purpose": "The dashboard showed query windows, a healthy control, monitor checks and a Sonnet diagnosis with a measured plan. The diagnosis remained visible after reconnect.",
+      "purpose": "Owner-scoped activity displayed a real compound-index result. The pause control and action publication were tested against PostgreSQL.",
       "decisionIds": [],
       "sources": [
         {
@@ -990,8 +990,8 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "The dashboard showed query windows, a healthy control, monitor checks and a Sonnet diagnosis with a measured plan. The diagnosis remained visible after reconnect.",
-      "after": "The dashboard showed query windows, a healthy control, monitor checks and a Sonnet diagnosis with a measured plan. The diagnosis remained visible after reconnect.",
+      "changeSummary": "Owner-scoped activity displayed a real compound-index result. The pause control and action publication were tested against PostgreSQL.",
+      "after": "Owner-scoped activity displayed a real compound-index result. The pause control and action publication were tested against PostgreSQL.",
       "parent": "dashboard"
     },
     {
@@ -1026,7 +1026,7 @@
       "id": "operations",
       "label": "Production operations",
       "type": "service",
-      "purpose": "Staging has a healthy single-replica preview and tested account isolation and limits. Production recovery and operations still need qualification.",
+      "purpose": "The Railway preview returned to healthy regular monitoring after the owned dashboard repair. Temporary database objects and deploy settings were removed.",
       "decisionIds": [],
       "sources": [
         {
@@ -1036,8 +1036,8 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Staging has a healthy single-replica preview and tested account isolation and limits. Production recovery and operations still need qualification.",
-      "after": "Staging has a healthy single-replica preview and tested account isolation and limits. Production recovery and operations still need qualification.",
+      "changeSummary": "The Railway preview returned to healthy regular monitoring after the owned dashboard repair. Temporary database objects and deploy settings were removed.",
+      "after": "The Railway preview returned to healthy regular monitoring after the owned dashboard repair. Temporary database objects and deploy settings were removed.",
       "stack": [
         "Go",
         "PostgreSQL",
@@ -1783,7 +1783,7 @@
       "label": "Choose indexes for real queries",
       "type": "service",
       "parent": "index",
-      "purpose": "Build candidate selection beyond the fixed two-equality test query, then qualify the accepted query shapes.",
+      "purpose": "The native executor resolved and verified ordered pairs [5,3] and [2,4]. The [2,4] case used the connected dashboard worker.",
       "decisionIds": [],
       "sources": [
         {
@@ -1793,8 +1793,8 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Build candidate selection beyond the fixed two-equality test query, then qualify the accepted query shapes.",
-      "after": "Build candidate selection beyond the fixed two-equality test query, then qualify the accepted query shapes.",
+      "changeSummary": "The native executor resolved and verified ordered pairs [5,3] and [2,4]. The [2,4] case used the connected dashboard worker.",
+      "after": "The native executor resolved and verified ordered pairs [5,3] and [2,4]. The [2,4] case used the connected dashboard worker.",
       "stack": [
         "Go",
         "TypeScript"
@@ -2027,6 +2027,117 @@
       "stack": [
         "Go",
         "PostgreSQL"
+      ]
+    },
+    {
+      "id": "agent-permission-setup",
+      "label": "Agent setup and repair choices",
+      "type": "service",
+      "purpose": "Railway shows a scoped setup token and six repair choices, including Select all. No query IDs or table list are required.",
+      "decisionIds": [],
+      "sources": [
+        {
+          "path": "internal/hostedapp/ui/pages.html",
+          "revision": "3515654b68bdcfc38d812f1e8c17d6dca18cdc74",
+          "kind": "verified"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Railway shows a scoped setup token and six repair choices, including Select all. No query IDs or table list are required.",
+      "after": "Railway shows a scoped setup token and six repair choices, including Select all. No query IDs or table list are required.",
+      "parent": "connect-project",
+      "stack": [
+        "Go",
+        "PostgreSQL"
+      ]
+    },
+    {
+      "id": "automatic-workload-discovery",
+      "label": "Discover app traffic",
+      "type": "service",
+      "purpose": "The installed monitor found two ordinary Rookery query shapes without manual query enrollment. One also returned bound passive evidence.",
+      "decisionIds": [],
+      "sources": [
+        {
+          "path": "internal/supabaseproject/automatic_snapshot.sql",
+          "revision": "3515654b68bdcfc38d812f1e8c17d6dca18cdc74",
+          "kind": "verified"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "The installed monitor found two ordinary Rookery query shapes without manual query enrollment. One also returned bound passive evidence.",
+      "after": "The installed monitor found two ordinary Rookery query shapes without manual query enrollment. One also returned bound passive evidence.",
+      "parent": "inspection",
+      "stack": [
+        "Go",
+        "PostgreSQL"
+      ]
+    },
+    {
+      "id": "generalized-compound-action",
+      "label": "Compound index on real column identities",
+      "type": "service",
+      "purpose": "Real Sonnet and the native executor verified two different two-column pairs on owned Rookery. One ran through the Railway dashboard.",
+      "decisionIds": [],
+      "sources": [
+        {
+          "path": "internal/hostedquery/project_index_action.go",
+          "revision": "13cfd6c5021f5c339014cbb3836b7220b7aa66af",
+          "kind": "verified"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Real Sonnet and the native executor verified two different two-column pairs on owned Rookery. One ran through the Railway dashboard.",
+      "after": "Real Sonnet and the native executor verified two different two-column pairs on owned Rookery. One ran through the Railway dashboard.",
+      "parent": "index",
+      "stack": [
+        "Go",
+        "PostgreSQL"
+      ]
+    },
+    {
+      "id": "dashboard-repair-results",
+      "label": "Show recorded repair results",
+      "type": "service",
+      "purpose": "The dashboard displays each existing report type. A live Railway job showed the confirmed compound-index action and measurements for one input.",
+      "decisionIds": [],
+      "sources": [
+        {
+          "path": "internal/hostedquery/project_activity.go",
+          "revision": "3515654b68bdcfc38d812f1e8c17d6dca18cdc74",
+          "kind": "verified"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "The dashboard displays each existing report type. A live Railway job showed the confirmed compound-index action and measurements for one input.",
+      "after": "The dashboard displays each existing report type. A live Railway job showed the confirmed compound-index action and measurements for one input.",
+      "parent": "activity",
+      "stack": [
+        "Go",
+        "PostgreSQL"
+      ]
+    },
+    {
+      "id": "hosted-owned-index-action",
+      "label": "Dashboard compound repair: verified",
+      "type": "service",
+      "purpose": "A signed-in Rookery project detected ordinary slow traffic, ran real Sonnet, built the approved two-column index, and displayed measured before-and-after results on Railway.",
+      "decisionIds": [],
+      "sources": [
+        {
+          "path": "internal/hostedquery/owned_project_index.go",
+          "revision": "c964e6705d2210f53d965c526c15ed4c12a1d616",
+          "kind": "verified"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "A signed-in Rookery project detected ordinary slow traffic, ran real Sonnet, built the approved two-column index, and displayed measured before-and-after results on Railway.",
+      "after": "A signed-in Rookery project detected ordinary slow traffic, ran real Sonnet, built the approved two-column index, and displayed measured before-and-after results on Railway.",
+      "parent": "index",
+      "stack": [
+        "Go",
+        "PostgreSQL",
+        "LangGraph"
       ]
     }
   ],
@@ -2270,6 +2381,42 @@
       "from": "dashboard",
       "to": "preview-week-pilot",
       "label": "pilot qualification"
+    },
+    {
+      "id": "e-agent-permission-setup",
+      "from": "connect-project",
+      "to": "agent-permission-setup",
+      "label": "provides this verified behavior"
+    },
+    {
+      "id": "e-automatic-workload-discovery",
+      "from": "inspection",
+      "to": "automatic-workload-discovery",
+      "label": "provides this verified behavior"
+    },
+    {
+      "id": "e-generalized-compound-action",
+      "from": "index",
+      "to": "generalized-compound-action",
+      "label": "provides this verified behavior"
+    },
+    {
+      "id": "e-dashboard-repair-results",
+      "from": "activity",
+      "to": "dashboard-repair-results",
+      "label": "provides this verified behavior"
+    },
+    {
+      "id": "e-hosted-owned-index-action",
+      "from": "index",
+      "to": "hosted-owned-index-action",
+      "label": "provides this verified behavior"
+    },
+    {
+      "id": "e-hosted-owned-index-history",
+      "from": "hosted-owned-index-action",
+      "to": "dashboard-repair-results",
+      "label": "publishes measured results"
     }
   ],
   "decisions": [
