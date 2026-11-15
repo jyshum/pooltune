@@ -11,6 +11,8 @@ WORKDIR /app
 COPY investigator/package*.json ./investigator/
 RUN npm --prefix investigator ci --omit=dev
 COPY investigator/*.ts ./investigator/
+# The slim Node image omits system TLS roots used by the Go log client.
+COPY --from=go-build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=go-build /out/ /usr/local/bin/
 COPY deploy/staging/start.sh /usr/local/bin/pooltune-staging
 USER node
