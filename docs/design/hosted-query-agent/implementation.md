@@ -392,5 +392,5 @@ Tasks 27–29 completed for the explicitly bounded diagnostic slice. Sonnet pass
 **Verification:** Run affected Go/TypeScript suites, then serial Railway/Rookery qualification with real Sonnet for compound index and all five connections. Include healthy/unsupported controls, at least one actually requested live observation, queued restart/recovery, before/after reads/writes, model/reader/action/verification timing, cleanup and public-index preservation. Preserve failures. Missing hosted checks remain incomplete.
 - [x] Add failing route-selection/adapter tests; connect each supported reader without weakening fixture scope.
 - [x] Run local integration and fresh broad review; fix material findings before deployment.
-- [ ] Deploy reviewed source to existing Railway staging and run repair trials serially against owned Rookery fixtures.
+- [x] Deploy reviewed source to existing Railway staging and run repair trials serially against owned Rookery fixtures.
 - [ ] Update map with only demonstrated scope, document trade-offs and results, commit locally and present final human review.

@@ -6,7 +6,7 @@ The new investigator could compare explanations and ask Go for evidence, but Rai
 
 The flow is: enrolled traffic → Go detects a sustained slowdown → PostgreSQL stores one job → Sonnet compares explanations → Go checks and applies a permitted index → matched reads and writes verify the outcome.
 
-The first hosted qualification covers the existing synthetic single-column index fixture. The other five repair tools still use their earlier qualified model path. They have not silently switched to the new diagnostic adapter. General customer enrollment and broader repair coverage remain on the roadmap.
+The first hosted qualification covers the existing synthetic single-column index fixture. At that milestone, the other five repair tools still used their earlier qualified model path. The subsequent [repair expansion](repair-expansion.md) implements all five diagnostic connections and records their current qualification. General customer enrollment and broader repair coverage remain on the roadmap.
 
 ## What changed
 

@@ -1,6 +1,6 @@
 # Investigator: compare causes and request evidence
 
-**Current follow-up:** the diagnostic graph is now connected to the Railway index consumer and passed a real Sonnet repair run plus queued-job restart. [Hosted results](hosted-diagnostic.md). The local/replay results below describe the original diagnostic qualification. The other five diagnostic execution adapters remain.
+**Current follow-up:** the diagnostic graph is now connected to the Railway index consumer and passed a real Sonnet repair run plus queued-job restart. [Hosted results](hosted-diagnostic.md). The local/replay results below describe the original diagnostic qualification. The subsequent [repair expansion](repair-expansion.md) implements the other five adapters and records their current hosted qualification.
 
 ## Problem and intended behavior
 
@@ -71,7 +71,7 @@ Three model attempts, six reads, 30-second observation freshness, a 20-second gr
 
 ## What remains
 
-**Connect the other five repairs** is the next investigator map node. The new graph now runs through the Railway index consumer and existing guarded index executor. Its current reader registers bounded plan, index and lookup-statistics inspection for the owned fixture. The one-call live run reused initial evidence; it did not need extra reads. Qualify the other five diagnostic execution adapters and their live readers with real Sonnet, healthy controls and recovery before enabling them. Do not confuse the earlier six-family legacy qualification with new-adapter qualification.
+The [repair expansion](repair-expansion.md) connects all five remaining repair families and bounded compound indexes to this investigator. Its results distinguish actual hosted repair runs, separately requested evidence and unfinished coverage. The original single-column run reused sufficient initial evidence in one call; additional calls are needed only when evidence is missing. Per-family requested-reader coverage, broader customer diagnosis and hosted mid-model recovery remain separate qualification work.
 
 Other remaining work is unchanged: broader repair variants, customer project connection, account isolation, auth/dashboard, retention and operational rollout. This implementation does not make the whole product production-ready.
 

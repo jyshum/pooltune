@@ -1,0 +1,22 @@
+{
+  "scope": "Independent post-batch readback; no fixture creation or repair",
+  "public_indexes": [
+    12,
+    "f56ad07a58d2b60570ee6b64a8978936"
+  ],
+  "no_owned_fixtures": true,
+  "owned_cron_jobs": 0,
+  "temporary_access_cleanup": {
+    "railway_batch_ssh_key_revoked": true,
+    "absence_confirmed_by_key_listing": true,
+    "ssh_agent_identity_removed": true,
+    "local_key_files_removed": true
+  },
+  "railway_consumer": {
+    "deployment": "c61a85fa-34ab-4876-ae61-fd3473d5da5d",
+    "state": "online",
+    "running_replicas": 1,
+    "crashed_replicas": 0,
+    "pending_work": false
+  }
+}

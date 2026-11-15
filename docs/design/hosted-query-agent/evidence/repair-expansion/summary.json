@@ -1494,10 +1494,311 @@
     }
   },
   {
-    "file": "cron-failure-checkpoint.json",
+    "file": "cron-20261114-220423.json",
     "repair": "cron",
+    "passed": true,
+    "detection_seconds": 19.779,
+    "repair_seconds": 705.776,
+    "investigation": {
+      "model_calls": 1,
+      "model_attempts": 1,
+      "reads": 0,
+      "model_ms": 6569.830555,
+      "tool_ms": 0,
+      "total_ms": 6990.609503
+    },
+    "traffic_errors": 0,
+    "missed_requests": 0,
+    "fixture_removed": true,
+    "consumer_restart": {
+      "job_id": "152",
+      "parent_id": "151",
+      "not_before": "2026-11-15T05:04:02.000Z",
+      "preserved": true
+    },
+    "future_cycle_wait_seconds": 389.764063,
     "public_indexes_unchanged": true,
-    "workers": [],
-    "monitoring_comparison": []
+    "workers": [
+      {
+        "job_id": "150",
+        "outcome": "awaiting_evidence",
+        "elapsed_ms": 2158.619196,
+        "family": "cron",
+        "timings": {
+          "action_wall_ms": 0,
+          "investigation_wall_ms": 0
+        }
+      },
+      {
+        "job_id": "151",
+        "outcome": "awaiting_verification",
+        "elapsed_ms": 15463.782034,
+        "family": "cron",
+        "timings": {
+          "action_wall_ms": 5285.028562,
+          "investigation_wall_ms": 6990.872839
+        }
+      },
+      {
+        "job_id": "152",
+        "outcome": "improved_tested_inputs",
+        "elapsed_ms": 1764.049291,
+        "family": "cron",
+        "timings": {
+          "action_wall_ms": 5285.028562,
+          "investigation_wall_ms": 6990.872839
+        }
+      }
+    ],
+    "monitoring_comparison": [
+      {
+        "phase": "monitor_off",
+        "seconds": 20,
+        "target_database_mean_ms": 0.178347725,
+        "requests": {
+          "target": {
+            "completed": 40,
+            "errors": 0,
+            "missed": 0,
+            "p50_ms": 143.22554800000216,
+            "p95_ms": 157.07283900000039,
+            "p99_ms": 157.0869240000029
+          },
+          "healthy": {
+            "completed": 80,
+            "errors": 0,
+            "missed": 0,
+            "p50_ms": 148.70403599999554,
+            "p95_ms": 149.40988500000094,
+            "p99_ms": 149.67730599999777
+          },
+          "write": {
+            "completed": 40,
+            "errors": 0,
+            "missed": 0,
+            "p50_ms": 143.34505200000422,
+            "p95_ms": 144.0800520000048,
+            "p99_ms": 144.17549199999485
+          }
+        }
+      },
+      {
+        "phase": "monitor_on",
+        "seconds": 20,
+        "target_database_mean_ms": 0.08327352499999999,
+        "requests": {
+          "target": {
+            "completed": 40,
+            "errors": 0,
+            "missed": 0,
+            "p50_ms": 140.6015069999994,
+            "p95_ms": 156.70542800000112,
+            "p99_ms": 157.27063800000178
+          },
+          "healthy": {
+            "completed": 80,
+            "errors": 0,
+            "missed": 0,
+            "p50_ms": 148.5824580000044,
+            "p95_ms": 149.47387300000992,
+            "p99_ms": 150.41914500000712
+          },
+          "write": {
+            "completed": 40,
+            "errors": 0,
+            "missed": 0,
+            "p50_ms": 143.31075699999928,
+            "p95_ms": 144.06638899999962,
+            "p99_ms": 144.3618170000118
+          }
+        }
+      },
+      {
+        "phase": "monitor_on",
+        "seconds": 20,
+        "target_database_mean_ms": 0.08964715000000001,
+        "requests": {
+          "target": {
+            "completed": 40,
+            "errors": 0,
+            "missed": 0,
+            "p50_ms": 142.2187269999995,
+            "p95_ms": 156.8212460000068,
+            "p99_ms": 156.96137699999963
+          },
+          "healthy": {
+            "completed": 80,
+            "errors": 0,
+            "missed": 0,
+            "p50_ms": 148.56930600001942,
+            "p95_ms": 149.19406199999503,
+            "p99_ms": 149.42929600001662
+          },
+          "write": {
+            "completed": 40,
+            "errors": 0,
+            "missed": 0,
+            "p50_ms": 143.27556199999526,
+            "p95_ms": 144.0140100000135,
+            "p99_ms": 144.13180800000555
+          }
+        }
+      },
+      {
+        "phase": "monitor_off",
+        "seconds": 20,
+        "target_database_mean_ms": 0.08257637500000001,
+        "requests": {
+          "target": {
+            "completed": 40,
+            "errors": 0,
+            "missed": 0,
+            "p50_ms": 142.57777800000622,
+            "p95_ms": 157.21635100001004,
+            "p99_ms": 157.40731199999573
+          },
+          "healthy": {
+            "completed": 80,
+            "errors": 0,
+            "missed": 0,
+            "p50_ms": 148.50727600001846,
+            "p95_ms": 149.29435000001104,
+            "p99_ms": 149.75486100002308
+          },
+          "write": {
+            "completed": 40,
+            "errors": 0,
+            "missed": 0,
+            "p50_ms": 143.4158640000096,
+            "p95_ms": 144.00957799999742,
+            "p99_ms": 144.6460200000147
+          }
+        }
+      }
+    ],
+    "selected_extra_statements": {
+      "calls": 20,
+      "execution_ms": 75.10720899999978,
+      "observed_seconds": 40,
+      "execution_ms_per_second": 1.8776802249999947,
+      "scope": "Selected collector statements present during on windows and absent from matched off windows. Not total CPU, memory or connection cost."
+    },
+    "period_database_means": {
+      "before": {
+        "busy": {
+          "target": {
+            "calls": 120,
+            "execution_ms": 4231.317704,
+            "mean_ms": 35.260980866666664
+          },
+          "healthy": {
+            "calls": 240,
+            "execution_ms": 5.040149000000099,
+            "mean_ms": 0.021000620833333747
+          },
+          "write": {
+            "calls": 120,
+            "execution_ms": 7.7829169999999905,
+            "mean_ms": 0.06485764166666659
+          }
+        },
+        "control": {
+          "target": {
+            "calls": 120,
+            "execution_ms": 10.404781000000185,
+            "mean_ms": 0.08670650833333488
+          },
+          "healthy": {
+            "calls": 240,
+            "execution_ms": 5.177824999999999,
+            "mean_ms": 0.02157427083333333
+          },
+          "write": {
+            "calls": 120,
+            "execution_ms": 6.973747999999908,
+            "mean_ms": 0.0581145666666659
+          }
+        },
+        "quiet": {
+          "target": {
+            "calls": 0,
+            "execution_ms": 0.0,
+            "mean_ms": null
+          },
+          "healthy": {
+            "calls": 240,
+            "execution_ms": 5.013225000000006,
+            "mean_ms": 0.020888437500000023
+          },
+          "write": {
+            "calls": 120,
+            "execution_ms": 7.650012000000011,
+            "mean_ms": 0.06375010000000009
+          }
+        }
+      },
+      "after": {
+        "busy": {
+          "target": {
+            "calls": 120,
+            "execution_ms": 10.338942000000316,
+            "mean_ms": 0.08615785000000263
+          },
+          "healthy": {
+            "calls": 240,
+            "execution_ms": 5.2194590000000005,
+            "mean_ms": 0.021747745833333335
+          },
+          "write": {
+            "calls": 120,
+            "execution_ms": 7.056054000000017,
+            "mean_ms": 0.05880045000000014
+          }
+        },
+        "control": {
+          "target": {
+            "calls": 120,
+            "execution_ms": 10.441152000009424,
+            "mean_ms": 0.08700960000007854
+          },
+          "healthy": {
+            "calls": 240,
+            "execution_ms": 4.8565210000001,
+            "mean_ms": 0.020235504166667084
+          },
+          "write": {
+            "calls": 120,
+            "execution_ms": 6.997243999999995,
+            "mean_ms": 0.05831036666666663
+          }
+        },
+        "quiet": {
+          "target": {
+            "calls": 0,
+            "execution_ms": 0.0,
+            "mean_ms": null
+          },
+          "healthy": {
+            "calls": 240,
+            "execution_ms": 4.995476000000011,
+            "mean_ms": 0.020814483333333376
+          },
+          "write": {
+            "calls": 120,
+            "execution_ms": 7.774068,
+            "mean_ms": 0.06478389999999999
+          }
+        }
+      }
+    },
+    "initial_queue_delay_seconds": 1.827380804,
+    "evidence_accumulation_seconds": 320.332,
+    "model_seconds": 6.569830554999999,
+    "action_seconds": 5.285028562000001,
+    "total_seconds": 1171.0228250910002,
+    "owned_jobs_remaining": 0,
+    "cleanup_verified": true,
+    "final_outcome": "improved_tested_inputs",
+    "timing_note": "Evidence, detection, queued-to-result and future-cycle clocks overlap. Future-cycle wait ends at the verification clock, before result publication. Total campaign includes setup, controls and cleanup."
   }
 ]

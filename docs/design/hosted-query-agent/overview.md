@@ -11,13 +11,13 @@ An **index** gives a database a quicker way to find rows. Think of a book index 
 ## How a repair works
 
 1. **Measure.** Go collects evidence for enrolled queries and looks for repeated problems. A short spike should not automatically cause a repair.
-2. **Investigate.** One TypeScript/LangGraph workflow gives Claude the measured plan, existing-index information and evidence for the repair being considered. Claude can recommend a supported operation or leave things alone.
+2. **Investigate.** One TypeScript/LangGraph workflow gives Claude the measured plan and available observations. Claude compares causes, asks Go for named missing evidence when needed, and proposes a supported operation or leaves things alone.
 3. **Act.** Go checks the exact target, current conditions, permission and operating limits. It saves its intent, then performs the specific operation. Claude does not send unrestricted SQL to the database.
 4. **Verify and recover.** Go checks the same work afterward and measures protected traffic. A setting change can be restored if the benefit is uncertain. After an interruption, the worker checks what actually happened before deciding what comes next.
 
 Application queries continue using PostgreSQL while the background investigation runs. We measure query response time separately from the time it takes Pooltune to detect and verify a repair. A model request adds to time-to-repair; it is not inserted into each application query. Measurement and repair work still consume database resources, so the tests also check monitoring cost, healthy requests and writes.
 
-The prompt helps interpret evidence. The tools, measurements, saved state and refusal rules turn that interpretation into controlled work. The current fixtures give the investigator evidence for one qualified cause at a time. Letting it investigate competing causes and request additional evidence remains a separate build step.
+The prompt helps interpret evidence. The tools, measurements, saved state and refusal rules turn that interpretation into controlled work. The diagnostic investigator now compares causes and requests additional evidence. Its current repair trials still use owned fixtures with deliberately constructed problems. General customer evidence collection and broader diagnosis remain unfinished. [Current implementation and results](repair-expansion.md).
 
 | Repair family | Problem it addresses | Main trade-off |
 | --- | --- | --- |
