@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log/slog"
+	"slices"
 	"sync"
 	"time"
 
@@ -137,6 +138,14 @@ func (a *App) runProject(ctx context.Context, row projectRecord) error {
 		cancel()
 		return monitor.Run(ctx, epoch, func(hostedquery.PollResult) error { return nil })
 	}
+	var owned *hostedquery.OwnedProjectIndex
+	if a.ownedIndex.Matches(identity) && !credentials.RepairsPaused && slices.Contains(credentials.Capabilities, "index") {
+		fixture := *a.ownedIndex
+		fixture.AdmitModel = func(ctx context.Context) error {
+			return a.projects.admitModel(ctx, row.ID, epoch)
+		}
+		owned = &fixture
+	}
 	queue, err := a.projects.db.Acquire(setup)
 	if err != nil {
 		return err
@@ -149,7 +158,7 @@ func (a *App) runProject(ctx context.Context, row projectRecord) error {
 	go func() { finished <- monitor.Run(ctx, epoch, func(hostedquery.PollResult) error { return nil }) }()
 	go func() {
 		for ctx.Err() == nil {
-			result, err := hostedquery.DiagnoseHostedProjectLookup(ctx, queue.Conn(), config, identity, epoch, a.projectInvestigator(row.ID, epoch), logs)
+			result, err := hostedquery.DiagnoseHostedProjectLookup(ctx, queue.Conn(), config, identity, epoch, a.projectInvestigator(row.ID, epoch), logs, owned)
 			if err != nil && queue.Conn().IsClosed() {
 				finished <- err
 				return

@@ -96,22 +96,26 @@ func readProjectLookup(ctx context.Context, target *pgx.Conn, project supabasepr
 // DiagnoseProjectLookup consumes only an active managed project's queue. Its
 // result has no repair proposal, action or continuation.
 func DiagnoseProjectLookup(ctx context.Context, state, target *pgx.Conn, project supabaseproject.Project, epoch int64, investigate EnrolledLookupInvestigator) (*DispatchResult, error) {
-	return diagnoseLookup(ctx, state, project, epoch, investigate, nil, func(context.Context) (*pgx.Conn, func(), error) {
+	return diagnoseLookup(ctx, state, project, epoch, investigate, nil, nil, func(context.Context) (*pgx.Conn, func(), error) {
 		return target, func() {}, nil
 	})
 }
 
 // DiagnoseHostedProjectLookup opens a second Supabase session only when a claimed
 // job has eligible detector evidence. Idle queue checks stay on the state database.
-func DiagnoseHostedProjectLookup(ctx context.Context, state *pgx.Conn, target *pgx.ConnConfig, project supabaseproject.Project, epoch int64, investigate EnrolledLookupInvestigator, logs *TrafficPlanReader) (*DispatchResult, error) {
-	return diagnoseLookup(ctx, state, project, epoch, investigate, logs, func(ctx context.Context) (*pgx.Conn, func(), error) {
+func DiagnoseHostedProjectLookup(ctx context.Context, state *pgx.Conn, target *pgx.ConnConfig, project supabaseproject.Project, epoch int64, investigate EnrolledLookupInvestigator, logs *TrafficPlanReader, owned ...*OwnedProjectIndex) (*DispatchResult, error) {
+	var fixture *OwnedProjectIndex
+	if len(owned) > 0 {
+		fixture = owned[0]
+	}
+	return diagnoseLookup(ctx, state, project, epoch, investigate, logs, fixture, func(ctx context.Context) (*pgx.Conn, func(), error) {
 		conn, err := pgx.ConnectConfig(ctx, target)
 		return conn, func() { labdb.Close(conn) }, err
 	})
 }
 
 func diagnoseLookup(ctx context.Context, state *pgx.Conn, project supabaseproject.Project, epoch int64, investigate EnrolledLookupInvestigator,
-	logs *TrafficPlanReader, targetSession func(context.Context) (*pgx.Conn, func(), error)) (*DispatchResult, error) {
+	logs *TrafficPlanReader, fixture *OwnedProjectIndex, targetSession func(context.Context) (*pgx.Conn, func(), error)) (*DispatchResult, error) {
 	if epoch <= 0 || investigate == nil {
 		return nil, ErrProjectDisconnected
 	}
@@ -130,7 +134,12 @@ func diagnoseLookup(ctx context.Context, state *pgx.Conn, project supabaseprojec
 			return nil, err
 		}
 		defer closeTarget()
-		if err := diagnoseProjectClaim(ctx, state, target, project, epoch, *claim, windows, investigate, logs, &result); err != nil {
+		if fixture.matchesClaim(project, *claim) {
+			err = fixture.run(ctx, state, target, project, epoch, *claim, windows, &result)
+		} else {
+			err = diagnoseProjectClaim(ctx, state, target, project, epoch, *claim, windows, investigate, logs, &result)
+		}
+		if err != nil {
 			return nil, err
 		}
 	}
@@ -139,7 +148,7 @@ func diagnoseLookup(ctx context.Context, state *pgx.Conn, project supabaseprojec
 		if _, err := continueInvestigation(ctx, state, *claim, result, *result.continuationAt); err != nil {
 			return nil, err
 		}
-	} else if err := finishInvestigation(ctx, state, *claim, result); err != nil {
+	} else if err := finishInvestigation(ctx, state, *claim, result, epoch); err != nil {
 		return nil, err
 	}
 	return &result, nil

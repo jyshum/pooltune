@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -19,6 +20,7 @@ import (
 	"pooltune/internal/hostedapp"
 	"pooltune/internal/hostedquery"
 	"pooltune/internal/labdb"
+	"pooltune/internal/supabaseproject"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -86,8 +88,12 @@ func run(ctx context.Context) error {
 			return err
 		}
 	}
+	fixture, err := readOwnedIndexFixture(stateDSN)
+	if err != nil {
+		return err
+	}
 	app, err := hostedapp.New(setup, pool, hostedapp.Config{Origin: origin, InviteCode: os.Getenv("POOLTUNE_SIGNUP_CODE"),
-		Key: key, Sampling: hostedquery.SamplingPolicy{Interval: *interval, Window: *window}, QueueInterval: *queue, Investigate: investigate})
+		Key: key, Sampling: hostedquery.SamplingPolicy{Interval: *interval, Window: *window}, QueueInterval: *queue, Investigate: investigate, OwnedIndex: fixture})
 	if err != nil {
 		return fmt.Errorf("dashboard initialization failed: %s", safeStartupError(err))
 	}
@@ -120,6 +126,33 @@ func run(ctx context.Context) error {
 		return nil
 	}
 	return err
+}
+
+func readOwnedIndexFixture(stateDSN string) (*hostedquery.OwnedProjectIndex, error) {
+	binding := os.Getenv("POOLTUNE_OWNED_INDEX_FIXTURE")
+	if binding == "" {
+		return nil, nil
+	}
+	invalid := errors.New("the owned Rookery index fixture configuration is invalid")
+	var fixture hostedquery.OwnedProjectIndex
+	if os.Getenv("POOLTUNE_STAGING_PRIVATE_STATE") != "1" || json.Unmarshal([]byte(binding), &fixture) != nil {
+		return nil, invalid
+	}
+	var err error
+	fixture.Config, err = supabaseproject.DirectConfig(hostedquery.OwnedIndexRookeryRef, fixture.Target.Schema,
+		os.Getenv("POOLTUNE_OWNED_INDEX_PASSWORD"), []byte(os.Getenv("POOLTUNE_OWNED_INDEX_CA")))
+	if err != nil {
+		return nil, invalid
+	}
+	diagnose, err := graphrunner.DiagnosticProcess(stateDSN)
+	if err != nil {
+		return nil, invalid
+	}
+	fixture.Investigate = graphrunner.AdaptDiagnostic(diagnose, nil)
+	if !fixture.Valid() {
+		return nil, invalid
+	}
+	return &fixture, nil
 }
 
 func safeStartupError(err error) string {

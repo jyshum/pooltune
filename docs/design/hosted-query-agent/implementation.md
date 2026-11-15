@@ -494,3 +494,7 @@ Extend the Go and LangGraph ordered pair contract and add catalog resolution for
 ### Task 48: Complete the hosted repairs and outcome view
 
 Connect the shared worker to the six owner-enabled repair families, with operation-specific limits, durable action state and before/after evidence. Show those results, no-change reasons and pause controls through the dashboard. Report when the themed interface is ready and continue through end-to-end verification on owned Railway/Rookery staging.
+
+### Task 49: Qualify the connected dashboard with the owned index fixture
+
+Run the real project detector, investigation queue and dashboard through one concurrent compound-index action. Use an explicit staging binding to one signed-in project's installation, exact enrolled workload identity and individually owned Rookery schema. Require the selected index capability and a current permission epoch. Keep the normal connector's runtime credentials read-only. Record action intent before DDL, mark interrupted attempts for reconciliation and save comparable scoped measurements to the investigation. Keep customer-wide credential provisioning and all other repair types outside this staging binding.

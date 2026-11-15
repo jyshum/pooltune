@@ -24,6 +24,7 @@ type IndexTrialReport struct {
 	RunID        string        `json:"run_id"`
 	Outcome      string        `json:"outcome"`
 	Reason       string        `json:"reason"`
+	Measurement  string        `json:"measurement_scope,omitempty"`
 	Evidence     IndexEvidence `json:"evidence"`
 	Proposal     IndexProposal `json:"proposal"`
 	Before       TrialSample   `json:"before"`

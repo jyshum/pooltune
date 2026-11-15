@@ -27,6 +27,7 @@ type ProjectView struct {
 	QuickStart                            bool
 	Capabilities                          []CapabilityView
 	RepairsSelected, RepairsPaused        bool
+	FixtureIndex                          bool
 	Queries                               []QueryView
 	Runs                                  []RunView
 	Polls                                 []PollView
@@ -105,6 +106,7 @@ func (a *App) showProject(w http.ResponseWriter, r *http.Request, user auth.User
 	}
 	view := baseProjectView(row)
 	view.Role = identity.Role()
+	view.FixtureIndex = a.ownedIndex.Matches(identity)
 	if !row.Configured {
 		view.QuickStart = true
 		view.Capabilities = slices.Clone(projectCapabilities)
@@ -115,7 +117,7 @@ func (a *App) showProject(w http.ResponseWriter, r *http.Request, user auth.User
 		}
 		view.SetupSQL = identity.InstallSQL() + "\n" + identity.LookupEvidenceSQL() + "\n" + identity.LookupPlanSQL() + "\n" + identity.TrafficPlanSQL()
 		view.QuerySQL = queryEnrollment(identity)
-	} else if configured, err := a.vault.open(row, row.Secret); err == nil && configured.Automatic {
+	} else if configured, err := a.vault.open(row, row.Secret); err == nil && (configured.Automatic || len(configured.Capabilities) > 0) {
 		view.Capabilities = slices.Clone(projectCapabilities)
 		view.RepairsSelected = len(configured.Capabilities) > 0
 		view.RepairsPaused = configured.RepairsPaused
@@ -124,6 +126,9 @@ func (a *App) showProject(w http.ResponseWriter, r *http.Request, user auth.User
 			option.Selected = slices.Contains(configured.Capabilities, option.Key)
 			if option.Selected {
 				option.Availability = "Waiting for repair support"
+				if view.FixtureIndex && option.Key == "index" {
+					option.Availability = "Available for the owned Rookery fixture"
+				}
 				if configured.RepairsPaused {
 					option.Availability = "Paused"
 				}
@@ -276,6 +281,9 @@ func populateActivity(view *ProjectView, activity hostedquery.ProjectActivity, i
 		}
 		if job.PlanNode != "" && job.PlanSource == "ordinary_traffic" {
 			item.Plan += " · Ordinary traffic"
+		}
+		if job.PlanNode != "" && job.PlanSource == "owned_sample" {
+			item.Plan += " · One test input"
 		}
 		view.Runs = append(view.Runs, item)
 	}

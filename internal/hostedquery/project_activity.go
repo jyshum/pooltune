@@ -258,30 +258,43 @@ func readProjectWindows(ctx context.Context, tx pgx.Tx, projectID string, cutoff
 func readProjectJobs(ctx context.Context, tx pgx.Tx, projectID string, cutoff time.Time) ([]ProjectJob, error) {
 	rows, err := tx.Query(ctx, `
 		SELECT id, database_oid, role_oid, query_id, created_at, claimed_at, finished_at, attempts,
-			COALESCE(NULLIF(result->>'outcome', ''), CASE
+			CASE WHEN owned.needs_review THEN 'repair_interrupted' ELSE COALESCE(NULLIF(result->>'outcome', ''), CASE
 				WHEN finished_at IS NOT NULL THEN 'finished'
 				WHEN lease_until > transaction_timestamp() THEN 'running'
 				WHEN not_before > transaction_timestamp() THEN 'scheduled'
 				ELSE 'queued'
-			END),
-			LEFT(COALESCE(NULLIF(result->>'diagnostic_reason', ''), NULLIF(result#>>'{lookup_diagnosis,reason}', ''),
+			END) END,
+			LEFT(COALESCE(CASE WHEN owned.needs_review THEN 'A recorded index action needs reconciliation' END,
+				NULLIF(result->>'diagnostic_reason', ''), NULLIF(result#>>'{lookup_diagnosis,reason}', ''),
 				result#>>'{proposal,reason}', ''), 500),
-			LEFT(COALESCE(result#>>'{traffic_plan,node}', result#>>'{lookup_plan,node}', result#>>'{estimated_evidence,estimated,node}', ''), 100),
+			LEFT(COALESCE(result#>>'{traffic_plan,node}', result#>>'{lookup_plan,node}', result#>>'{estimated_evidence,estimated,node}',
+				NULLIF(concat_ws(' → ',result#>>'{repair,before,plan}',result#>>'{repair,after,plan}'),''), ''), 100),
 			CASE
 				WHEN result#>>'{traffic_plan,node}' IS NOT NULL THEN 'ordinary_traffic'
 				WHEN result#>>'{lookup_plan,node}' IS NOT NULL THEN 'measured_lookup'
 				WHEN result#>>'{estimated_evidence,estimated,node}' IS NOT NULL THEN 'estimate'
+				WHEN result#>>'{repair,measurement_scope}' = 'owned_single_input' THEN 'owned_sample'
 				ELSE ''
 			END,
 			CASE WHEN jsonb_typeof(result->'elapsed_ms')='number' THEN (result->>'elapsed_ms')::double precision END,
 			CASE WHEN jsonb_typeof(result->'target_plan_ms')='number' THEN (result->>'target_plan_ms')::double precision END,
 			CASE WHEN jsonb_typeof(result->'graph_ms')='number' THEN (result->>'graph_ms')::double precision END,
-			CASE WHEN jsonb_typeof(result#>'{lookup_diagnosis,model_ms}')='number' THEN (result#>>'{lookup_diagnosis,model_ms}')::double precision END,
-			CASE WHEN finished_at IS NOT NULL THEN jsonb_strip_nulls(jsonb_build_object(
+			CASE
+				WHEN jsonb_typeof(result#>'{lookup_diagnosis,model_ms}')='number' THEN (result#>>'{lookup_diagnosis,model_ms}')::double precision
+				WHEN jsonb_typeof(result#>'{proposal,model_call,duration_ms}')='number' THEN (result#>>'{proposal,model_call,duration_ms}')::double precision
+			END,
+			CASE WHEN owned.needs_review THEN jsonb_build_object('index','{}'::jsonb)
+			WHEN finished_at IS NOT NULL THEN jsonb_strip_nulls(jsonb_build_object(
 				'index', result->'repair', 'analyze', result->'analyze', 'statistics', result->'statistics',
 				'vacuum', result->'vacuum', 'memory', result->'memory', 'cron', result->'cron'
 			)) END
-		FROM pooltune_worker.investigations
+		FROM pooltune_worker.investigations j
+		CROSS JOIN LATERAL (
+			SELECT (j.finished_at IS NOT NULL OR j.lease_until<=transaction_timestamp()) AND EXISTS (
+				SELECT FROM pooltune_worker.owned_index_actions a
+				WHERE a.project_id=j.project_id AND a.job_id=j.id AND a.outcome='pending'
+			) AS needs_review
+		) owned
 		WHERE project_id=$1 AND created_at >= $2
 		ORDER BY created_at DESC, id DESC LIMIT $3
 	`, projectID, cutoff, projectActivityJobLimit)
@@ -311,15 +324,16 @@ func readProjectRepair(job *ProjectJob, encoded []byte) {
 	}
 	for kind, raw := range reports {
 		var report struct {
-			Reason   string          `json:"reason"`
-			Before   json.RawMessage `json:"before"`
-			After    json.RawMessage `json:"after"`
-			IndexOK  bool            `json:"index_valid"`
-			Analyze  float64         `json:"analyze_wall_ms"`
-			Vacuum   float64         `json:"vacuum_wall_ms"`
-			Memory   float64         `json:"memory_wall_ms"`
-			Restored bool            `json:"restored"`
-			Commit   time.Time       `json:"commit_at"`
+			Reason      string          `json:"reason"`
+			Measurement string          `json:"measurement_scope"`
+			Before      json.RawMessage `json:"before"`
+			After       json.RawMessage `json:"after"`
+			IndexOK     bool            `json:"index_valid"`
+			Analyze     float64         `json:"analyze_wall_ms"`
+			Vacuum      float64         `json:"vacuum_wall_ms"`
+			Memory      float64         `json:"memory_wall_ms"`
+			Restored    bool            `json:"restored"`
+			Commit      time.Time       `json:"commit_at"`
 		}
 		if json.Unmarshal(raw, &report) != nil {
 			return
@@ -372,6 +386,16 @@ func readProjectRepair(job *ProjectJob, encoded []byte) {
 			var before, after projectRepairSample
 			if json.Unmarshal(report.Before, &before) == nil && json.Unmarshal(report.After, &after) == nil {
 				summary.Metrics = before.compare(after, "")
+				if kind == "index" && report.Measurement == "owned_single_input" {
+					for i := range summary.Metrics {
+						switch summary.Metrics[i].Label {
+						case "Query mean latency":
+							summary.Metrics[i].Label = "Measured latency for one input"
+						case "Block accesses per read":
+							summary.Metrics[i].Label = "Block accesses for one input"
+						}
+					}
+				}
 			}
 		}
 		job.Repair = &summary

@@ -153,7 +153,7 @@
   {{if ne $project.Status "Monitoring"}}
     {{if $project.QuickStart}}{{template "agent-setup" $project}}{{end}}
     <details class="panel advanced-setup"{{if not $project.QuickStart}} open{{end}}>
-      <summary>Advanced read-only setup</summary>
+      <summary>{{if $project.FixtureIndex}}Owned Rookery repair setup{{else}}Advanced read-only setup{{end}}</summary>
       {{template "project-setup" $project}}
     </details>
   {{else if $project.Capabilities}}
@@ -310,7 +310,14 @@ ALTER ROLE {{.Role}} LOGIN;</textarea>
           <p class="help" id="logs-help">Use a token scoped to this project with Logs Read permissions. The database owner also needs to grant plan access for each enrolled query.</p>
         </div>
       </details>
-      <button class="button button-primary" type="submit">Start read-only monitoring</button>
+      {{if .FixtureIndex}}
+      <label class="capability-option">
+        <input type="checkbox" name="capability" value="index">
+        <span>Allow the compound-index repair on the owned Rookery fixture</span>
+      </label>
+      <p class="help">The monitor login stays read-only. A separate login can build the test index.</p>
+      {{end}}
+      <button class="button button-primary" type="submit">{{if .FixtureIndex}}Start the Rookery test{{else}}Start read-only monitoring{{end}}</button>
     </form>
   </section>
 </section>

@@ -184,7 +184,7 @@ func (a *App) changeRepairMode(w http.ResponseWriter, r *http.Request, user auth
 		return
 	}
 	credentials, err := a.vault.open(row, row.Secret)
-	if err != nil || !credentials.Automatic || len(credentials.Capabilities) == 0 {
+	if err != nil || len(credentials.Capabilities) == 0 {
 		http.Error(w, "This project has no repair permissions to change.", http.StatusBadRequest)
 		return
 	}

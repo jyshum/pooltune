@@ -104,20 +104,40 @@ func claimProjectInvestigation(ctx context.Context, state *pgx.Conn, project str
 	return &claim, err
 }
 
-func finishInvestigation(ctx context.Context, state *pgx.Conn, claim investigationClaim, result DispatchResult) error {
+func finishInvestigation(ctx context.Context, state *pgx.Conn, claim investigationClaim, result DispatchResult, expectedEpoch ...int64) error {
 	payload, err := json.Marshal(result)
 	if err != nil {
 		return err
 	}
-	tag, err := state.Exec(ctx, `
+	var epoch *int64
+	if len(expectedEpoch) > 0 {
+		epoch = &expectedEpoch[0]
+	}
+	terminalOwnedIndex := ""
+	if result.Repair != nil && result.Repair.Measurement == "owned_single_input" &&
+		(result.Outcome == "improved_tested_inputs" || result.Outcome == "inconclusive") {
+		terminalOwnedIndex = result.Outcome
+	}
+	var published bool
+	err = state.QueryRow(ctx, `
 		WITH locked_project AS MATERIALIZED (
-			SELECT project_id FROM pooltune_worker.projects WHERE project_id=$4 FOR UPDATE
+			SELECT project_id FROM pooltune_worker.projects WHERE project_id=$4
+			  AND ($5::bigint IS NULL OR monitor_epoch=$5) FOR UPDATE
+		), published AS (
+			UPDATE pooltune_worker.investigations SET finished_at=clock_timestamp(), lease_until=NULL, result=$3::jsonb
+			WHERE project_id=(SELECT project_id FROM locked_project) AND id=$1 AND attempts=$2
+			  AND finished_at IS NULL AND lease_until>clock_timestamp()
+			  AND ($6='' OR EXISTS (SELECT FROM pooltune_worker.owned_index_actions
+			      WHERE job_id=$1 AND project_id=$4 AND outcome='pending'))
+			RETURNING id,project_id
+		), settled_owned_index AS (
+			UPDATE pooltune_worker.owned_index_actions a SET outcome=$6
+			FROM published p WHERE a.job_id=p.id AND a.project_id=p.project_id
+			  AND $6<>'' AND a.outcome='pending'
 		)
-		UPDATE pooltune_worker.investigations SET finished_at=clock_timestamp(), lease_until=NULL, result=$3::jsonb
-		WHERE project_id=(SELECT project_id FROM locked_project) AND id=$1 AND attempts=$2
-		  AND finished_at IS NULL AND lease_until>clock_timestamp()
-	`, claim.ID, claim.Attempt, string(payload), claim.Project)
-	if err == nil && tag.RowsAffected() != 1 {
+		SELECT EXISTS (SELECT FROM published)
+	`, claim.ID, claim.Attempt, string(payload), claim.Project, epoch, terminalOwnedIndex).Scan(&published)
+	if err == nil && !published {
 		return errClaimLost
 	}
 	return err

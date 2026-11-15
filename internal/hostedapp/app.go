@@ -33,6 +33,7 @@ type Config struct {
 	Sampling           hostedquery.SamplingPolicy
 	QueueInterval      time.Duration
 	Investigate        hostedquery.EnrolledLookupInvestigator
+	OwnedIndex         *hostedquery.OwnedProjectIndex
 }
 
 type App struct {
@@ -42,6 +43,7 @@ type App struct {
 	policy        hostedquery.SamplingPolicy
 	queueInterval time.Duration
 	investigate   hostedquery.EnrolledLookupInvestigator
+	ownedIndex    *hostedquery.OwnedProjectIndex
 	origin        *url.URL
 	invite        [32]byte
 	cookie        string
@@ -110,7 +112,8 @@ func New(ctx context.Context, db *pgxpool.Pool, cfg Config) (*App, error) {
 	a := &App{
 		projects: projectStore{db}, accounts: accounts, vault: vault, policy: cfg.Sampling,
 		queueInterval: cfg.QueueInterval, investigate: cfg.Investigate,
-		origin: origin, invite: sha256.Sum256([]byte(cfg.InviteCode)), templates: templates, cookie: "__Host-pooltune",
+		ownedIndex: cfg.OwnedIndex,
+		origin:     origin, invite: sha256.Sum256([]byte(cfg.InviteCode)), templates: templates, cookie: "__Host-pooltune",
 	}
 	if origin.Scheme == "http" {
 		a.cookie = "pooltune_preview"
@@ -339,8 +342,18 @@ func (a *App) connectProject(w http.ResponseWriter, r *http.Request, user auth.U
 		a.showProject(w, r, user, row, "Check the form and try again.")
 		return
 	}
+	var selected []string
+	if project, err := row.identity(); err == nil && a.ownedIndex.Matches(project) {
+		var err error
+		selected, err = capabilityChoices(r.PostForm)
+		if err != nil {
+			a.showProject(w, r, user, row, err.Error())
+			return
+		}
+	}
 	credentials := projectSecrets{
 		Password: r.PostForm.Get("password"), CA: strings.TrimSpace(r.PostForm.Get("ca")), LogsToken: strings.TrimSpace(r.PostForm.Get("logs_token")),
+		Capabilities: selected,
 	}
 	if err := checkProject(r.Context(), row, credentials, a.policy); err != nil {
 		a.showProject(w, r, user, row, err.Error())
