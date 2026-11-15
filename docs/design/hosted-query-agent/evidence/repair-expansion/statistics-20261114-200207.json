@@ -1,0 +1,2146 @@
+{
+  "repair": "statistics",
+  "investigator_mode": "diagnostic",
+  "phases": [
+    {
+      "name": "monitor_off",
+      "start": "2026-11-15T02:59:26.083Z",
+      "seconds": 11.999815687,
+      "counters": [
+        {
+          "query_id": "-17581870324414416",
+          "calls": 48,
+          "execution_ms": 1.298614,
+          "blocks": 144,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3098431152267114679",
+          "calls": 96,
+          "execution_ms": 30.073006,
+          "blocks": 19440,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "122401884603049921",
+          "calls": 24,
+          "execution_ms": 1.521805,
+          "blocks": 120,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 96,
+          "completed": 96,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 8.000122877220656,
+          "p50_ms": 144.3427359999987,
+          "p95_ms": 145.7961219999961,
+          "p99_ms": 147.54455099999905,
+          "max_ms": 147.54455099999905,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 48,
+          "completed": 48,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.000061438610328,
+          "p50_ms": 142.04650799999945,
+          "p95_ms": 142.56394299999738,
+          "p99_ms": 143.31016099999943,
+          "max_ms": 143.31016099999943,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 24,
+          "completed": 24,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.000030719305164,
+          "p50_ms": 143.30765399999655,
+          "p95_ms": 143.9885520000007,
+          "p99_ms": 145.1856289999996,
+          "max_ms": 145.1856289999996,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "monitor_on",
+      "start": "2026-11-15T02:59:39.412Z",
+      "seconds": 11.999334308000002,
+      "counters": [
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 7,
+          "execution_ms": 31.20318099999986,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-17581870324414416",
+          "calls": 48,
+          "execution_ms": 1.2047010000000002,
+          "blocks": 144,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3098431152267114679",
+          "calls": 96,
+          "execution_ms": 26.927169,
+          "blocks": 19440,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "122401884603049921",
+          "calls": 24,
+          "execution_ms": 1.463368,
+          "blocks": 120,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 96,
+          "completed": 96,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 8.000443819287245,
+          "p50_ms": 144.2451489999985,
+          "p95_ms": 145.2631870000041,
+          "p99_ms": 147.00671599999987,
+          "max_ms": 147.00671599999987,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 48,
+          "completed": 48,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.0002219096436225,
+          "p50_ms": 141.88301100000535,
+          "p95_ms": 142.39812900000106,
+          "p99_ms": 143.38475099999778,
+          "max_ms": 143.38475099999778,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 24,
+          "completed": 24,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.0001109548218112,
+          "p50_ms": 143.1311080000014,
+          "p95_ms": 144.31889000000228,
+          "p99_ms": 144.34146200000032,
+          "max_ms": 144.34146200000032,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "monitor_on",
+      "start": "2026-11-15T02:59:51.729Z",
+      "seconds": 11.999470537999994,
+      "counters": [
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 6,
+          "execution_ms": 22.203045000000202,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-17581870324414416",
+          "calls": 48,
+          "execution_ms": 1.1903929999999998,
+          "blocks": 144,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3098431152267114679",
+          "calls": 96,
+          "execution_ms": 27.302996000000007,
+          "blocks": 19440,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "122401884603049921",
+          "calls": 24,
+          "execution_ms": 1.5361889999999998,
+          "blocks": 120,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 96,
+          "completed": 96,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 8.000352990241248,
+          "p50_ms": 144.33635299999878,
+          "p95_ms": 145.76617599999736,
+          "p99_ms": 146.9353009999977,
+          "max_ms": 146.9353009999977,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 48,
+          "completed": 48,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.000176495120624,
+          "p50_ms": 142.06977699999698,
+          "p95_ms": 142.97378000000026,
+          "p99_ms": 143.28209999999672,
+          "max_ms": 143.28209999999672,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 24,
+          "completed": 24,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.000088247560312,
+          "p50_ms": 143.00041699999565,
+          "p95_ms": 144.11632299999474,
+          "p99_ms": 144.29497199999605,
+          "max_ms": 144.29497199999605,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "monitor_off",
+      "start": "2026-11-15T03:00:04.049Z",
+      "seconds": 11.999419027000004,
+      "counters": [
+        {
+          "query_id": "-17581870324414416",
+          "calls": 48,
+          "execution_ms": 1.1347560000000003,
+          "blocks": 144,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3098431152267114679",
+          "calls": 96,
+          "execution_ms": 27.078737999999987,
+          "blocks": 19440,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "122401884603049921",
+          "calls": 24,
+          "execution_ms": 2.133177,
+          "blocks": 121,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 96,
+          "completed": 96,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 8.000387334085884,
+          "p50_ms": 144.28336400000262,
+          "p95_ms": 145.9162359999973,
+          "p99_ms": 148.48210200000176,
+          "max_ms": 148.48210200000176,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 48,
+          "completed": 48,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.000193667042942,
+          "p50_ms": 142.05067000000417,
+          "p95_ms": 144.4850890000016,
+          "p99_ms": 144.99279199999728,
+          "max_ms": 144.99279199999728,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 24,
+          "completed": 24,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.000096833521471,
+          "p50_ms": 143.05480499999976,
+          "p95_ms": 144.3615009999994,
+          "p99_ms": 145.7253320000018,
+          "max_ms": 145.7253320000018,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_history",
+      "start": "2026-11-15T03:00:16.381Z",
+      "seconds": 23.999692743999994,
+      "counters": [
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 12,
+          "execution_ms": 49.43249899999955,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-17581870324414416",
+          "calls": 96,
+          "execution_ms": 2.2753109999999896,
+          "blocks": 288,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3098431152267114679",
+          "calls": 192,
+          "execution_ms": 53.99941300000002,
+          "blocks": 38880,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "122401884603049921",
+          "calls": 48,
+          "execution_ms": 2.8661510000000003,
+          "blocks": 240,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 192,
+          "completed": 192,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 8.000102419977884,
+          "p50_ms": 144.30483899998944,
+          "p95_ms": 145.51112399999693,
+          "p99_ms": 146.59290699998382,
+          "max_ms": 151.87454999999318,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 96,
+          "completed": 96,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.000051209988942,
+          "p50_ms": 141.8905659999873,
+          "p95_ms": 142.52980099999695,
+          "p99_ms": 143.12684899999294,
+          "max_ms": 143.12684899999294,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 48,
+          "completed": 48,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.000025604994471,
+          "p50_ms": 143.26030499998888,
+          "p95_ms": 144.25420399999712,
+          "p99_ms": 144.95326699998986,
+          "max_ms": 144.95326699998986,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "brief_spike",
+      "start": "2026-11-15T03:00:40.842Z",
+      "seconds": 2.999548053000006,
+      "counters": [
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 2,
+          "execution_ms": 7.662431000000652,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-17581870324414416",
+          "calls": 12,
+          "execution_ms": 0.2680749999999996,
+          "blocks": 36,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3098431152267114679",
+          "calls": 24,
+          "execution_ms": 318.218039,
+          "blocks": 12984,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "122401884603049921",
+          "calls": 6,
+          "execution_ms": 0.46248800000000045,
+          "blocks": 30,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 24,
+          "completed": 24,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 8.00120537358831,
+          "p50_ms": 157.3571729999967,
+          "p95_ms": 158.1036599999934,
+          "p99_ms": 158.1203680000035,
+          "max_ms": 158.1203680000035,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 12,
+          "completed": 12,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.000602686794155,
+          "p50_ms": 141.67743599999812,
+          "p95_ms": 142.40989999999874,
+          "p99_ms": 142.40989999999874,
+          "max_ms": 142.40989999999874,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 6,
+          "completed": 6,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.0003013433970773,
+          "p50_ms": 143.3682620000036,
+          "p95_ms": 143.8097529999941,
+          "p99_ms": 143.8097529999941,
+          "max_ms": 143.8097529999941,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "spike_recovery",
+      "start": "2026-11-15T03:00:44.303Z",
+      "seconds": 24.000427658999993,
+      "counters": [
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 12,
+          "execution_ms": 69.7529599999998,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-17581870324414416",
+          "calls": 96,
+          "execution_ms": 2.399490000000011,
+          "blocks": 288,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3098431152267114679",
+          "calls": 192,
+          "execution_ms": 60.50112900000005,
+          "blocks": 38880,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "122401884603049921",
+          "calls": 48,
+          "execution_ms": 4.417441999999999,
+          "blocks": 240,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 192,
+          "completed": 192,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 7.999857449540127,
+          "p50_ms": 144.32496299999184,
+          "p95_ms": 145.7182279999979,
+          "p99_ms": 146.78184599999804,
+          "max_ms": 147.6762139999919,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 96,
+          "completed": 96,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 3.9999287247700637,
+          "p50_ms": 141.95000299999083,
+          "p95_ms": 143.48872499998834,
+          "p99_ms": 144.37789599999087,
+          "max_ms": 144.37789599999087,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 48,
+          "completed": 48,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 1.9999643623850318,
+          "p50_ms": 143.12331899999117,
+          "p95_ms": 144.64778299999307,
+          "p99_ms": 147.60737199999858,
+          "max_ms": 147.60737199999858,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "sustained",
+      "start": "2026-11-15T03:01:08.850Z",
+      "seconds": 9.999525063000009,
+      "counters": [
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 5,
+          "execution_ms": 18.504721999999674,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-17581870324414416",
+          "calls": 40,
+          "execution_ms": 0.8813820000000003,
+          "blocks": 120,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3098431152267114679",
+          "calls": 80,
+          "execution_ms": 1081.601983,
+          "blocks": 43280,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "122401884603049921",
+          "calls": 20,
+          "execution_ms": 7.088075,
+          "blocks": 100,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 80,
+          "completed": 80,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 8.000379967646062,
+          "p50_ms": 157.24744200000714,
+          "p95_ms": 159.25826800000505,
+          "p99_ms": 164.51402800000506,
+          "max_ms": 164.51402800000506,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.000189983823031,
+          "p50_ms": 141.9015870000003,
+          "p95_ms": 142.74043600000732,
+          "p99_ms": 142.89199099999678,
+          "max_ms": 142.89199099999678,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.0000949919115154,
+          "p50_ms": 143.31859599999734,
+          "p95_ms": 147.4760360000073,
+          "p99_ms": 202.8688400000101,
+          "max_ms": 202.8688400000101,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "sustained",
+      "start": "2026-11-15T03:01:19.180Z",
+      "seconds": 9.99997950799999,
+      "counters": [
+        {
+          "query_id": "-118081084699079014",
+          "calls": 2,
+          "execution_ms": 0.057721,
+          "blocks": 6,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-3623060868737272483",
+          "calls": 1,
+          "execution_ms": 26.352765,
+          "blocks": 558,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 5,
+          "execution_ms": 20.763738999999987,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "7078572794712954916",
+          "calls": 20,
+          "execution_ms": 2.707232,
+          "blocks": 81,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8446384442571524952",
+          "calls": 20,
+          "execution_ms": 276.095267,
+          "blocks": 10820,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-17581870324414416",
+          "calls": 40,
+          "execution_ms": 0.8865799999999986,
+          "blocks": 120,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-7873681732696228358",
+          "calls": 2,
+          "execution_ms": 9.970739,
+          "blocks": 41,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "433482495969011665",
+          "calls": 20,
+          "execution_ms": 9.302103,
+          "blocks": 419,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3098431152267114679",
+          "calls": 82,
+          "execution_ms": 1108.4452720000002,
+          "blocks": 44362,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "122401884603049921",
+          "calls": 20,
+          "execution_ms": 1.5110080000000004,
+          "blocks": 100,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "575323400511646635",
+          "calls": 1,
+          "execution_ms": 1.1522839999999999,
+          "blocks": 25,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 80,
+          "completed": 80,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 8.0000163936336,
+          "p50_ms": 157.43259700000635,
+          "p95_ms": 159.23204799999075,
+          "p99_ms": 163.42476699998952,
+          "max_ms": 163.42476699998952,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.0000081968168,
+          "p50_ms": 141.72264500000165,
+          "p95_ms": 142.4743899999885,
+          "p99_ms": 143.3711309999926,
+          "max_ms": 143.3711309999926,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.0000040984084,
+          "p50_ms": 142.68914800000493,
+          "p95_ms": 143.10517500000424,
+          "p99_ms": 144.3079849999922,
+          "max_ms": 144.3079849999922,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "sustained",
+      "start": "2026-11-15T03:01:29.498Z",
+      "seconds": 9.999384429999976,
+      "counters": [
+        {
+          "query_id": "-7063320242606833525",
+          "calls": 1,
+          "execution_ms": 64.885217,
+          "blocks": 590,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-118081084699079014",
+          "calls": 1,
+          "execution_ms": 0.012239999999999994,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-6979254634734563576",
+          "calls": 1,
+          "execution_ms": 28.652813,
+          "blocks": 207,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-3623060868737272483",
+          "calls": 1,
+          "execution_ms": 26.392456999999997,
+          "blocks": 555,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 6,
+          "execution_ms": 23.031456000000617,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "7078572794712954916",
+          "calls": 20,
+          "execution_ms": 1.7159299999999997,
+          "blocks": 60,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8446384442571524952",
+          "calls": 20,
+          "execution_ms": 4.82015100000001,
+          "blocks": 4050,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-17581870324414416",
+          "calls": 40,
+          "execution_ms": 0.9017040000000005,
+          "blocks": 120,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-7873681732696228358",
+          "calls": 1,
+          "execution_ms": 0.02253999999999934,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "433482495969011665",
+          "calls": 20,
+          "execution_ms": 2.9175249999999995,
+          "blocks": 434,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3098431152267114679",
+          "calls": 82,
+          "execution_ms": 574.9816159999996,
+          "blocks": 31023,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "122401884603049921",
+          "calls": 20,
+          "execution_ms": 1.2340659999999986,
+          "blocks": 100,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "575323400511646635",
+          "calls": 2,
+          "execution_ms": 0.320373,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "96829318485014404",
+          "calls": 1,
+          "execution_ms": 2.611562,
+          "blocks": 9,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 80,
+          "completed": 80,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 8.000492486315999,
+          "p50_ms": 156.22421099999337,
+          "p95_ms": 158.3207869999751,
+          "p99_ms": 160.73169499999494,
+          "max_ms": 160.73169499999494,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.000246243157999,
+          "p50_ms": 141.86274299997604,
+          "p95_ms": 142.4712399999844,
+          "p99_ms": 143.47649399997317,
+          "max_ms": 143.47649399997317,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.0001231215789996,
+          "p50_ms": 142.6972609999939,
+          "p95_ms": 143.2535649999918,
+          "p99_ms": 143.86954200000037,
+          "max_ms": 143.86954200000037,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "after_repair",
+      "start": "2026-11-15T03:01:39.818Z",
+      "seconds": 11.99923646299998,
+      "counters": [
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 6,
+          "execution_ms": 22.086355999999796,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-17581870324414416",
+          "calls": 48,
+          "execution_ms": 1.0999250000000007,
+          "blocks": 144,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "3098431152267114679",
+          "calls": 96,
+          "execution_ms": 26.51934600000004,
+          "blocks": 19440,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "122401884603049921",
+          "calls": 24,
+          "execution_ms": 1.5200790000000026,
+          "blocks": 120,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 96,
+          "completed": 96,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 8.000509057057005,
+          "p50_ms": 144.2054889999854,
+          "p95_ms": 145.8256269999838,
+          "p99_ms": 147.48597300000256,
+          "max_ms": 147.48597300000256,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 48,
+          "completed": 48,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.000254528528503,
+          "p50_ms": 141.7376280000026,
+          "p95_ms": 142.6783829999913,
+          "p99_ms": 143.36945299999206,
+          "max_ms": 143.36945299999206,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 24,
+          "completed": 24,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.0001272642642514,
+          "p50_ms": 142.92996499998844,
+          "p95_ms": 143.8059699999867,
+          "p99_ms": 143.8214020000014,
+          "max_ms": 143.8214020000014,
+          "error_codes": []
+        }
+      }
+    }
+  ],
+  "public_indexes_before": {
+    "count": 12,
+    "hash": "f56ad07a58d2b60570ee6b64a8978936"
+  },
+  "fixture": "3e4d7efab3243fe83b69d56b",
+  "target_query_id": "3098431152267114679",
+  "target_calls_per_second": 8,
+  "objective_ms": 3,
+  "spike_database_mean_ms": 13.259084958333332,
+  "spike_jobs": [],
+  "slowdown_at": "2026-11-15T03:01:08.690Z",
+  "jobs": [
+    {
+      "id": "121",
+      "created_at": "2026-11-15T03:01:17.473Z",
+      "finished_at": "2026-11-15T03:01:34.718Z",
+      "result": {
+        "job_id": 121,
+        "attempt": 1,
+        "outcome": "improved_tested_inputs",
+        "evidence": {
+          "plan": {
+            "node": "Seq Scan",
+            "examined_rows": 100000,
+            "returned_rows": 100,
+            "shared_blocks": 541
+          },
+          "run_id": "worker-121-1",
+          "decision": "investigate",
+          "table_oid": 27212,
+          "statistics": {
+            "cases": [
+              {
+                "actual_rows": 100,
+                "estimated_rows": 24883
+              },
+              {
+                "actual_rows": 300,
+                "estimated_rows": 25109
+              }
+            ],
+            "correlated_columns": true
+          },
+          "observed_at": "2026-11-15T03:01:24.606841779Z",
+          "column_number": 2,
+          "lookup_column": "lookup",
+          "covering_index": true
+        },
+        "graph_ms": 5869.993337,
+        "proposal": {
+          "reason": "Seq Scan examined 100000 rows for 100 returned despite a covering index; correlated columns with two >=10x estimate errors after recent ANALYZE support joint column statistics.",
+          "repair": "statistics",
+          "run_id": "worker-121-1",
+          "outcome": "propose",
+          "table_oid": 27212,
+          "diagnostic": {
+            "reads": 0,
+            "history": [
+              {
+                "tools": [],
+                "action": "propose",
+                "reason": "Seq Scan examined 100000 rows for 100 returned despite a covering index; correlated columns with two >=10x estimate errors after recent ANALYZE support joint column statistics.",
+                "repair": "statistics",
+                "assessments": [
+                  {
+                    "cause": "statistics",
+                    "reason": "Correlated columns; both cases misestimated ~249x and ~84x after recent ANALYZE, so joint statistics are missing.",
+                    "assessment": "supported",
+                    "blocks_decision": false
+                  },
+                  {
+                    "cause": "index",
+                    "reason": "A covering index already exists, so the index repair is ruled out for this bounded capability.",
+                    "assessment": "rejected",
+                    "blocks_decision": false
+                  },
+                  {
+                    "cause": "analyze",
+                    "reason": "No stale-distribution evidence; the statistics contract implies recent ANALYZE, so another refresh would not add relationship data.",
+                    "assessment": "uncertain",
+                    "blocks_decision": false
+                  }
+                ]
+              }
+            ],
+            "tool_ms": 0,
+            "model_ms": 5423.166012000001,
+            "total_ms": 5869.906818,
+            "model_calls": 1,
+            "stop_reason": "",
+            "model_attempts": 1
+          },
+          "model_call": {
+            "model": "claude-sonnet-5-5",
+            "requests": 1,
+            "duration_ms": 5423.166012000001,
+            "input_tokens": 3163,
+            "output_tokens": 646
+          },
+          "column_number": 2
+        },
+        "thread_id": "worker-121-1",
+        "elapsed_ms": 16277.878008,
+        "statistics": {
+          "after": {
+            "applied": true,
+            "samples": [
+              {
+                "plan": "Index Scan",
+                "read_calls": 10,
+                "read_mad_ms": 0.003999999999999997,
+                "write_calls": 10,
+                "read_mean_ms": 0.08179999999999998,
+                "write_mad_ms": 0.0014999999999999979,
+                "examined_rows": 100,
+                "returned_rows": 100,
+                "write_mean_ms": 0.0606,
+                "estimated_rows": 120,
+                "healthy_mad_ms": 0.0009999999999999974,
+                "blocks_per_read": 102,
+                "healthy_mean_ms": 0.025500000000000002,
+                "healthy_read_calls": 10,
+                "estimate_error_ratio": 1.2
+              },
+              {
+                "plan": "Index Scan",
+                "read_calls": 10,
+                "read_mad_ms": 0.02550000000000001,
+                "write_calls": 10,
+                "read_mean_ms": 0.2052,
+                "write_mad_ms": 0.0030000000000000027,
+                "examined_rows": 300,
+                "returned_rows": 300,
+                "write_mean_ms": 0.0632,
+                "estimated_rows": 327,
+                "healthy_mad_ms": 0.0010000000000000009,
+                "blocks_per_read": 303,
+                "healthy_mean_ms": 0.0197,
+                "healthy_read_calls": 10,
+                "estimate_error_ratio": 1.09
+              }
+            ],
+            "retained": true,
+            "create_wall_ms": 332.916273,
+            "verify_wall_ms": 1217.019914,
+            "analyze_wall_ms": 215.589351,
+            "statistics_bytes": 172,
+            "correlated_columns": false
+          },
+          "before": {
+            "applied": false,
+            "samples": [
+              {
+                "plan": "Seq Scan",
+                "read_calls": 10,
+                "read_mad_ms": 0.48799999999999955,
+                "write_calls": 10,
+                "read_mean_ms": 14.2483,
+                "write_mad_ms": 0.00449999999999999,
+                "examined_rows": 100000,
+                "returned_rows": 100,
+                "write_mean_ms": 0.6053,
+                "estimated_rows": 24883,
+                "healthy_mad_ms": 0.0019999999999999983,
+                "blocks_per_read": 541,
+                "healthy_mean_ms": 0.030500000000000006,
+                "healthy_read_calls": 10,
+                "estimate_error_ratio": 248.83
+              },
+              {
+                "plan": "Seq Scan",
+                "read_calls": 10,
+                "read_mad_ms": 0.0674999999999999,
+                "write_calls": 10,
+                "read_mean_ms": 13.112900000000002,
+                "write_mad_ms": 0.0015000000000000013,
+                "examined_rows": 100000,
+                "returned_rows": 300,
+                "write_mean_ms": 0.07649999999999998,
+                "estimated_rows": 25109,
+                "healthy_mad_ms": 0.0004999999999999987,
+                "blocks_per_read": 541,
+                "healthy_mean_ms": 0.029100000000000004,
+                "healthy_read_calls": 10,
+                "estimate_error_ratio": 83.69666666666667
+              }
+            ],
+            "retained": false,
+            "correlated_columns": true
+          },
+          "job_id": 121,
+          "reason": "both correlated lookups improved without a sampled regression",
+          "fixture": "3e4d7efab3243fe83b69d56b",
+          "outcome": "improved_tested_inputs",
+          "evidence": {
+            "plan": {
+              "node": "Seq Scan",
+              "examined_rows": 100000,
+              "returned_rows": 100,
+              "shared_blocks": 541
+            },
+            "run_id": "worker-121-1",
+            "decision": "investigate",
+            "table_oid": 27212,
+            "statistics": {
+              "cases": [
+                {
+                  "actual_rows": 100,
+                  "estimated_rows": 24883
+                },
+                {
+                  "actual_rows": 300,
+                  "estimated_rows": 25109
+                }
+              ],
+              "correlated_columns": true
+            },
+            "observed_at": "2026-11-15T03:01:24.606841779Z",
+            "column_number": 2,
+            "lookup_column": "lookup",
+            "covering_index": true
+          },
+          "proposal": {
+            "reason": "Seq Scan examined 100000 rows for 100 returned despite a covering index; correlated columns with two >=10x estimate errors after recent ANALYZE support joint column statistics.",
+            "repair": "statistics",
+            "run_id": "worker-121-1",
+            "outcome": "propose",
+            "table_oid": 27212,
+            "diagnostic": {
+              "reads": 0,
+              "history": [
+                {
+                  "tools": [],
+                  "action": "propose",
+                  "reason": "Seq Scan examined 100000 rows for 100 returned despite a covering index; correlated columns with two >=10x estimate errors after recent ANALYZE support joint column statistics.",
+                  "repair": "statistics",
+                  "assessments": [
+                    {
+                      "cause": "statistics",
+                      "reason": "Correlated columns; both cases misestimated ~249x and ~84x after recent ANALYZE, so joint statistics are missing.",
+                      "assessment": "supported",
+                      "blocks_decision": false
+                    },
+                    {
+                      "cause": "index",
+                      "reason": "A covering index already exists, so the index repair is ruled out for this bounded capability.",
+                      "assessment": "rejected",
+                      "blocks_decision": false
+                    },
+                    {
+                      "cause": "analyze",
+                      "reason": "No stale-distribution evidence; the statistics contract implies recent ANALYZE, so another refresh would not add relationship data.",
+                      "assessment": "uncertain",
+                      "blocks_decision": false
+                    }
+                  ]
+                }
+              ],
+              "tool_ms": 0,
+              "model_ms": 5423.166012000001,
+              "total_ms": 5869.906818,
+              "model_calls": 1,
+              "stop_reason": "",
+              "model_attempts": 1
+            },
+            "model_call": {
+              "model": "claude-sonnet-5-5",
+              "requests": 1,
+              "duration_ms": 5423.166012000001,
+              "input_tokens": 3163,
+              "output_tokens": 646
+            },
+            "column_number": 2
+          },
+          "baseline_wall_ms": 2822.896537,
+          "investigation_wall_ms": 5869.993337,
+          "apply_and_verify_wall_ms": 4084.014765
+        },
+        "observed_latency": {
+          "objective_ms": 3,
+          "observed_through": "2026-11-15T03:01:17.473177Z",
+          "recent_window_calls": [
+            32,
+            32,
+            28,
+            32,
+            32
+          ],
+          "recent_window_mean_ms": [
+            0.32974603125,
+            0.32417071874999337,
+            3.320422249999999,
+            13.245469375000006,
+            13.331062406249991
+          ],
+          "recent_window_shared_block_accesses": [
+            6480,
+            6480,
+            7902,
+            17312,
+            17312
+          ]
+        }
+      },
+      "attempts": 1
+    }
+  ],
+  "initial_queue_delay_seconds": 0.9671219920000003,
+  "model_seconds": 5.423166012,
+  "investigation": {
+    "model_calls": 1,
+    "model_attempts": 1,
+    "reads": 0,
+    "model_ms": 5423.166012000001,
+    "tool_ms": 0,
+    "total_ms": 5869.906818
+  },
+  "detection_seconds": 8.783,
+  "repair_seconds": 17.245,
+  "final_outcome": "improved_tested_inputs",
+  "before_database_mean_ms": 13.5200247875,
+  "after_database_mean_ms": 0.27624318750000043,
+  "worker_failures": [],
+  "worker_diagnostics": [],
+  "detector_windows": [
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-17581870324414416",
+      "start": "2026-11-15T02:59:39.406919Z",
+      "end": "2026-11-15T02:59:43.409518Z",
+      "calls": 16,
+      "mean_execution_ms": 0.023578375000000013,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3098431152267114679",
+      "start": "2026-11-15T02:59:39.406919Z",
+      "end": "2026-11-15T02:59:43.409518Z",
+      "calls": 33,
+      "mean_execution_ms": 0.27748509090909096,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-17581870324414416",
+      "start": "2026-11-15T02:59:43.409518Z",
+      "end": "2026-11-15T02:59:47.412774Z",
+      "calls": 16,
+      "mean_execution_ms": 0.024004500000000012,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3098431152267114679",
+      "start": "2026-11-15T02:59:43.409518Z",
+      "end": "2026-11-15T02:59:47.412774Z",
+      "calls": 32,
+      "mean_execution_ms": 0.28206675000000003,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-17581870324414416",
+      "start": "2026-11-15T02:59:47.412774Z",
+      "end": "2026-11-15T02:59:51.415476Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02771093749999995,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3098431152267114679",
+      "start": "2026-11-15T02:59:47.412774Z",
+      "end": "2026-11-15T02:59:51.415476Z",
+      "calls": 31,
+      "mean_execution_ms": 0.2820653225806447,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-17581870324414416",
+      "start": "2026-11-15T02:59:51.415476Z",
+      "end": "2026-11-15T02:59:55.417901Z",
+      "calls": 15,
+      "mean_execution_ms": 0.02324013333333331,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3098431152267114679",
+      "start": "2026-11-15T02:59:51.415476Z",
+      "end": "2026-11-15T02:59:55.417901Z",
+      "calls": 30,
+      "mean_execution_ms": 0.2699391999999998,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-17581870324414416",
+      "start": "2026-11-15T02:59:55.417901Z",
+      "end": "2026-11-15T02:59:59.420083Z",
+      "calls": 16,
+      "mean_execution_ms": 0.024664687499999977,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3098431152267114679",
+      "start": "2026-11-15T02:59:55.417901Z",
+      "end": "2026-11-15T02:59:59.420083Z",
+      "calls": 32,
+      "mean_execution_ms": 0.29100093750000067,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-17581870324414416",
+      "start": "2026-11-15T02:59:59.420083Z",
+      "end": "2026-11-15T03:00:03.422368Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02648662499999993,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3098431152267114679",
+      "start": "2026-11-15T02:59:59.420083Z",
+      "end": "2026-11-15T03:00:03.422368Z",
+      "calls": 32,
+      "mean_execution_ms": 0.2840399687500006,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-17581870324414416",
+      "start": "2026-11-15T03:00:03.422368Z",
+      "end": "2026-11-15T03:00:17.441181Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3098431152267114679",
+      "start": "2026-11-15T03:00:03.422368Z",
+      "end": "2026-11-15T03:00:17.441181Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-17581870324414416",
+      "start": "2026-11-15T03:00:17.441181Z",
+      "end": "2026-11-15T03:00:21.443285Z",
+      "calls": 16,
+      "mean_execution_ms": 0.025483937499999942,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3098431152267114679",
+      "start": "2026-11-15T03:00:17.441181Z",
+      "end": "2026-11-15T03:00:21.443285Z",
+      "calls": 32,
+      "mean_execution_ms": 0.2867430000000004,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-17581870324414416",
+      "start": "2026-11-15T03:00:21.443285Z",
+      "end": "2026-11-15T03:00:25.446277Z",
+      "calls": 16,
+      "mean_execution_ms": 0.024134249999999968,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3098431152267114679",
+      "start": "2026-11-15T03:00:21.443285Z",
+      "end": "2026-11-15T03:00:25.446277Z",
+      "calls": 32,
+      "mean_execution_ms": 0.2812399374999992,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-17581870324414416",
+      "start": "2026-11-15T03:00:25.446277Z",
+      "end": "2026-11-15T03:00:29.447412Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02211506249999995,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3098431152267114679",
+      "start": "2026-11-15T03:00:25.446277Z",
+      "end": "2026-11-15T03:00:29.447412Z",
+      "calls": 32,
+      "mean_execution_ms": 0.2771426874999978,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-17581870324414416",
+      "start": "2026-11-15T03:00:29.447412Z",
+      "end": "2026-11-15T03:00:33.448945Z",
+      "calls": 16,
+      "mean_execution_ms": 0.022015874999999963,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3098431152267114679",
+      "start": "2026-11-15T03:00:29.447412Z",
+      "end": "2026-11-15T03:00:33.448945Z",
+      "calls": 32,
+      "mean_execution_ms": 0.2747491562499986,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-17581870324414416",
+      "start": "2026-11-15T03:00:33.448945Z",
+      "end": "2026-11-15T03:00:37.450027Z",
+      "calls": 16,
+      "mean_execution_ms": 0.022396437499999977,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3098431152267114679",
+      "start": "2026-11-15T03:00:33.448945Z",
+      "end": "2026-11-15T03:00:37.450027Z",
+      "calls": 32,
+      "mean_execution_ms": 0.28680975000000153,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-17581870324414416",
+      "start": "2026-11-15T03:00:37.450027Z",
+      "end": "2026-11-15T03:00:41.452063Z",
+      "calls": 14,
+      "mean_execution_ms": 0.024695142857142787,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3098431152267114679",
+      "start": "2026-11-15T03:00:37.450027Z",
+      "end": "2026-11-15T03:00:41.452063Z",
+      "calls": 28,
+      "mean_execution_ms": 3.096150035714285,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-17581870324414416",
+      "start": "2026-11-15T03:00:41.452063Z",
+      "end": "2026-11-15T03:00:45.455Z",
+      "calls": 14,
+      "mean_execution_ms": 0.02469607142857149,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3098431152267114679",
+      "start": "2026-11-15T03:00:41.452063Z",
+      "end": "2026-11-15T03:00:45.455Z",
+      "calls": 28,
+      "mean_execution_ms": 8.59111846428571,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-17581870324414416",
+      "start": "2026-11-15T03:00:45.455Z",
+      "end": "2026-11-15T03:00:49.457145Z",
+      "calls": 16,
+      "mean_execution_ms": 0.022512125000000105,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3098431152267114679",
+      "start": "2026-11-15T03:00:45.455Z",
+      "end": "2026-11-15T03:00:49.457145Z",
+      "calls": 32,
+      "mean_execution_ms": 0.2795295937500004,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-17581870324414416",
+      "start": "2026-11-15T03:00:49.457145Z",
+      "end": "2026-11-15T03:00:53.458629Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02717343750000023,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3098431152267114679",
+      "start": "2026-11-15T03:00:49.457145Z",
+      "end": "2026-11-15T03:00:53.458629Z",
+      "calls": 32,
+      "mean_execution_ms": 0.2911981875000009,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-17581870324414416",
+      "start": "2026-11-15T03:00:53.458629Z",
+      "end": "2026-11-15T03:00:57.45983Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02523350000000013,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3098431152267114679",
+      "start": "2026-11-15T03:00:53.458629Z",
+      "end": "2026-11-15T03:00:57.45983Z",
+      "calls": 32,
+      "mean_execution_ms": 0.34049240624999655,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-17581870324414416",
+      "start": "2026-11-15T03:00:57.45983Z",
+      "end": "2026-11-15T03:01:01.462002Z",
+      "calls": 16,
+      "mean_execution_ms": 0.023679187500000087,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3098431152267114679",
+      "start": "2026-11-15T03:00:57.45983Z",
+      "end": "2026-11-15T03:01:01.462002Z",
+      "calls": 32,
+      "mean_execution_ms": 0.32974603125,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-17581870324414416",
+      "start": "2026-11-15T03:01:01.462002Z",
+      "end": "2026-11-15T03:01:05.464619Z",
+      "calls": 16,
+      "mean_execution_ms": 0.024619124999999964,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3098431152267114679",
+      "start": "2026-11-15T03:01:01.462002Z",
+      "end": "2026-11-15T03:01:05.464619Z",
+      "calls": 32,
+      "mean_execution_ms": 0.32417071874999337,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-17581870324414416",
+      "start": "2026-11-15T03:01:05.464619Z",
+      "end": "2026-11-15T03:01:09.46765Z",
+      "calls": 14,
+      "mean_execution_ms": 0.02737085714285684,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3098431152267114679",
+      "start": "2026-11-15T03:01:05.464619Z",
+      "end": "2026-11-15T03:01:09.46765Z",
+      "calls": 28,
+      "mean_execution_ms": 3.320422249999999,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-17581870324414416",
+      "start": "2026-11-15T03:01:09.46765Z",
+      "end": "2026-11-15T03:01:13.47033Z",
+      "calls": 16,
+      "mean_execution_ms": 0.020937187500000176,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3098431152267114679",
+      "start": "2026-11-15T03:01:09.46765Z",
+      "end": "2026-11-15T03:01:13.47033Z",
+      "calls": 32,
+      "mean_execution_ms": 13.245469375000006,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-17581870324414416",
+      "start": "2026-11-15T03:01:13.47033Z",
+      "end": "2026-11-15T03:01:17.473177Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02090399999999981,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3098431152267114679",
+      "start": "2026-11-15T03:01:13.47033Z",
+      "end": "2026-11-15T03:01:17.473177Z",
+      "calls": 32,
+      "mean_execution_ms": 13.331062406249991,
+      "decision": "investigate"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-17581870324414416",
+      "start": "2026-11-15T03:01:17.473177Z",
+      "end": "2026-11-15T03:01:21.47562Z",
+      "calls": 14,
+      "mean_execution_ms": 0.021413000000000158,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3098431152267114679",
+      "start": "2026-11-15T03:01:17.473177Z",
+      "end": "2026-11-15T03:01:21.47562Z",
+      "calls": 30,
+      "mean_execution_ms": 13.780593733333339,
+      "decision": "investigate"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-17581870324414416",
+      "start": "2026-11-15T03:01:21.47562Z",
+      "end": "2026-11-15T03:01:25.478162Z",
+      "calls": 16,
+      "mean_execution_ms": 0.023189187499999986,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3098431152267114679",
+      "start": "2026-11-15T03:01:21.47562Z",
+      "end": "2026-11-15T03:01:25.478162Z",
+      "calls": 34,
+      "mean_execution_ms": 13.836182794117656,
+      "decision": "investigate"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-17581870324414416",
+      "start": "2026-11-15T03:01:25.478162Z",
+      "end": "2026-11-15T03:01:29.480667Z",
+      "calls": 15,
+      "mean_execution_ms": 0.021892200000000035,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3098431152267114679",
+      "start": "2026-11-15T03:01:25.478162Z",
+      "end": "2026-11-15T03:01:29.480667Z",
+      "calls": 28,
+      "mean_execution_ms": 13.234649392857136,
+      "decision": "investigate"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-17581870324414416",
+      "start": "2026-11-15T03:01:29.480667Z",
+      "end": "2026-11-15T03:01:33.482751Z",
+      "calls": 16,
+      "mean_execution_ms": 0.021807062500000085,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3098431152267114679",
+      "start": "2026-11-15T03:01:29.480667Z",
+      "end": "2026-11-15T03:01:33.482751Z",
+      "calls": 32,
+      "mean_execution_ms": 13.44937728124998,
+      "decision": "investigate"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-17581870324414416",
+      "start": "2026-11-15T03:01:33.482751Z",
+      "end": "2026-11-15T03:01:37.485352Z",
+      "calls": 16,
+      "mean_execution_ms": 0.023477937500000157,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3098431152267114679",
+      "start": "2026-11-15T03:01:33.482751Z",
+      "end": "2026-11-15T03:01:37.485352Z",
+      "calls": 34,
+      "mean_execution_ms": 4.123330617647031,
+      "decision": "investigate"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-17581870324414416",
+      "start": "2026-11-15T03:01:37.485352Z",
+      "end": "2026-11-15T03:01:41.488889Z",
+      "calls": 15,
+      "mean_execution_ms": 0.02226039999999969,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3098431152267114679",
+      "start": "2026-11-15T03:01:37.485352Z",
+      "end": "2026-11-15T03:01:41.488889Z",
+      "calls": 30,
+      "mean_execution_ms": 0.27470493333333557,
+      "decision": "investigate"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-17581870324414416",
+      "start": "2026-11-15T03:01:41.488889Z",
+      "end": "2026-11-15T03:01:45.491077Z",
+      "calls": 16,
+      "mean_execution_ms": 0.022232812499999866,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3098431152267114679",
+      "start": "2026-11-15T03:01:41.488889Z",
+      "end": "2026-11-15T03:01:45.491077Z",
+      "calls": 32,
+      "mean_execution_ms": 0.27390546875001576,
+      "decision": "investigate"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-17581870324414416",
+      "start": "2026-11-15T03:01:45.491077Z",
+      "end": "2026-11-15T03:01:49.49255Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02456637500000003,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "3098431152267114679",
+      "start": "2026-11-15T03:01:45.491077Z",
+      "end": "2026-11-15T03:01:49.49255Z",
+      "calls": 32,
+      "mean_execution_ms": 0.27695706250000285,
+      "decision": "no_change"
+    }
+  ],
+  "process_results": [
+    {
+      "job_id": 121,
+      "attempt": 1,
+      "outcome": "improved_tested_inputs",
+      "thread_id": "worker-121-1",
+      "observed_latency": {
+        "objective_ms": 3,
+        "recent_window_mean_ms": [
+          0.32974603125,
+          0.32417071874999337,
+          3.320422249999999,
+          13.245469375000006,
+          13.331062406249991
+        ],
+        "recent_window_calls": [
+          32,
+          32,
+          28,
+          32,
+          32
+        ],
+        "observed_through": "2026-11-15T03:01:17.473177Z",
+        "recent_window_shared_block_accesses": [
+          6480,
+          6480,
+          7902,
+          17312,
+          17312
+        ]
+      },
+      "evidence": {
+        "run_id": "worker-121-1",
+        "observed_at": "2026-11-15T03:01:24.606841779Z",
+        "decision": "investigate",
+        "table_oid": 27212,
+        "column_number": 2,
+        "covering_index": true,
+        "statistics": {
+          "correlated_columns": true,
+          "cases": [
+            {
+              "estimated_rows": 24883,
+              "actual_rows": 100
+            },
+            {
+              "estimated_rows": 25109,
+              "actual_rows": 300
+            }
+          ]
+        },
+        "plan": {
+          "node": "Seq Scan",
+          "examined_rows": 100000,
+          "returned_rows": 100,
+          "shared_blocks": 541
+        },
+        "lookup_column": "lookup"
+      },
+      "proposal": {
+        "diagnostic": {
+          "model_attempts": 1,
+          "model_calls": 1,
+          "reads": 0,
+          "model_ms": 5423.166012000001,
+          "tool_ms": 0,
+          "total_ms": 5869.906818,
+          "stop_reason": "",
+          "history": [
+            {
+              "action": "propose",
+              "repair": "statistics",
+              "tools": [],
+              "assessments": [
+                {
+                  "cause": "statistics",
+                  "assessment": "supported",
+                  "blocks_decision": false,
+                  "reason": "Correlated columns; both cases misestimated ~249x and ~84x after recent ANALYZE, so joint statistics are missing."
+                },
+                {
+                  "cause": "index",
+                  "assessment": "rejected",
+                  "blocks_decision": false,
+                  "reason": "A covering index already exists, so the index repair is ruled out for this bounded capability."
+                },
+                {
+                  "cause": "analyze",
+                  "assessment": "uncertain",
+                  "blocks_decision": false,
+                  "reason": "No stale-distribution evidence; the statistics contract implies recent ANALYZE, so another refresh would not add relationship data."
+                }
+              ],
+              "reason": "Seq Scan examined 100000 rows for 100 returned despite a covering index; correlated columns with two >=10x estimate errors after recent ANALYZE support joint column statistics."
+            }
+          ]
+        },
+        "model_call": {
+          "model": "claude-sonnet-5-5",
+          "duration_ms": 5423.166012000001,
+          "requests": 1,
+          "input_tokens": 3163,
+          "output_tokens": 646
+        },
+        "repair": "statistics",
+        "outcome": "propose",
+        "run_id": "worker-121-1",
+        "table_oid": 27212,
+        "column_number": 2,
+        "reason": "Seq Scan examined 100000 rows for 100 returned despite a covering index; correlated columns with two >=10x estimate errors after recent ANALYZE support joint column statistics."
+      },
+      "elapsed_ms": 16281.064969,
+      "statistics": {
+        "job_id": 121,
+        "fixture": "3e4d7efab3243fe83b69d56b",
+        "before": {
+          "samples": [
+            {
+              "read_mean_ms": 14.2483,
+              "read_mad_ms": 0.48799999999999955,
+              "healthy_mean_ms": 0.030500000000000006,
+              "healthy_mad_ms": 0.0019999999999999983,
+              "write_mean_ms": 0.6053,
+              "write_mad_ms": 0.00449999999999999,
+              "read_calls": 10,
+              "healthy_read_calls": 10,
+              "write_calls": 10,
+              "blocks_per_read": 541,
+              "plan": "Seq Scan",
+              "returned_rows": 100,
+              "examined_rows": 100000,
+              "estimated_rows": 24883,
+              "estimate_error_ratio": 248.83
+            },
+            {
+              "read_mean_ms": 13.112900000000002,
+              "read_mad_ms": 0.0674999999999999,
+              "healthy_mean_ms": 0.029100000000000004,
+              "healthy_mad_ms": 0.0004999999999999987,
+              "write_mean_ms": 0.07649999999999998,
+              "write_mad_ms": 0.0015000000000000013,
+              "read_calls": 10,
+              "healthy_read_calls": 10,
+              "write_calls": 10,
+              "blocks_per_read": 541,
+              "plan": "Seq Scan",
+              "returned_rows": 300,
+              "examined_rows": 100000,
+              "estimated_rows": 25109,
+              "estimate_error_ratio": 83.69666666666667
+            }
+          ],
+          "correlated_columns": true,
+          "retained": false,
+          "applied": false
+        },
+        "after": {
+          "samples": [
+            {
+              "read_mean_ms": 0.08179999999999998,
+              "read_mad_ms": 0.003999999999999997,
+              "healthy_mean_ms": 0.025500000000000002,
+              "healthy_mad_ms": 0.0009999999999999974,
+              "write_mean_ms": 0.0606,
+              "write_mad_ms": 0.0014999999999999979,
+              "read_calls": 10,
+              "healthy_read_calls": 10,
+              "write_calls": 10,
+              "blocks_per_read": 102,
+              "plan": "Index Scan",
+              "returned_rows": 100,
+              "examined_rows": 100,
+              "estimated_rows": 120,
+              "estimate_error_ratio": 1.2
+            },
+            {
+              "read_mean_ms": 0.2052,
+              "read_mad_ms": 0.02550000000000001,
+              "healthy_mean_ms": 0.0197,
+              "healthy_mad_ms": 0.0010000000000000009,
+              "write_mean_ms": 0.0632,
+              "write_mad_ms": 0.0030000000000000027,
+              "read_calls": 10,
+              "healthy_read_calls": 10,
+              "write_calls": 10,
+              "blocks_per_read": 303,
+              "plan": "Index Scan",
+              "returned_rows": 300,
+              "examined_rows": 300,
+              "estimated_rows": 327,
+              "estimate_error_ratio": 1.09
+            }
+          ],
+          "correlated_columns": false,
+          "retained": true,
+          "applied": true,
+          "statistics_bytes": 172,
+          "create_wall_ms": 332.916273,
+          "verify_wall_ms": 1217.019914,
+          "analyze_wall_ms": 215.589351
+        },
+        "outcome": "improved_tested_inputs",
+        "reason": "both correlated lookups improved without a sampled regression",
+        "evidence": {
+          "run_id": "worker-121-1",
+          "observed_at": "2026-11-15T03:01:24.606841779Z",
+          "decision": "investigate",
+          "table_oid": 27212,
+          "column_number": 2,
+          "covering_index": true,
+          "statistics": {
+            "correlated_columns": true,
+            "cases": [
+              {
+                "estimated_rows": 24883,
+                "actual_rows": 100
+              },
+              {
+                "estimated_rows": 25109,
+                "actual_rows": 300
+              }
+            ]
+          },
+          "plan": {
+            "node": "Seq Scan",
+            "examined_rows": 100000,
+            "returned_rows": 100,
+            "shared_blocks": 541
+          },
+          "lookup_column": "lookup"
+        },
+        "proposal": {
+          "diagnostic": {
+            "model_attempts": 1,
+            "model_calls": 1,
+            "reads": 0,
+            "model_ms": 5423.166012000001,
+            "tool_ms": 0,
+            "total_ms": 5869.906818,
+            "stop_reason": "",
+            "history": [
+              {
+                "action": "propose",
+                "repair": "statistics",
+                "tools": [],
+                "assessments": [
+                  {
+                    "cause": "statistics",
+                    "assessment": "supported",
+                    "blocks_decision": false,
+                    "reason": "Correlated columns; both cases misestimated ~249x and ~84x after recent ANALYZE, so joint statistics are missing."
+                  },
+                  {
+                    "cause": "index",
+                    "assessment": "rejected",
+                    "blocks_decision": false,
+                    "reason": "A covering index already exists, so the index repair is ruled out for this bounded capability."
+                  },
+                  {
+                    "cause": "analyze",
+                    "assessment": "uncertain",
+                    "blocks_decision": false,
+                    "reason": "No stale-distribution evidence; the statistics contract implies recent ANALYZE, so another refresh would not add relationship data."
+                  }
+                ],
+                "reason": "Seq Scan examined 100000 rows for 100 returned despite a covering index; correlated columns with two >=10x estimate errors after recent ANALYZE support joint column statistics."
+              }
+            ]
+          },
+          "model_call": {
+            "model": "claude-sonnet-5-5",
+            "duration_ms": 5423.166012000001,
+            "requests": 1,
+            "input_tokens": 3163,
+            "output_tokens": 646
+          },
+          "repair": "statistics",
+          "outcome": "propose",
+          "run_id": "worker-121-1",
+          "table_oid": 27212,
+          "column_number": 2,
+          "reason": "Seq Scan examined 100000 rows for 100 returned despite a covering index; correlated columns with two >=10x estimate errors after recent ANALYZE support joint column statistics."
+        },
+        "baseline_wall_ms": 2822.896537,
+        "investigation_wall_ms": 5869.993337,
+        "apply_and_verify_wall_ms": 4084.014765
+      },
+      "graph_ms": 5869.993337
+    }
+  ],
+  "repair_verified": true,
+  "traffic_errors": 0,
+  "missed_requests": 0,
+  "passed": true,
+  "fixture_removed": true,
+  "public_indexes_after": {
+    "count": 12,
+    "hash": "f56ad07a58d2b60570ee6b64a8978936"
+  },
+  "execution": {
+    "source_revision": "bc5ae375ea8d29a6e4d6b3ea81f1e02d4456cd6b",
+    "deployment": "2b5451f5-90d0-4846-b684-fb4b375f2533",
+    "status_observed": "SUCCESS",
+    "service": "a7363b8b-5b77-4ead-b9e1-9af52e7cd462",
+    "environment": "0541335c-4db7-40cf-a75d-761ad418e816",
+    "model": "claude-sonnet-5-5",
+    "scope": "Temporary owned-fixture diagnostic consumers. Normal service startup settings unchanged."
+  }
+}

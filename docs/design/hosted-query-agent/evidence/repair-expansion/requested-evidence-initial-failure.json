@@ -1,0 +1,23 @@
+{
+  "scope": "Hosted real model requested fresh evidence; separate from queued repair and durable resume.",
+  "execution": {
+    "source_revision": "bc5ae375ea8d29a6e4d6b3ea81f1e02d4456cd6b",
+    "deployment": "2b5451f5-90d0-4846-b684-fb4b375f2533",
+    "status_observed": "SUCCESS",
+    "service": "a7363b8b-5b77-4ead-b9e1-9af52e7cd462",
+    "environment": "0541335c-4db7-40cf-a75d-761ad418e816",
+    "model": "claude-sonnet-5-5",
+    "scope": "Temporary owned-fixture diagnostic consumers. Normal service startup settings unchanged."
+  },
+  "public_indexes_before": [
+    12,
+    "f56ad07a58d2b60570ee6b64a8978936"
+  ],
+  "fixture": "23a85f32465da89e93693566",
+  "passed": false,
+  "fixture_removed": true,
+  "public_indexes_after": [
+    12,
+    "f56ad07a58d2b60570ee6b64a8978936"
+  ]
+}

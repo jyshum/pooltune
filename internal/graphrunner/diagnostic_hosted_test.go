@@ -7,6 +7,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"maps"
 	"os"
 	"strings"
@@ -15,6 +16,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"pooltune/internal/hostedquery"
 	"pooltune/internal/labdb"
 )
@@ -41,6 +43,9 @@ func TestHostedDiagnosticRequestedEvidence(t *testing.T) {
 	if targetConfig.Host == stateConfig.Host && targetConfig.Port == stateConfig.Port && targetConfig.Database == stateConfig.Database {
 		t.Fatal("hosted qualification requires distinct target and state databases")
 	}
+	trace := &hostedProbeTrace{}
+	targetConfig.Tracer = &hostedProbeConnectionTrace{trace: trace, role: "target"}
+	stateConfig.Tracer = &hostedProbeConnectionTrace{trace: trace, role: "state"}
 	targetConfig.RuntimeParams["default_transaction_read_only"] = "on"
 	targetConfig.RuntimeParams["statement_timeout"] = "3s"
 	stateConfig.RuntimeParams["default_transaction_read_only"] = "on"
@@ -89,11 +94,12 @@ func TestHostedDiagnosticRequestedEvidence(t *testing.T) {
 	initialStart := time.Now()
 	plan, ok, err := reader(ctx, "plan", base)
 	if err != nil || !ok {
-		t.Fatal("initial owned plan observation failed")
+		logHostedProbeFailure(t, "initial_plan", initialStart, err, trace)
 	}
+	indexStart := time.Now()
 	indexes, ok, err := reader(ctx, "indexes", base)
 	if err != nil || !ok {
-		t.Fatal("initial owned index observation failed")
+		logHostedProbeFailure(t, "initial_indexes", indexStart, err, trace)
 	}
 	initialMS := float64(time.Since(initialStart)) / float64(time.Millisecond)
 	base.Plan = plan.Plan
@@ -139,7 +145,7 @@ func TestHostedDiagnosticRequestedEvidence(t *testing.T) {
 	observationMu.Unlock()
 	// Log only selected outcomes and timings, never connection strings, prompts,
 	// model prose, raw catalog values or credentials.
-	report := map[string]any{"check": "readonly_requested_evidence", "outcome": proposal.Outcome, "repair": proposal.Repair, "initial_evidence_ms": initialMS, "requested_reader_ms": requestedMSSnapshot, "investigation_wall_ms": wallMS, "requested_tools": requestedSnapshot, "available_tools": availableSnapshot, "table_and_statistics_unchanged": unchanged, "process_succeeded": runErr == nil}
+	report := map[string]any{"check": "readonly_requested_evidence", "outcome": proposal.Outcome, "repair": proposal.Repair, "initial_evidence_ms": initialMS, "requested_reader_ms": requestedMSSnapshot, "investigation_wall_ms": wallMS, "requested_tools": requestedSnapshot, "available_tools": availableSnapshot, "table_and_statistics_unchanged": unchanged, "process_succeeded": runErr == nil, "error_category": hostedProbeErrorCategory(runErr), "database_phases": trace.snapshot()}
 	if d := proposal.Diagnostic; d != nil {
 		report["model_calls"] = d.ModelCalls
 		report["model_attempts"] = d.ModelAttempts
@@ -173,4 +179,136 @@ func TestHostedDiagnosticRequestedEvidence(t *testing.T) {
 	if proposal.ModelCall == nil || proposal.ModelCall.Model != model || proposal.ModelCall.Requests < 2 {
 		t.Fatal("real model call evidence is missing")
 	}
+}
+
+// Probe-only tracing records fixed phase labels, elapsed time and safe error
+// categories. It deliberately discards SQL, arguments, DSNs and error prose.
+type hostedProbeEvent struct {
+	Role      string  `json:"role"`
+	Phase     string  `json:"phase"`
+	ElapsedMS float64 `json:"elapsed_ms"`
+	Error     string  `json:"error_category"`
+}
+type hostedProbeTrace struct {
+	mu     sync.Mutex
+	events []hostedProbeEvent
+}
+
+func (p *hostedProbeTrace) snapshot() []hostedProbeEvent {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	return append([]hostedProbeEvent(nil), p.events...)
+}
+
+type hostedProbeConnectionTrace struct {
+	trace *hostedProbeTrace
+	role  string
+}
+type hostedProbeTraceKey struct{}
+type hostedProbeSpan struct {
+	start time.Time
+	phase string
+}
+
+func (p *hostedProbeConnectionTrace) start(ctx context.Context, phase string) context.Context {
+	return context.WithValue(ctx, hostedProbeTraceKey{}, hostedProbeSpan{time.Now(), phase})
+}
+func (p *hostedProbeConnectionTrace) end(ctx context.Context, err error) {
+	span, ok := ctx.Value(hostedProbeTraceKey{}).(hostedProbeSpan)
+	if !ok {
+		return
+	}
+	event := hostedProbeEvent{p.role, span.phase, float64(time.Since(span.start)) / float64(time.Millisecond), hostedProbeErrorCategory(err)}
+	p.trace.mu.Lock()
+	p.trace.events = append(p.trace.events, event)
+	p.trace.mu.Unlock()
+}
+func (p *hostedProbeConnectionTrace) TraceConnectStart(ctx context.Context, _ pgx.TraceConnectStartData) context.Context {
+	return p.start(ctx, "connect")
+}
+func (p *hostedProbeConnectionTrace) TraceConnectEnd(ctx context.Context, data pgx.TraceConnectEndData) {
+	p.end(ctx, data.Err)
+}
+func (p *hostedProbeConnectionTrace) TraceQueryStart(ctx context.Context, _ *pgx.Conn, data pgx.TraceQueryStartData) context.Context {
+	sql := strings.ToUpper(strings.TrimSpace(data.SQL))
+	phase := "catalog_read"
+	switch {
+	case strings.HasPrefix(sql, "BEGIN"):
+		phase = "begin"
+	case strings.HasPrefix(sql, "COMMIT"):
+		phase = "commit"
+	case strings.HasPrefix(sql, "ROLLBACK"):
+		phase = "rollback"
+	case strings.HasPrefix(sql, "SET "):
+		phase = "settings"
+	case strings.HasPrefix(sql, "LOCK TABLE"):
+		phase = "table_lock"
+	case strings.HasPrefix(sql, "EXPLAIN"):
+		phase = "measured_plan"
+	case strings.Contains(sql, "MOST_COMMON_FREQS"):
+		phase = "distribution_statistics"
+	case strings.Contains(sql, "JOIN PG_CLASS CP"):
+		phase = "fixture_ownership"
+	case strings.Contains(sql, "COUNT(*)=6"):
+		phase = "fixture_shape"
+	case strings.Contains(sql, "INDNKEYATTS=1"):
+		phase = "single_index_identity"
+	case strings.Contains(sql, "INDNKEYATTS=2"):
+		phase = "joint_index_identity"
+	case strings.Contains(sql, "LAST_ANALYZE >"):
+		phase = "current_correlation"
+	}
+	return p.start(ctx, phase)
+}
+func (p *hostedProbeConnectionTrace) TraceQueryEnd(ctx context.Context, _ *pgx.Conn, data pgx.TraceQueryEndData) {
+	p.end(ctx, data.Err)
+}
+func (p *hostedProbeConnectionTrace) TraceBatchStart(ctx context.Context, _ *pgx.Conn, _ pgx.TraceBatchStartData) context.Context {
+	return p.start(ctx, "measurement_batch")
+}
+func (p *hostedProbeConnectionTrace) TraceBatchQuery(context.Context, *pgx.Conn, pgx.TraceBatchQueryData) {
+}
+func (p *hostedProbeConnectionTrace) TraceBatchEnd(ctx context.Context, _ *pgx.Conn, data pgx.TraceBatchEndData) {
+	p.end(ctx, data.Err)
+}
+func hostedProbeErrorCategory(err error) string {
+	if err == nil {
+		return "none"
+	}
+	if errors.Is(err, context.DeadlineExceeded) {
+		return "deadline"
+	}
+	if errors.Is(err, context.Canceled) {
+		return "canceled"
+	}
+	var pgerr *pgconn.PgError
+	if errors.As(err, &pgerr) {
+		switch pgerr.Code {
+		case "57014":
+			return "statement_canceled"
+		case "55P03":
+			return "lock_unavailable"
+		case "42501":
+			return "permission_denied"
+		case "25006":
+			return "read_only_violation"
+		default:
+			return "postgres_error"
+		}
+	}
+	if pgconn.Timeout(err) {
+		return "network_timeout"
+	}
+	if errors.Is(err, pgx.ErrNoRows) {
+		return "missing_catalog_row"
+	}
+	return "validation_or_transport_error"
+}
+func logHostedProbeFailure(t *testing.T, stage string, start time.Time, err error, trace *hostedProbeTrace) {
+	t.Helper()
+	raw, marshalErr := json.Marshal(map[string]any{"check": "readonly_requested_evidence", "failed_stage": stage, "stage_elapsed_ms": float64(time.Since(start)) / float64(time.Millisecond), "error_category": hostedProbeErrorCategory(err), "database_phases": trace.snapshot()})
+	if marshalErr == nil {
+		t.Log(string(raw))
+	}
+	t.Fatal("hosted requested-evidence probe failed; see sanitized phase report")
 }

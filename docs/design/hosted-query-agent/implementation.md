@@ -361,9 +361,9 @@ Tasks 27–29 completed for the explicitly bounded diagnostic slice. Sonnet pass
 **Files:** index policy/trial/catalog/sample and queued fixture code in internal/hostedquery; matching investigator/graph.ts and diagnostic schemas/Go bridge; focused compound files/tests. The compound owner coordinates changes to shared index and schema files. Controller owns consumer CLI and documentation.
 **Interfaces:** Preserve the existing scalar column identity for old fixtures; represent an optional, exact ordered list of two enrolled column numbers for compound evidence/proposals. Missing lists retain old behavior. The model cannot supply SQL or arbitrary column names. Carry ordered identity through Go validation, TypeScript, saved evidence, proposal checks and recovery. Expose the new fixture/read/dispatch entry points to the controller before integration.
 **Verification:** Tests must reject reversed/missing/mismatched keys, unsupported shapes, stale evidence, equivalent existing indexes, foreign objects and ambiguous recovery. Prove an actual two-column query needs the combined index and verify protected traffic. Local PostgreSQL and real Sonnet qualification are distinct required evidence.
-- [ ] Add failing identity/policy/catalog/recovery tests, then implement the ordered contract and exact Go construction.
-- [ ] Add an owned two-column fixture and before/after/recovery tests without broadening privileges or weakening benefit gates.
-- [ ] Verify Go race/integration and TypeScript tests/typecheck, obtain fresh review, and commit.
+- [x] Add failing identity/policy/catalog/recovery tests, then implement the ordered contract and exact Go construction.
+- [x] Add an owned two-column fixture and before/after/recovery tests without broadening privileges or weakening benefit gates.
+- [x] Verify Go race/integration and TypeScript tests/typecheck, obtain fresh review, and commit.
 
 ### Task 33: Planner repair evidence readers
 
@@ -371,9 +371,9 @@ Tasks 27–29 completed for the explicitly bounded diagnostic slice. Sonnet pass
 **Files:** New internal/hostedquery/diagnostic_planner_readers.go and focused tests only; existing planner helpers may be called only if bounded and read-only. Do not modify shared schemas, factory or consumer CLI.
 **Interfaces:** Export AnalyzeDiagnosticEvidence(state *pgx.Conn, config *pgx.ConnConfig, route, fixture string) DiagnosticEvidenceReader and StatisticsDiagnosticEvidence with the same signature. Inputs remain tool name plus already enrolled IndexEvidence. Return unavailable for unsupported tools. Read fresh measured/catalog evidence under strict target/journal/object identity, bounded timeout and read-only transaction; never relabel baseline helpers that perform writes as inspection.
 **Verification:** Real local PostgreSQL requests for plan/indexes/analyze/statistics as applicable; revoked/retired/mismatched identity, expired evidence and unsupported tools refuse; existing executor protections remain intact.
-- [ ] Write and run failing requested-evidence and refusal tests.
-- [ ] Implement the two readers and pass focused race-enabled integration tests.
-- [ ] Obtain fresh review and report evidence to controller for integration.
+- [x] Write and run failing requested-evidence and refusal tests.
+- [x] Implement the two readers and pass focused race-enabled integration tests.
+- [x] Obtain fresh review and report evidence to controller for integration.
 
 ### Task 34: Cleanup, memory and scheduling evidence readers
 
@@ -381,8 +381,8 @@ Tasks 27–29 completed for the explicitly bounded diagnostic slice. Sonnet pass
 **Files:** New internal/hostedquery/diagnostic_maintenance_readers.go and focused tests; family-specific helper changes only after coordinating with controller. No shared factory, schemas or CLI edits.
 **Interfaces:** Export VacuumDiagnosticEvidence, MemoryDiagnosticEvidence and CronDiagnosticEvidence with the same factory signature as Task 33. Revalidate exact enrolled table/function/job identity and current journal status before collection. Memory preserves attribution and fixed admitted concurrency/budget. Cron uses exact generation, completed periods, allowed future windows and deadlines. Missing or unsafe observations return unavailable/refusal, never invented healthy evidence.
 **Verification:** Real PostgreSQL bounded read requests, identity drift, retired fixture, unavailable tools and stale evidence. Cron local fake catalogs do not prove actual scheduling; retain real hosted scheduler qualification requirement.
-- [ ] Write failing evidence/refusal tests, implement readers, and run focused race-enabled integration checks.
-- [ ] Obtain fresh review and report evidence to controller.
+- [x] Write failing evidence/refusal tests, implement readers, and run focused race-enabled integration checks.
+- [x] Obtain fresh review and report evidence to controller.
 
 ### Task 35: Integrate and qualify all diagnostic routes
 
@@ -390,7 +390,7 @@ Tasks 27–29 completed for the explicitly bounded diagnostic slice. Sonnet pass
 **Files:** cmd/pooltune-consumer/main.go and tests; internal/graphrunner/consumer.go/tests if needed; existing staging traffic drivers; design/status/results/progress records.
 **Interfaces:** Each fixture selects its exact reader and existing guarded dispatcher; no diagnostic path bypasses permissions, admission or action journal. Exactly one repair route is selected. Reuse sufficient initial evidence. Additional requests use the matching live reader.
 **Verification:** Run affected Go/TypeScript suites, then serial Railway/Rookery qualification with real Sonnet for compound index and all five connections. Include healthy/unsupported controls, at least one actually requested live observation, queued restart/recovery, before/after reads/writes, model/reader/action/verification timing, cleanup and public-index preservation. Preserve failures. Missing hosted checks remain incomplete.
-- [ ] Add failing route-selection/adapter tests; connect each supported reader without weakening fixture scope.
-- [ ] Run local integration and fresh broad review; fix material findings before deployment.
+- [x] Add failing route-selection/adapter tests; connect each supported reader without weakening fixture scope.
+- [x] Run local integration and fresh broad review; fix material findings before deployment.
 - [ ] Deploy reviewed source to existing Railway staging and run repair trials serially against owned Rookery fixtures.
 - [ ] Update map with only demonstrated scope, document trade-offs and results, commit locally and present final human review.

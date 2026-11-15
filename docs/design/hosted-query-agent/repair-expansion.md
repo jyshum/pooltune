@@ -1,6 +1,6 @@
 # Compound indexes and the remaining investigator connections
 
-Status: implementation and local qualification in progress. Hosted results will be recorded separately; this document does not claim production readiness.
+Status: implementation and local qualification complete; hosted qualification in progress. This document does not claim production readiness.
 
 ## The problem this build solves
 
@@ -33,10 +33,48 @@ Implementation and isolated local tests ran in parallel. Hosted repair trials st
 
 ## Remaining work in this batch
 
-Finish recovery review, qualify each connected path with real Sonnet in Railway against Rookery, record read/write outcomes and timing breakdowns, verify cleanup, and update map colors only to match demonstrated scope. General customer onboarding, permissions, dashboard, sign-in and operating controls remain separate roadmap work.
+Qualify each connected path with real Sonnet in Railway against Rookery, record read/write outcomes and timing breakdowns, verify cleanup, and update map colors only to match demonstrated scope. Source and recovery reviews are complete. General customer onboarding, permissions, dashboard, sign-in and operating controls remain separate roadmap work.
 
 ## First hosted finding: the test disabled a useful PostgreSQL plan
 
 The first compound run failed before repair. Its supposedly healthy query was still slow because an inherited test setting disabled bitmap index access. PostgreSQL can use an index to gather matching row locations, then fetch those rows together; that is a valid index plan, not a failed repair.
 
-The detector correctly flagged the actual slowdown. Go recognized the existing index and made no change. A local reproduction changed only the disabled bitmap setting and reduced examined rows from 100,000 to one. The corrected driver preserves PostgreSQL's normal bitmap choice for the compound case. Thresholds and fixture data are unchanged. The failed run and cleanup evidence remain recorded; a new hosted run is required.
+The detector correctly flagged the actual slowdown. Go recognized the existing index and made no change. A local reproduction changed only the disabled bitmap setting and reduced examined rows from 100,000 to one. The corrected driver preserves PostgreSQL's normal bitmap choice for the compound case. Thresholds and fixture data are unchanged. The corrected hosted run passed; the failed run and cleanup evidence remain recorded.
+
+## Live results in progress
+
+These trials use real Sonnet through the diagnostic graph, the hosted consumer and Go repair tools. Normal parameterized traffic creates the investigation. Each row is one owned synthetic case, not a reliability estimate across customer databases.
+
+| Repair | Query database time before → after | Detect sustained slowdown | Queued job → saved result | Claude within that time |
+|---|---:|---:|---:|---:|
+| Two-column index | 11.370 → 0.036 ms | 12.113 s | 16.965 s | 3.216 s |
+| Refresh stale statistics | 10.260 → 0.024 ms | 12.836 s | 12.957 s | 3.228 s |
+| Describe relationships between columns | 13.520 → 0.276 ms | 8.783 s | 17.245 s | 5.423 s |
+| Targeted cleanup | 38.844 → 8.627 ms | 8.710 s | 16.295 s | 3.326 s |
+| Function-scoped memory | 220.592 → 147.383 ms | 12.851 s | 20.550 s | 5.594 s |
+
+Each used one model call and no extra evidence requests because the initial observations were sufficient. Healthy traffic and brief spikes created no jobs. Each completed 1,974 traffic requests except the lower-rate memory case, which completed 1,057. All had zero errors or misses, removed their fixtures and preserved the public-index fingerprint. Raw reports retain separate protected-read/write samples and stage timings.
+
+Continuous committed writes target a separate protected test table. Controlled before/after writes for ANALYZE and richer statistics change the candidate inside rolled-back transactions; cleanup's protected writes target the healthy table. These samples do not qualify heavy concurrent customer writes against the repaired table. Calculated queue/publication residuals are not pure queue-wait measurements.
+
+The worker is in Railway's `europe-west4-drams3a` region while the Rookery route is `aws-0-us-west-2`. Client request times around 150 ms therefore remain much larger than database execution time. Matching the worker and database locations is a later deployment optimization. The location stays fixed during this batch; these results do not claim to remove network delay.
+
+## Where the worker time went
+
+These are seconds within the successful worker attempt. Investigation includes Claude and graph overhead. Apply includes its checks and connection work. The statistics tool reports apply and verification together. Setup and deployment are excluded. Detection happens before these stages; result publication also contributes to the queued-job total above.
+
+| Repair | Baseline evidence | Investigation | Apply | Verify | Other attempt work |
+|---|---:|---:|---:|---:|---:|
+| Two-column index | 3.560 | 3.721 | 1.481 | 3.213 | 3.925 |
+| Refresh statistics | 1.707 | 3.670 | 1.549 | 1.671 | 3.305 |
+| Joint statistics | 2.823 | 5.870 | 4.084 combined | included | 3.501 |
+| Cleanup | 2.136 | 3.829 | 3.914 | 2.008 | 3.431 |
+| Function memory | 5.051 | 6.039 | 1.279 | 4.136 | 3.041 |
+
+“Other attempt work” is subtraction, covering remaining setup, validation and coordination; it is not a separately instrumented stage. The detailed [summary](evidence/repair-expansion/summary.json) and raw reports retain original precision.
+
+## Monitoring cost and limits
+
+Each non-Cron trial compared two 12-second windows with monitoring off and two with it on. The extra selected collector statements consumed 2.14–2.26 milliseconds of database execution per second during the on windows. Client p95 values were similar within these short samples; no traffic was missed. This measures those statements, not total database CPU, memory or connection cost, and does not establish a production overhead guarantee.
+
+The conditions are deliberately constructed. Planner-control sessions expose seeded stale or correlated statistics, cleanup uses owned test updates, and memory uses a known spill inside an enrolled function. Passing them proves the mechanism and guarded workflow. Representative customer workloads, heavy writes and all remaining repair variants still need qualification.

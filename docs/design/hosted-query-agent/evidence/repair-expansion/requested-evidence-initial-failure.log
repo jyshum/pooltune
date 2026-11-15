@@ -1,0 +1,5 @@
+=== RUN   TestHostedDiagnosticRequestedEvidence
+    diagnostic_hosted_test.go:92: initial owned plan observation failed
+--- FAIL: TestHostedDiagnosticRequestedEvidence (3.23s)
+FAIL
+QUALIFICATION_EXIT=1

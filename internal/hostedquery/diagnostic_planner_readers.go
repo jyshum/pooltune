@@ -67,21 +67,16 @@ func plannerDiagnosticEvidence(state *pgx.Conn, config *pgx.ConnConfig, route, f
 			defer stop()
 			target.Close(closeCtx)
 		}()
-		err = pgx.BeginTxFunc(ctx, target, pgx.TxOptions{IsoLevel: pgx.RepeatableRead, AccessMode: pgx.ReadOnly}, func(tx pgx.Tx) error {
-			// Match the qualified fixture's planner settings, with a smaller inspection
-			// budget. Locking protects catalog identity for the measured transaction.
-			if _, err := tx.Exec(ctx, "SET LOCAL search_path=pg_catalog; SET LOCAL statement_timeout='750ms'; SET LOCAL lock_timeout='250ms'; SET LOCAL max_parallel_workers_per_gather=0"); err != nil {
-				return err
-			}
-			for _, table := range []string{"candidate", "healthy"} {
-				if _, err := tx.Exec(ctx, "LOCK TABLE ONLY "+qualified(trialSchema(fixture), table)+" IN ACCESS SHARE MODE NOWAIT"); err != nil {
-					return err
-				}
-			}
+		// BEGIN and bounded setup share one exchange. On a partial setup error,
+		// the deferred connection close rolls back the opened transaction and
+		// releases any locks already acquired; no measurement has run yet.
+		setup := "BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY; SET LOCAL search_path=pg_catalog; SET LOCAL statement_timeout='750ms'; SET LOCAL lock_timeout='250ms'; SET LOCAL max_parallel_workers_per_gather=0; "
+		if statistics {
+			setup += "SET LOCAL enable_bitmapscan=off; SET LOCAL random_page_cost=5; "
+		}
+		setup += "LOCK TABLE ONLY " + qualified(trialSchema(fixture), "candidate") + " IN ACCESS SHARE MODE NOWAIT; LOCK TABLE ONLY " + qualified(trialSchema(fixture), "healthy") + " IN ACCESS SHARE MODE NOWAIT"
+		err = pgx.BeginTxFunc(ctx, target, pgx.TxOptions{BeginQuery: setup}, func(tx pgx.Tx) error {
 			if statistics {
-				if _, err := tx.Exec(ctx, "SET LOCAL enable_bitmapscan=off; SET LOCAL random_page_cost=5"); err != nil {
-					return err
-				}
 				if err := validateStatisticsFixture(ctx, tx, fixture, expected, false); err != nil {
 					return err
 				}
@@ -97,16 +92,10 @@ func plannerDiagnosticEvidence(state *pgx.Conn, config *pgx.ConnConfig, route, f
 					return errors.New("expected the existing fixture lookup index")
 				}
 			}
-			catalog, err := collectIndexCatalog(ctx, tx, fixture)
-			if err != nil {
-				return err
-			}
-			if catalog.TableOID != base.TableOID || catalog.Column != base.Column || !catalog.Existing {
-				return errors.New("planner diagnostic catalog identity changed")
-			}
-			out = catalog
-			out.RunID = base.RunID
-			out.Decision = base.Decision
+			// The validators above already proved the exact target OID, column 2
+			// type/name, size limit and valid covering index definition. Re-reading
+			// those same catalog facts would add a network round trip, not evidence.
+			out = IndexEvidence{TableOID: expected.Candidate, Column: 2, Label: "lookup", Existing: true, RunID: base.RunID, Decision: base.Decision}
 			if tool != "indexes" {
 				schema := trialSchema(fixture)
 				inputs := []statisticsInput{{Lookup: analyzeInput, FirstID: analyzeInput, Rows: 1}}
@@ -116,15 +105,26 @@ func plannerDiagnosticEvidence(state *pgx.Conn, config *pgx.ConnConfig, route, f
 						inputs = statisticsCases[:]
 					}
 				}
-				var cases []AnalyzeEvidence
-				for i, input := range inputs {
+				batch := &pgx.Batch{}
+				for _, input := range inputs {
 					query := analyzeCandidate(schema)
 					args := []any{input.Lookup}
 					if statistics {
 						query = statisticsLookup(schema)
 						args = append(args, input.Padding)
 					}
-					measured, err := readLookupPlan(ctx, tx, "EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON, VERBOSE, TIMING OFF) "+query, args...)
+					batch.Queue("EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON, VERBOSE, TIMING OFF) "+query, args...)
+				}
+				if tool == "analyze" {
+					// Read the exact recorded frequency alongside its measured plan.
+					// A multi-valued statistic is not treated as stale evidence.
+					batch.Queue(`SELECT (SELECT most_common_freqs[1]::float8 FROM pg_catalog.pg_stats WHERE schemaname=$1 AND tablename='candidate' AND attname='lookup' AND NOT inherited AND array_length(most_common_freqs,1)=1 AND most_common_vals::text=$2)`, schema, fmt.Sprintf("{%d}", inputs[0].Lookup))
+				}
+				results := tx.SendBatch(ctx, batch)
+				defer results.Close()
+				var cases []AnalyzeEvidence
+				for i, input := range inputs {
+					measured, err := scanTrialPlan(results.QueryRow())
 					if err != nil {
 						return err
 					}
@@ -139,11 +139,12 @@ func plannerDiagnosticEvidence(state *pgx.Conn, config *pgx.ConnConfig, route, f
 				}
 				if tool == "analyze" {
 					out.Analyze = &cases[0]
-					// A singleton recorded frequency can prove the old distribution for this
-					// exact value. A multi-valued statistic is not treated as stale evidence.
-					if err := tx.QueryRow(ctx, `SELECT (SELECT most_common_freqs[1]::float8 FROM pg_catalog.pg_stats WHERE schemaname=$1 AND tablename='candidate' AND attname='lookup' AND NOT inherited AND array_length(most_common_freqs,1)=1 AND most_common_vals::text=$2)`, schema, fmt.Sprintf("{%d}", inputs[0].Lookup)).Scan(&out.Analyze.SampledValueFraction); err != nil {
+					if err := results.QueryRow().Scan(&out.Analyze.SampledValueFraction); err != nil {
 						return err
 					}
+				}
+				if err := results.Close(); err != nil {
+					return err
 				}
 				if tool == "statistics" {
 					correlated, err := currentCorrelation(ctx, tx, qualified(schema, "candidate"), expected.Candidate)

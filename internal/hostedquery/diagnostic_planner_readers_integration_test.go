@@ -200,10 +200,105 @@ func checkPlannerReaderDoesNotBlockWrites(t *testing.T, ctx context.Context, cfg
 		t.Fatal(err)
 	}
 	defer ddl.Rollback(ctx)
-	if _, err := ddl.Exec(ctx, "LOCK TABLE ONLY "+qualified(schema, "candidate")+" IN ACCESS EXCLUSIVE MODE"); err != nil {
+	if _, err := ddl.Exec(ctx, "LOCK TABLE ONLY "+qualified(schema, "healthy")+" IN ACCESS EXCLUSIVE MODE"); err != nil {
 		t.Fatal(err)
 	}
 	if _, ok, err := read(ctx, "indexes", base); ok || err == nil {
 		t.Fatal("reader ignored concurrent DDL lock")
 	}
+	// Candidate was locked before setup failed on healthy. The failed reader
+	// must close/rollback its partial transaction rather than leak that lock.
+	if _, err := ddl.Exec(ctx, "LOCK TABLE ONLY "+qualified(schema, "candidate")+" IN ACCESS EXCLUSIVE MODE NOWAIT"); err != nil {
+		t.Fatalf("partial setup leaked a table lock: %v", err)
+	}
 }
+
+// Serial client/server exchanges used to exhaust the reader's 2 s budget before
+// measuring the query. Delay actual PostgreSQL calls to represent cross-region
+// connection/round-trip costs; the database and every guard still execute.
+func TestPlannerDiagnosticReadersFitBoundedCrossRegionRoundTrips(t *testing.T) {
+	for _, statistics := range []bool{false, true} {
+		name := "analyze"
+		if statistics {
+			name = "statistics"
+		}
+		t.Run(name, func(t *testing.T) {
+			ctx, cfg, _ := testpg.Start(t, "-c", "compute_query_id=on")
+			db, err := pgx.ConnectConfig(ctx, cfg)
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer db.Close(ctx)
+			create := CreateAnalyzeFixture
+			factory := AnalyzeDiagnosticEvidence
+			tools := []string{"indexes", "plan", "analyze"}
+			if statistics {
+				create = CreateStatisticsFixture
+				factory = StatisticsDiagnosticEvidence
+				tools = append(tools, "statistics")
+			}
+			f, err := create(ctx, db, db, "local")
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer func() {
+				if err := RemoveConsumerFixture(ctx, db, db, "local", f.ID); err != nil {
+					t.Error(err)
+				}
+			}()
+			objects, err := expectedFixture(ctx, db, f.ID)
+			if err != nil {
+				t.Fatal(err)
+			}
+			delayed := cfg.Copy()
+			delayed.Tracer = plannerRoundTripDelay{}
+			delayed.RuntimeParams["default_transaction_read_only"] = "on"
+			read := factory(db, delayed, "local", f.ID)
+			for _, tool := range tools {
+				base := IndexEvidence{RunID: "roundtrip-bound", At: time.Now().UTC(), Decision: Investigate, TableOID: objects.Candidate, Column: 2, Label: "lookup"}
+				start := time.Now()
+				out, ok, err := read(ctx, tool, base)
+				t.Logf("%s: %s", tool, time.Since(start))
+				if err != nil || !ok {
+					t.Fatalf("bounded cross-region %s read: %v %v", tool, ok, err)
+				}
+				if out.TableOID != objects.Candidate || !out.Existing {
+					t.Fatal("missing validated catalog")
+				}
+				if tool == "analyze" && out.Analyze == nil {
+					t.Fatal("missing measured estimate")
+				}
+				if tool == "statistics" && (out.Statistics == nil || len(out.Statistics.Cases) != 2 || !out.Statistics.Correlated) {
+					t.Fatal("missing measured joint evidence")
+				}
+			}
+		})
+	}
+}
+
+type plannerRoundTripDelay struct{}
+
+func plannerDelay(ctx context.Context, d time.Duration) {
+	timer := time.NewTimer(d)
+	defer timer.Stop()
+	select {
+	case <-timer.C:
+	case <-ctx.Done():
+	}
+}
+func (plannerRoundTripDelay) TraceConnectStart(ctx context.Context, _ pgx.TraceConnectStartData) context.Context {
+	plannerDelay(ctx, 800*time.Millisecond)
+	return ctx
+}
+func (plannerRoundTripDelay) TraceConnectEnd(context.Context, pgx.TraceConnectEndData) {}
+func (plannerRoundTripDelay) TraceQueryStart(ctx context.Context, _ *pgx.Conn, _ pgx.TraceQueryStartData) context.Context {
+	plannerDelay(ctx, 135*time.Millisecond)
+	return ctx
+}
+func (plannerRoundTripDelay) TraceQueryEnd(context.Context, *pgx.Conn, pgx.TraceQueryEndData) {}
+func (plannerRoundTripDelay) TraceBatchStart(ctx context.Context, _ *pgx.Conn, _ pgx.TraceBatchStartData) context.Context {
+	plannerDelay(ctx, 135*time.Millisecond)
+	return ctx
+}
+func (plannerRoundTripDelay) TraceBatchQuery(context.Context, *pgx.Conn, pgx.TraceBatchQueryData) {}
+func (plannerRoundTripDelay) TraceBatchEnd(context.Context, *pgx.Conn, pgx.TraceBatchEndData)     {}

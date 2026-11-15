@@ -1,0 +1,2032 @@
+{
+  "repair": "vacuum",
+  "investigator_mode": "diagnostic",
+  "phases": [
+    {
+      "name": "monitor_off",
+      "start": "2026-11-15T03:02:29.854Z",
+      "seconds": 11.999770244000002,
+      "counters": [
+        {
+          "query_id": "-2489155424982357020",
+          "calls": 24,
+          "execution_ms": 1.729571,
+          "blocks": 120,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-448647705919724999",
+          "calls": 96,
+          "execution_ms": 811.201464,
+          "blocks": 13344,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "1312737614880083769",
+          "calls": 48,
+          "execution_ms": 1.311971,
+          "blocks": 144,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 96,
+          "completed": 96,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 8.000153173599378,
+          "p50_ms": 151.26825200000167,
+          "p95_ms": 152.31110000000263,
+          "p99_ms": 153.6271990000023,
+          "max_ms": 153.6271990000023,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 48,
+          "completed": 48,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.000076586799689,
+          "p50_ms": 140.4943490000005,
+          "p95_ms": 141.18715300000258,
+          "p99_ms": 141.53678600000057,
+          "max_ms": 141.53678600000057,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 24,
+          "completed": 24,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.0000382933998444,
+          "p50_ms": 149.14615200000117,
+          "p95_ms": 151.05146500000046,
+          "p99_ms": 153.06612400000085,
+          "max_ms": 153.06612400000085,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "monitor_on",
+      "start": "2026-11-15T03:02:43.185Z",
+      "seconds": 11.999833238000003,
+      "counters": [
+        {
+          "query_id": "-2489155424982357020",
+          "calls": 24,
+          "execution_ms": 1.449357,
+          "blocks": 120,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 6,
+          "execution_ms": 28.135808999999426,
+          "blocks": 18,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-448647705919724999",
+          "calls": 96,
+          "execution_ms": 802.567505,
+          "blocks": 13344,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "1312737614880083769",
+          "calls": 48,
+          "execution_ms": 1.0969330000000002,
+          "blocks": 144,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 96,
+          "completed": 96,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 8.000111176211663,
+          "p50_ms": 151.0207190000001,
+          "p95_ms": 152.323293999998,
+          "p99_ms": 164.83023500000127,
+          "max_ms": 164.83023500000127,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 48,
+          "completed": 48,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.000055588105831,
+          "p50_ms": 140.18565999999555,
+          "p95_ms": 141.31815899999492,
+          "p99_ms": 141.59214799999972,
+          "max_ms": 141.59214799999972,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 24,
+          "completed": 24,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.0000277940529156,
+          "p50_ms": 148.7915079999948,
+          "p95_ms": 150.01723999999376,
+          "p99_ms": 158.53630300000077,
+          "max_ms": 158.53630300000077,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "monitor_on",
+      "start": "2026-11-15T03:02:55.505Z",
+      "seconds": 11.999290760000003,
+      "counters": [
+        {
+          "query_id": "-2489155424982357020",
+          "calls": 24,
+          "execution_ms": 1.5357010000000004,
+          "blocks": 120,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 6,
+          "execution_ms": 23.18246999999974,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-448647705919724999",
+          "calls": 96,
+          "execution_ms": 815.1656149999999,
+          "blocks": 13344,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "1312737614880083769",
+          "calls": 48,
+          "execution_ms": 1.231109,
+          "blocks": 144,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 96,
+          "completed": 96,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 8.000472854613948,
+          "p50_ms": 151.16148100000282,
+          "p95_ms": 152.19180700000288,
+          "p99_ms": 154.99051899999904,
+          "max_ms": 154.99051899999904,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 48,
+          "completed": 48,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.000236427306974,
+          "p50_ms": 140.60871600000246,
+          "p95_ms": 141.59835999999632,
+          "p99_ms": 148.24039800000173,
+          "max_ms": 148.24039800000173,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 24,
+          "completed": 24,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.000118213653487,
+          "p50_ms": 149.14926099999866,
+          "p95_ms": 149.76768399999855,
+          "p99_ms": 151.03705300000001,
+          "max_ms": 151.03705300000001,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "monitor_off",
+      "start": "2026-11-15T03:03:07.826Z",
+      "seconds": 11.999754084999994,
+      "counters": [
+        {
+          "query_id": "-2489155424982357020",
+          "calls": 24,
+          "execution_ms": 1.4657579999999992,
+          "blocks": 121,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-448647705919724999",
+          "calls": 96,
+          "execution_ms": 814.6769079999999,
+          "blocks": 13344,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "1312737614880083769",
+          "calls": 48,
+          "execution_ms": 1.1356129999999998,
+          "blocks": 144,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 96,
+          "completed": 96,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 8.000163946693084,
+          "p50_ms": 151.05617699999857,
+          "p95_ms": 152.13100300000224,
+          "p99_ms": 152.52862800000003,
+          "max_ms": 152.52862800000003,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 48,
+          "completed": 48,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.000081973346542,
+          "p50_ms": 140.32415899999614,
+          "p95_ms": 140.89204400000017,
+          "p99_ms": 143.59612899999775,
+          "max_ms": 143.59612899999775,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 24,
+          "completed": 24,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.000040986673271,
+          "p50_ms": 149.03202099999908,
+          "p95_ms": 149.8931059999959,
+          "p99_ms": 150.31156300000293,
+          "max_ms": 150.31156300000293,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "healthy_history",
+      "start": "2026-11-15T03:03:20.152Z",
+      "seconds": 23.999944288,
+      "counters": [
+        {
+          "query_id": "-2489155424982357020",
+          "calls": 48,
+          "execution_ms": 2.864619000000001,
+          "blocks": 240,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 12,
+          "execution_ms": 50.168241999999736,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-448647705919724999",
+          "calls": 192,
+          "execution_ms": 1624.1632169999998,
+          "blocks": 26688,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "1312737614880083769",
+          "calls": 96,
+          "execution_ms": 2.3081060000000004,
+          "blocks": 288,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 192,
+          "completed": 192,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 8.000018570709775,
+          "p50_ms": 150.96381799998926,
+          "p95_ms": 152.24436699999205,
+          "p99_ms": 153.1644219999871,
+          "max_ms": 154.0134829999879,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 96,
+          "completed": 96,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.000009285354888,
+          "p50_ms": 140.20529699999315,
+          "p95_ms": 141.4658369999961,
+          "p99_ms": 141.74379999999655,
+          "max_ms": 141.74379999999655,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 48,
+          "completed": 48,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.000004642677444,
+          "p50_ms": 148.8517729999876,
+          "p95_ms": 149.47795399998722,
+          "p99_ms": 150.17370599998685,
+          "max_ms": 150.17370599998685,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "brief_spike",
+      "start": "2026-11-15T03:03:46.962Z",
+      "seconds": 2.9996358629999884,
+      "counters": [
+        {
+          "query_id": "-2489155424982357020",
+          "calls": 6,
+          "execution_ms": 0.48806699999999914,
+          "blocks": 30,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 2,
+          "execution_ms": 19.369945000011285,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-448647705919724999",
+          "calls": 24,
+          "execution_ms": 1429.4800510000005,
+          "blocks": 1433727,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "1312737614880083769",
+          "calls": 12,
+          "execution_ms": 0.4221579999999996,
+          "blocks": 36,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 24,
+          "completed": 24,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 8.000971149877232,
+          "p50_ms": 196.6094199999934,
+          "p95_ms": 238.78685599999153,
+          "p99_ms": 273.6126479999948,
+          "max_ms": 273.6126479999948,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 12,
+          "completed": 12,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.000485574938616,
+          "p50_ms": 140.1317710000003,
+          "p95_ms": 140.88185299999896,
+          "p99_ms": 140.88185299999896,
+          "max_ms": 140.88185299999896,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 6,
+          "completed": 6,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.000242787469308,
+          "p50_ms": 148.47460399998818,
+          "p95_ms": 150.67722199999844,
+          "p99_ms": 150.67722199999844,
+          "max_ms": 150.67722199999844,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "spike_recovery",
+      "start": "2026-11-15T03:03:50.810Z",
+      "seconds": 23.999421950000002,
+      "counters": [
+        {
+          "query_id": "-2489155424982357020",
+          "calls": 48,
+          "execution_ms": 3.1509680000000007,
+          "blocks": 240,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 12,
+          "execution_ms": 45.48452299999008,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-448647705919724999",
+          "calls": 192,
+          "execution_ms": 1655.78245900001,
+          "blocks": 53184,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "1312737614880083769",
+          "calls": 96,
+          "execution_ms": 2.263673,
+          "blocks": 288,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 192,
+          "completed": 192,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 8.000192687974303,
+          "p50_ms": 151.24684500000149,
+          "p95_ms": 152.55540199999814,
+          "p99_ms": 155.1960090000066,
+          "max_ms": 156.05866199999582,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 96,
+          "completed": 96,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.000096343987152,
+          "p50_ms": 140.272570000001,
+          "p95_ms": 140.86097500000324,
+          "p99_ms": 141.67599200000404,
+          "max_ms": 141.67599200000404,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 48,
+          "completed": 48,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.000048171993576,
+          "p50_ms": 148.52230899999267,
+          "p95_ms": 149.1480889999948,
+          "p99_ms": 150.05774800000654,
+          "max_ms": 150.05774800000654,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "sustained",
+      "start": "2026-11-15T03:04:16.706Z",
+      "seconds": 9.999564092000016,
+      "counters": [
+        {
+          "query_id": "-2489155424982357020",
+          "calls": 20,
+          "execution_ms": 1.3002059999999993,
+          "blocks": 100,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 5,
+          "execution_ms": 27.522494000000734,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-448647705919724999",
+          "calls": 80,
+          "execution_ms": 3107.5240139999905,
+          "blocks": 4080341,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "1312737614880083769",
+          "calls": 40,
+          "execution_ms": 0.7441800000000001,
+          "blocks": 120,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 80,
+          "completed": 80,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 8.000348741601913,
+          "p50_ms": 179.89341400002013,
+          "p95_ms": 185.6561900000088,
+          "p99_ms": 235.8342990000092,
+          "max_ms": 235.8342990000092,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.0001743708009565,
+          "p50_ms": 140.05729900000733,
+          "p95_ms": 141.75952900000266,
+          "p99_ms": 144.19422599999234,
+          "max_ms": 144.19422599999234,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.0000871854004783,
+          "p50_ms": 148.40822300000582,
+          "p95_ms": 148.87588500001584,
+          "p99_ms": 149.3946710000164,
+          "max_ms": 149.3946710000164,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "sustained",
+      "start": "2026-11-15T03:04:27.027Z",
+      "seconds": 9.999914285999985,
+      "counters": [
+        {
+          "query_id": "2601172527914330184",
+          "calls": 10,
+          "execution_ms": 1.766403,
+          "blocks": 59,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "2537991909865869828",
+          "calls": 1,
+          "execution_ms": 0.023101,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-2489155424982357020",
+          "calls": 20,
+          "execution_ms": 1.2188149999999993,
+          "blocks": 100,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 5,
+          "execution_ms": 21.689922999999908,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-1573318141191954061",
+          "calls": 2,
+          "execution_ms": 0.222523,
+          "blocks": 35,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-448647705919724999",
+          "calls": 81,
+          "execution_ms": 3127.743559999999,
+          "blocks": 4072437,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "5030391439577165428",
+          "calls": 10,
+          "execution_ms": 411.178681,
+          "blocks": 502820,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "1312737614880083769",
+          "calls": 40,
+          "execution_ms": 0.7632320000000004,
+          "blocks": 144,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "7083834994003519207",
+          "calls": 1,
+          "execution_ms": 3.7568759999999997,
+          "blocks": 40,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-5413798022762920764",
+          "calls": 1,
+          "execution_ms": 0.03302,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-1737011077062663263",
+          "calls": 10,
+          "execution_ms": 2.879445,
+          "blocks": 123,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 80,
+          "completed": 80,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 8.000068571787768,
+          "p50_ms": 180.12155700000585,
+          "p95_ms": 189.44823700000416,
+          "p99_ms": 201.35053399999742,
+          "max_ms": 201.35053399999742,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.000034285893884,
+          "p50_ms": 140.1038309999858,
+          "p95_ms": 141.4262189999863,
+          "p99_ms": 142.30960399998003,
+          "max_ms": 142.30960399998003,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.000017142946942,
+          "p50_ms": 148.49356400000397,
+          "p95_ms": 149.36632999998983,
+          "p99_ms": 151.227933999995,
+          "max_ms": 151.227933999995,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "sustained",
+      "start": "2026-11-15T03:04:37.348Z",
+      "seconds": 9.999925420999993,
+      "counters": [
+        {
+          "query_id": "2601172527914330184",
+          "calls": 10,
+          "execution_ms": 1.248246,
+          "blocks": 40,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "2537991909865869828",
+          "calls": 1,
+          "execution_ms": 0.058351,
+          "blocks": 6,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-2489155424982357020",
+          "calls": 20,
+          "execution_ms": 1.241137000000002,
+          "blocks": 100,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 6,
+          "execution_ms": 23.208961000000272,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-448647705919724999",
+          "calls": 81,
+          "execution_ms": 1212.726842,
+          "blocks": 822437,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-2325423520252942568",
+          "calls": 1,
+          "execution_ms": 38.744091,
+          "blocks": 7880,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "5030391439577165428",
+          "calls": 11,
+          "execution_ms": 142.81950899999998,
+          "blocks": 53092,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "1312737614880083769",
+          "calls": 40,
+          "execution_ms": 0.9550929999999997,
+          "blocks": 160,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-5413798022762920764",
+          "calls": 1,
+          "execution_ms": 0.011730999999999998,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-1737011077062663263",
+          "calls": 10,
+          "execution_ms": 1.7628609999999996,
+          "blocks": 140,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 80,
+          "completed": 80,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 8.00005966364497,
+          "p50_ms": 151.61013600000297,
+          "p95_ms": 183.75028399997973,
+          "p99_ms": 190.4672980000032,
+          "max_ms": 190.4672980000032,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 40,
+          "completed": 40,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.000029831822485,
+          "p50_ms": 140.21244099998148,
+          "p95_ms": 141.46101499997894,
+          "p99_ms": 141.70969799999148,
+          "max_ms": 141.70969799999148,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 20,
+          "completed": 20,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.0000149159112426,
+          "p50_ms": 148.2996629999834,
+          "p95_ms": 149.3823669999838,
+          "p99_ms": 150.93039799999679,
+          "max_ms": 150.93039799999679,
+          "error_codes": []
+        }
+      }
+    },
+    {
+      "name": "after_repair",
+      "start": "2026-11-15T03:04:47.671Z",
+      "seconds": 11.999249628999998,
+      "counters": [
+        {
+          "query_id": "-2489155424982357020",
+          "calls": 24,
+          "execution_ms": 1.4730869999999996,
+          "blocks": 120,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-8776838693548735847",
+          "calls": 6,
+          "execution_ms": 23.559386999999333,
+          "blocks": 0,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "-448647705919724999",
+          "calls": 96,
+          "execution_ms": 828.1892580000003,
+          "blocks": 26592,
+          "temp_bytes": 0
+        },
+        {
+          "query_id": "1312737614880083769",
+          "calls": 48,
+          "execution_ms": 1.2064629999999994,
+          "blocks": 192,
+          "temp_bytes": 0
+        }
+      ],
+      "requests": {
+        "target": {
+          "offered": 96,
+          "completed": 96,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 8.000500278616215,
+          "p50_ms": 151.22818899998674,
+          "p95_ms": 152.45911299998988,
+          "p99_ms": 153.26415199998883,
+          "max_ms": 153.26415199998883,
+          "error_codes": []
+        },
+        "healthy": {
+          "offered": 48,
+          "completed": 48,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 4.000250139308108,
+          "p50_ms": 140.078577999986,
+          "p95_ms": 141.4600849999988,
+          "p99_ms": 141.57350900000893,
+          "max_ms": 141.57350900000893,
+          "error_codes": []
+        },
+        "write": {
+          "offered": 24,
+          "completed": 24,
+          "errors": 0,
+          "missed": 0,
+          "completed_per_second": 2.000125069654054,
+          "p50_ms": 148.55564700000104,
+          "p95_ms": 149.88557600000058,
+          "p99_ms": 149.91559399999096,
+          "max_ms": 149.91559399999096,
+          "error_codes": []
+        }
+      }
+    }
+  ],
+  "public_indexes_before": {
+    "count": 12,
+    "hash": "f56ad07a58d2b60570ee6b64a8978936"
+  },
+  "fixture": "40f33f19c12dd6590174177a",
+  "target_query_id": "-448647705919724999",
+  "healthy_calibration_ms": [
+    9.383,
+    9.383,
+    9.365,
+    10.889,
+    10.019,
+    9.489,
+    9.606,
+    9.245,
+    10.308,
+    9.299
+  ],
+  "benefit_gates": {
+    "minimum_ms": 5,
+    "minimum_fraction": 0.2,
+    "noise_multiple": 3,
+    "minimum_heap_reduction": 0.5
+  },
+  "target_calls_per_second": 8,
+  "objective_ms": 14.547899999999998,
+  "spike_database_mean_ms": 59.56166879166668,
+  "spike_jobs": [],
+  "slowdown_at": "2026-11-15T03:04:16.546Z",
+  "jobs": [
+    {
+      "id": "126",
+      "created_at": "2026-11-15T03:04:25.256Z",
+      "finished_at": "2026-11-15T03:04:41.551Z",
+      "result": {
+        "job_id": 126,
+        "vacuum": {
+          "after": {
+            "plan": "Index Only Scan",
+            "scan_rows": 50000,
+            "read_calls": 10,
+            "read_mad_ms": 0.1429999999999998,
+            "write_calls": 10,
+            "heap_fetches": 0,
+            "read_mean_ms": 9.444799999999999,
+            "write_mad_ms": 0.013499999999999998,
+            "examined_rows": 50000,
+            "returned_rows": 50000,
+            "write_mean_ms": 0.09599999999999999,
+            "estimated_rows": 0,
+            "healthy_mad_ms": 0.0020000000000000018,
+            "blocks_per_read": 277,
+            "healthy_mean_ms": 0.030500000000000006,
+            "healthy_read_calls": 10,
+            "estimate_error_ratio": 0
+          },
+          "before": {
+            "plan": "Index Only Scan",
+            "scan_rows": 50000,
+            "read_calls": 10,
+            "read_mad_ms": 1.5154999999999994,
+            "write_calls": 10,
+            "heap_fetches": 50000,
+            "read_mean_ms": 40.94070000000001,
+            "write_mad_ms": 0.019500000000000003,
+            "examined_rows": 50000,
+            "returned_rows": 50000,
+            "write_mean_ms": 0.18810000000000002,
+            "estimated_rows": 0,
+            "healthy_mad_ms": 0.0025000000000000022,
+            "blocks_per_read": 50277,
+            "healthy_mean_ms": 0.032900000000000006,
+            "healthy_read_calls": 10,
+            "estimate_error_ratio": 0
+          },
+          "job_id": 126,
+          "reason": "visibility work and measured query latency improved with no sampled regression",
+          "fixture": "40f33f19c12dd6590174177a",
+          "outcome": "improved_tested_inputs",
+          "evidence": {
+            "plan": {
+              "node": "Index Only Scan",
+              "examined_rows": 50000,
+              "returned_rows": 50000,
+              "shared_blocks": 50277
+            },
+            "run_id": "worker-126-1",
+            "vacuum": {
+              "scan_rows": 50000,
+              "heap_fetches": 50000,
+              "conditions_clear": true
+            },
+            "decision": "investigate",
+            "table_oid": 27234,
+            "observed_at": "2026-11-15T03:04:31.641199826Z",
+            "column_number": 2,
+            "lookup_column": "lookup",
+            "covering_index": true
+          },
+          "proposal": {
+            "reason": "Covering index Index Only Scan shows 50000 heap fetches for 50000 scan rows with clear conditions, meeting the vacuum criteria, and the index cause is ruled out.",
+            "repair": "vacuum",
+            "run_id": "worker-126-1",
+            "outcome": "propose",
+            "table_oid": 27234,
+            "diagnostic": {
+              "reads": 0,
+              "history": [
+                {
+                  "tools": [],
+                  "action": "propose",
+                  "reason": "Covering index Index Only Scan shows 50000 heap fetches for 50000 scan rows with clear conditions, meeting the vacuum criteria, and the index cause is ruled out.",
+                  "repair": "vacuum",
+                  "assessments": [
+                    {
+                      "cause": "vacuum",
+                      "reason": "Index Only Scan with covering index; 50000 heap fetches over 50000 scan rows (ratio 1.0) and conditions clear.",
+                      "assessment": "supported",
+                      "blocks_decision": false
+                    },
+                    {
+                      "cause": "index",
+                      "reason": "A covering index already exists and the plan uses an Index Only Scan, so a missing index is ruled out.",
+                      "assessment": "rejected",
+                      "blocks_decision": false
+                    },
+                    {
+                      "cause": "analyze",
+                      "reason": "Examined and returned rows are both 50000, so no estimate error or stale distribution is shown; unrelated here.",
+                      "assessment": "rejected",
+                      "blocks_decision": false
+                    }
+                  ]
+                }
+              ],
+              "tool_ms": 0,
+              "model_ms": 3325.7788649999998,
+              "total_ms": 3828.781693,
+              "model_calls": 1,
+              "stop_reason": "",
+              "model_attempts": 1
+            },
+            "model_call": {
+              "model": "claude-sonnet-5-5",
+              "requests": 1,
+              "duration_ms": 3325.7788649999998,
+              "input_tokens": 3139,
+              "output_tokens": 313
+            },
+            "column_number": 2
+          },
+          "index_oid": 27245,
+          "vacuum_wall_ms": 3914.18542,
+          "verify_wall_ms": 2007.978326,
+          "baseline_wall_ms": 2136.474187,
+          "investigation_wall_ms": 3828.853722
+        },
+        "attempt": 1,
+        "outcome": "improved_tested_inputs",
+        "evidence": {
+          "plan": {
+            "node": "Index Only Scan",
+            "examined_rows": 50000,
+            "returned_rows": 50000,
+            "shared_blocks": 50277
+          },
+          "run_id": "worker-126-1",
+          "vacuum": {
+            "scan_rows": 50000,
+            "heap_fetches": 50000,
+            "conditions_clear": true
+          },
+          "decision": "investigate",
+          "table_oid": 27234,
+          "observed_at": "2026-11-15T03:04:31.641199826Z",
+          "column_number": 2,
+          "lookup_column": "lookup",
+          "covering_index": true
+        },
+        "graph_ms": 3828.853722,
+        "proposal": {
+          "reason": "Covering index Index Only Scan shows 50000 heap fetches for 50000 scan rows with clear conditions, meeting the vacuum criteria, and the index cause is ruled out.",
+          "repair": "vacuum",
+          "run_id": "worker-126-1",
+          "outcome": "propose",
+          "table_oid": 27234,
+          "diagnostic": {
+            "reads": 0,
+            "history": [
+              {
+                "tools": [],
+                "action": "propose",
+                "reason": "Covering index Index Only Scan shows 50000 heap fetches for 50000 scan rows with clear conditions, meeting the vacuum criteria, and the index cause is ruled out.",
+                "repair": "vacuum",
+                "assessments": [
+                  {
+                    "cause": "vacuum",
+                    "reason": "Index Only Scan with covering index; 50000 heap fetches over 50000 scan rows (ratio 1.0) and conditions clear.",
+                    "assessment": "supported",
+                    "blocks_decision": false
+                  },
+                  {
+                    "cause": "index",
+                    "reason": "A covering index already exists and the plan uses an Index Only Scan, so a missing index is ruled out.",
+                    "assessment": "rejected",
+                    "blocks_decision": false
+                  },
+                  {
+                    "cause": "analyze",
+                    "reason": "Examined and returned rows are both 50000, so no estimate error or stale distribution is shown; unrelated here.",
+                    "assessment": "rejected",
+                    "blocks_decision": false
+                  }
+                ]
+              }
+            ],
+            "tool_ms": 0,
+            "model_ms": 3325.7788649999998,
+            "total_ms": 3828.781693,
+            "model_calls": 1,
+            "stop_reason": "",
+            "model_attempts": 1
+          },
+          "model_call": {
+            "model": "claude-sonnet-5-5",
+            "requests": 1,
+            "duration_ms": 3325.7788649999998,
+            "input_tokens": 3139,
+            "output_tokens": 313
+          },
+          "column_number": 2
+        },
+        "thread_id": "worker-126-1",
+        "elapsed_ms": 15318.410961,
+        "observed_latency": {
+          "objective_ms": 14.547899999999998,
+          "observed_through": "2026-11-15T03:04:25.256741Z",
+          "recent_window_calls": [
+            32,
+            32,
+            17,
+            32,
+            32
+          ],
+          "recent_window_mean_ms": [
+            8.585690062499964,
+            8.59446950000003,
+            21.443444117647072,
+            37.27457250000003,
+            38.66165240625003
+          ],
+          "recent_window_shared_block_accesses": [
+            8864,
+            8864,
+            312890,
+            1608864,
+            1608864
+          ]
+        }
+      },
+      "attempts": 1
+    }
+  ],
+  "initial_queue_delay_seconds": 0.9765890390000004,
+  "model_seconds": 3.3257788649999998,
+  "investigation": {
+    "model_calls": 1,
+    "model_attempts": 1,
+    "reads": 0,
+    "model_ms": 3325.7788649999998,
+    "tool_ms": 0,
+    "total_ms": 3828.781693
+  },
+  "detection_seconds": 8.71,
+  "repair_seconds": 16.295,
+  "final_outcome": "improved_tested_inputs",
+  "before_database_mean_ms": 38.84405017499988,
+  "after_database_mean_ms": 8.626971437500004,
+  "worker_failures": [],
+  "worker_diagnostics": [],
+  "detector_windows": [
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "1312737614880083769",
+      "start": "2026-11-15T03:02:43.259301Z",
+      "end": "2026-11-15T03:02:47.262534Z",
+      "calls": 16,
+      "mean_execution_ms": 0.022745375000000026,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-448647705919724999",
+      "start": "2026-11-15T03:02:43.259301Z",
+      "end": "2026-11-15T03:02:47.262534Z",
+      "calls": 32,
+      "mean_execution_ms": 8.430933968750004,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "1312737614880083769",
+      "start": "2026-11-15T03:02:47.262534Z",
+      "end": "2026-11-15T03:02:51.265445Z",
+      "calls": 16,
+      "mean_execution_ms": 0.022725750000000003,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-448647705919724999",
+      "start": "2026-11-15T03:02:47.262534Z",
+      "end": "2026-11-15T03:02:51.265445Z",
+      "calls": 32,
+      "mean_execution_ms": 8.331893375000028,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "1312737614880083769",
+      "start": "2026-11-15T03:02:51.265445Z",
+      "end": "2026-11-15T03:02:55.267103Z",
+      "calls": 15,
+      "mean_execution_ms": 0.023120933333333347,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-448647705919724999",
+      "start": "2026-11-15T03:02:51.265445Z",
+      "end": "2026-11-15T03:02:55.267103Z",
+      "calls": 30,
+      "mean_execution_ms": 8.320698033333331,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "1312737614880083769",
+      "start": "2026-11-15T03:02:55.267103Z",
+      "end": "2026-11-15T03:02:59.270034Z",
+      "calls": 15,
+      "mean_execution_ms": 0.024989466666666675,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-448647705919724999",
+      "start": "2026-11-15T03:02:55.267103Z",
+      "end": "2026-11-15T03:02:59.270034Z",
+      "calls": 31,
+      "mean_execution_ms": 8.545102451612909,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "1312737614880083769",
+      "start": "2026-11-15T03:02:59.270034Z",
+      "end": "2026-11-15T03:03:03.271169Z",
+      "calls": 16,
+      "mean_execution_ms": 0.026153375000000006,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-448647705919724999",
+      "start": "2026-11-15T03:02:59.270034Z",
+      "end": "2026-11-15T03:03:03.271169Z",
+      "calls": 32,
+      "mean_execution_ms": 8.507608781249978,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "1312737614880083769",
+      "start": "2026-11-15T03:03:03.271169Z",
+      "end": "2026-11-15T03:03:07.272182Z",
+      "calls": 16,
+      "mean_execution_ms": 0.02594768750000001,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-448647705919724999",
+      "start": "2026-11-15T03:03:03.271169Z",
+      "end": "2026-11-15T03:03:07.272182Z",
+      "calls": 32,
+      "mean_execution_ms": 8.418342281250034,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "1312737614880083769",
+      "start": "2026-11-15T03:03:07.272182Z",
+      "end": "2026-11-15T03:03:21.22054Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-448647705919724999",
+      "start": "2026-11-15T03:03:07.272182Z",
+      "end": "2026-11-15T03:03:21.22054Z",
+      "calls": 0,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "1312737614880083769",
+      "start": "2026-11-15T03:03:21.22054Z",
+      "end": "2026-11-15T03:03:25.223025Z",
+      "calls": 16,
+      "mean_execution_ms": 0.028772874999999976,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-448647705919724999",
+      "start": "2026-11-15T03:03:21.22054Z",
+      "end": "2026-11-15T03:03:25.223025Z",
+      "calls": 32,
+      "mean_execution_ms": 8.521908750000023,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "1312737614880083769",
+      "start": "2026-11-15T03:03:25.223025Z",
+      "end": "2026-11-15T03:03:29.224525Z",
+      "calls": 16,
+      "mean_execution_ms": 0.027204687500000047,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-448647705919724999",
+      "start": "2026-11-15T03:03:25.223025Z",
+      "end": "2026-11-15T03:03:29.224525Z",
+      "calls": 32,
+      "mean_execution_ms": 8.459717812499974,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "1312737614880083769",
+      "start": "2026-11-15T03:03:29.224525Z",
+      "end": "2026-11-15T03:03:33.226254Z",
+      "calls": 16,
+      "mean_execution_ms": 0.0219935,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-448647705919724999",
+      "start": "2026-11-15T03:03:29.224525Z",
+      "end": "2026-11-15T03:03:33.226254Z",
+      "calls": 32,
+      "mean_execution_ms": 8.352167093749998,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "1312737614880083769",
+      "start": "2026-11-15T03:03:33.226254Z",
+      "end": "2026-11-15T03:03:37.228618Z",
+      "calls": 16,
+      "mean_execution_ms": 0.022108437500000078,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-448647705919724999",
+      "start": "2026-11-15T03:03:33.226254Z",
+      "end": "2026-11-15T03:03:37.228618Z",
+      "calls": 32,
+      "mean_execution_ms": 8.437733593750039,
+      "decision": "insufficient_evidence"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "1312737614880083769",
+      "start": "2026-11-15T03:03:37.228618Z",
+      "end": "2026-11-15T03:03:41.231294Z",
+      "calls": 16,
+      "mean_execution_ms": 0.021969687500000057,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-448647705919724999",
+      "start": "2026-11-15T03:03:37.228618Z",
+      "end": "2026-11-15T03:03:41.231294Z",
+      "calls": 32,
+      "mean_execution_ms": 8.54159599999997,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "1312737614880083769",
+      "start": "2026-11-15T03:03:41.231294Z",
+      "end": "2026-11-15T03:03:45.233659Z",
+      "calls": 11,
+      "mean_execution_ms": 0.02208972727272722,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-448647705919724999",
+      "start": "2026-11-15T03:03:41.231294Z",
+      "end": "2026-11-15T03:03:45.233659Z",
+      "calls": 22,
+      "mean_execution_ms": 8.485831499999966,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "1312737614880083769",
+      "start": "2026-11-15T03:03:45.233659Z",
+      "end": "2026-11-15T03:03:49.23571Z",
+      "calls": 9,
+      "mean_execution_ms": 0.04069066666666673,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-448647705919724999",
+      "start": "2026-11-15T03:03:45.233659Z",
+      "end": "2026-11-15T03:03:49.23571Z",
+      "calls": 18,
+      "mean_execution_ms": 61.18366772222235,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "1312737614880083769",
+      "start": "2026-11-15T03:03:49.23571Z",
+      "end": "2026-11-15T03:03:53.23825Z",
+      "calls": 13,
+      "mean_execution_ms": 0.021608923076923105,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-448647705919724999",
+      "start": "2026-11-15T03:03:49.23571Z",
+      "end": "2026-11-15T03:03:53.23825Z",
+      "calls": 26,
+      "mean_execution_ms": 19.227435653846303,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "1312737614880083769",
+      "start": "2026-11-15T03:03:53.23825Z",
+      "end": "2026-11-15T03:03:57.24058Z",
+      "calls": 16,
+      "mean_execution_ms": 0.023064624999999894,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-448647705919724999",
+      "start": "2026-11-15T03:03:53.23825Z",
+      "end": "2026-11-15T03:03:57.24058Z",
+      "calls": 32,
+      "mean_execution_ms": 8.583159562500072,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "1312737614880083769",
+      "start": "2026-11-15T03:03:57.24058Z",
+      "end": "2026-11-15T03:04:01.243014Z",
+      "calls": 16,
+      "mean_execution_ms": 0.025327750000000093,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-448647705919724999",
+      "start": "2026-11-15T03:03:57.24058Z",
+      "end": "2026-11-15T03:04:01.243014Z",
+      "calls": 32,
+      "mean_execution_ms": 8.759216343749983,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "1312737614880083769",
+      "start": "2026-11-15T03:04:01.243014Z",
+      "end": "2026-11-15T03:04:05.246043Z",
+      "calls": 16,
+      "mean_execution_ms": 0.022870312500000156,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-448647705919724999",
+      "start": "2026-11-15T03:04:01.243014Z",
+      "end": "2026-11-15T03:04:05.246043Z",
+      "calls": 32,
+      "mean_execution_ms": 8.60031325,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "1312737614880083769",
+      "start": "2026-11-15T03:04:05.246043Z",
+      "end": "2026-11-15T03:04:09.248428Z",
+      "calls": 16,
+      "mean_execution_ms": 0.0229694374999998,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-448647705919724999",
+      "start": "2026-11-15T03:04:05.246043Z",
+      "end": "2026-11-15T03:04:09.248428Z",
+      "calls": 32,
+      "mean_execution_ms": 8.585690062499964,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "1312737614880083769",
+      "start": "2026-11-15T03:04:09.248428Z",
+      "end": "2026-11-15T03:04:13.250013Z",
+      "calls": 16,
+      "mean_execution_ms": 0.024637812500000078,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-448647705919724999",
+      "start": "2026-11-15T03:04:09.248428Z",
+      "end": "2026-11-15T03:04:13.250013Z",
+      "calls": 32,
+      "mean_execution_ms": 8.59446950000003,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "1312737614880083769",
+      "start": "2026-11-15T03:04:13.250013Z",
+      "end": "2026-11-15T03:04:17.252644Z",
+      "calls": 8,
+      "mean_execution_ms": 0.021865124999999708,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-448647705919724999",
+      "start": "2026-11-15T03:04:13.250013Z",
+      "end": "2026-11-15T03:04:17.252644Z",
+      "calls": 17,
+      "mean_execution_ms": 21.443444117647072,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "1312737614880083769",
+      "start": "2026-11-15T03:04:17.252644Z",
+      "end": "2026-11-15T03:04:21.254012Z",
+      "calls": 16,
+      "mean_execution_ms": 0.018132187499999897,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-448647705919724999",
+      "start": "2026-11-15T03:04:17.252644Z",
+      "end": "2026-11-15T03:04:21.254012Z",
+      "calls": 32,
+      "mean_execution_ms": 37.27457250000003,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "1312737614880083769",
+      "start": "2026-11-15T03:04:21.254012Z",
+      "end": "2026-11-15T03:04:25.256741Z",
+      "calls": 16,
+      "mean_execution_ms": 0.01931018749999991,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-448647705919724999",
+      "start": "2026-11-15T03:04:21.254012Z",
+      "end": "2026-11-15T03:04:25.256741Z",
+      "calls": 32,
+      "mean_execution_ms": 38.66165240625003,
+      "decision": "investigate"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "1312737614880083769",
+      "start": "2026-11-15T03:04:25.256741Z",
+      "end": "2026-11-15T03:04:29.258035Z",
+      "calls": 15,
+      "mean_execution_ms": 0.01800693333333309,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-448647705919724999",
+      "start": "2026-11-15T03:04:25.256741Z",
+      "end": "2026-11-15T03:04:29.258035Z",
+      "calls": 29,
+      "mean_execution_ms": 37.71764444827586,
+      "decision": "investigate"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "1312737614880083769",
+      "start": "2026-11-15T03:04:29.258035Z",
+      "end": "2026-11-15T03:04:33.260981Z",
+      "calls": 16,
+      "mean_execution_ms": 0.019494062500000076,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-448647705919724999",
+      "start": "2026-11-15T03:04:29.258035Z",
+      "end": "2026-11-15T03:04:33.260981Z",
+      "calls": 33,
+      "mean_execution_ms": 38.468414303030265,
+      "decision": "investigate"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "1312737614880083769",
+      "start": "2026-11-15T03:04:33.260981Z",
+      "end": "2026-11-15T03:04:37.264273Z",
+      "calls": 15,
+      "mean_execution_ms": 0.01921226666666674,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-448647705919724999",
+      "start": "2026-11-15T03:04:33.260981Z",
+      "end": "2026-11-15T03:04:37.264273Z",
+      "calls": 30,
+      "mean_execution_ms": 39.38708236666674,
+      "decision": "investigate"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "1312737614880083769",
+      "start": "2026-11-15T03:04:37.264273Z",
+      "end": "2026-11-15T03:04:41.26603Z",
+      "calls": 16,
+      "mean_execution_ms": 0.022012749999999803,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-448647705919724999",
+      "start": "2026-11-15T03:04:37.264273Z",
+      "end": "2026-11-15T03:04:41.26603Z",
+      "calls": 33,
+      "mean_execution_ms": 24.08300581818179,
+      "decision": "investigate"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "1312737614880083769",
+      "start": "2026-11-15T03:04:41.26603Z",
+      "end": "2026-11-15T03:04:45.268279Z",
+      "calls": 16,
+      "mean_execution_ms": 0.025159062499999885,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-448647705919724999",
+      "start": "2026-11-15T03:04:41.26603Z",
+      "end": "2026-11-15T03:04:45.268279Z",
+      "calls": 32,
+      "mean_execution_ms": 8.73152534374998,
+      "decision": "investigate"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "1312737614880083769",
+      "start": "2026-11-15T03:04:45.268279Z",
+      "end": "2026-11-15T03:04:49.270597Z",
+      "calls": 15,
+      "mean_execution_ms": 0.02508773333333316,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-448647705919724999",
+      "start": "2026-11-15T03:04:45.268279Z",
+      "end": "2026-11-15T03:04:49.270597Z",
+      "calls": 30,
+      "mean_execution_ms": 8.643769299999924,
+      "decision": "investigate"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "1312737614880083769",
+      "start": "2026-11-15T03:04:49.270597Z",
+      "end": "2026-11-15T03:04:53.272858Z",
+      "calls": 16,
+      "mean_execution_ms": 0.025293249999999934,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-448647705919724999",
+      "start": "2026-11-15T03:04:49.270597Z",
+      "end": "2026-11-15T03:04:53.272858Z",
+      "calls": 32,
+      "mean_execution_ms": 8.625321843749816,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "1312737614880083769",
+      "start": "2026-11-15T03:04:53.272858Z",
+      "end": "2026-11-15T03:04:57.275417Z",
+      "calls": 16,
+      "mean_execution_ms": 0.025287875000000182,
+      "decision": "no_change"
+    },
+    {
+      "database_oid": 5,
+      "role_oid": 16388,
+      "query_id": "-448647705919724999",
+      "start": "2026-11-15T03:04:53.272858Z",
+      "end": "2026-11-15T03:04:57.275417Z",
+      "calls": 32,
+      "mean_execution_ms": 8.618075437499897,
+      "decision": "no_change"
+    }
+  ],
+  "process_results": [
+    {
+      "job_id": 126,
+      "attempt": 1,
+      "outcome": "improved_tested_inputs",
+      "thread_id": "worker-126-1",
+      "observed_latency": {
+        "objective_ms": 14.547899999999998,
+        "recent_window_mean_ms": [
+          8.585690062499964,
+          8.59446950000003,
+          21.443444117647072,
+          37.27457250000003,
+          38.66165240625003
+        ],
+        "recent_window_calls": [
+          32,
+          32,
+          17,
+          32,
+          32
+        ],
+        "observed_through": "2026-11-15T03:04:25.256741Z",
+        "recent_window_shared_block_accesses": [
+          8864,
+          8864,
+          312890,
+          1608864,
+          1608864
+        ]
+      },
+      "evidence": {
+        "run_id": "worker-126-1",
+        "observed_at": "2026-11-15T03:04:31.641199826Z",
+        "decision": "investigate",
+        "table_oid": 27234,
+        "column_number": 2,
+        "covering_index": true,
+        "vacuum": {
+          "heap_fetches": 50000,
+          "scan_rows": 50000,
+          "conditions_clear": true
+        },
+        "plan": {
+          "node": "Index Only Scan",
+          "examined_rows": 50000,
+          "returned_rows": 50000,
+          "shared_blocks": 50277
+        },
+        "lookup_column": "lookup"
+      },
+      "proposal": {
+        "diagnostic": {
+          "model_attempts": 1,
+          "model_calls": 1,
+          "reads": 0,
+          "model_ms": 3325.7788649999998,
+          "tool_ms": 0,
+          "total_ms": 3828.781693,
+          "stop_reason": "",
+          "history": [
+            {
+              "action": "propose",
+              "repair": "vacuum",
+              "tools": [],
+              "assessments": [
+                {
+                  "cause": "vacuum",
+                  "assessment": "supported",
+                  "blocks_decision": false,
+                  "reason": "Index Only Scan with covering index; 50000 heap fetches over 50000 scan rows (ratio 1.0) and conditions clear."
+                },
+                {
+                  "cause": "index",
+                  "assessment": "rejected",
+                  "blocks_decision": false,
+                  "reason": "A covering index already exists and the plan uses an Index Only Scan, so a missing index is ruled out."
+                },
+                {
+                  "cause": "analyze",
+                  "assessment": "rejected",
+                  "blocks_decision": false,
+                  "reason": "Examined and returned rows are both 50000, so no estimate error or stale distribution is shown; unrelated here."
+                }
+              ],
+              "reason": "Covering index Index Only Scan shows 50000 heap fetches for 50000 scan rows with clear conditions, meeting the vacuum criteria, and the index cause is ruled out."
+            }
+          ]
+        },
+        "model_call": {
+          "model": "claude-sonnet-5-5",
+          "duration_ms": 3325.7788649999998,
+          "requests": 1,
+          "input_tokens": 3139,
+          "output_tokens": 313
+        },
+        "repair": "vacuum",
+        "outcome": "propose",
+        "run_id": "worker-126-1",
+        "table_oid": 27234,
+        "column_number": 2,
+        "reason": "Covering index Index Only Scan shows 50000 heap fetches for 50000 scan rows with clear conditions, meeting the vacuum criteria, and the index cause is ruled out."
+      },
+      "elapsed_ms": 15320.950324,
+      "vacuum": {
+        "job_id": 126,
+        "fixture": "40f33f19c12dd6590174177a",
+        "index_oid": 27245,
+        "before": {
+          "read_mean_ms": 40.94070000000001,
+          "read_mad_ms": 1.5154999999999994,
+          "healthy_mean_ms": 0.032900000000000006,
+          "healthy_mad_ms": 0.0025000000000000022,
+          "write_mean_ms": 0.18810000000000002,
+          "write_mad_ms": 0.019500000000000003,
+          "read_calls": 10,
+          "healthy_read_calls": 10,
+          "write_calls": 10,
+          "blocks_per_read": 50277,
+          "plan": "Index Only Scan",
+          "returned_rows": 50000,
+          "examined_rows": 50000,
+          "estimated_rows": 0,
+          "estimate_error_ratio": 0,
+          "heap_fetches": 50000,
+          "scan_rows": 50000
+        },
+        "after": {
+          "read_mean_ms": 9.444799999999999,
+          "read_mad_ms": 0.1429999999999998,
+          "healthy_mean_ms": 0.030500000000000006,
+          "healthy_mad_ms": 0.0020000000000000018,
+          "write_mean_ms": 0.09599999999999999,
+          "write_mad_ms": 0.013499999999999998,
+          "read_calls": 10,
+          "healthy_read_calls": 10,
+          "write_calls": 10,
+          "blocks_per_read": 277,
+          "plan": "Index Only Scan",
+          "returned_rows": 50000,
+          "examined_rows": 50000,
+          "estimated_rows": 0,
+          "estimate_error_ratio": 0,
+          "heap_fetches": 0,
+          "scan_rows": 50000
+        },
+        "outcome": "improved_tested_inputs",
+        "reason": "visibility work and measured query latency improved with no sampled regression",
+        "evidence": {
+          "run_id": "worker-126-1",
+          "observed_at": "2026-11-15T03:04:31.641199826Z",
+          "decision": "investigate",
+          "table_oid": 27234,
+          "column_number": 2,
+          "covering_index": true,
+          "vacuum": {
+            "heap_fetches": 50000,
+            "scan_rows": 50000,
+            "conditions_clear": true
+          },
+          "plan": {
+            "node": "Index Only Scan",
+            "examined_rows": 50000,
+            "returned_rows": 50000,
+            "shared_blocks": 50277
+          },
+          "lookup_column": "lookup"
+        },
+        "proposal": {
+          "diagnostic": {
+            "model_attempts": 1,
+            "model_calls": 1,
+            "reads": 0,
+            "model_ms": 3325.7788649999998,
+            "tool_ms": 0,
+            "total_ms": 3828.781693,
+            "stop_reason": "",
+            "history": [
+              {
+                "action": "propose",
+                "repair": "vacuum",
+                "tools": [],
+                "assessments": [
+                  {
+                    "cause": "vacuum",
+                    "assessment": "supported",
+                    "blocks_decision": false,
+                    "reason": "Index Only Scan with covering index; 50000 heap fetches over 50000 scan rows (ratio 1.0) and conditions clear."
+                  },
+                  {
+                    "cause": "index",
+                    "assessment": "rejected",
+                    "blocks_decision": false,
+                    "reason": "A covering index already exists and the plan uses an Index Only Scan, so a missing index is ruled out."
+                  },
+                  {
+                    "cause": "analyze",
+                    "assessment": "rejected",
+                    "blocks_decision": false,
+                    "reason": "Examined and returned rows are both 50000, so no estimate error or stale distribution is shown; unrelated here."
+                  }
+                ],
+                "reason": "Covering index Index Only Scan shows 50000 heap fetches for 50000 scan rows with clear conditions, meeting the vacuum criteria, and the index cause is ruled out."
+              }
+            ]
+          },
+          "model_call": {
+            "model": "claude-sonnet-5-5",
+            "duration_ms": 3325.7788649999998,
+            "requests": 1,
+            "input_tokens": 3139,
+            "output_tokens": 313
+          },
+          "repair": "vacuum",
+          "outcome": "propose",
+          "run_id": "worker-126-1",
+          "table_oid": 27234,
+          "column_number": 2,
+          "reason": "Covering index Index Only Scan shows 50000 heap fetches for 50000 scan rows with clear conditions, meeting the vacuum criteria, and the index cause is ruled out."
+        },
+        "baseline_wall_ms": 2136.474187,
+        "investigation_wall_ms": 3828.853722,
+        "vacuum_wall_ms": 3914.18542,
+        "verify_wall_ms": 2007.978326
+      },
+      "graph_ms": 3828.853722
+    }
+  ],
+  "repair_verified": true,
+  "traffic_errors": 0,
+  "missed_requests": 0,
+  "passed": true,
+  "fixture_removed": true,
+  "public_indexes_after": {
+    "count": 12,
+    "hash": "f56ad07a58d2b60570ee6b64a8978936"
+  },
+  "execution": {
+    "source_revision": "bc5ae375ea8d29a6e4d6b3ea81f1e02d4456cd6b",
+    "deployment": "2b5451f5-90d0-4846-b684-fb4b375f2533",
+    "status_observed": "SUCCESS",
+    "service": "a7363b8b-5b77-4ead-b9e1-9af52e7cd462",
+    "environment": "0541335c-4db7-40cf-a75d-761ad418e816",
+    "model": "claude-sonnet-5-5",
+    "scope": "Temporary owned-fixture diagnostic consumers. Normal service startup settings unchanged."
+  }
+}
