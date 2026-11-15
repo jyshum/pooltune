@@ -252,6 +252,21 @@ func testSupabaseProjectMonitoring(t *testing.T, targetConfig *pgx.ConnConfig, r
 	if err := state.QueryRow(ctx, "SELECT result->>'outcome' FROM pooltune_worker.investigations WHERE project_id=$1 ORDER BY id DESC LIMIT 1", project.ID()).Scan(&outcome); err != nil || outcome != "query_unenrolled" {
 		t.Fatalf("retire pending work on unenrollment: %q, %v", outcome, err)
 	}
+	if _, err := HostedProjectEpoch(ctx, state, project); err != nil {
+		t.Fatal("hosted service did not recognize active registration", err)
+	}
+
+	neverStarted, err := supabaseproject.New("osdjqwpzgyzwfaxyufze", monitorRandom(t, 8))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := DisconnectProjectMonitor(ctx, state, neverStarted); err != nil {
+		t.Fatal("the first disconnect must reserve a stop marker", err)
+	}
+	if _, err := HostedProjectEpoch(ctx, state, neverStarted); !errors.Is(err, ErrProjectDisconnected) {
+		t.Fatal("first hosted start ignored the stop marker", err)
+	}
+
 	mustMonitorExec(t, ctx, admin, "ALTER ROLE "+monitorSchema+" NOLOGIN")
 	if _, _, err := run.read(ctx); monitorSQLState(err) != "42501" {
 		t.Fatalf("NOLOGIN must stop reads on an existing connection: %v", err)
@@ -259,6 +274,13 @@ func testSupabaseProjectMonitoring(t *testing.T, targetConfig *pgx.ConnConfig, r
 	if err := DisconnectProjectMonitor(ctx, state, project); err != nil {
 		t.Fatal(err)
 	}
+	if _, err := HostedProjectEpoch(ctx, state, project); !errors.Is(err, ErrProjectDisconnected) {
+		t.Fatal("hosted start did not respect disconnect", err)
+	}
+	if _, err := run.RegisterHosted(ctx); !errors.Is(err, ErrProjectDisconnected) {
+		t.Fatal("hosted registration could reactivate a disconnected project", err)
+	}
+
 	if _, err := run.poll(ctx, at.Add(13*time.Second)); !errors.Is(err, ErrProjectDisconnected) {
 		t.Fatalf("disconnect must stop subsequent polls before target I/O: %v", err)
 	}

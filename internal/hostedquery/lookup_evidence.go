@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"pooltune/internal/labdb"
 	"pooltune/internal/supabaseproject"
 
 	"github.com/jackc/pgx/v5"
@@ -82,6 +83,22 @@ func readProjectLookup(ctx context.Context, target *pgx.Conn, project supabasepr
 // DiagnoseProjectLookup consumes only an active managed project's queue. Its
 // result has no repair proposal, action or continuation.
 func DiagnoseProjectLookup(ctx context.Context, state, target *pgx.Conn, project supabaseproject.Project, epoch int64, investigate EnrolledLookupInvestigator) (*DispatchResult, error) {
+	return diagnoseLookup(ctx, state, project, epoch, investigate, func(context.Context) (*pgx.Conn, func(), error) {
+		return target, func() {}, nil
+	})
+}
+
+// DiagnoseHostedProjectLookup opens a second Supabase session only when a claimed
+// job has eligible detector evidence. Idle queue checks stay on the state database.
+func DiagnoseHostedProjectLookup(ctx context.Context, state *pgx.Conn, target *pgx.ConnConfig, project supabaseproject.Project, epoch int64, investigate EnrolledLookupInvestigator) (*DispatchResult, error) {
+	return diagnoseLookup(ctx, state, project, epoch, investigate, func(ctx context.Context) (*pgx.Conn, func(), error) {
+		conn, err := pgx.ConnectConfig(ctx, target)
+		return conn, func() { labdb.Close(conn) }, err
+	})
+}
+
+func diagnoseLookup(ctx context.Context, state *pgx.Conn, project supabaseproject.Project, epoch int64, investigate EnrolledLookupInvestigator,
+	targetSession func(context.Context) (*pgx.Conn, func(), error)) (*DispatchResult, error) {
 	if epoch <= 0 || investigate == nil {
 		return nil, ErrProjectDisconnected
 	}
@@ -95,6 +112,11 @@ func DiagnoseProjectLookup(ctx context.Context, state, target *pgx.Conn, project
 	result := DispatchResult{JobID: claim.ID, Attempt: claim.Attempt, Outcome: "insufficient_evidence", DiagnosticReason: "lookup_grant_or_fresh_windows_unavailable"}
 	windows := observedLookupLatency(claim.queueEvidence, started)
 	if windows != nil && len(windows.SharedBlockAccesses) == 5 {
+		target, closeTarget, err := targetSession(ctx)
+		if err != nil {
+			return nil, err
+		}
+		defer closeTarget()
 		if err := diagnoseProjectClaim(ctx, state, target, project, epoch, *claim, windows, investigate, &result); err != nil {
 			return nil, err
 		}

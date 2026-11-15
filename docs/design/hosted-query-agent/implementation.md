@@ -414,3 +414,11 @@ Tasks 27–29 completed for the explicitly bounded diagnostic slice. Sonnet pass
 - [x] Build and test the optional owner-installed lookup grant and narrow live catalog reader.
 - [x] Connect the existing managed queue to the same LangGraph in diagnosis-only mode. Recheck access during model admission and before saving a result.
 - [x] Exercise detector, reader, and real Sonnet on owned Rookery traffic. Verify no unauthorized evidence or repair, cleanup, regression checks and scoped local commits.
+
+### Task 38: Deploy enrolled monitoring and diagnosis to Railway staging
+
+**Authority:** Jared requested deployment, a full Rookery test, a local revamp commit, and a build-map audit. Inherit ask + milestones and native execution. Tasks 36 and 37 establish the detector, queue, owner grant and one read-only Sonnet diagnosis. No new review stop for this staging deployment. Customer repair approval and account rollout remain separate.
+
+- [ ] Run monitoring and queued diagnosis in a dedicated private staging service using the existing Railway state database and direct verified Supabase TLS. Keep prior repair services in place.
+- [ ] Verify owner-authorized slow and healthy app-role lookups, real Sonnet, saved result, no replay, disconnect and cleanup. Leave the deployment installed in standby after the isolated test.
+- [ ] Audit the five yellow Database Tools cards against implementation and roadmap. Show the verified evidence-reader and hosted flow without marking unfinished general-purpose capabilities complete.

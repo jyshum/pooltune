@@ -12,6 +12,30 @@ case "${POOLTUNE_STAGING_ROLE:?set POOLTUNE_STAGING_ROLE}" in
 esac
 
 case "${POOLTUNE_STAGING_ROLE:?set POOLTUNE_STAGING_ROLE}" in
+    project-monitor)
+        case "${POOLTUNE_PROJECT_MODE:-standby}" in
+            standby)
+                printf '%s\n' '{"event":"standby"}'
+                exec sleep infinity
+                ;;
+            disconnect)
+                pooltune-project disconnect -ref "${POOLTUNE_PROJECT_REF:?}" -key "${POOLTUNE_PROJECT_KEY:?}"
+                exec sleep infinity
+                ;;
+            active)
+                POOLTUNE_PROJECT_CA_FILE=$(mktemp)
+                printf '%s\n' "${POOLTUNE_PROJECT_CA:?}" > "$POOLTUNE_PROJECT_CA_FILE"
+                export POOLTUNE_PROJECT_CA_FILE
+                exec pooltune-project serve -ref "${POOLTUNE_PROJECT_REF:?}" -key "${POOLTUNE_PROJECT_KEY:?}" \
+                    -interval "${POOLTUNE_STAGING_INTERVAL:-1m}" -window "${POOLTUNE_STAGING_WINDOW:-5m}" \
+                    -queue-interval "${POOLTUNE_STAGING_QUEUE_INTERVAL:-2s}"
+                ;;
+            *)
+                printf '%s\n' 'unknown project monitor mode' >&2
+                exit 2
+                ;;
+        esac
+        ;;
     detector|enrolled-detector)
         target=staging
         if [ "$POOLTUNE_STAGING_ROLE" = enrolled-detector ]; then

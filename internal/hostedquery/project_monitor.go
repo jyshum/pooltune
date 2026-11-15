@@ -71,6 +71,21 @@ func (w *ProjectMonitor) read(ctx context.Context) (Enrollment, map[queryKey]Cou
 // Connect verifies the owner-installed reader before registering or reactivating
 // the project in Pooltune. Credentials never go to the state database.
 func (w *ProjectMonitor) Connect(ctx context.Context) (Enrollment, error) {
+	return w.connect(ctx, true)
+}
+
+// RegisterHosted records the first deployment enrollment. Only explicit Connect
+// may reactivate a disconnected installation.
+func (w *ProjectMonitor) RegisterHosted(ctx context.Context) (int64, error) {
+	epoch, err := HostedProjectEpoch(ctx, w.state, w.project)
+	if err != nil || epoch > 0 {
+		return epoch, err
+	}
+	_, err = w.connect(ctx, false)
+	return w.epoch, err
+}
+
+func (w *ProjectMonitor) connect(ctx context.Context, reactivate bool) (Enrollment, error) {
 	enrollment, _, err := w.read(ctx)
 	if err != nil {
 		return Enrollment{}, err
@@ -79,9 +94,12 @@ func (w *ProjectMonitor) Connect(ctx context.Context) (Enrollment, error) {
 		INSERT INTO pooltune_worker.projects(project_id, monitor_epoch) VALUES ($1, 1)
 		ON CONFLICT (project_id) DO UPDATE
 		SET monitor_epoch = CASE WHEN projects.monitor_epoch < 0 THEN 1 - projects.monitor_epoch ELSE projects.monitor_epoch END
-		WHERE projects.monitor_epoch IS NOT NULL
+		WHERE projects.monitor_epoch IS NOT NULL AND ($2::boolean OR projects.monitor_epoch>0)
 		RETURNING monitor_epoch
-	`, w.project.ID()).Scan(&w.epoch)
+	`, w.project.ID(), reactivate).Scan(&w.epoch)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return Enrollment{}, ErrProjectDisconnected
+	}
 	return enrollment, err
 }
 
@@ -94,6 +112,22 @@ func ProjectMonitorEpoch(ctx context.Context, state *pgx.Conn, project supabasep
 		return 0, ErrProjectDisconnected
 	}
 	return epoch, err
+}
+
+// HostedProjectEpoch returns zero only for a new, explicitly configured installation.
+func HostedProjectEpoch(ctx context.Context, state *pgx.Conn, project supabaseproject.Project) (int64, error) {
+	var epoch *int64
+	err := state.QueryRow(ctx, "SELECT monitor_epoch FROM pooltune_worker.projects WHERE project_id=$1", project.ID()).Scan(&epoch)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return 0, nil
+	}
+	if err != nil {
+		return 0, err
+	}
+	if epoch == nil || *epoch <= 0 {
+		return 0, ErrProjectDisconnected
+	}
+	return *epoch, nil
 }
 
 func (w *ProjectMonitor) poll(ctx context.Context, at time.Time) (PollResult, error) {
@@ -116,9 +150,10 @@ func (w *ProjectMonitor) Run(ctx context.Context, epoch int64, onPoll func(PollR
 func DisconnectProjectMonitor(ctx context.Context, state *pgx.Conn, project supabaseproject.Project) error {
 	return pgx.BeginFunc(ctx, state, func(tx pgx.Tx) error {
 		tag, err := tx.Exec(ctx, `
-			UPDATE pooltune_worker.projects
-			SET monitor_epoch = -abs(monitor_epoch), last_poll = NULL, evidence = '{}'
-			WHERE project_id=$1 AND monitor_epoch IS NOT NULL
+			INSERT INTO pooltune_worker.projects(project_id, monitor_epoch) VALUES ($1, -1)
+			ON CONFLICT (project_id) DO UPDATE
+			SET monitor_epoch = -abs(projects.monitor_epoch), last_poll = NULL, evidence = '{}'
+			WHERE projects.monitor_epoch IS NOT NULL
 		`, project.ID())
 		if err != nil {
 			return err
