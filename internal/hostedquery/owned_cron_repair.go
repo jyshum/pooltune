@@ -17,6 +17,7 @@ import (
 type OwnedCronRequest struct {
 	Target                      ProjectCronTarget
 	Candidate                   ProjectIndexTarget
+	Runtime                     OwnedCronRuntime
 	Observed                    Counter
 	ReadOID, ProcedureOID       uint32
 	ReadDigest, ProcedureDigest string
@@ -53,6 +54,14 @@ func ownedCronWindow() ProjectCronWindowPlan {
 	return ProjectCronWindowPlan{EveryMinutes: 2, CurrentMinute: 0, ProposedMinute: 1, DeadlineSeconds: 120, MaxRuntimeSeconds: 20}
 }
 
+func ownedCronQuery(schema string) string {
+	return cronQuery(schema) + " FROM (VALUES (1)) AS invocation(slot)"
+}
+
+func ownedCronHandoffDeadline(firstFuture time.Time) time.Time {
+	return firstFuture.Add(-15 * time.Second)
+}
+
 // RunOwnedCronRepair makes at most one guarded schedule change. A saved action
 // always uses inspection, including when its commit acknowledgement is absent.
 // The caller must load the trusted action first and persist the unique queue
@@ -71,10 +80,11 @@ func RunOwnedCronRepair(ctx context.Context, cfg *pgx.ConnConfig, req OwnedCronR
 		return OwnedCronDecision{}, err
 	}
 	defer closeVacuumConnection(conn)
-	if err := checkProjectCronProvider(ctx, conn); err != nil {
+	provider := newOwnedCronProvider(req)
+	if err := provider.check(ctx, conn); err != nil {
 		return OwnedCronDecision{}, err
 	}
-	now, generation, err := readCronClock(ctx, conn)
+	now, generation, err := provider.clock(ctx, conn)
 	if err != nil {
 		return OwnedCronDecision{}, err
 	}
@@ -120,12 +130,12 @@ func RunOwnedCronRepair(ctx context.Context, cfg *pgx.ConnConfig, req OwnedCronR
 	if err != nil || baseline.Schedule != cronOriginal {
 		return ownedCronResult(report, "inconclusive", "the exact original Cron schedule was unavailable"), nil
 	}
-	now, actualGeneration, err := readCronClock(ctx, conn)
+	now, actualGeneration, err := provider.clock(ctx, conn)
 	if err != nil || !actualGeneration.same(generation) || !now.Before(cutoff) {
 		return ownedCronResult(report, "inconclusive", "Cron passed its safe handoff window"), nil
 	}
 	actionReq := ProjectCronRequest{Target: req.Target, Window: ownedCronWindow(), Baseline: baseline, Generation: generation,
-		RunID: req.RunID, ObservedAt: now, Periods: before}
+		RunID: req.RunID, ObservedAt: now, Periods: before, ownedHandoff: true}
 	err = pgx.BeginTxFunc(ctx, conn, pgx.TxOptions{AccessMode: pgx.ReadOnly}, func(tx pgx.Tx) error {
 		expected, err := verifyProjectCronHandoff(ctx, tx, actionReq, now, generation)
 		if err == nil && !expected.Equal(future) {
@@ -164,7 +174,7 @@ func RunOwnedCronRepair(ctx context.Context, cfg *pgx.ConnConfig, req OwnedCronR
 	report.FirstFutureCycle, report.VerifyAfter = future, verifyAfter
 	var action OwnedCronAction
 	started = time.Now()
-	applied, err := ApplyProjectCron(ctx, cfg, actionReq, ProjectCronGuards{
+	applied, err := applyProjectCron(ctx, cfg, actionReq, ProjectCronGuards{
 		CheckPermission: func(ctx context.Context, i ProjectCronIntent) error {
 			if !sameOwnedCronIntent(intent, i) {
 				return errors.New("Cron intent no longer matches the approved fixture")
@@ -182,7 +192,7 @@ func RunOwnedCronRepair(ctx context.Context, cfg *pgx.ConnConfig, req OwnedCronR
 			action = OwnedCronAction{Intent: i, Observed: req.Observed, Report: report}
 			return guards.RecordIntent(ctx, action)
 		},
-	})
+	}, provider)
 	if err != nil {
 		return OwnedCronDecision{}, err
 	}
@@ -205,6 +215,7 @@ func validOwnedCronFixtureRoute(cfg *pgx.ConnConfig, req OwnedCronRequest) bool 
 	installation, match := strings.CutPrefix(req.Target.Project, prefix)
 	project, err := supabaseproject.New(OwnedIndexRookeryRef, installation)
 	if !match || err != nil || project.ID() != req.Target.Project ||
+		(req.Runtime != (OwnedCronRuntime{}) && !validOwnedCronRuntime(req)) ||
 		req.FirstCycle.IsZero() || !req.FirstCycle.Equal(cronCycle(req.FirstCycle)) || req.Expires.IsZero() ||
 		req.Candidate.Schema != "pt_hosted_cr_"+installation || req.Candidate.Relation != "candidate" ||
 		req.Candidate.TableOID == 0 || req.Candidate.DatabaseOID == 0 || req.Candidate.DatabaseOID != req.Target.DatabaseOID ||
@@ -267,7 +278,7 @@ func readOwnedCronScope(ctx context.Context, conn *pgx.Conn, req OwnedCronReques
 				return errors.New("owned Cron routine definition or ownership changed")
 			}
 		}
-		plan, err := readLookupPlan(ctx, tx, "EXPLAIN (FORMAT JSON, VERBOSE) "+cronQuery(req.Candidate.Schema))
+		plan, err := readLookupPlan(ctx, tx, "EXPLAIN (FORMAT JSON, VERBOSE) "+ownedCronQuery(req.Candidate.Schema))
 		if err != nil || plan.QueryID != req.Observed.Query || plan.Node.Type == "" {
 			return errors.New("the discovered Cron workload no longer matches its exact query")
 		}
@@ -355,7 +366,7 @@ func verifyOwnedCronFollowup(ctx context.Context, conn *pgx.Conn, req OwnedCronR
 		!report.FirstFutureCycle.Equal(future) || !report.VerifyAfter.Equal(verifyAfter) {
 		return ownedCronResult(report, "inconclusive", "Cron schedule or commit acknowledgement could not be reconciled"), nil
 	}
-	witnessDeadline := minTime(report.CommitAt.Add(7*time.Second), future)
+	witnessDeadline := minTime(report.CommitAt.Add(7*time.Second), ownedCronHandoffDeadline(future))
 	checkAt := witnessDeadline.Add(-time.Nanosecond)
 	if checkAt.After(now) {
 		checkAt = now

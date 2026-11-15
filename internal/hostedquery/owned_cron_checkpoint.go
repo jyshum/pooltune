@@ -136,7 +136,7 @@ func ownedCronAcknowledges(intent, ack OwnedCronAction) bool {
 		ack.After.Fingerprint == "" || ack.After.Generation == "" || ack.After.Generation == intent.Intent.Before.Generation {
 		return false
 	}
-	deadline := minTime(receipt.CommitAt.Add(7*time.Second), future)
+	deadline := minTime(receipt.CommitAt.Add(7*time.Second), ownedCronHandoffDeadline(future))
 	generation := intent.Intent.Generation
 	return validateCronWitness(intent.Intent.Target.WitnessJobID, receipt.PostWitness, receipt.CommitAt, deadline,
 		deadline.Add(-time.Nanosecond), generation, generation) == nil

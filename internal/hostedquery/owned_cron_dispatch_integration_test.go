@@ -105,10 +105,10 @@ func TestDispatchOwnedCronResumesExactClaimWithoutRerunningModelOrWrite(t *testi
 			receipt := intent
 			receipt.After = ProjectCronSnapshot{Schedule: cronAlternate, Fingerprint: intent.Intent.Before.Fingerprint, Generation: "new"}
 			future := intent.Intent.FirstFutureCycle
-			receipt.Report.CommitAt = future.Add(-18 * time.Second)
+			receipt.Report.CommitAt = future.Add(-22 * time.Second)
 			receipt.Report.PostWitness = []CronRun{
-				{ID: 91, JobID: current.Target.WitnessJobID, PID: 1, Start: future.Add(-17 * time.Second), End: future.Add(-16 * time.Second), Status: "succeeded"},
-				{ID: 92, JobID: current.Target.WitnessJobID, PID: 2, Start: future.Add(-15 * time.Second), End: future.Add(-14 * time.Second), Status: "succeeded"},
+				{ID: 91, JobID: current.Target.WitnessJobID, PID: 1, Start: future.Add(-21 * time.Second), End: future.Add(-20 * time.Second), Status: "succeeded"},
+				{ID: 92, JobID: current.Target.WitnessJobID, PID: 2, Start: future.Add(-19 * time.Second), End: future.Add(-18 * time.Second), Status: "succeeded"},
 			}
 			if err := guards.RecordAcknowledgement(ctx, receipt); err != nil {
 				t.Fatal(err)

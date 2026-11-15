@@ -26,6 +26,7 @@ type OwnedStatisticsRepairRequest struct {
 	QueryID                     int64
 	Columns                     []int16
 	Inputs                      [][]int32
+	NextTarget                  int32
 }
 
 type OwnedStatisticsRepairGuards struct {
@@ -77,7 +78,12 @@ func RunOwnedStatisticsRepair(ctx context.Context, writer *pgx.ConnConfig, reque
 		}
 		return result, err
 	}
-	result, err := runOwnedExtendedStatistics(ctx, db, request, investigate, guards)
+	var result DispatchResult
+	if request.NextTarget > 0 {
+		result, err = runOwnedStatisticsTarget(ctx, db, writer, request, investigate, guards)
+	} else {
+		result, err = runOwnedExtendedStatistics(ctx, db, request, investigate, guards)
+	}
 	if errors.Is(err, errOwnedStatisticsEvidence) {
 		return deferred, nil
 	}
@@ -94,15 +100,22 @@ func validOwnedStatisticsRequest(writer *pgx.ConnConfig, request OwnedStatistics
 	}
 	switch request.Operation {
 	case "analyze":
-		return len(request.Columns) == 1 && request.Columns[0] > 0 &&
-			len(request.Inputs) == 1 && len(request.Inputs[0]) == 1
+		return request.NextTarget == 0 && validOwnedStatisticsScalar(request)
 	case "statistics":
-		return len(request.Columns) == 2 && ValidIndexColumns(request.Columns[0], request.Columns) &&
+		if request.NextTarget > 0 {
+			return request.NextTarget <= projectStatisticsMaxTarget && validOwnedStatisticsScalar(request)
+		}
+		return request.NextTarget == 0 && len(request.Columns) == 2 && ValidIndexColumns(request.Columns[0], request.Columns) &&
 			len(request.Inputs) == 2 && len(request.Inputs[0]) == 2 && len(request.Inputs[1]) == 2 &&
 			request.Inputs[0][0] != request.Inputs[1][0] && request.Inputs[0][1] != request.Inputs[1][1]
 	default:
 		return false
 	}
+}
+
+func validOwnedStatisticsScalar(request OwnedStatisticsRepairRequest) bool {
+	return len(request.Columns) == 1 && request.Columns[0] > 0 &&
+		len(request.Inputs) == 1 && len(request.Inputs[0]) == 1
 }
 
 func runOwnedAnalyze(ctx context.Context, db *pgx.Conn, writer *pgx.ConnConfig, request OwnedStatisticsRepairRequest,

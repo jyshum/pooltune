@@ -16,19 +16,20 @@ type VacuumSample struct {
 	ScanRows    int64   `json:"scan_rows"`
 }
 type VacuumReport struct {
-	JobID      int64         `json:"job_id"`
-	Fixture    string        `json:"fixture"`
-	IndexOID   uint32        `json:"index_oid"`
-	Before     VacuumSample  `json:"before"`
-	After      VacuumSample  `json:"after"`
-	Outcome    string        `json:"outcome"`
-	Reason     string        `json:"reason"`
-	Evidence   IndexEvidence `json:"evidence"`
-	Proposal   IndexProposal `json:"proposal"`
-	BaselineMS float64       `json:"baseline_wall_ms"`
-	GraphMS    float64       `json:"investigation_wall_ms"`
-	VacuumMS   float64       `json:"vacuum_wall_ms"`
-	VerifyMS   float64       `json:"verify_wall_ms"`
+	CleanupTrigger *CleanupTriggerReport `json:"cleanup_trigger,omitempty"`
+	JobID          int64                 `json:"job_id"`
+	Fixture        string                `json:"fixture"`
+	IndexOID       uint32                `json:"index_oid"`
+	Before         VacuumSample          `json:"before"`
+	After          VacuumSample          `json:"after"`
+	Outcome        string                `json:"outcome"`
+	Reason         string                `json:"reason"`
+	Evidence       IndexEvidence         `json:"evidence"`
+	Proposal       IndexProposal         `json:"proposal"`
+	BaselineMS     float64               `json:"baseline_wall_ms"`
+	GraphMS        float64               `json:"investigation_wall_ms"`
+	VacuumMS       float64               `json:"vacuum_wall_ms"`
+	VerifyMS       float64               `json:"verify_wall_ms"`
 }
 
 func vacuumCause(e IndexEvidence) bool {

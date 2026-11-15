@@ -36,9 +36,9 @@ type ProjectView struct {
 
 type QueryView struct{ ID, Calls, Mean, Target, Blocks, Decision, At string }
 type RunView struct {
-	ID, Query, Outcome, Started, Finished, Queue, Model, Reason, Plan string
-	Repair, RepairStatus                                              string
-	Measurements                                                      []RepairMeasurementView
+	ID, Query, Outcome, Started, Finished, Queue, Model, Analysis, Reason, Plan string
+	Repair, RepairStatus                                                        string
+	Measurements                                                                []RepairMeasurementView
 }
 type RepairMeasurementView struct{ Label, Before, After string }
 type PollView struct{ At, Status string }
@@ -266,6 +266,9 @@ func populateActivity(view *ProjectView, activity hostedquery.ProjectActivity, i
 			item.Outcome = "Repair interrupted"
 		}
 		if repair := job.Repair; repair != nil {
+			if repair.AnalysisMS > 0 {
+				item.Analysis = decimalMS(repair.AnalysisMS)
+			}
 			for _, capability := range projectCapabilities {
 				if capability.Key == repair.Kind {
 					item.Repair = capability.Label

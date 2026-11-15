@@ -13,8 +13,25 @@ esac
 
 case "${POOLTUNE_STAGING_ROLE:?set POOLTUNE_STAGING_ROLE}" in
     web-preview)
-        exec pooltune-web -interval "${POOLTUNE_STAGING_INTERVAL:-1m}" \
+        set -- -interval "${POOLTUNE_STAGING_INTERVAL:-1m}" \
             -window "${POOLTUNE_STAGING_WINDOW:-5m}" -queue-interval "${POOLTUNE_STAGING_QUEUE_INTERVAL:-2s}"
+        if [ "${POOLTUNE_OWNED_CRON_CAPTURE:-0}" = 1 ]; then
+            if [ "${POOLTUNE_STAGING_PRIVATE_STATE:-0}" != 1 ] || [ -z "${POOLTUNE_OWNED_CRON_FIXTURE:-}" ]; then
+                printf '%s\n' 'owned Cron capture requires private staging and an exact fixture' >&2
+                exit 2
+            fi
+            node /app/investigator/owned-cron-traffic.ts &
+            capture=$!
+            pooltune-web "$@" &
+            worker=$!
+            trap 'kill "$capture" "$worker" 2>/dev/null || true' INT TERM
+            status=0
+            wait "$worker" || status=$?
+            kill "$capture" 2>/dev/null || true
+            wait "$capture" 2>/dev/null || true
+            exit "$status"
+        fi
+        exec pooltune-web "$@"
         ;;
     project-monitor)
         case "${POOLTUNE_PROJECT_MODE:-standby}" in

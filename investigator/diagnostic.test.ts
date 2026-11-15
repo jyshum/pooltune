@@ -98,6 +98,25 @@ test('contradictory stale and freshly analyzed relationship evidence cannot auth
  assert.equal(out.proposal?.outcome,'no_change');assert.equal(out.stop_reason,'contradictory_evidence');
 });
 
+test('the hosted diagnostic accepts a column-target trial and declines contradictory freshness',async()=>{
+ const graph=buildDiagnosticGraph(async()=>({decision:{
+  action:'propose',repair:'statistics',tools:[],
+  assessments:[{cause:'statistics',assessment:'supported',blocks_decision:false,reason:'A fresh, full sample omitted a frequent value.'},
+   {cause:'analyze',assessment:'rejected',blocks_decision:false,reason:'The existing sample was already analyzed recently.'}],
+  reason:'Trial the bounded column target increase.',
+ }}),async()=>{throw Error('unexpected read');});
+ const complete=[observation('plan',{node:'Index Only Scan',examined_rows:1000,returned_rows:1000,shared_blocks:200}),
+  base[1],observation('statistics',{correlated_columns:false,cases:[{estimated_rows:20,actual_rows:1000}],
+   column_target:{current_target:100,next_target:200}})];
+ const result=await graph.invoke({input:input(complete)});
+ assert.equal(result.proposal?.repair,'statistics');
+ assert.equal(result.model_calls,1);
+ const stale=observation('analyze',{estimated_rows:100000,actual_rows:1,sampled_lookup_fraction:1});
+ const contradictory=await graph.invoke({input:input([...complete,stale])});
+ assert.equal(contradictory.proposal?.outcome,'no_change');
+ assert.equal(contradictory.stop_reason,'contradictory_evidence');
+});
+
 test('expired initial evidence and elapsed investigation deadline stop without more work',async()=>{
  let clock=now,calls=0;
  const graph=buildDiagnosticGraph(async()=>{calls++;clock+=21000;return {decision:propose()};},async()=>{throw Error('Unexpected read');},undefined,()=>clock);

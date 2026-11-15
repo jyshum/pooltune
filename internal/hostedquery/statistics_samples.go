@@ -10,8 +10,36 @@ import (
 )
 
 type StatisticsEvidence struct {
-	Correlated bool              `json:"correlated_columns"`
-	Cases      []AnalyzeEvidence `json:"cases"`
+	Correlated   bool                            `json:"correlated_columns"`
+	Cases        []AnalyzeEvidence               `json:"cases"`
+	ColumnTarget *StatisticsColumnTargetEvidence `json:"column_target,omitempty"`
+}
+
+type StatisticsColumnTargetEvidence struct {
+	CurrentTarget int32 `json:"current_target"`
+	NextTarget    int32 `json:"next_target"`
+}
+
+// SupportsRepair checks the measured statistics cause in either supported
+// variant. The live executor must still bind and authorize its database target.
+func (s *StatisticsEvidence) SupportsRepair(existingIndex bool) bool {
+	if s == nil {
+		return false
+	}
+	if v := s.ColumnTarget; v != nil {
+		return existingIndex && !s.Correlated && len(s.Cases) == 1 &&
+			boundedProjectStatisticsTarget(v.CurrentTarget, v.NextTarget) &&
+			s.Cases[0].EstimatedRows > 0 && s.Cases[0].ActualRows/10 >= s.Cases[0].EstimatedRows
+	}
+	if !s.Correlated || len(s.Cases) != 2 {
+		return false
+	}
+	for _, c := range s.Cases {
+		if c.ActualRows <= 0 || c.EstimatedRows <= 0 || rowEstimateError(c.EstimatedRows, c.ActualRows) < 10 {
+			return false
+		}
+	}
+	return true
 }
 
 type StatisticsSample struct {
@@ -38,6 +66,15 @@ type StatisticsReport struct {
 	BaselineMS      float64          `json:"baseline_wall_ms"`
 	GraphMS         float64          `json:"investigation_wall_ms"`
 	ApplyMS         float64          `json:"apply_and_verify_wall_ms"`
+
+	ColumnTarget *StatisticsColumnTargetReport `json:"column_target,omitempty"`
+}
+
+type StatisticsColumnTargetReport struct {
+	PriorTarget      int32 `json:"prior_target"`
+	PriorUsesDefault bool  `json:"prior_uses_default"`
+	TrialTarget      int32 `json:"trial_target"`
+	Restored         bool  `json:"restored"`
 }
 
 func statisticsBaseline(ctx context.Context, target *pgx.Conn, fixture string, expected fixtureObjects) (sample StatisticsSample, err error) {

@@ -96,7 +96,7 @@ func ownedStatisticsCatalogRead(ctx context.Context, tx pgx.Tx, request OwnedSta
 	if !info.covering {
 		return info, errOwnedStatisticsEvidence
 	}
-	if request.Operation == "analyze" {
+	if len(request.Columns) == 1 {
 		frequency, err := ownedMarginalFrequency(ctx, tx, table, info.names[0], request.Inputs[0][0])
 		info.selectedFraction = frequency
 		return info, err

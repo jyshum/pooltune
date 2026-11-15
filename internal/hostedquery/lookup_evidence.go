@@ -136,6 +136,9 @@ func diagnoseLookup(ctx context.Context, state *pgx.Conn, project supabaseprojec
 	if err := cron.ensureClaim(ctx, state, project, epoch); err != nil {
 		return nil, err
 	}
+	if err := repair.ensureCleanupClaim(ctx, state, project, epoch); err != nil {
+		return nil, err
+	}
 	claim, err := claimProjectInvestigation(ctx, state, project.ID(), &epoch, scope...)
 	if err != nil || claim == nil {
 		return nil, err
@@ -154,6 +157,10 @@ func diagnoseLookup(ctx context.Context, state *pgx.Conn, project supabaseprojec
 		if err != nil || report != nil {
 			return report, err
 		}
+		report, err = repair.dispatchCleanup(ctx, state, project, epoch, *claim, windows, targetSession)
+		if err != nil || report != nil {
+			return report, err
+		}
 	}
 	if !recovered && windows != nil && len(windows.SharedBlockAccesses) == 5 {
 		target, closeTarget, err := targetSession(ctx)
@@ -167,7 +174,7 @@ func diagnoseLookup(ctx context.Context, state *pgx.Conn, project supabaseprojec
 		}
 		if bound != nil {
 			err = bound.run(ctx, state, target, project, epoch, *claim, windows, &result)
-		} else if repair.matchesClaim(project, *claim) {
+		} else if repair.matchesClaim(project, *claim) && repair.Cleanup == nil {
 			err = repair.run(ctx, state, target, project, epoch, *claim, windows, &result)
 		} else {
 			err = diagnoseProjectClaim(ctx, state, target, project, epoch, *claim, windows, investigate, logs, &result)

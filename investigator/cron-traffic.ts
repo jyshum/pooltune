@@ -108,10 +108,8 @@ export async function runCronTraffic(){
   const [activated]=await phase(()=>command(['-cron-action','activate','-cron-id',fixture.id]),()=>slice!('activation_healthy',5,false));owned=JSON.parse(activated);output.activation=owned;const firstCycle=Date.parse(owned.first_cycle);output.slowdown_at=iso(firstCycle);
   let restarted=false;
   for(let i=0;i<6;i++){
-   const cycle=firstCycle+i*120000;output.current_cycle=iso(cycle);await waitUntil(cycle);progress(`${i<3?'original':'future'} actual cycle ${i%3+1}/3`);
-   const busy=await slice(i<3?'original_busy':'future_busy',20,true,cycle);await waitUntil(cycle+30000);const control=await slice(i<3?'original_control':'future_control',20,true);await waitUntil(cycle+60000);const quiet=await slice(i<3?'original_quiet':'future_quiet',20,false);
-   const period={cycle:iso(cycle),busy:{...busy,blocks:undefined},control:{...control,blocks:undefined},quiet:{...quiet,blocks:undefined},blocks:busy.blocks};(output.periods??=[]).push(period);output.current_phase='record_period';
-   for(const [window,offset] of [[busy,0],[control,30000],[quiet,60000]] as const)assertCronWindowTiming(window,cycle+offset);
+   const cycle=firstCycle+i*120000;output.current_cycle=iso(cycle);progress(`${i<3?'original':'future'} actual cycle ${i%3+1}/3`);
+   const period=await captureCronPeriod(cycle,i,waitUntil,slice);(output.periods??=[]).push(period);output.current_phase='record_period';
    const file=join(directory,`period-${i}.json`);writeFileSync(file,JSON.stringify(period),{mode:0o600});
    await phase(()=>command(['-cron-action','record','-cron-id',fixture.id,'-cron-period',file]),async()=>slice!('cycle_end_healthy',Math.max(.1,(cycle+100000-await dbNow())/1000),false));
    let queued=await jobs();
@@ -209,6 +207,26 @@ export function assertCronWindowTiming(window:{start:string,end:string},expected
  const start=Date.parse(window.start)-expected,end=Date.parse(window.end)-expected;
  if(!Number.isFinite(start)||!Number.isFinite(end)||start<0||start>1000||end<20000||end>21000)
   throw Error(`Cron period outside required window: start_offset_ms=${start} end_offset_ms=${end}`);
+}
+
+export async function captureCronPeriod<W extends {start: string; end: string; blocks: unknown[]}>(
+  cycle: number, index: number, waitUntil: (at: number) => Promise<void>,
+  measure: (name: string, seconds: number, targetOn: boolean, observeCycle?: number) => Promise<W>,
+) {
+  if (!Number.isSafeInteger(cycle) || cycle <= 0 || cycle % 120_000 !== 0 || !Number.isInteger(index) || index < 0 || index > 5) {
+    throw Error('Cron period requires one of the six aligned cycles');
+  }
+  const phase = index < 3 ? 'original' : 'future';
+  await waitUntil(cycle);
+  const {blocks, ...busy} = await measure(`${phase}_busy`, 20, true, cycle);
+  assertCronWindowTiming(busy, cycle);
+  await waitUntil(cycle + 30_000);
+  const {blocks: _controlBlocks, ...control} = await measure(`${phase}_control`, 20, true);
+  assertCronWindowTiming(control, cycle + 30_000);
+  await waitUntil(cycle + 60_000);
+  const {blocks: _quietBlocks, ...quiet} = await measure(`${phase}_quiet`, 20, false);
+  assertCronWindowTiming(quiet, cycle + 60_000);
+  return {cycle: iso(cycle), busy, control, quiet, blocks};
 }
 
 // Go's action/proof deadline stays at +105s. Only publication observation gets

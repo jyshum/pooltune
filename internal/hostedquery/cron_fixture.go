@@ -56,6 +56,15 @@ type cronDB interface {
 }
 
 func createCronRoutines(ctx context.Context, db cronDB, schema string, expires time.Time) error {
+	for _, sql := range cronRoutineCommands(schema, expires) {
+		if _, err := db.Exec(ctx, sql); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func cronRoutineCommands(schema string, expires time.Time) []string {
 	// No procedure-level SET, SECURITY DEFINER or exception block: those prohibit COMMIT.
 	// The clock guard makes incomplete work fail. Each lock acquisition is independently bounded.
 	body := fmt.Sprintf(`DECLARE started timestamptz := pg_catalog.clock_timestamp(); i integer;
@@ -72,17 +81,12 @@ BEGIN
  END LOOP;
  IF pg_catalog.clock_timestamp()-started >= interval '19 seconds' THEN RAISE EXCEPTION 'cron work budget exceeded'; END IF;
 END`, expires.UTC().Format(time.RFC3339Nano), qualified(schema, "candidate"))
-	for _, sql := range []string{
+	return []string{
 		"CREATE PROCEDURE " + qualified(schema, cronProcedure) + "(holds integer) LANGUAGE plpgsql SECURITY INVOKER AS $cron$" + body + "$cron$",
 		"REVOKE ALL ON PROCEDURE " + qualified(schema, cronProcedure) + "(integer) FROM PUBLIC",
 		"CREATE FUNCTION " + qualified(schema, cronReadFunction) + "() RETURNS integer LANGUAGE plpgsql VOLATILE PARALLEL UNSAFE SECURITY INVOKER SET search_path=pg_catalog AS $read$ DECLARE answer integer; BEGIN SELECT id INTO STRICT answer FROM ONLY " + qualified(schema, "candidate") + " WHERE id=43; RETURN answer; END $read$",
 		"REVOKE ALL ON FUNCTION " + qualified(schema, cronReadFunction) + "() FROM PUBLIC",
-	} {
-		if _, err := db.Exec(ctx, sql); err != nil {
-			return err
-		}
 	}
-	return nil
 }
 
 const readCronRoutineSQL = `SELECT p.oid,p.proowner,pg_get_functiondef(p.oid),pg_get_function_identity_arguments(p.oid),NOT p.prosecdef AND NOT EXISTS(SELECT FROM aclexplode(COALESCE(p.proacl,acldefault('f',p.proowner))) a WHERE a.grantee<>p.proowner) FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname=$1 AND p.proname=$2`

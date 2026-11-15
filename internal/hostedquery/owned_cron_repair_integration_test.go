@@ -7,10 +7,12 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/jackc/pgx/v5"
+	"pooltune/internal/supabaseproject"
 	"pooltune/internal/testpg"
 )
 
@@ -235,7 +237,7 @@ func TestReadOwnedCronScopeMatchesRealQueryAndControlsWithoutReplay(t *testing.T
 		REVOKE ALL ON FUNCTION fixture_app.pooltune_cron_read() FROM public;
 		CREATE PROCEDURE fixture_app.pooltune_cron_hold(holds integer) LANGUAGE plpgsql AS $$ BEGIN NULL; END $$;
 		REVOKE ALL ON PROCEDURE fixture_app.pooltune_cron_hold(integer) FROM public`)
-	statements := []string{cronQuery("fixture_app"),
+	statements := []string{ownedCronQuery("fixture_app"),
 		"SELECT id FROM ONLY " + qualified("fixture_app", "healthy") + " WHERE id=$1",
 		"UPDATE ONLY " + qualified("fixture_app", "healthy") + " SET padding=CASE padding WHEN 'a' THEN 'b' ELSE 'a' END WHERE id=$1 RETURNING id"}
 	exec(owner, statements[0])
@@ -261,15 +263,43 @@ func TestReadOwnedCronScopeMatchesRealQueryAndControlsWithoutReplay(t *testing.T
 		if err != nil || plan.QueryID == 0 {
 			t.Fatalf("observe query %d: %v", i, err)
 		}
-		err = owner.QueryRow(ctx, `SELECT s.dbid,s.userid,s.queryid,pg_postmaster_start_time(),info.stats_reset,s.stats_since,s.calls
+		var normalized string
+		err = owner.QueryRow(ctx, `SELECT s.dbid,s.userid,s.queryid,pg_postmaster_start_time(),info.stats_reset,s.stats_since,s.calls,s.query
 			FROM pg_stat_statements s CROSS JOIN pg_stat_statements_info info
 			WHERE s.toplevel AND s.userid=current_user::regrole::oid AND s.queryid=$1`, plan.QueryID).Scan(&c.Database,
-			&c.Role, &c.Query, &c.Boot, &c.Reset, &c.Entry, &c.Calls)
+			&c.Role, &c.Query, &c.Boot, &c.Reset, &c.Entry, &c.Calls, &normalized)
 		if err != nil {
 			t.Fatalf("find observed query %d: %v", i, err)
 		}
+		observedSQL := []string{
+			strings.Replace(statement, "VALUES (1)", "VALUES ($1)", 1), statement,
+			strings.Replace(statement, "WHEN 'a' THEN 'b' ELSE 'a'", "WHEN $2 THEN $3 ELSE $4", 1),
+		}[i]
+		if normalized != statement && normalized != observedSQL {
+			t.Fatalf("normal traffic form %d was not recognized: %q", i, normalized)
+		}
 	}
 	req.Observed = counters[0]
+	project, err := supabaseproject.New(OwnedIndexRookeryRef, "0123456789abcdef")
+	if err != nil {
+		t.Fatal(err)
+	}
+	exec(admin, project.InstallSQL())
+	exec(admin, project.AutomaticDiscoverySQL())
+	exec(admin, `ALTER ROLE `+project.Role()+` LOGIN PASSWORD 'test-monitor-password'`)
+	monitorConfig := cfg.Copy()
+	monitorConfig.User, monitorConfig.Password = project.Role(), "test-monitor-password"
+	monitorConfig.RuntimeParams["default_transaction_read_only"] = "on"
+	monitor, err := pgx.ConnectConfig(ctx, monitorConfig)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer monitor.Close(ctx)
+	var discovered bool
+	if err := monitor.QueryRow(ctx, `SELECT EXISTS(SELECT FROM `+qualified(project.Role(), "snapshot")+
+		`() WHERE role_oid=$1 AND query_id=$2)`, req.Observed.Role, req.Observed.Query).Scan(&discovered); err != nil || !discovered {
+		t.Fatalf("normal Cron traffic did not appear in automatic discovery: %t %v", discovered, err)
+	}
 	req.Candidate.DatabaseOID, req.Target.DatabaseOID, req.Target.OwnerOID = req.Observed.Database, req.Observed.Database, req.Observed.Role
 	if err := owner.QueryRow(ctx, `SELECT 'fixture_app.candidate'::regclass::oid,
 		'fixture_app.pooltune_cron_read()'::regprocedure::oid, 'fixture_app.pooltune_cron_hold(int)'::regprocedure::oid,

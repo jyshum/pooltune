@@ -70,10 +70,11 @@ func RecordOwnedCronPeriod(ctx context.Context, cfg *pgx.ConnConfig, state *pgx.
 		return err
 	}
 	defer closeVacuumConnection(conn)
-	if err := checkProjectCronProvider(ctx, conn); err != nil {
+	provider := newOwnedCronProvider(req)
+	if err := provider.check(ctx, conn); err != nil {
 		return err
 	}
-	now, generation, err := readCronClock(ctx, conn)
+	now, generation, err := provider.clock(ctx, conn)
 	if err != nil {
 		return err
 	}

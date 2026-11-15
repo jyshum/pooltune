@@ -71,13 +71,7 @@ func RunOwnedProjectVacuum(ctx context.Context, config *pgx.ConnConfig, req Owne
 	if err := guards.CheckCapacity(ctx, ProjectMaintenanceIntent{ProjectMaintenanceRequest: action, RelationBytes: bytes}); err != nil {
 		return report, err
 	}
-	report.Evidence = IndexEvidence{
-		RunID: w.RunID, At: action.ObservedAt, Decision: Investigate, TableOID: w.Target.TableOID,
-		Column: 2, Label: "lookup", Existing: true, ExecutionMS: report.Before.ReadMS,
-		Plan: PlanEvidence{Node: report.Before.Plan, ExaminedRows: report.Before.PlanExamined,
-			ReturnedRows: report.Before.PlanReturned, SharedBlocks: int64(report.Before.Blocks)},
-		Vacuum: &VacuumEvidence{HeapFetches: report.Before.HeapFetches, ScanRows: report.Before.ScanRows, ConditionsClear: true},
-	}
+	report.Evidence = ownedVacuumEvidence(w, report.Before, action.ObservedAt)
 	if !vacuumCause(report.Evidence) {
 		report.Outcome, report.Reason = "insufficient_evidence", "the measured scan did not establish excess heap visibility work"
 		return report, nil
@@ -134,6 +128,16 @@ func RunOwnedProjectVacuum(ctx context.Context, config *pgx.ConnConfig, req Owne
 	}
 	report.Outcome, report.Reason = verifyVacuum(report.Before, report.After)
 	return report, nil
+}
+
+func ownedVacuumEvidence(w OwnedRepairWorkload, sample VacuumSample, at time.Time) IndexEvidence {
+	return IndexEvidence{
+		RunID: w.RunID, At: at, Decision: Investigate, TableOID: w.Target.TableOID,
+		Column: 2, Label: "lookup", Existing: true, ExecutionMS: sample.ReadMS,
+		Plan: PlanEvidence{Node: sample.Plan, ExaminedRows: sample.PlanExamined,
+			ReturnedRows: sample.PlanReturned, SharedBlocks: int64(sample.Blocks)},
+		Vacuum: &VacuumEvidence{HeapFetches: sample.HeapFetches, ScanRows: sample.ScanRows, ConditionsClear: true},
+	}
 }
 
 func ownedRepairDeclined(e IndexEvidence, p IndexProposal, repair string) bool {

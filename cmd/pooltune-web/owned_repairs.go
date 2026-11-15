@@ -18,6 +18,7 @@ type ownedRepairSettings struct {
 	Database, Role          uint32
 	Query                   int64
 	Automatic               bool
+	CleanupTrigger          bool
 	Statistics              hostedquery.OwnedStatisticsRepairRequest
 	Vacuum                  hostedquery.OwnedVacuumRequest
 	Memory                  hostedquery.OwnedMemoryRequest
@@ -52,7 +53,8 @@ func readOwnedRepairFixture(stateDSN string) (*hostedquery.OwnedProjectRepair, e
 	}
 	invalid := errors.New("the owned Rookery repair fixture configuration is invalid")
 	var settings ownedRepairSettings
-	if os.Getenv("POOLTUNE_STAGING_PRIVATE_STATE") != "1" || json.Unmarshal([]byte(binding), &settings) != nil {
+	if os.Getenv("POOLTUNE_STAGING_PRIVATE_STATE") != "1" || json.Unmarshal([]byte(binding), &settings) != nil ||
+		(settings.CleanupTrigger && settings.Operation != "vacuum") {
 		return nil, invalid
 	}
 	project, err := supabaseproject.New(hostedquery.OwnedIndexRookeryRef, settings.Installation)
@@ -88,6 +90,9 @@ func readOwnedRepairFixture(stateDSN string) (*hostedquery.OwnedProjectRepair, e
 	fixture := &hostedquery.OwnedProjectRepair{Installation: settings.Installation, Operation: settings.Operation,
 		Database: settings.Database, Role: settings.Role, Query: settings.Query, Automatic: settings.Automatic,
 		Config: writer, Investigate: graphrunner.AdaptDiagnostic(diagnose, nil)}
+	if settings.CleanupTrigger {
+		fixture.Cleanup = &settings.Vacuum
+	}
 	fixture.Run = func(ctx context.Context, invocation hostedquery.OwnedRepairInvocation, investigate hostedquery.IndexInvestigator,
 		guards hostedquery.OwnedRepairGuards) (hostedquery.DispatchResult, error) {
 		switch settings.Operation {

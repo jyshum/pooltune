@@ -47,6 +47,7 @@ type ProjectStatisticsGuards struct {
 type ProjectStatisticsResult struct {
 	WriteAttempted  bool
 	Confirmed       bool
+	Restored        bool
 	Prior, Current  ProjectStatisticsSetting
 	AnalyzeDuration time.Duration
 }
@@ -56,6 +57,12 @@ type ProjectStatisticsResult struct {
 // readback, so callers still need workload observations to establish benefit.
 // An error after WriteAttempted requires checking the recorded intent before retry.
 func ApplyProjectStatisticsTarget(ctx context.Context, config *pgx.ConnConfig, request ProjectStatisticsRequest, guards ProjectStatisticsGuards) (result ProjectStatisticsResult, err error) {
+	return applyProjectStatisticsTarget(ctx, config, request, guards, nil)
+}
+
+func applyProjectStatisticsTarget(ctx context.Context, config *pgx.ConnConfig, request ProjectStatisticsRequest, guards ProjectStatisticsGuards,
+	verify func(context.Context, pgx.Tx, ProjectStatisticsIntent) (bool, error),
+) (result ProjectStatisticsResult, err error) {
 	if config == nil || guards.CheckPermission == nil || guards.CheckCapacity == nil || guards.RecordIntent == nil ||
 		request.RunID == "" || len(request.RunID) > 128 || !freshStatisticsRequest(request, time.Now()) ||
 		request.NextTarget < 1 || request.NextTarget > projectStatisticsMaxTarget {
@@ -114,8 +121,7 @@ func ApplyProjectStatisticsTarget(ctx context.Context, config *pgx.ConnConfig, r
 		return result, err
 	}
 	result.Prior = prior.setting
-	if prior.effective <= 0 || request.NextTarget <= prior.effective ||
-		request.NextTarget > prior.effective*2 || request.NextTarget-prior.effective > 100 {
+	if !boundedProjectStatisticsTarget(prior.effective, request.NextTarget) {
 		return result, errors.New("requested statistics target is outside the bounded increase")
 	}
 	intent := ProjectStatisticsIntent{ProjectStatisticsRequest: request, Key: key, Prior: prior.setting,
@@ -156,11 +162,30 @@ func ApplyProjectStatisticsTarget(ctx context.Context, config *pgx.ConnConfig, r
 	if current.setting != (ProjectStatisticsSetting{Value: request.NextTarget}) || !hasSample {
 		return result, errors.New("statistics adjustment did not pass exact catalog readback")
 	}
+	if verify != nil {
+		retain, err := verify(ctx, tx, intent)
+		if err != nil || !retain {
+			cleanup, finish := context.WithTimeout(context.Background(), time.Second)
+			defer finish()
+			if rollback := tx.Rollback(cleanup); rollback != nil {
+				return result, errors.Join(err, rollback)
+			}
+			// Rolling back the action transaction also restores the planner's
+			// prior sample. Another ANALYZE would create a different sample.
+			result.Current, result.Confirmed, result.Restored = prior.setting, true, true
+			return result, err
+		}
+	}
 	if err := tx.Commit(ctx); err != nil {
 		return result, err
 	}
 	result.Current, result.Confirmed = current.setting, true
 	return result, nil
+}
+
+func boundedProjectStatisticsTarget(prior, next int32) bool {
+	return prior > 0 && next > prior && next <= projectStatisticsMaxTarget &&
+		next <= prior*2 && next-prior <= 100
 }
 
 func freshStatisticsRequest(request ProjectStatisticsRequest, now time.Time) bool {

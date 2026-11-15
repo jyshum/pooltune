@@ -28,13 +28,14 @@ type ProjectCronSnapshot struct {
 }
 
 type ProjectCronRequest struct {
-	Target     ProjectCronTarget
-	Window     ProjectCronWindowPlan
-	Baseline   ProjectCronSnapshot
-	Generation CronGeneration
-	RunID      string
-	ObservedAt time.Time
-	Periods    []CronPeriod
+	Target       ProjectCronTarget
+	Window       ProjectCronWindowPlan
+	Baseline     ProjectCronSnapshot
+	Generation   CronGeneration
+	RunID        string
+	ObservedAt   time.Time
+	Periods      []CronPeriod
+	ownedHandoff bool
 }
 
 type ProjectCronIntent struct {
@@ -129,17 +130,29 @@ func readProjectCronWitness(ctx context.Context, db trialReader, target ProjectC
 }
 
 func checkProjectCronProvider(ctx context.Context, db trialReader) error {
+	return checkProjectCronProviderPrerequisites(ctx, db, true)
+}
+
+func checkProjectCronProviderCatalog(ctx context.Context, db trialReader) error {
+	return checkProjectCronProviderPrerequisites(ctx, db, false)
+}
+
+func checkProjectCronProviderPrerequisites(ctx context.Context, db trialReader, directRuntime bool) error {
+	const directSettings = ` AND COALESCE(pg_catalog.current_setting('cron.timezone',true) IN ('UTC','GMT'),false)
+		AND pg_catalog.current_setting('cron.log_run',true)='on' AND pg_catalog.current_setting('cron.use_background_workers',true)='off'
+		AND pg_catalog.current_setting('cron.database_name',true)=pg_catalog.current_database()`
+	settings := ""
+	if directRuntime {
+		settings = directSettings
+	}
 	var valid bool
 	err := db.QueryRow(ctx, `SELECT EXISTS (
 		SELECT FROM pg_catalog.pg_extension e JOIN pg_catalog.pg_depend dep ON dep.refobjid=e.oid
 		WHERE e.extname='pg_cron' AND e.extversion='1.6.4' AND dep.deptype='e' AND dep.refclassid='pg_catalog.pg_extension'::regclass
 		  AND dep.classid='pg_catalog.pg_proc'::regclass AND dep.objid=pg_catalog.to_regprocedure('cron.alter_job(bigint,text,text,text,text,boolean)')
-	) AND COALESCE(pg_catalog.current_setting('cron.timezone',true) IN ('UTC','GMT'),false)
-	  AND pg_catalog.current_setting('cron.log_run',true)='on' AND pg_catalog.current_setting('cron.use_background_workers',true)='off'
-	  AND pg_catalog.current_setting('cron.database_name',true)=pg_catalog.current_database() AND NOT pg_catalog.pg_is_in_recovery()
+	) AND NOT pg_catalog.pg_is_in_recovery()
 	  AND current_user=session_user AND NOT pg_catalog.has_any_column_privilege(current_user,'cron.job','UPDATE')
-	  AND pg_catalog.has_function_privilege(current_user,pg_catalog.to_regprocedure('cron.alter_job(bigint,text,text,text,text,boolean)'),'EXECUTE')
-	`).Scan(&valid)
+	  AND pg_catalog.has_function_privilege(current_user,pg_catalog.to_regprocedure('cron.alter_job(bigint,text,text,text,text,boolean)'),'EXECUTE')`+settings).Scan(&valid)
 	if err != nil || !valid {
 		return errors.New("registered pg_cron schedule-only provider or runtime prerequisites unavailable")
 	}
@@ -213,7 +226,11 @@ func applyProjectCron(ctx context.Context, cfg *pgx.ConnConfig, req ProjectCronR
 			}
 		}
 		lastClock, generation, err = provider.clock(ctx, tx)
-		if err != nil || lastClock.Before(now) || !req.Generation.same(generation) || !lastClock.Before(firstFuture.Add(-8*time.Second)) || lastClock.Sub(req.ObservedAt) > 30*time.Second {
+		latest := firstFuture.Add(-8 * time.Second)
+		if req.ownedHandoff {
+			latest = ownedCronHandoffDeadline(firstFuture)
+		}
+		if err != nil || lastClock.Before(now) || !req.Generation.same(generation) || !lastClock.Before(latest) || lastClock.Sub(req.ObservedAt) > 30*time.Second {
 			return errors.New("Cron scheduler changed or passed its safe handoff window")
 		}
 		out.WriteAttempted = true
@@ -243,11 +260,15 @@ func applyProjectCron(ctx context.Context, cfg *pgx.ConnConfig, req ProjectCronR
 	if err != nil || actual != expected {
 		return out, errors.New("Cron change acknowledgement requires reconciliation")
 	}
+	witnessLimit := out.FirstFutureCycle
+	if req.ownedHandoff {
+		witnessLimit = ownedCronHandoffDeadline(witnessLimit)
+	}
 	committed, generation, err := provider.clock(ctx, db)
-	if err != nil || committed.Before(lastClock) || !generation.same(req.Generation) || !committed.Before(out.FirstFutureCycle) {
+	if err != nil || committed.Before(lastClock) || !generation.same(req.Generation) || !committed.Before(witnessLimit) {
 		return out, errors.New("Cron scheduler changed around the schedule commit")
 	}
-	out.PostCommitWitnesses, err = waitProjectCronWitnesses(ctx, db, req, provider, committed, out.FirstFutureCycle)
+	out.PostCommitWitnesses, err = waitProjectCronWitnesses(ctx, db, req, provider, committed, witnessLimit)
 	if err != nil {
 		return out, err
 	}

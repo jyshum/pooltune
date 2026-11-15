@@ -11,13 +11,15 @@ import (
 )
 
 type ProjectCleanupSettingsObservation struct {
-	Target                              ProjectIndexTarget
-	At, Boot, StatsReset                time.Time
-	ScaleOption                         string
-	ScaleFactor, EstimatedRows          float64
-	BaseThreshold, MaximumThreshold     int64
-	DeadTuples, Cleanups, RelationBytes int64
-	AutovacuumEnabled                   bool
+	Target                                  ProjectIndexTarget
+	At, Boot, StatsReset, LastAutovacuum    time.Time
+	ScaleOption                             string
+	ScaleFactor, EstimatedRows              float64
+	BaseThreshold, MaximumThreshold         int64
+	DeadTuples, Cleanups, RelationBytes     int64
+	AutomaticCleanups, Updated, Deleted     int64
+	AutovacuumNaptimeSeconds                int64
+	AutovacuumEnabled, OnlyDeadTupleTrigger bool
 }
 
 type ProjectCleanupSettingsRequest struct {
@@ -37,7 +39,8 @@ type ProjectCleanupSettingsGuards struct {
 	CheckPermission func(context.Context, ProjectCleanupSettingsIntent) error
 	CheckCapacity   func(context.Context, int64, ProjectCleanupSettingsIntent) error
 	// RecordIntent persists the exact one-option change before it reaches PostgreSQL.
-	RecordIntent func(context.Context, ProjectCleanupSettingsIntent) error
+	RecordIntent         func(context.Context, ProjectCleanupSettingsIntent) error
+	recordObservedIntent func(context.Context, ProjectCleanupSettingsIntent, ProjectCleanupSettingsObservation) error
 }
 
 type ProjectCleanupSettingsResult struct {
@@ -62,21 +65,28 @@ func ReadProjectCleanupSettings(ctx context.Context, db *pgx.Conn, target Projec
 // and protected traffic separately before reporting an improvement.
 func ApplyProjectCleanupSettings(ctx context.Context, config *pgx.ConnConfig, request ProjectCleanupSettingsRequest, guards ProjectCleanupSettingsGuards) (ProjectCleanupSettingsResult, error) {
 	return updateProjectCleanupSettings(ctx, config, request.Later.Target, request.RunID, guards, func(now ProjectCleanupSettingsObservation) (ProjectCleanupSettingsIntent, error) {
-		later, earlier := request.Later, request.Earlier
-		span := later.At.Sub(earlier.At)
-		if span < time.Second || span > 30*time.Second || now.At.Before(later.At) || now.At.Sub(later.At) > 30*time.Second ||
-			!matchingCleanupSettings(earlier, later) || !matchingCleanupSettings(later, now) || !now.AutovacuumEnabled ||
-			earlier.DeadTuples >= later.DeadTuples || later.DeadTuples > now.DeadTuples {
-			return ProjectCleanupSettingsIntent{}, errors.New("cleanup needs fresh increasing backlog with a stable trigger and counter generation")
-		}
-		next := math.Round(math.Max(.05, now.ScaleFactor-math.Min(.05, now.ScaleFactor/4))*1e6) / 1e6
-		if now.EstimatedRows <= 0 || next >= now.ScaleFactor || !nonnegativeFinite(now.EstimatedRows) || !validCleanupOption(now.ScaleOption, true) ||
-			cleanupThreshold(now, next) >= float64(earlier.DeadTuples) || float64(now.DeadTuples) >= cleanupThreshold(now, now.ScaleFactor) {
-			return ProjectCleanupSettingsIntent{}, errors.New("measured backlog does not justify lowering this cleanup trigger")
-		}
-		return ProjectCleanupSettingsIntent{Target: now.Target, RunID: request.RunID,
-			BeforeOption: now.ScaleOption, AfterOption: strconv.FormatFloat(next, 'f', -1, 64)}, nil
+		return planProjectCleanupSettings(request, now)
 	})
+}
+
+var errCleanupSettingsEvidence = errors.New("cleanup needs fresh increasing backlog with a stable trigger and counter generation")
+var errCleanupSettingsThreshold = errors.New("measured backlog does not justify lowering this cleanup trigger")
+
+func planProjectCleanupSettings(request ProjectCleanupSettingsRequest, now ProjectCleanupSettingsObservation) (ProjectCleanupSettingsIntent, error) {
+	later, earlier := request.Later, request.Earlier
+	span := later.At.Sub(earlier.At)
+	if span < time.Second || span > 30*time.Second || now.At.Before(later.At) || now.At.Sub(later.At) > 30*time.Second ||
+		!matchingCleanupSettings(earlier, later) || !matchingCleanupSettings(later, now) || !now.AutovacuumEnabled ||
+		earlier.DeadTuples >= later.DeadTuples || later.DeadTuples > now.DeadTuples {
+		return ProjectCleanupSettingsIntent{}, errCleanupSettingsEvidence
+	}
+	next := math.Round(math.Max(.05, now.ScaleFactor-math.Min(.05, now.ScaleFactor/4))*1e6) / 1e6
+	if now.EstimatedRows <= 0 || next >= now.ScaleFactor || !nonnegativeFinite(now.EstimatedRows) || !validCleanupOption(now.ScaleOption, true) ||
+		cleanupThreshold(now, next) >= float64(earlier.DeadTuples) || float64(now.DeadTuples) >= cleanupThreshold(now, now.ScaleFactor) {
+		return ProjectCleanupSettingsIntent{}, errCleanupSettingsThreshold
+	}
+	return ProjectCleanupSettingsIntent{Target: now.Target, RunID: request.RunID,
+		BeforeOption: now.ScaleOption, AfterOption: strconv.FormatFloat(next, 'f', -1, 64)}, nil
 }
 
 // RestoreProjectCleanupSettings compares the live option with the recorded
@@ -97,7 +107,7 @@ func RestoreProjectCleanupSettings(ctx context.Context, config *pgx.ConnConfig, 
 
 func updateProjectCleanupSettings(ctx context.Context, config *pgx.ConnConfig, target ProjectIndexTarget, runID string, guards ProjectCleanupSettingsGuards,
 	plan func(ProjectCleanupSettingsObservation) (ProjectCleanupSettingsIntent, error)) (result ProjectCleanupSettingsResult, err error) {
-	if config == nil || runID == "" || len(runID) > 128 || guards.CheckPermission == nil || guards.CheckCapacity == nil || guards.RecordIntent == nil {
+	if config == nil || runID == "" || len(runID) > 128 || guards.CheckPermission == nil || guards.CheckCapacity == nil || (guards.RecordIntent == nil && guards.recordObservedIntent == nil) {
 		return result, errors.New("cleanup setting needs an exact request, permission, capacity and durable intent")
 	}
 	ctx, cancel := context.WithTimeout(ctx, 8*time.Second)
@@ -108,6 +118,9 @@ func updateProjectCleanupSettings(ctx context.Context, config *pgx.ConnConfig, t
 	}
 	defer closeVacuumConnection(db)
 	if err := configureProjectMaintenance(ctx, db); err != nil {
+		return result, err
+	}
+	if _, err := db.Exec(ctx, `SET application_name='pooltune bounded cleanup trigger'`); err != nil {
 		return result, err
 	}
 	before, err := readProjectCleanupSettings(ctx, db, target)
@@ -169,7 +182,11 @@ func updateProjectCleanupSettings(ctx context.Context, config *pgx.ConnConfig, t
 		return result, err
 	}
 	result.Intent = intent
-	if err := guards.RecordIntent(ctx, intent); err != nil {
+	if guards.recordObservedIntent != nil {
+		if err := guards.recordObservedIntent(ctx, intent, result.Before); err != nil {
+			return result, err
+		}
+	} else if err := guards.RecordIntent(ctx, intent); err != nil {
 		return result, err
 	}
 	if err := guards.CheckPermission(ctx, intent); err != nil {
@@ -235,7 +252,11 @@ func readProjectCleanupSettings(ctx context.Context, session projectMaintenanceS
 		COALESCE(NULLIF((opt->>'autovacuum_vacuum_threshold')::bigint,-1), pg_catalog.current_setting('autovacuum_vacuum_threshold')::bigint),
 		COALESCE((opt->>'autovacuum_vacuum_max_threshold')::bigint, pg_catalog.current_setting('autovacuum_vacuum_max_threshold',true)::bigint,-1),
 		c.reltuples::double precision, s.n_dead_tup, s.autovacuum_count+s.vacuum_count, pg_catalog.pg_total_relation_size(c.oid),
-		pg_catalog.current_setting('autovacuum')='on' AND pg_catalog.current_setting('track_counts')='on' AND COALESCE((opt->>'autovacuum_enabled')::boolean,true)
+		s.autovacuum_count, coalesce(s.last_autovacuum,'epoch'::timestamptz), s.n_tup_upd, s.n_tup_del,
+		(SELECT setting::bigint FROM pg_catalog.pg_settings WHERE name='autovacuum_naptime' AND unit='s'),
+		pg_catalog.current_setting('autovacuum')='on' AND pg_catalog.current_setting('track_counts')='on' AND COALESCE((opt->>'autovacuum_enabled')::boolean,true),
+		COALESCE((opt->>'autovacuum_vacuum_insert_threshold')::int, pg_catalog.current_setting('autovacuum_vacuum_insert_threshold')::int)=-1
+		  AND pg_catalog.age(c.relfrozenxid) < 1000000 AND pg_catalog.mxid_age(c.relminmxid) < 1000000
 	FROM pg_catalog.pg_class c
 	JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
 	JOIN pg_catalog.pg_am am ON am.oid=c.relam AND am.amname='heap'
@@ -252,7 +273,8 @@ func readProjectCleanupSettings(ctx context.Context, session projectMaintenanceS
 		AND NOT EXISTS (SELECT FROM pg_catalog.pg_inherits i WHERE i.inhrelid=c.oid OR i.inhparent=c.oid)
 		AND NOT EXISTS (SELECT FROM pg_catalog.pg_depend x WHERE x.classid='pg_catalog.pg_class'::regclass AND x.objid=c.oid AND x.deptype='e')
 	`, target.DatabaseOID, target.TableOID, target.Schema, target.Relation).Scan(&o.At, &o.Boot, &o.StatsReset, &o.ScaleOption, &o.ScaleFactor,
-		&o.BaseThreshold, &o.MaximumThreshold, &o.EstimatedRows, &o.DeadTuples, &o.Cleanups, &o.RelationBytes, &o.AutovacuumEnabled)
+		&o.BaseThreshold, &o.MaximumThreshold, &o.EstimatedRows, &o.DeadTuples, &o.Cleanups, &o.RelationBytes,
+		&o.AutomaticCleanups, &o.LastAutovacuum, &o.Updated, &o.Deleted, &o.AutovacuumNaptimeSeconds, &o.AutovacuumEnabled, &o.OnlyDeadTupleTrigger)
 	if errors.Is(err, pgx.ErrNoRows) || err == nil && (o.RelationBytes < 0 || o.RelationBytes > projectMaintenanceMaxRelationBytes) {
 		return ProjectCleanupSettingsObservation{}, errors.New("cleanup setting needs the exact owner and an eligible ordinary table")
 	}

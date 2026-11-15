@@ -122,6 +122,25 @@ test("eligible joint statistics reaches the investigator and unsupported evidenc
   assert.equal(unsupported.proposal?.outcome, "no_change");
 });
 
+test("fresh single-column understimation can support a bounded target increase", async () => {
+  const statistics = {
+    correlated_columns: false,
+    cases: [{ estimated_rows: 18, actual_rows: 1200 }],
+    column_target: { current_target: 80, next_target: 120 },
+  };
+  const input = { ...evidence, covering_index: true, statistics };
+  const accepted = await buildGraph(scriptedInvestigator).invoke({ evidence: input });
+  assert.equal(accepted.proposal?.repair, "statistics");
+  for (const unsupported of [
+    { ...statistics, column_target: { current_target: 80, next_target: 161 } },
+    { ...statistics, correlated_columns: true },
+    { ...statistics, cases: [{ estimated_rows: 1200, actual_rows: 18 }] },
+  ]) {
+    const graph = buildGraph(async () => { throw Error("ineligible column target reached the investigator"); });
+    assert.equal((await graph.invoke({ evidence: { ...input, statistics: unsupported } })).proposal?.outcome, "no_change");
+  }
+});
+
 test("the model can decline either statistics repair and errors propagate without a proposal", async () => {
   for (const details of [
     { analyze: { estimated_rows: 100000, actual_rows: 1 } },

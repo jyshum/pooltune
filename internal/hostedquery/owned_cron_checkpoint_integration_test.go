@@ -86,6 +86,14 @@ func testOwnedCronCheckpoint(t *testing.T, offset time.Duration) {
 		{ID: 91, JobID: req.Target.WitnessJobID, PID: 1, Start: future.Add(-17 * time.Second), End: future.Add(-16 * time.Second), Status: "succeeded"},
 		{ID: 92, JobID: req.Target.WitnessJobID, PID: 2, Start: future.Add(-15 * time.Second), End: future.Add(-14 * time.Second), Status: "succeeded"},
 	}
+	if ownedCronAcknowledges(intent, ack) {
+		t.Fatal("acknowledged a witness outside the approved 15-second handoff margin")
+	}
+	ack.Report.CommitAt = future.Add(-22 * time.Second)
+	for index := range ack.Report.PostWitness {
+		ack.Report.PostWitness[index].Start = ack.Report.PostWitness[index].Start.Add(-4 * time.Second)
+		ack.Report.PostWitness[index].End = ack.Report.PostWitness[index].End.Add(-4 * time.Second)
+	}
 	waiting := deferOwnedCron(ack.Report, "awaiting_verification", due)
 	if _, err := publishOwnedCronCheckpoint(ctx, worker, epoch+1, parent, waiting, &ack); !errors.Is(err, errClaimLost) {
 		t.Fatalf("stale epoch published action: %v", err)

@@ -25,6 +25,7 @@ type OwnedProjectRepair struct {
 	Query        int64
 	Automatic    bool
 	Config       *pgx.ConnConfig
+	Cleanup      *OwnedVacuumRequest
 	Run          OwnedRepairRunner
 	Capacity     func(context.Context, *pgx.Conn) error
 	Investigate  IndexInvestigator
@@ -55,11 +56,16 @@ const ownedProjectRepairSchema = `
 		restore_intent jsonb,
 		outcome text NOT NULL DEFAULT 'pending',
 		recorded_at timestamptz NOT NULL DEFAULT statement_timestamp()
+	);
+	CREATE TABLE IF NOT EXISTS pooltune_worker.owned_cleanup_acknowledgements (
+		action_job_id bigint PRIMARY KEY REFERENCES pooltune_worker.owned_project_actions(job_id),
+		observation jsonb NOT NULL
 	);`
 
 func (r *OwnedProjectRepair) Matches(project supabaseproject.Project) bool {
 	if r == nil || r.Config == nil || r.Run == nil || r.Investigate == nil ||
-		r.Database == 0 || r.Role == 0 || r.Automatic != (r.Query == 0) || r.Operation == "index" {
+		r.Database == 0 || r.Role == 0 || r.Automatic != (r.Query == 0) || r.Operation == "index" ||
+		(r.Cleanup != nil && r.Operation != "vacuum") {
 		return false
 	}
 	identity, err := supabaseproject.New(OwnedIndexRookeryRef, r.Installation)
@@ -93,23 +99,7 @@ func (r *OwnedProjectRepair) run(ctx context.Context, state, monitor *pgx.Conn, 
 		return nil
 	}
 	verify := func(ctx context.Context) error {
-		if err := checkOwnedIndexClaim(ctx, state, project, epoch, claim); err != nil {
-			return err
-		}
-		if len(claim.Generation) != 3 {
-			return errLookupScope
-		}
-		var boot, reset, entry time.Time
-		var objective float64
-		var calls int64
-		err := monitor.QueryRow(ctx, `SELECT boot,reset_at,entry_since,mean_execution_ms,calls FROM `+
-			qualified(project.Role(), "snapshot")+`() WHERE database_oid=$1 AND role_oid=$2 AND query_id=$3`,
-			claim.Database, claim.Role, claim.Query).Scan(&boot, &reset, &entry, &objective, &calls)
-		if err != nil || objective != windows.ObjectiveMS || calls < 1 || !boot.Equal(claim.Generation[0]) ||
-			!reset.Equal(claim.Generation[1]) || !entry.Equal(claim.Generation[2]) {
-			return errors.Join(errLookupScope, err)
-		}
-		return nil
+		return verifyOwnedRepairWindow(ctx, state, monitor, project, epoch, claim, windows.ObjectiveMS)
 	}
 	if err := verify(ctx); err != nil {
 		return err
@@ -138,17 +128,7 @@ func (r *OwnedProjectRepair) run(ctx context.Context, state, monitor *pgx.Conn, 
 		Database: claim.Database, Role: claim.Role, Query: claim.Query, Generation: claim.Generation}
 	out, runErr := r.Run(ctx, invocation, investigate, OwnedRepairGuards{
 		CheckPermission: verify,
-		CheckCapacity: func(ctx context.Context) error {
-			var available bool
-			err := writer.QueryRow(ctx, `SELECT sum(numbackends)*3 < current_setting('max_connections')::int*2 FROM pg_stat_database`).Scan(&available)
-			if err == nil && !available {
-				return errors.New("the database does not have connection headroom")
-			}
-			if err == nil && r.Capacity != nil {
-				return r.Capacity(ctx, writer)
-			}
-			return err
-		},
+		CheckCapacity:   func(ctx context.Context) error { return checkOwnedRepairCapacity(ctx, writer, r.Capacity) },
 		RecordIntent: func(ctx context.Context, intent any) error {
 			if journaled {
 				restore, ok := intent.(ProjectFunctionMemoryIntent)
@@ -220,6 +200,42 @@ func (r *OwnedProjectRepair) run(ctx context.Context, state, monitor *pgx.Conn, 
 	slog.Info("owned repair evaluation finished", "operation", r.Operation, "job", claim.ID,
 		"elapsed_ms", elapsedMS(started), "outcome", out.Outcome)
 	return nil
+}
+
+func verifyOwnedRepairWindow(ctx context.Context, state, monitor *pgx.Conn, project supabaseproject.Project,
+	epoch int64, claim investigationClaim, expectedObjective float64) error {
+	if err := checkOwnedIndexClaim(ctx, state, project, epoch, claim); err != nil {
+		return err
+	}
+	if len(claim.Generation) != 3 {
+		return errLookupScope
+	}
+	var boot, reset, entry time.Time
+	var objective float64
+	var calls int64
+	err := monitor.QueryRow(ctx, `SELECT boot,reset_at,entry_since,mean_execution_ms,calls FROM `+
+		qualified(project.Role(), "snapshot")+`() WHERE database_oid=$1 AND role_oid=$2 AND query_id=$3`,
+		claim.Database, claim.Role, claim.Query).Scan(&boot, &reset, &entry, &objective, &calls)
+	if err != nil {
+		return errors.Join(errLookupScope, err)
+	}
+	if objective != expectedObjective || calls < 1 || !boot.Equal(claim.Generation[0]) ||
+		!reset.Equal(claim.Generation[1]) || !entry.Equal(claim.Generation[2]) {
+		return errLookupScope
+	}
+	return nil
+}
+
+func checkOwnedRepairCapacity(ctx context.Context, writer *pgx.Conn, check func(context.Context, *pgx.Conn) error) error {
+	var available bool
+	err := writer.QueryRow(ctx, `SELECT sum(numbackends)*3 < current_setting('max_connections')::int*2 FROM pg_stat_database`).Scan(&available)
+	if err == nil && !available {
+		return errors.New("the database does not have connection headroom")
+	}
+	if err == nil && check != nil {
+		return check(ctx, writer)
+	}
+	return err
 }
 
 func ownedRepairErrorCategory(err error) string {

@@ -98,6 +98,7 @@ type ProjectRepair struct {
 	Action         string                `json:"action"`
 	RecoveryStatus string                `json:"recovery_status,omitempty"`
 	Metrics        []ProjectRepairMetric `json:"metrics,omitempty"`
+	AnalysisMS     float64               `json:"analysis_wall_ms,omitempty"`
 }
 
 type ProjectRepairMetric struct {
@@ -292,7 +293,10 @@ func readProjectJobs(ctx context.Context, tx pgx.Tx, projectID string, cutoff ti
 			)) END
 		FROM pooltune_worker.investigations j
 		CROSS JOIN LATERAL (
-			SELECT CASE WHEN j.finished_at IS NOT NULL OR j.lease_until<=transaction_timestamp() THEN COALESCE(
+			SELECT CASE WHEN (j.finished_at IS NOT NULL OR j.lease_until<=transaction_timestamp())
+			  AND NOT (COALESCE(j.result->>'outcome','')='awaiting_verification' AND EXISTS (
+				SELECT FROM pooltune_worker.investigations child WHERE child.project_id=j.project_id AND child.parent_id=j.id
+			  )) THEN COALESCE(
 				(SELECT 'index' FROM pooltune_worker.owned_index_actions a
 				  WHERE a.project_id=j.project_id AND a.job_id=j.id AND a.outcome='pending'),
 				(SELECT a.operation FROM pooltune_worker.owned_project_actions a
@@ -339,6 +343,9 @@ func readProjectRepair(job *ProjectJob, encoded []byte) {
 			Memory      float64         `json:"memory_wall_ms"`
 			Restored    bool            `json:"restored"`
 			Commit      time.Time       `json:"commit_at"`
+
+			ColumnTarget *StatisticsColumnTargetReport `json:"column_target"`
+			Cleanup      *CleanupTriggerReport         `json:"cleanup_trigger"`
 		}
 		if json.Unmarshal(raw, &report) != nil {
 			return
@@ -363,15 +370,22 @@ func readProjectRepair(job *ProjectJob, encoded []byte) {
 		switch kind {
 		case "statistics":
 			var before, after struct {
-				Applied  bool                  `json:"applied"`
-				Retained *bool                 `json:"retained"`
-				Samples  []projectRepairSample `json:"samples"`
+				Applied   bool                  `json:"applied"`
+				Retained  *bool                 `json:"retained"`
+				Samples   []projectRepairSample `json:"samples"`
+				AnalyzeMS float64               `json:"analyze_wall_ms"`
 			}
 			if json.Unmarshal(report.After, &after) != nil || !after.Applied {
 				return
 			}
 			if after.Retained != nil && !*after.Retained {
 				summary.Action = "removed"
+				if report.ColumnTarget != nil && report.ColumnTarget.Restored {
+					summary.Action = "restored"
+				}
+			}
+			if report.ColumnTarget != nil && nonnegativeFinite(after.AnalyzeMS) {
+				summary.AnalysisMS = after.AnalyzeMS
 			}
 			if json.Unmarshal(report.Before, &before) == nil && len(before.Samples) == len(after.Samples) {
 				for i := 0; i < min(4, len(after.Samples)); i++ {
@@ -384,6 +398,25 @@ func readProjectRepair(job *ProjectJob, encoded []byte) {
 			}
 			summary.Metrics = projectCronRepairMetrics(report.Before, report.After)
 		case "index", "analyze", "vacuum", "memory":
+			if kind == "vacuum" && report.Cleanup != nil {
+				change := report.Cleanup
+				if !change.SettingChanged {
+					return
+				}
+				if change.Restored {
+					summary.Action = "restored"
+				}
+				if !change.Before.At.IsZero() && change.After.At.After(change.Before.At) {
+					summary.Metrics = append(summary.Metrics,
+						ProjectRepairMetric{Label: "Dead tuples", Before: float64(change.Before.DeadTuples), After: float64(change.After.DeadTuples)},
+						ProjectRepairMetric{Label: "Automatic cleanups", Before: float64(change.Before.AutomaticCleanups), After: float64(change.After.AutomaticCleanups)})
+				}
+				var before, after projectRepairSample
+				if json.Unmarshal(report.Before, &before) == nil && json.Unmarshal(report.After, &after) == nil {
+					summary.Metrics = append(summary.Metrics, before.compare(after, "")...)
+				}
+				break
+			}
 			if !(kind == "index" && report.IndexOK || kind == "analyze" && report.Analyze > 0 ||
 				kind == "vacuum" && report.Vacuum > 0 || kind == "memory" && report.Memory > 0) {
 				return

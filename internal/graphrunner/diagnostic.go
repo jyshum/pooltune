@@ -350,7 +350,7 @@ func validateDiagnosticResult(input DiagnosticInput, observations map[string]Dia
 	if input.Decision != hostedquery.Investigate {
 		return errors.New("not actionable")
 	}
-	// The relationship reader's contract includes fresh ordinary ANALYZE. Strong
+	// The statistics detail reader's contract includes fresh ordinary ANALYZE. Strong
 	// stale-distribution evidence in the same investigation contradicts it.
 	for _, o := range observations {
 		if !validObservation(o, input, o.Tool) {
@@ -364,13 +364,13 @@ func validateDiagnosticResult(input DiagnosticInput, observations map[string]Dia
 			if strictJSON(a.Data, &av) != nil || strictJSON(st.Data, &sv) != nil {
 				return errors.New("invalid statistics evidence")
 			}
-			strong := sv.Correlated && len(sv.Cases) == 2
-			for _, c := range sv.Cases {
-				if c.ActualRows <= 0 || c.EstimatedRows <= 0 || (float64(c.EstimatedRows)/float64(c.ActualRows) < 10 && float64(c.ActualRows)/float64(c.EstimatedRows) < 10) {
-					strong = false
-				}
+			var i struct {
+				Covering bool `json:"covering_index"`
 			}
-			if strong && av.SampledValueFraction != nil && *av.SampledValueFraction >= .9 && av.ActualRows > 0 && float64(av.EstimatedRows)/float64(av.ActualRows) > 10 {
+			if o, ok := observations["indexes"]; ok && o.Status == "available" && strictJSON(o.Data, &i) != nil {
+				return errors.New("invalid index evidence")
+			}
+			if sv.SupportsRepair(i.Covering) && av.SampledValueFraction != nil && *av.SampledValueFraction >= .9 && av.ActualRows > 0 && float64(av.EstimatedRows)/float64(av.ActualRows) > 10 {
 				return errors.New("contradictory statistics evidence")
 			}
 		}

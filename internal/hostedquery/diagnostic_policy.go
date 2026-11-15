@@ -21,15 +21,7 @@ func ValidateDiagnosticProposal(e IndexEvidence, p IndexProposal, now time.Time)
 	case "analyze":
 		eligible = len(p.Columns) == 0 && supportsAnalyzeEvidence(e)
 	case "statistics":
-		s := e.Statistics
-		eligible = s != nil && s.Correlated && len(s.Cases) == 2
-		if eligible {
-			for _, c := range s.Cases {
-				if c.ActualRows <= 0 || c.EstimatedRows <= 0 || rowEstimateError(c.EstimatedRows, c.ActualRows) < 10 {
-					eligible = false
-				}
-			}
-		}
+		eligible = e.Statistics.SupportsRepair(e.Existing) && (e.Statistics.ColumnTarget == nil || len(p.Columns) == 0)
 	case "vacuum":
 		eligible = qualifyVacuum(e, p, e.TableOID, now)
 	case "memory":

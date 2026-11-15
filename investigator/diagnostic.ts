@@ -1,7 +1,7 @@
 import { END, START, StateGraph, StateSchema } from '@langchain/langgraph';
 import type { BaseCheckpointSaver } from '@langchain/langgraph';
 import { z } from 'zod';
-import { evidenceFields, indexIdentityShape, indexKeysIssue, indexKeysMatchAnchor, sameIndexIdentity, screenEvidence, type Evidence, type IndexIdentity, type Proposal } from './graph.ts';
+import { evidenceFields, indexIdentityShape, indexKeysIssue, indexKeysMatchAnchor, sameIndexIdentity, screenEvidence, statisticsCause, type Evidence, type IndexIdentity, type Proposal } from './graph.ts';
 
 export const toolSchema=z.enum(['plan','indexes','analyze','statistics','vacuum','memory','cron']);
 export type DiagnosticTool=z.infer<typeof toolSchema>;
@@ -123,7 +123,7 @@ export function buildDiagnosticGraph(decide:DiagnosticDecider,read:DiagnosticRea
     const a=get('analyze'),stats=get('statistics');
     if(a&&stats){
      const av=schemas.analyze.parse(a.data),sv=schemas.statistics.parse(stats.data);
-     if(av.sampled_lookup_fraction!==undefined&&av.sampled_lookup_fraction>=.9&&av.actual_rows*10<av.estimated_rows&&sv.correlated_columns&&sv.cases.every(c=>Math.max(c.actual_rows,c.estimated_rows)>=10*Math.min(c.actual_rows,c.estimated_rows))){
+     if(av.sampled_lookup_fraction!==undefined&&av.sampled_lookup_fraction>=.9&&av.actual_rows*10<av.estimated_rows&&statisticsCause(sv,i!==undefined&&schemas.indexes.parse(i.data).covering_index)){
       return {proposal:{...identity(s.input),outcome:'no_change' as const,reason:'Stale distribution evidence conflicts with the fresh-statistics measurement contract.'},stop_reason:'contradictory_evidence'};
      }
     }

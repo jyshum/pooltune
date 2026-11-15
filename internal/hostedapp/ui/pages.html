@@ -357,6 +357,7 @@ ALTER ROLE {{.Role}} LOGIN;</textarea>
           {{if .Finished}}<div><dt>Finished</dt><dd>{{.Finished}}</dd></div>{{end}}
           {{if .Queue}}<div><dt>Queue time</dt><dd>{{.Queue}}</dd></div>{{end}}
           {{if .Model}}<div><dt>Model time</dt><dd>{{.Model}}</dd></div>{{end}}
+          {{if .Analysis}}<div><dt>Database analysis time</dt><dd>{{.Analysis}}</dd></div>{{end}}
           {{if .Plan}}<div><dt>Plan</dt><dd>{{.Plan}}</dd></div>{{end}}
           {{if .Repair}}<div><dt>Repair</dt><dd>{{.Repair}}</dd></div>{{end}}
           {{if .RepairStatus}}<div><dt>Action status</dt><dd>{{.RepairStatus}}</dd></div>{{end}}

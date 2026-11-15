@@ -4,6 +4,7 @@ package hostedquery
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"testing"
 	"time"
@@ -94,6 +95,48 @@ func TestOwnedStatisticsRepairMeasuresJointStatistics(t *testing.T) {
 	assertOwnedStatisticsGuardPreserved(t, ctx, admin)
 }
 
+func TestOwnedStatisticsRepairRestoresColumnTargetWhenGainIsInconclusive(t *testing.T) {
+	ctx, admin, writer, request := setupOwnedStatisticsPG(t, "column_target")
+	// The Railway descriptor uses the same statistics capability with this
+	// single-column, exact worker-authored bound.
+	if err := json.Unmarshal([]byte(`{"NextTarget":2}`), &request); err != nil {
+		t.Fatal(err)
+	}
+	var priorSample string
+	stats := "SELECT most_common_vals::text FROM pg_stats WHERE schemaname=$1 AND tablename=$2 AND attname='lookup'"
+	if err := admin.QueryRow(ctx, stats, request.Target.Schema, request.Target.Relation).Scan(&priorSample); err != nil || priorSample != "{42}" {
+		t.Fatalf("expected the low target to capture only the leading value: %q, %v", priorSample, err)
+	}
+	var actions int
+	guards := ownedStatisticsTestGuards(func(value any) error {
+		intent, ok := value.(ProjectStatisticsIntent)
+		if !ok || intent.Target != request.Target || intent.Column != 2 || intent.RunID != request.RunID ||
+			intent.Prior != (ProjectStatisticsSetting{Value: 1}) || intent.NextTarget != 2 {
+			t.Fatalf("statistics adjustment did not durably bind the exact prior and new settings: %+v", value)
+		}
+		actions++
+		return nil
+	})
+	result, err := RunOwnedStatisticsRepair(ctx, writer, request, ownedStatisticsTestModel("statistics"), guards)
+	if err != nil || result.Outcome != "inconclusive" || actions != 1 || result.Statistics == nil {
+		t.Fatalf("expected one inconclusive and rolled-back column target trial, got %q, actions=%d: %v", result.Outcome, actions, err)
+	}
+	report := result.Statistics
+	if len(report.Before.Samples) != 1 || len(report.After.Samples) != 1 || !report.After.Applied ||
+		report.After.Retained || report.After.AnalyzeMS <= 0 ||
+		report.Before.Samples[0].EstimateError < 10 || report.After.Samples[0].EstimateError > 3 {
+		t.Fatalf("missing exact measured plan and analysis cost: before=%+v after=%+v", report.Before, report.After)
+	}
+	if prior := readProjectStatisticsSetting(t, ctx, admin, request.Target, 2); prior != (ProjectStatisticsSetting{Value: 1}) {
+		t.Fatalf("inconclusive trial left a new statistics target: %+v", prior)
+	}
+	var restoredSample string
+	if err := admin.QueryRow(ctx, stats, request.Target.Schema, request.Target.Relation).Scan(&restoredSample); err != nil || restoredSample != priorSample {
+		t.Fatalf("rollback changed the original planner sample: %q, %v", restoredSample, err)
+	}
+	assertOwnedStatisticsGuardPreserved(t, ctx, admin)
+}
+
 func setupOwnedStatisticsPG(t *testing.T, operation string) (context.Context, *pgx.Conn, *pgx.ConnConfig, OwnedStatisticsRepairRequest) {
 	t.Helper()
 	ctx, config, _ := testpg.Start(t, "-c", "compute_query_id=on")
@@ -131,6 +174,14 @@ func setupOwnedStatisticsPG(t *testing.T, operation string) (context.Context, *p
 		request.Columns, request.Inputs = []int16{2, 3}, [][]int32{{1, 2}, {2, 1}}
 		query += " AND category=$2"
 		args = []any{int32(1), int32(2)}
+	case "column_target":
+		request.Operation = "statistics"
+		prepare = append(prepare,
+			"CREATE INDEX workload_lookup ON "+s+".workload (lookup)",
+			"ALTER TABLE "+s+".workload ALTER COLUMN lookup SET STATISTICS 1",
+			"INSERT INTO "+s+".workload SELECT n, CASE WHEN n<=6240 THEN 42 WHEN n<=10080 THEN 43 ELSE n END, "+
+				"1, repeat('a',56) FROM generate_series(1,12000) n ORDER BY (n * 7919::bigint) % 12001",
+			"ANALYZE "+s+".workload (lookup)")
 	default:
 		t.Fatalf("unknown test operation %s", operation)
 	}

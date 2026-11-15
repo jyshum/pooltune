@@ -19,23 +19,31 @@ func verifyProjectCronHandoff(ctx context.Context, tx pgx.Tx, req ProjectCronReq
 	oldOffset := time.Duration(req.Window.CurrentMinute) * time.Minute
 	newOffset := time.Duration(req.Window.ProposedMinute) * time.Minute
 	settledAt := cycle.Add(max(oldOffset+51*time.Second, newOffset+21*time.Second))
-	if now.Before(settledAt) || !now.Before(next.Add(-8*time.Second)) {
+	deadline := next.Add(-8 * time.Second)
+	if req.ownedHandoff {
+		deadline = ownedCronHandoffDeadline(next)
+	}
+	if now.Before(settledAt) || !now.Before(deadline) {
 		return time.Time{}, errors.New("Cron is outside the safe between-cycle handoff")
 	}
+	first := cycle.Add(-2 * cycleDuration)
 	var ready bool
 	err := tx.QueryRow(ctx, `SELECT EXISTS(SELECT FROM cron.job w JOIN cron.job t ON t.jobid=$1
 		WHERE w.jobid=$2 AND w.username=t.username AND w.database=t.database AND w.active AND w.command='SELECT 1' AND w.schedule='2 seconds')
-		AND NOT EXISTS(SELECT FROM cron.job_run_details WHERE jobid=$1 AND (end_time IS NULL OR status IS NULL OR status NOT IN ('succeeded','failed')))`,
-		req.Target.JobID, req.Target.WitnessJobID).Scan(&ready)
+		AND NOT EXISTS(SELECT FROM cron.job_run_details WHERE jobid=$1 AND (end_time IS NULL OR status IS NULL OR status NOT IN ('succeeded','failed')
+		  OR ($3::boolean AND start_time<$4::timestamptz)))`,
+		req.Target.JobID, req.Target.WitnessJobID, req.ownedHandoff, first).Scan(&ready)
 	if err != nil || !ready {
 		return time.Time{}, errors.New("Cron job is active or its owned scheduler witness is missing")
 	}
 	witnessSince := now.Add(-30 * time.Second)
+	if req.ownedHandoff && witnessSince.Before(cycle.Add(newOffset)) {
+		witnessSince = cycle.Add(newOffset)
+	}
 	witness, err := projectCronRuns(ctx, tx, req.Target.WitnessJobID, witnessSince, now)
 	if err != nil || validateCronWitness(req.Target.WitnessJobID, witness, witnessSince, next, now, req.Generation, generation) != nil {
 		return time.Time{}, errors.New("Cron scheduler did not record two distinct recent witness runs")
 	}
-	first := cycle.Add(-2 * cycleDuration)
 	history, err := projectCronRuns(ctx, tx, req.Target.JobID, first, now)
 	if err != nil || len(history) != 3 {
 		return time.Time{}, errors.New("Cron scheduler history did not record one run in each of three preceding cycles")

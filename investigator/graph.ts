@@ -38,7 +38,11 @@ export const evidenceFields = z.strictObject({
   vacuum: z.strictObject({ heap_fetches: z.number().nonnegative(), scan_rows: z.number().int().positive(), conditions_clear: z.boolean() }).optional(),
   statistics: z.strictObject({
     correlated_columns: z.boolean(),
-    cases: z.array(z.strictObject({ estimated_rows: z.number().int().positive(), actual_rows: z.number().int().positive() })).length(2),
+    cases: z.array(z.strictObject({ estimated_rows: z.number().int().positive(), actual_rows: z.number().int().positive() })).min(1).max(2),
+    column_target: z.strictObject({
+      current_target: z.number().int().positive(),
+      next_target: z.number().int().positive(),
+    }).optional(),
   }).optional(),
   analyze: z.strictObject({ estimated_rows: z.number().int().positive(), actual_rows: z.number().int().positive(), sampled_lookup_fraction: z.number().min(0).max(1).optional() }).optional(),
 });
@@ -81,6 +85,18 @@ export function sameIndexIdentity(a: IndexIdentity, b: IndexIdentity) {
     a.column_numbers?.[0] === b.column_numbers?.[0] && a.column_numbers?.[1] === b.column_numbers?.[1];
 }
 
+export function statisticsCause(statistics: NonNullable<Evidence["statistics"]>, existingIndex: boolean) {
+  const { cases, correlated_columns, column_target: target } = statistics;
+  if (target) {
+    const { current_target: current, next_target: next } = target;
+    return existingIndex && !correlated_columns && cases.length === 1 &&
+      next > current && next <= Math.min(200, 2 * current, current + 100) &&
+      cases[0].actual_rows >= 10 * cases[0].estimated_rows;
+  }
+  return correlated_columns && cases.length === 2 &&
+    cases.every(({ estimated_rows, actual_rows }) => Math.max(estimated_rows, actual_rows) >= 10 * Math.min(estimated_rows, actual_rows));
+}
+
 export function screenEvidence(evidence: Evidence) {
  if(evidence.column_numbers && [evidence.analyze,evidence.statistics,evidence.vacuum,evidence.memory,evidence.cron].some(Boolean)) return {proposal:{...identity(evidence),outcome:"no_change" as const,reason:"Unsupported compound enrollment."}};
       if (evidence.cron) {
@@ -99,11 +115,9 @@ export function screenEvidence(evidence: Evidence) {
         return { proposal: { ...identity(evidence), outcome: "no_change" as const, reason: "Measured visibility work does not justify VACUUM." } };
       }
       if (evidence.statistics) {
-        const { correlated_columns, cases } = evidence.statistics;
-        const strong = evidence.decision === "investigate" && correlated_columns &&
-          cases.every(({ estimated_rows, actual_rows }) => Math.max(estimated_rows, actual_rows) >= 10 * Math.min(estimated_rows, actual_rows));
+        const strong = evidence.decision === "investigate" && statisticsCause(evidence.statistics, evidence.covering_index);
         if (strong) return {};
-        return { proposal: { ...identity(evidence), outcome: "no_change" as const, reason: "Measured evidence does not support joint column statistics." } };
+        return { proposal: { ...identity(evidence), outcome: "no_change" as const, reason: "Measured evidence does not support a change in statistics detail." } };
       }
       if (evidence.analyze) {
         const { estimated_rows, actual_rows } = evidence.analyze;

@@ -179,6 +179,28 @@ func TestProjectActivityPrunesOldSuccessfulPolls(t *testing.T) {
 	}
 }
 
+func TestProjectActivityReportsAutomaticCleanupSeparately(t *testing.T) {
+	now := time.Now().UTC()
+	report := VacuumReport{CleanupTrigger: &CleanupTriggerReport{
+		SettingChanged: true, AutomaticCleaned: true,
+		Before: ProjectCleanupSettingsObservation{At: now, DeadTuples: 16000, AutomaticCleanups: 2},
+		After:  ProjectCleanupSettingsObservation{At: now.Add(time.Minute), DeadTuples: 300, AutomaticCleanups: 3},
+	}}
+	raw, err := json.Marshal(map[string]VacuumReport{"vacuum": report})
+	if err != nil {
+		t.Fatal(err)
+	}
+	job := ProjectJob{Outcome: "improved_tested_inputs"}
+	readProjectRepair(&job, raw)
+	if job.Repair == nil || job.Repair.Action != "recorded" || len(job.Repair.Metrics) != 2 {
+		t.Fatalf("automatic cleanup result missing: %+v", job.Repair)
+	}
+	if job.Repair.Metrics[0].Label != "Dead tuples" || job.Repair.Metrics[0].After != 300 ||
+		job.Repair.Metrics[1].Label != "Automatic cleanups" || job.Repair.Metrics[1].After != 3 {
+		t.Fatalf("automatic cleanup values changed: %+v", job.Repair.Metrics)
+	}
+}
+
 func TestProjectActivityReportsOnlyRecordedRepairMeasurements(t *testing.T) {
 	ctx, state, _ := projectActivityTestState(t)
 	const project = "supabase/osdjqwpzgyzwfaxyufze/20139985697ea004"
@@ -189,12 +211,14 @@ func TestProjectActivityReportsOnlyRecordedRepairMeasurements(t *testing.T) {
 		result, kind, action, reason string
 		firstMetric                  []float64
 		pending                      bool
+		analysisMS                   float64
 	}{
 		{result: `{"outcome":"propose","proposal":{"repair":"index","reason":"Try an index"}}`, reason: "Try an index"},
 		{result: `{"outcome":"no_change","repair":{"index_valid":false,"reason":"Missing evidence","before":{"read_calls":10,"read_mean_ms":12}}}`, reason: "Missing evidence"},
 		{result: `{"outcome":"improved_tested_inputs","repair":{"index_valid":true,"reason":"Measured result","before":{"read_calls":10,"read_mean_ms":12},"after":{"read_calls":10,"read_mean_ms":0}}}`, kind: "index", action: "recorded", reason: "Measured result", firstMetric: []float64{12, 0}},
 		{result: `{"outcome":"inconclusive","analyze":{"analyze_wall_ms":10,"reason":"Incomplete sample","before":{"read_calls":10,"read_mean_ms":12},"after":{"read_calls":10}}}`, kind: "analyze", action: "recorded", reason: "Incomplete sample"},
 		{result: `{"outcome":"regressed","statistics":{"reason":"Candidate regressed","before":{"samples":[{"read_calls":10,"read_mean_ms":12}]},"after":{"applied":true,"retained":false,"samples":[{"read_calls":10,"read_mean_ms":15}]}}}`, kind: "statistics", action: "removed", reason: "Candidate regressed", firstMetric: []float64{12, 15}},
+		{result: `{"outcome":"inconclusive","statistics":{"reason":"Original target restored","column_target":{"prior_target":50,"trial_target":100,"restored":true},"before":{"samples":[{"read_calls":10,"read_mean_ms":12}]},"after":{"applied":true,"retained":false,"analyze_wall_ms":20,"samples":[{"read_calls":10,"read_mean_ms":11}]}}}`, kind: "statistics", action: "restored", reason: "Original target restored", firstMetric: []float64{12, 11}, analysisMS: 20},
 		{result: `{"outcome":"improved_tested_inputs","vacuum":{"vacuum_wall_ms":10,"before":{"read_calls":10,"read_mean_ms":12},"after":{"read_calls":10,"read_mean_ms":4}}}`, kind: "vacuum", action: "recorded", firstMetric: []float64{12, 4}},
 		{result: `{"outcome":"inconclusive","memory":{"memory_wall_ms":10,"restored":true,"before":{"read_calls":10,"read_mean_ms":12},"after":{"read_calls":10,"read_mean_ms":4}}}`, kind: "memory", action: "restored", firstMetric: []float64{12, 4}},
 		{result: `{"outcome":"awaiting_verification","cron":{"commit_at":"2026-11-14T00:00:01Z"}}`, kind: "cron", action: "recorded"},
@@ -224,6 +248,7 @@ func TestProjectActivityReportsOnlyRecordedRepairMeasurements(t *testing.T) {
 			Repair *struct {
 				Kind, Action string
 				Metrics      []struct{ Before, After float64 }
+				AnalysisMS   float64 `json:"analysis_wall_ms"`
 			}
 		}
 		if err := json.Unmarshal(raw, &display); err != nil {
@@ -241,6 +266,9 @@ func TestProjectActivityReportsOnlyRecordedRepairMeasurements(t *testing.T) {
 		if display.Repair == nil || display.Repair.Kind != test.kind || display.Repair.Action != test.action {
 			t.Errorf("query %d: missing %s %s repair: %s", job.Query, test.kind, test.action, raw)
 			continue
+		}
+		if display.Repair.AnalysisMS != test.analysisMS {
+			t.Errorf("query %d: got analysis wall time %.2f, want %.2f", job.Query, display.Repair.AnalysisMS, test.analysisMS)
 		}
 		var first []float64
 		if len(display.Repair.Metrics) != 0 {
