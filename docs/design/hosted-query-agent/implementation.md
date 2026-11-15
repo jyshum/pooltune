@@ -331,7 +331,7 @@ Follow-up authorization: Rookery may be brought online for the test work. The ea
 - [x] Commit on feat/pooltune-revamp-dev; final human review. No push/merge or customer deployment.
 
 
-Tasks 27–29 completed for the explicitly bounded diagnostic slice. Sonnet passed 15/15 cases and real fresh PostgreSQL evidence collection; Haiku remained 13/15. Public process resume and model-attempt persistence passed real local PostgreSQL tests. All earlier failed model evaluations remain in evidence/diagnostic-loop. Independent review material findings were fixed, and the remaining minor reporting defect was reproduced and fixed. The deployed Railway consumer is not switched to this loop; hosted integration/live-reader qualification is the next task. Final human review and any future deployment remain separate.
+Tasks 27–29 completed for the explicitly bounded diagnostic slice. Sonnet passed 15/15 cases and real fresh PostgreSQL evidence collection; Haiku remained 13/15. Public process resume and model-attempt persistence passed real local PostgreSQL tests. All earlier failed model evaluations remain in evidence/diagnostic-loop. Independent review material findings were fixed, and the remaining minor reporting defect was reproduced and fixed. At completion of Tasks 27–29, the deployed Railway consumer was not switched to this loop. Tasks 30–31 below subsequently qualified its owned single-column index route; the other five diagnostic routes remain. Final human review and any future deployment remain separate.
 
 ### Task 30: Connect diagnostic investigations to the hosted index consumer
 

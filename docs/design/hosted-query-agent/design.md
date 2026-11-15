@@ -1,6 +1,6 @@
 # Pooltune: build status and remaining architecture
 
-Updated November 14, 2026, against source `4918260`. This map now distinguishes implemented staging behavior from the complete V1 design. It is an offline snapshot, not a live agent dashboard. The archived design context below records earlier decisions and open questions at the time; current build status is in this section and `map/status.json`.
+Updated November 14, 2026, against source `e0606a2`. This map now distinguishes implemented staging behavior from the complete V1 design. It is an offline snapshot, not a live agent dashboard. The archived design context below records earlier decisions and open questions at the time; current build status is in this section and `map/status.json`.
 
 ## How to read the colors
 
@@ -9,13 +9,13 @@ Updated November 14, 2026, against source `4918260`. This map now distinguishes 
 - **Gray dashed / Remaining:** still needs implementation or broader qualification.
 - **External:** the owner, customer database or model provider; these are context, not Pooltune completion claims.
 
-Click any card for its current scope, remaining work and source references. Explore Controlled database tools for the six tested repairs and broader qualification. Explore Investigator graph for the existing recommendation path, the diagnostic loop, its verified hosted index connection and the remaining repair adapters. Explore Hosted API or Customer dashboard for customer connection, credentials, sign-in and visible activity. Build status is available from every view and lists the next work. Existing node IDs and the tools deep link are preserved.
+Click any card for its current scope, remaining work and source references. Explore Controlled database tools for the six repair families. Indexes, richer statistics and cleanup are amber parents with green tested cases and gray unfinished variants beneath them. Explore Investigator graph for the existing recommendation path, the diagnostic loop, its verified hosted index connection and the remaining repair adapters. Explore Hosted API or Customer dashboard for customer connection, credentials, sign-in and visible activity. Build status is available from every view and lists the next work. Existing node IDs and the tools deep link are preserved.
 
 ## What is built, and what is not
 
 The Go collector, PostgreSQL queue, continuous consumer and six guarded repair cases have staging evidence. A separate diagnostic LangGraph now compares multiple cause observations and requests named Go evidence. Sonnet passed 15/15 bounded diagnostic cases and a fresh local PostgreSQL test. Go-owned evidence receipts and graph checkpoints survived a process restart without repeating the completed measurement. [Full result and trade-offs](diagnostic-loop.md).
 
-The earlier tests supplied one known cause category. The new graph removes that input restriction and can investigate missing evidence. The diagnostic graph is now connected to the Railway index consumer: real Sonnet chose an index, Go verified improvement, and the queued job survived a service restart. **Connect the other five repairs** marks the remaining diagnostic adapters. [Hosted result](hosted-diagnostic.md). General customer onboarding, dashboard and sign-in remain unfinished.
+The earlier tests supplied one known cause category. The new graph removes that input restriction and can investigate missing evidence. The diagnostic graph is now connected to the Railway index consumer: real Sonnet chose an index, Go verified improvement, and the queued job survived a service restart. **Connect the other five repairs** now expands into five remaining connections. The tools themselves already exist. **Compound indexes** has its own remaining card under the amber index family; it is accepted V1 scope but is not implemented. [Hosted result](hosted-diagnostic.md). General customer onboarding, dashboard and sign-in remain unfinished.
 
 Green means the scope stated on that card was verified. The diagnostic index adapter now has hosted evidence. Additional requested reads and mid-model checkpoint recovery have local PostgreSQL evidence, not a new hosted claim. The investigator parent remains amber because five diagnostic execution adapters and general customer coverage remain.
 
@@ -32,7 +32,7 @@ The Go + TypeScript/LangGraph architecture and six repair families remain consis
 
 ## Next work and trade-offs
 
-The next sequence is a proposal within the existing roadmap: qualify the other five repairs through the hosted diagnostic loop and their live readers; general project connection/enrollment; a simple end-to-end activity view; representative repair coverage; account/credential and production operating controls. The scope of a first pilot must be explicit before customer mutations. A public landing page is not a prerequisite for an internal pilot.
+The next build order is under discussion. Compound indexes and the five diagnostic connections are separate unfinished responsibilities; neither is removed from V1 or automatically required to wait for the other. General project connection/enrollment, a simple end-to-end activity view, representative repair coverage, account/credential and production operating controls also remain. The scope of a first pilot must be explicit before customer mutations. A public landing page is not a prerequisite for an internal pilot.
 
 Current assessment: keeping one investigator and deterministic Go execution avoids creating six disconnected agents. The alternative is separate agents per repair; they could specialize prompts but would duplicate evidence, budgets and recovery coordination. The diagnostic loop requests additional calls only for decision-changing gaps, preserving the speed benefit of the existing one-call path when evidence is already sufficient.
 

@@ -3,9 +3,9 @@
   "id": "pooltune-hosted-agent",
   "title": "Maintain Supabase query performance",
   "workType": "Build progress and remaining work",
-  "summary": "Green means verified in the stated scope. The diagnostic index consumer passed a hosted Sonnet repair and queued-job restart. The other five diagnostic repair adapters remain. Amber is partial; gray is remaining. This snapshot is not a live dashboard.",
+  "summary": "Green means the named test scope passed, not full production readiness. Six bounded repairs work; only the single-column index is connected to the hosted diagnostic investigator. Compound indexes and five diagnostic connections remain. Amber is partial; gray is remaining. This is an offline snapshot.",
   "sourceRevision": {
-    "commit": "49182605a05d94d7a437a09223f9771ee27d8cbc",
+    "commit": "e0606a28145f5406503defa87e16070a580490a9",
     "dirty": false
   },
   "components": [
@@ -85,7 +85,7 @@
     },
     {
       "id": "collector",
-      "label": "Collector and detector",
+      "label": "Collector and detector: staging",
       "type": "service",
       "purpose": "Built in staging: collect enrolled query counters and detect repeated slowdowns.",
       "decisionIds": [
@@ -119,7 +119,7 @@
     },
     {
       "id": "scheduler",
-      "label": "Durable scheduling",
+      "label": "Durable scheduling: staging",
       "type": "queue",
       "purpose": "Built in staging: saved jobs, an always-on consumer, retries and delayed follow-ups survive restarts.",
       "decisionIds": [
@@ -247,7 +247,7 @@
     },
     {
       "id": "state",
-      "label": "Pooltune state",
+      "label": "Pooltune state: staging",
       "type": "data-store",
       "purpose": "Built in staging: PostgreSQL saves measurements, jobs, action intent and graph checkpoints.",
       "decisionIds": [
@@ -451,7 +451,7 @@
       "id": "index",
       "label": "Add a nonunique index",
       "type": "service",
-      "purpose": "Single-column index case verified with real Claude and ongoing traffic.",
+      "purpose": "Single-column index case verified with real Claude and ongoing traffic. Other V1 variants remain.",
       "decisionIds": [
         "d-trials"
       ],
@@ -468,16 +468,17 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Single-column index case verified with real Claude and ongoing traffic.",
+      "changeSummary": "Single-column index case verified with real Claude and ongoing traffic. Other V1 variants remain.",
       "stack": [
         "Go"
       ],
       "parent": "tools",
-      "after": "Inspect access work and existing indexes; evaluate bounded candidates and measure actual effects. Recover only eligible Pooltune-created artifacts; build resources cannot be undone."
+      "after": "Inspect access work and existing indexes; evaluate bounded candidates and measure actual effects. Recover only eligible Pooltune-created artifacts; build resources cannot be undone.",
+      "expandWhy": "Which index shapes can Pooltune create today?"
     },
     {
       "id": "refresh",
-      "label": "Refresh statistics",
+      "label": "Refresh statistics: tested case",
       "type": "service",
       "purpose": "Targeted ANALYZE case verified: refresh stale statistics and measure the result.",
       "decisionIds": [],
@@ -505,7 +506,7 @@
       "id": "richer",
       "label": "Improve statistics detail",
       "type": "service",
-      "purpose": "Joint-statistics case verified for related predicate columns.",
+      "purpose": "Joint-statistics case verified for related predicate columns. Other V1 variants remain.",
       "decisionIds": [],
       "sources": [
         {
@@ -520,18 +521,19 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Joint-statistics case verified for related predicate columns.",
+      "changeSummary": "Joint-statistics case verified for related predicate columns. Other V1 variants remain.",
       "stack": [
         "Go"
       ],
       "parent": "tools",
-      "after": "Use persistent estimate errors after refresh to qualify extended statistics or a bounded column target. Preserve prior definitions/settings; exact sampled statistics cannot be restored by resetting a target."
+      "after": "Use persistent estimate errors after refresh to qualify extended statistics or a bounded column target. Preserve prior definitions/settings; exact sampled statistics cannot be restored by resetting a target.",
+      "expandWhy": "Which statistics improvements exist and which remain?"
     },
     {
       "id": "cleanup",
       "label": "Perform targeted cleanup",
       "type": "service",
-      "purpose": "Plain VACUUM case verified: reduce visibility work without replacing the index.",
+      "purpose": "Plain VACUUM case verified: reduce visibility work without replacing the index. Other V1 variants remain.",
       "decisionIds": [],
       "sources": [
         {
@@ -546,16 +548,17 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Plain VACUUM case verified: reduce visibility work without replacing the index.",
+      "changeSummary": "Plain VACUUM case verified: reduce visibility work without replacing the index. Other V1 variants remain.",
       "stack": [
         "Go"
       ],
       "parent": "tools",
-      "after": "Use cleanup and access evidence for bounded plain VACUUM or permitted threshold adjustments. Pinned versions may prevent cleanup; completed cleanup has no exact undo."
+      "after": "Use cleanup and access evidence for bounded plain VACUUM or permitted threshold adjustments. Pinned versions may prevent cleanup; completed cleanup has no exact undo.",
+      "expandWhy": "Which cleanup actions exist and which remain?"
     },
     {
       "id": "memory",
-      "label": "Tune an enrolled function",
+      "label": "Function memory: tested case",
       "type": "service",
       "purpose": "Function-memory case verified with attributed disk spill and a fixed test memory budget.",
       "decisionIds": [],
@@ -581,7 +584,7 @@
     },
     {
       "id": "cron",
-      "label": "Move an enrolled job",
+      "label": "Job scheduling: tested case",
       "type": "service",
       "purpose": "Scheduling case verified: move one job to an allowed quiet minute and preserve deadlines after restart.",
       "decisionIds": [],
@@ -607,7 +610,7 @@
     },
     {
       "id": "recovery",
-      "label": "Verify and reconcile",
+      "label": "Verify and recover: tested cases",
       "type": "service",
       "purpose": "Staging verification measures benefit and protected traffic; saved intent supports repair-specific recovery.",
       "decisionIds": [
@@ -736,7 +739,7 @@
     },
     {
       "id": "request-evidence",
-      "label": "Ask for missing evidence",
+      "label": "Request evidence: local tests",
       "type": "service",
       "purpose": "Built: named Go readers, fresh local PostgreSQL evidence with real Claude, persisted evidence receipts, restart recovery and model-attempt limits.",
       "decisionIds": [],
@@ -928,10 +931,10 @@
     },
     {
       "id": "hosted-diagnostic-integration",
-      "label": "Connect the hosted investigator",
+      "label": "Hosted investigator: index case",
       "type": "service",
       "parent": "investigator",
-      "purpose": "Connected and verified for the owned index fixture: Railway queue \u2192 diagnostic Sonnet graph \u2192 Go index repair \u2192 measured improvement. Queued job survived an actual service restart.",
+      "purpose": "Connected and verified for the owned index fixture: Railway queue → diagnostic Sonnet graph → Go index repair → measured improvement. Queued job survived an actual service restart.",
       "decisionIds": [],
       "sources": [
         {
@@ -946,8 +949,8 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Connected and verified for the owned index fixture: Railway queue \u2192 diagnostic Sonnet graph \u2192 Go index repair \u2192 measured improvement. Queued job survived an actual service restart.",
-      "after": "Connected and verified for the owned index fixture: Railway queue \u2192 diagnostic Sonnet graph \u2192 Go index repair \u2192 measured improvement. Queued job survived an actual service restart.",
+      "changeSummary": "Connected and verified for the owned index fixture: Railway queue → diagnostic Sonnet graph → Go index repair → measured improvement. Queued job survived an actual service restart.",
+      "after": "Connected and verified for the owned index fixture: Railway queue → diagnostic Sonnet graph → Go index repair → measured improvement. Queued job survived an actual service restart.",
       "stack": [
         "Go",
         "TypeScript",
@@ -971,6 +974,304 @@
       "changeStatus": "new",
       "changeSummary": "Five repair executors retain the earlier model path until their diagnostic adapters and live readers are qualified.",
       "after": "Qualify each live evidence reader and diagnostic-to-action adapter with real Sonnet, healthy controls, timings and recovery. The existing six-family legacy tests remain valid but are not new-adapter qualification.",
+      "stack": [
+        "Go",
+        "TypeScript",
+        "LangGraph"
+      ],
+      "expandWhy": "Which existing repair tools still need the new investigator and fresh evidence readers?"
+    },
+    {
+      "id": "index-single",
+      "label": "Single-column index: tested",
+      "type": "service",
+      "parent": "index",
+      "purpose": "Single-column index case verified with real Claude and ongoing traffic.",
+      "decisionIds": [],
+      "sources": [
+        {
+          "path": "docs/design/hosted-query-agent/mixed-traffic.md",
+          "revision": "e0606a28145f5406503defa87e16070a580490a9",
+          "kind": "verified"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Single-column index case verified with real Claude and ongoing traffic.",
+      "after": "Single-column index case verified with real Claude and ongoing traffic.",
+      "stack": [
+        "Go"
+      ]
+    },
+    {
+      "id": "index-compound",
+      "label": "Compound indexes: remaining",
+      "type": "service",
+      "parent": "index",
+      "purpose": "Remaining V1 work: create nonunique indexes on multiple ordered columns. Current proposals and execution support one column only.",
+      "decisionIds": [],
+      "sources": [
+        {
+          "path": "docs/product/query-performance-v1.md",
+          "revision": "e0606a28145f5406503defa87e16070a580490a9",
+          "kind": "intended"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/roadmap.md",
+          "revision": "e0606a28145f5406503defa87e16070a580490a9",
+          "kind": "intended"
+        },
+        {
+          "path": "internal/hostedquery/index_policy.go",
+          "revision": "e0606a28145f5406503defa87e16070a580490a9",
+          "kind": "verified"
+        },
+        {
+          "path": "internal/hostedquery/index_trial.go",
+          "revision": "e0606a28145f5406503defa87e16070a580490a9",
+          "kind": "verified"
+        },
+        {
+          "path": "investigator/graph.ts",
+          "revision": "e0606a28145f5406503defa87e16070a580490a9",
+          "kind": "verified"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Remaining V1 work: create nonunique indexes on multiple ordered columns. Current proposals and execution support one column only.",
+      "after": "Remaining V1 work: create nonunique indexes on multiple ordered columns. Current proposals and execution support one column only.",
+      "stack": [
+        "Go",
+        "TypeScript"
+      ]
+    },
+    {
+      "id": "statistics-joint",
+      "label": "Joint statistics: tested",
+      "type": "service",
+      "parent": "richer",
+      "purpose": "Joint-statistics case verified for related predicate columns.",
+      "decisionIds": [],
+      "sources": [
+        {
+          "path": "docs/design/hosted-query-agent/richer-statistics.md",
+          "revision": "e0606a28145f5406503defa87e16070a580490a9",
+          "kind": "verified"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Joint-statistics case verified for related predicate columns.",
+      "after": "Joint-statistics case verified for related predicate columns.",
+      "stack": [
+        "Go"
+      ]
+    },
+    {
+      "id": "statistics-target",
+      "label": "Column statistics targets: remaining",
+      "type": "service",
+      "parent": "richer",
+      "purpose": "Remaining V1 work: increase detail collected for an individual column when the measured evidence warrants it.",
+      "decisionIds": [],
+      "sources": [
+        {
+          "path": "docs/product/query-performance-v1.md",
+          "revision": "e0606a28145f5406503defa87e16070a580490a9",
+          "kind": "intended"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/roadmap.md",
+          "revision": "e0606a28145f5406503defa87e16070a580490a9",
+          "kind": "intended"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Remaining V1 work: increase detail collected for an individual column when the measured evidence warrants it.",
+      "after": "Remaining V1 work: increase detail collected for an individual column when the measured evidence warrants it.",
+      "stack": [
+        "Go"
+      ]
+    },
+    {
+      "id": "cleanup-vacuum",
+      "label": "Plain VACUUM: tested",
+      "type": "service",
+      "parent": "cleanup",
+      "purpose": "Plain VACUUM case verified: reduce visibility work without replacing the index.",
+      "decisionIds": [],
+      "sources": [
+        {
+          "path": "docs/design/hosted-query-agent/bounded-vacuum.md",
+          "revision": "e0606a28145f5406503defa87e16070a580490a9",
+          "kind": "verified"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Plain VACUUM case verified: reduce visibility work without replacing the index.",
+      "after": "Plain VACUUM case verified: reduce visibility work without replacing the index.",
+      "stack": [
+        "Go"
+      ]
+    },
+    {
+      "id": "cleanup-settings",
+      "label": "Cleanup settings: remaining",
+      "type": "service",
+      "parent": "cleanup",
+      "purpose": "Remaining V1 work: qualify permitted cleanup threshold adjustments beyond the tested plain VACUUM operation.",
+      "decisionIds": [],
+      "sources": [
+        {
+          "path": "docs/product/query-performance-v1.md",
+          "revision": "e0606a28145f5406503defa87e16070a580490a9",
+          "kind": "intended"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/roadmap.md",
+          "revision": "e0606a28145f5406503defa87e16070a580490a9",
+          "kind": "intended"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Remaining V1 work: qualify permitted cleanup threshold adjustments beyond the tested plain VACUUM operation.",
+      "after": "Remaining V1 work: qualify permitted cleanup threshold adjustments beyond the tested plain VACUUM operation.",
+      "stack": [
+        "Go"
+      ]
+    },
+    {
+      "id": "diagnostic-analyze",
+      "label": "Connect statistics refresh",
+      "type": "service",
+      "parent": "diagnostic-adapter-coverage",
+      "purpose": "Remaining: Collect current estimate errors and stale-statistics evidence, then connect targeted ANALYZE to the diagnostic consumer.",
+      "decisionIds": [],
+      "sources": [
+        {
+          "path": "docs/design/hosted-query-agent/hosted-diagnostic.md",
+          "revision": "e0606a28145f5406503defa87e16070a580490a9",
+          "kind": "intended"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/roadmap.md",
+          "revision": "e0606a28145f5406503defa87e16070a580490a9",
+          "kind": "intended"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Remaining: Collect current estimate errors and stale-statistics evidence, then connect targeted ANALYZE to the diagnostic consumer.",
+      "after": "Remaining: Collect current estimate errors and stale-statistics evidence, then connect targeted ANALYZE to the diagnostic consumer.",
+      "stack": [
+        "Go",
+        "TypeScript",
+        "LangGraph"
+      ]
+    },
+    {
+      "id": "diagnostic-statistics",
+      "label": "Connect richer statistics",
+      "type": "service",
+      "parent": "diagnostic-adapter-coverage",
+      "purpose": "Remaining: Collect evidence across related predicates and connect joint-statistics execution to the diagnostic consumer.",
+      "decisionIds": [],
+      "sources": [
+        {
+          "path": "docs/design/hosted-query-agent/hosted-diagnostic.md",
+          "revision": "e0606a28145f5406503defa87e16070a580490a9",
+          "kind": "intended"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/roadmap.md",
+          "revision": "e0606a28145f5406503defa87e16070a580490a9",
+          "kind": "intended"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Remaining: Collect evidence across related predicates and connect joint-statistics execution to the diagnostic consumer.",
+      "after": "Remaining: Collect evidence across related predicates and connect joint-statistics execution to the diagnostic consumer.",
+      "stack": [
+        "Go",
+        "TypeScript",
+        "LangGraph"
+      ]
+    },
+    {
+      "id": "diagnostic-vacuum",
+      "label": "Connect cleanup",
+      "type": "service",
+      "parent": "diagnostic-adapter-coverage",
+      "purpose": "Remaining: Collect current visibility and cleanup evidence and connect plain VACUUM to the diagnostic consumer.",
+      "decisionIds": [],
+      "sources": [
+        {
+          "path": "docs/design/hosted-query-agent/hosted-diagnostic.md",
+          "revision": "e0606a28145f5406503defa87e16070a580490a9",
+          "kind": "intended"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/roadmap.md",
+          "revision": "e0606a28145f5406503defa87e16070a580490a9",
+          "kind": "intended"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Remaining: Collect current visibility and cleanup evidence and connect plain VACUUM to the diagnostic consumer.",
+      "after": "Remaining: Collect current visibility and cleanup evidence and connect plain VACUUM to the diagnostic consumer.",
+      "stack": [
+        "Go",
+        "TypeScript",
+        "LangGraph"
+      ]
+    },
+    {
+      "id": "diagnostic-memory",
+      "label": "Connect function memory",
+      "type": "service",
+      "parent": "diagnostic-adapter-coverage",
+      "purpose": "Remaining: Collect attributed disk spill and admitted memory limits and connect function tuning to the diagnostic consumer.",
+      "decisionIds": [],
+      "sources": [
+        {
+          "path": "docs/design/hosted-query-agent/hosted-diagnostic.md",
+          "revision": "e0606a28145f5406503defa87e16070a580490a9",
+          "kind": "intended"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/roadmap.md",
+          "revision": "e0606a28145f5406503defa87e16070a580490a9",
+          "kind": "intended"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Remaining: Collect attributed disk spill and admitted memory limits and connect function tuning to the diagnostic consumer.",
+      "after": "Remaining: Collect attributed disk spill and admitted memory limits and connect function tuning to the diagnostic consumer.",
+      "stack": [
+        "Go",
+        "TypeScript",
+        "LangGraph"
+      ]
+    },
+    {
+      "id": "diagnostic-cron",
+      "label": "Connect job scheduling",
+      "type": "service",
+      "parent": "diagnostic-adapter-coverage",
+      "purpose": "Remaining: Collect enrolled job identity, completed periods and deadlines and connect future scheduling to the diagnostic consumer.",
+      "decisionIds": [],
+      "sources": [
+        {
+          "path": "docs/design/hosted-query-agent/hosted-diagnostic.md",
+          "revision": "e0606a28145f5406503defa87e16070a580490a9",
+          "kind": "intended"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/roadmap.md",
+          "revision": "e0606a28145f5406503defa87e16070a580490a9",
+          "kind": "intended"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Remaining: Collect enrolled job identity, completed periods and deadlines and connect future scheduling to the diagnostic consumer.",
+      "after": "Remaining: Collect enrolled job identity, completed periods and deadlines and connect future scheduling to the diagnostic consumer.",
       "stack": [
         "Go",
         "TypeScript",

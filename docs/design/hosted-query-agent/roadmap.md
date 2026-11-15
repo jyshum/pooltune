@@ -10,6 +10,10 @@ Six bounded repair cases have passed live Claude and mixed-traffic qualification
 
 [Plain-English overview](overview.md) · [Mixed-traffic results](mixed-traffic.md) · [Cleanup results](bounded-vacuum.md) · [Function memory](function-memory.md) · [Scheduling staging status](cron-staging.md)
 
+## Scope clarification
+
+Compound indexes have always been accepted V1 scope. They are not implemented yet: the current proposal carries one column and the executor builds one fixed single-column index. The map now separates that green tested case from the gray compound work beneath an amber index family. Richer statistics and cleanup likewise separate tested operations from their remaining variants. The five remaining diagnostic connections are integration work around existing tested repair tools. The next build order is being discussed; the list below is a scope inventory, not a new approval to start every item.
+
 ## What remains
 
 The six-family evaluation batch is technically complete, with combined human review pending. Each has real Claude decisions, short-spike rejection, before/after traffic measurements, recovery checks and owned cleanup. A repair that executes successfully can still fail benefit verification; the memory trial is an example. A separate diagnostic graph now compares causes and requests evidence, qualified with Sonnet on 15 bounded cases and a fresh local PostgreSQL test. The diagnostic index consumer has now passed a hosted Sonnet repair and queued-job restart. The other five diagnostic adapters, broader workload qualification and concurrent committed writes to the repaired table remain open. [Hosted result](hosted-diagnostic.md).
