@@ -159,15 +159,19 @@ func TestDiagnosticPublicProcessRestart(t *testing.T) {
 				cmd.Env = append(cmd.Env, "DIAGNOSTIC_TEST_EXIT=1")
 			}
 			return cmd
-		}, journal.reserveModel)
+		}, diagnosticBudget{journal.attempts, journal.reserveModel})
 	}
 	interrupted, err := attempt(true)
-	if err == nil || interrupted.TotalMS <= 0 {
+	if err == nil || interrupted.TotalMS <= 0 || interrupted.ModelAttempts != 2 {
 		t.Fatal("expected timed interrupted process")
 	}
 	resumed, err := attempt(false)
 	if err != nil {
 		t.Fatal(err)
+	}
+	completed, againErr := attempt(false)
+	if againErr != nil || completed.ModelAttempts != 3 || completed.ModelCalls != 2 {
+		t.Fatalf("completed checkpoint lost attempt count: result=%+v err=%v", completed, againErr)
 	}
 	if calls != 1 || resumed.Reads != 1 || resumed.ModelCalls != 2 || resumed.ModelAttempts != 3 || resumed.Proposal.Repair != "analyze" || resumed.Proposal.Outcome != "propose" {
 		t.Fatalf("restart repeated evidence or lost result: calls=%d result=%+v", calls, resumed)

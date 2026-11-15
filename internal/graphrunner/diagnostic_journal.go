@@ -13,8 +13,9 @@ import (
 // Go persists evidence receipts before returning them to the graph. A graph
 // restart can restore these exact measurements without repeating customer work.
 type diagnosticJournal struct {
-	conn  *pgx.Conn
-	input DiagnosticInput
+	conn     *pgx.Conn
+	input    DiagnosticInput
+	attempts int
 }
 
 func openDiagnosticJournal(ctx context.Context, config *pgx.ConnConfig, input DiagnosticInput) (*diagnosticJournal, error) {
@@ -22,7 +23,7 @@ func openDiagnosticJournal(ctx context.Context, config *pgx.ConnConfig, input Di
 	if err != nil {
 		return nil, errors.New("diagnostic state unavailable")
 	}
-	journal := &diagnosticJournal{conn, input}
+	journal := &diagnosticJournal{conn: conn, input: input}
 	ok := false
 	defer func() {
 		if !ok {
@@ -56,7 +57,7 @@ func openDiagnosticJournal(ctx context.Context, config *pgx.ConnConfig, input Di
 		return nil, errors.New("diagnostic input journal failed")
 	}
 	var previous string
-	if err = conn.QueryRow(ctx, `SELECT input_hash FROM pooltune_diagnostic.go_runs WHERE run_id=$1`, input.RunID).Scan(&previous); err != nil || previous != digest {
+	if err = conn.QueryRow(ctx, `SELECT input_hash,model_attempts FROM pooltune_diagnostic.go_runs WHERE run_id=$1`, input.RunID).Scan(&previous, &journal.attempts); err != nil || previous != digest {
 		return nil, errors.New("diagnostic run input changed")
 	}
 	ok = true

@@ -80,7 +80,7 @@ func diagnosticProcess(stateDSN string, replay bool) (DiagnosticInvestigator, er
 		defer func() { result.TotalMS = float64(time.Since(started)) / float64(time.Millisecond) }()
 		ctx, cancel := context.WithTimeout(ctx, 22*time.Second)
 		defer cancel()
-		var reserve func(context.Context) (int, error)
+		var budget diagnosticBudget
 		if !replay {
 			config, err := labdb.StateConfig(stateDSN)
 			if err != nil {
@@ -93,7 +93,7 @@ func diagnosticProcess(stateDSN string, replay bool) (DiagnosticInvestigator, er
 			}
 			defer journal.close()
 			read = journal.reader(read)
-			reserve = journal.reserveModel
+			budget = diagnosticBudget{journal.attempts, journal.reserveModel}
 		}
 		return runDiagnostic(ctx, input, read, func(ctx context.Context) *exec.Cmd {
 			c := exec.CommandContext(ctx, node, path)
@@ -102,7 +102,7 @@ func diagnosticProcess(stateDSN string, replay bool) (DiagnosticInvestigator, er
 				c.Env = append(c.Env, "POOLTUNE_DIAGNOSTIC_REPLAY=1")
 			}
 			return c
-		}, reserve)
+		}, budget)
 	}, nil
 }
 func validObservation(o DiagnosticObservation, input DiagnosticInput, tool string) bool {
@@ -122,9 +122,22 @@ func strictJSON(data []byte, dst any) error {
 	}
 	return nil
 }
-func runDiagnostic(parent context.Context, input DiagnosticInput, read DiagnosticReader, command func(context.Context) *exec.Cmd, reserve ...func(context.Context) (int, error)) (result DiagnosticResult, err error) {
+
+type diagnosticBudget struct {
+	initial int
+	reserve func(context.Context) (int, error)
+}
+
+func runDiagnostic(parent context.Context, input DiagnosticInput, read DiagnosticReader, command func(context.Context) *exec.Cmd, budget ...diagnosticBudget) (result DiagnosticResult, err error) {
 	started := time.Now()
-	defer func() { result.TotalMS = float64(time.Since(started)) / float64(time.Millisecond) }()
+	attempts := 0
+	if len(budget) > 0 {
+		attempts = budget[0].initial
+	}
+	defer func() {
+		result.TotalMS = float64(time.Since(started)) / float64(time.Millisecond)
+		result.ModelAttempts = attempts
+	}()
 	ctx, cancel := context.WithTimeout(parent, 22*time.Second)
 	defer cancel()
 	if input.RunID == "" || len(input.RunID) > 64 || input.TableOID == 0 || input.Column <= 0 || len(input.Initial) > 7 {
@@ -169,7 +182,6 @@ func runDiagnostic(parent context.Context, input DiagnosticInput, read Diagnosti
 	scanner := bufio.NewScanner(stdout)
 	scanner.Buffer(make([]byte, 4096), 65536)
 	reads := 0
-	attempts := 0
 	for scanner.Scan() {
 		var frame struct {
 			Type   string            `json:"type"`
@@ -185,9 +197,9 @@ func runDiagnostic(parent context.Context, input DiagnosticInput, read Diagnosti
 				return result, errors.New("invalid model admission frame")
 			}
 			allowed := attempts < 3
-			if allowed && len(reserve) > 0 && reserve[0] != nil {
+			if allowed && len(budget) > 0 && budget[0].reserve != nil {
 				var reserveErr error
-				attempts, reserveErr = reserve[0](ctx)
+				attempts, reserveErr = budget[0].reserve(ctx)
 				allowed = reserveErr == nil
 			} else if allowed {
 				attempts++
