@@ -1,0 +1,40 @@
+{
+  "test_source": "e7ac83d98a52a446ae844e60e6942ccee5b15143",
+  "test_deployment": "b2a770d9-8b17-4211-a922-0aaa0de4dfc5",
+  "test_deployment_health_http": 200,
+  "signed_in_simple_setup_form_verified": true,
+  "rookery_preflight": {
+    "app_fixture_rows": 160000,
+    "configured_query_ids": 0,
+    "monitor_installed": false,
+    "tls_session_pooler_verified": true
+  },
+  "runtime_qualification": {
+    "setup_token_submitted": false,
+    "app_traffic_repair_verified": false,
+    "reason": "Temporary Rookery-only credential approval was pending."
+  },
+  "local_checks": {
+    "exact_bootstrap_sql_exercised_on_postgresql": true,
+    "only_fixture_discovery_objective_ms": 2,
+    "discovered_scalar_and_compound_columns": true,
+    "manual_enrollment_rows": 0,
+    "targeted_statistics_refresh": true,
+    "interrupted_index_reconciliation_and_reconnect": true
+  },
+  "cleanup": {
+    "owned_fixture_removed": true,
+    "public_indexes_unchanged": true,
+    "temporary_railway_variables_removed": true
+  },
+  "preview": {
+    "source": "c76a49bb8b52127f9e3b58998afa6bee0c61b030",
+    "deployment": "3e071bc9-6bf6-4589-a6b9-20c3da18a935",
+    "health_http": 200,
+    "cadence": [
+      "1m",
+      "5m"
+    ],
+    "other_services_unchanged": true
+  }
+}

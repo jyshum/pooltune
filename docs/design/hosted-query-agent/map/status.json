@@ -1,6 +1,6 @@
 {
-  "sourceRevision": "c964e6705d2210f53d965c526c15ed4c12a1d616",
-  "summary": "Railway serves simpler project setup. Rookery verified automatic query discovery and one dashboard-triggered compound repair. The full MVP still needs broader evidence, the other five repairs through the same project flow, and recovery.",
+  "sourceRevision": "c76a49bb8b52127f9e3b58998afa6bee0c61b030",
+  "summary": "The simple repair route passed local checks and a Railway preflight. The live run still needs a scoped Rookery token. Local PostgreSQL also verified discovered evidence, a targeted statistics refresh and index recovery.",
   "next": [
     "repair-coverage",
     "inspection",
@@ -102,8 +102,8 @@
     },
     "inspection": {
       "status": "partial",
-      "scope": "The monitor auto-discovers app counters. One Rookery query also passed passive identity and catalog checks. The previous two ordinary plan shapes remain verified.",
-      "remaining": "Broaden plan and cause-specific evidence, including pooled and Data API scenarios.",
+      "scope": "Two ordinary plan shapes passed earlier on Railway. Local PostgreSQL now ties discovered one- and two-key integer lookups to their real table, keys, app role, and statistics generation.",
+      "remaining": "Collect broader plans and evidence from pooled and Data API traffic, and diagnose more repair causes.",
       "evidence": [
         "internal/graphrunner/diagnostic.go",
         "docs/design/hosted-query-agent/diagnostic-loop.md",
@@ -117,11 +117,12 @@
         "docs/design/hosted-query-agent/enrolled-plans.md",
         "docs/design/hosted-query-agent/traffic-plans.md",
         "docs/design/hosted-query-agent/evidence/mvp-agent-setup.json",
-        "internal/supabaseproject/discovered_lookup.sql"
+        "internal/supabaseproject/discovered_lookup.sql",
+        "internal/supabaseproject/discovered_index_integration_test.go"
       ],
-      "statusLabel": "Automatic discovery verified",
-      "remainingBuild": "Broaden ordinary plans and evidence for statistics, visibility, spill and scheduling.",
-      "remainingVerification": "Qualify more query shapes, distinct inputs and pooled or Data API sessions."
+      "statusLabel": "Discovered lookup evidence tested locally",
+      "remainingBuild": "Expand evidence for statistics, cleanup, memory spill and scheduling.",
+      "remainingVerification": "Qualify normal hosted traffic and more supported shapes."
     },
     "experiments": {
       "status": "partial",
@@ -139,8 +140,8 @@
     },
     "index": {
       "status": "partial",
-      "scope": "Single-column and compound repairs passed in bounded cases. Railway ran the compound repair from a signed-in owned project and verified app traffic continued.",
-      "remaining": "Complete automatic permissions, broader shape selection and recovery. Qualify the single-column repair through the same joined route.",
+      "scope": "A compound repair passed through the advanced hosted form. Local checks and a healthy staging deployment qualify the new simple-form route before activation.",
+      "remaining": "Verify real simple setup and repair through Railway. Expand customer permissions, single-column repair, range and ordering shapes, and interruption coverage.",
       "evidence": [
         "docs/design/hosted-query-agent/mixed-traffic.md",
         "internal/hostedquery/index_policy.go",
@@ -148,21 +149,24 @@
         "internal/hostedquery/compound_index.go",
         "docs/design/hosted-query-agent/evidence/mvp-compound-rookery.json",
         "internal/hostedquery/project_index_action.go",
-        "docs/design/hosted-query-agent/evidence/mvp-hosted-owned-index.json"
+        "docs/design/hosted-query-agent/evidence/mvp-hosted-owned-index.json",
+        "internal/hostedquery/owned_project_index.go",
+        "internal/hostedquery/owned_project_index_test.go",
+        "docs/design/hosted-query-agent/evidence/mvp-simple-index-preflight.json"
       ],
-      "statusLabel": "Dashboard compound tested",
-      "remainingBuild": "Connect the ordinary setup capability to verified native permissions for both index forms.",
-      "remainingVerification": "Qualify single-column, range and ordering, equivalent indexes and interruption on enrolled projects."
+      "statusLabel": "Simple route preflight passed"
     },
     "refresh": {
       "status": "verified",
-      "scope": "Targeted ANALYZE passed in a bounded case. The native driver also checks the real relation and its maintenance permission.",
-      "remaining": "Connect stale-statistics evidence and action to the full hosted worker.",
+      "scope": "The enrolled statistics-refresh component refreshed one authorized column, changed the actual plan and refused stale or withdrawn evidence in local PostgreSQL.",
+      "remaining": "Connect to the hosted project evidence reader, action journal, Sonnet dispatch and dashboard.",
       "evidence": [
         "docs/design/hosted-query-agent/targeted-analyze.md",
-        "internal/hostedquery/project_maintenance.go"
+        "internal/hostedquery/project_maintenance.go",
+        "internal/hostedquery/project_analyze.go",
+        "internal/hostedquery/project_analyze_integration_test.go"
       ],
-      "statusLabel": "Native refresh guard tested locally"
+      "statusLabel": "Enrolled refresh tested locally"
     },
     "richer": {
       "status": "partial",
@@ -299,21 +303,22 @@
     },
     "repair-coverage": {
       "status": "planned",
-      "scope": "Six bounded families ran on staging fixtures. One compound index also completed in the signed-in Railway project flow. New native repair components passed local checks.",
-      "remaining": "Wire the other five families, complete supported variants and qualify permissions and recovery in the joined project flow.",
+      "scope": "Six bounded repair cases passed earlier. Local PostgreSQL now verifies an enrolled statistics refresh against a real column position with measured improvement.",
+      "remaining": "Wire statistics refresh and the other four remaining families through hosted permissions, evidence and activity. Verify the six-family run.",
       "evidence": [
         "docs/design/hosted-query-agent/roadmap.md",
         "internal/hostedapp/supervisor.go",
         "docs/design/hosted-query-agent/map-audit.md",
         "docs/design/hosted-query-agent/evidence/mvp-compound-rookery.json",
-        "docs/design/hosted-query-agent/evidence/mvp-hosted-owned-index.json"
+        "docs/design/hosted-query-agent/evidence/mvp-hosted-owned-index.json",
+        "internal/hostedquery/project_analyze_integration_test.go"
       ],
-      "statusLabel": "One hosted project repair verified"
+      "statusLabel": "Enrolled statistics refresh tested locally"
     },
     "connect-project": {
       "status": "partial",
-      "scope": "The owner can start agent setup with a project token, certificate and six repair choices. Rookery verified the generated installer.",
-      "remaining": "Verify valid token submission through Railway and link the selected repairs to verified project execution authority.",
+      "scope": "The simple form offers six repair choices. The Railway staging check verified the signed-in index option with a Rookery fixture configured without query IDs.",
+      "remaining": "Run the simple form with a real project-scoped token and observe the eligible repair. Verify broader customer authority independently.",
       "evidence": [
         "docs/design/hosted-query-agent/supabase-monitoring.md",
         "cmd/pooltune-project/main.go",
@@ -321,9 +326,12 @@
         "docs/design/hosted-query-agent/enrolled-diagnosis.md",
         "docs/design/hosted-query-agent/enrolled-railway.md",
         "docs/design/hosted-query-agent/hosted-preview.md",
-        "docs/design/hosted-query-agent/evidence/mvp-agent-setup.json"
+        "docs/design/hosted-query-agent/evidence/mvp-agent-setup.json",
+        "internal/hostedapp/start.go",
+        "internal/supabaseproject/bootstrap_integration_test.go",
+        "docs/design/hosted-query-agent/evidence/mvp-simple-index-preflight.json"
       ],
-      "statusLabel": "Setup and discovery built"
+      "statusLabel": "Railway form checked"
     },
     "credential-lifecycle": {
       "status": "partial",
@@ -351,16 +359,17 @@
     },
     "activity": {
       "status": "partial",
-      "scope": "Owner-scoped activity displayed a real compound-index result. The pause control and action publication were tested against PostgreSQL.",
-      "remaining": "Show all six live outcomes and protected traffic measures. Qualify pause, restart and uncertain-action reconciliation on Railway.",
+      "scope": "The dashboard displayed a real owned compound repair. Local PostgreSQL also verified that an interrupted action can report a catalog result without claiming a measured improvement.",
+      "remaining": "Qualify a real Railway restart, display protected traffic measures, and show activity across all six families.",
       "evidence": [
         "docs/design/hosted-query-agent/roadmap.md",
         "docs/design/hosted-query-agent/hosted-preview.md",
         "internal/hostedapp/repair_activity_test.go",
         "internal/hostedquery/project_activity_integration_test.go",
-        "docs/design/hosted-query-agent/evidence/mvp-hosted-owned-index.json"
+        "docs/design/hosted-query-agent/evidence/mvp-hosted-owned-index.json",
+        "internal/hostedquery/owned_index_recovery_integration_test.go"
       ],
-      "statusLabel": "Live index result verified"
+      "statusLabel": "Interrupted index history tested locally"
     },
     "landing": {
       "status": "verified",
@@ -376,15 +385,17 @@
     },
     "operations": {
       "status": "planned",
-      "scope": "The Railway preview returned to healthy regular monitoring after the owned dashboard repair. Temporary database objects and deploy settings were removed.",
-      "remaining": "Verify all six families and restart recovery through the joined flow, backup and restore, credential rotation and outage behavior.",
+      "scope": "Railway previously verified an advanced compound repair and now serves the updated preview. The simple-form preflight passed, and regular settings were restored.",
+      "remaining": "Complete the live token and repair run, the six-family walkthrough, real restart, expiry and database restore.",
       "evidence": [
         "docs/design/hosted-query-agent/roadmap.md",
         "docs/design/hosted-query-agent/hosted-preview.md",
         "docs/design/hosted-query-agent/evidence/mvp-agent-setup.json",
-        "docs/design/hosted-query-agent/evidence/mvp-hosted-owned-index.json"
+        "docs/design/hosted-query-agent/evidence/mvp-hosted-owned-index.json",
+        "docs/design/hosted-query-agent/progress.md",
+        "docs/design/hosted-query-agent/evidence/mvp-simple-index-preflight.json"
       ],
-      "statusLabel": "First owned dashboard repair verified"
+      "statusLabel": "Simple-form preflight passed"
     },
     "hosted-diagnostic-integration": {
       "status": "verified",
@@ -664,6 +675,35 @@
         "docs/design/hosted-query-agent/evidence/mvp-hosted-owned-index.json",
         "internal/hostedquery/owned_project_index.go"
       ]
+    },
+    "discovered-index-evidence": {
+      "status": "verified",
+      "scope": "Local PostgreSQL bound scalar and compound app queries to real table and ordered column identities and refused stale or unauthorized evidence.",
+      "remaining": "Verify the hosted setup and broader shapes. The reader supplies a generic estimate and does not execute the app lookup.",
+      "evidence": [
+        "internal/supabaseproject/discovered_index_integration_test.go",
+        "internal/supabaseproject/discovered_index.sql"
+      ]
+    },
+    "automatic-hosted-index": {
+      "status": "partial",
+      "scope": "The Railway preflight verified the simple setup form and an owned test target configured without query IDs.",
+      "remaining": "Submit a temporary Rookery setup token, then verify ordinary app traffic, the native repair and the saved dashboard result. The preview is back on its regular settings.",
+      "evidence": [
+        "internal/hostedquery/owned_project_index.go",
+        "internal/supabaseproject/bootstrap_integration_test.go",
+        "docs/design/hosted-query-agent/evidence/mvp-simple-index-preflight.json"
+      ],
+      "statusLabel": "Hosted repair run pending"
+    },
+    "owned-index-recovery": {
+      "status": "verified",
+      "scope": "Local PostgreSQL verified interrupted index inspection and publication, including repeated restarts and an authorized reconnect. The recovery worker sends no new index command.",
+      "remaining": "Verify an actual mid-action Railway process stop. After the bounded retries, unresolved actions remain open for review.",
+      "evidence": [
+        "internal/hostedquery/owned_index_recovery_integration_test.go",
+        "internal/hostedquery/owned_index_recovery.go"
+      ]
     }
   },
   "colorMeaning": "Green covers the verified scope on each card. Yellow means part of the card works and more remains. Dashed cards track pending work or qualification.",
@@ -758,6 +798,16 @@
         "index",
         "activity",
         "repair-coverage"
+      ]
+    },
+    {
+      "label": "Tasks 50–53 · Join simple setup to repairs",
+      "summary": "Railway served the simple setup form against the prepared Rookery fixture with zero configured query IDs. Local PostgreSQL advanced discovered evidence, statistics refresh and recovery. The live repair is pending token authorization.",
+      "nodes": [
+        "automatic-hosted-index",
+        "discovered-index-evidence",
+        "refresh",
+        "owned-index-recovery"
       ]
     }
   ],
