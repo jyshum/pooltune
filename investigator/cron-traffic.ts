@@ -11,6 +11,15 @@ export function cronTargetDue(epochMS:number){const s=(epochMS/1000)%120;return 
 const iso=(n:number)=>new Date(n).toISOString();
 const sqlISO=(value:string)=>`to_char(${value} AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"')`;
 
+// 2 min calendar alignment + 6 min healthy/spike controls + 6 real 2 min
+// periods + 4 min setup/calibration/final-observation allowance = 24 min.
+// Cleanup has its separate existing 3 min deadline; the outer runner must
+// allow both. This does not change worker, model, period or proof deadlines.
+export const CRON_CAMPAIGN_BUDGET_MS=(2+6+6*2+4)*60_000;
+export function checkCronCampaignBudget(start:number,now=performance.now()) {
+ if(now-start>=CRON_CAMPAIGN_BUDGET_MS)throw Error('Cron wall-clock budget expired');
+}
+
 export async function runCronTraffic(){
  const investigatorMode=trafficInvestigatorMode(process.env.POOLTUNE_TRAFFIC_MODE);
  assert.equal(process.env.POOLTUNE_STAGING_PRIVATE_STATE,'1');
@@ -35,7 +44,7 @@ export async function runCronTraffic(){
  const admin=client('admin',options),observer=client('observer',options),fault=client('fault',{...options,statement_timeout:22000,query_timeout:24000});
  const state=client('state',{connectionString:process.env.POOLTUNE_LAB_STATE_DSN,connectionTimeoutMillis:5000,statement_timeout:3000,query_timeout:5000});
  const clients:pg.Client[]=[];const directory=mkdtempSync(join(tmpdir(),'pooltune-cron-'));const enrollment=join(directory,'enrollment.json');
- const phases:any[]=[];const output:any={repair:'cron',phases,client_failures:clientFailures,limits:{procedure_holds:200,hold_ms:80,elapsed_guard_seconds:19,per_lock_timeout_ms:150,cycle_seconds:120,guard_margin_seconds:15,wall_budget_seconds:1200},target_calls_per_second:2,quiet_target_calls_per_second:0};
+ const phases:any[]=[];const output:any={repair:'cron',phases,client_failures:clientFailures,limits:{procedure_holds:200,hold_ms:80,elapsed_guard_seconds:19,per_lock_timeout_ms:150,cycle_seconds:120,guard_margin_seconds:15,wall_budget_seconds:CRON_CAMPAIGN_BUDGET_MS/1000},target_calls_per_second:2,quiet_target_calls_per_second:0};
  let fixture:any,owned:any,worker:ChildProcess|undefined,consumer:ChildProcess|undefined;const allChildren:ChildProcess[]=[];const childResults:any[]=[],failures:number[]=[],diagnostics:string[]=[];
  const start=performance.now();const reportPath=process.env.POOLTUNE_CRON_REPORT_PATH??join(tmpdir(),`pooltune-cron-${Date.now()}.json`);output.report_path=reportPath;
  const progress=(s:string)=>console.error(`Cron: ${s}`);
@@ -48,7 +57,7 @@ export async function runCronTraffic(){
  async function waitUntil(at:number){await waitCronBoundary(at,dbNow,async deadline=>{
   const seconds=Math.max(0,(deadline-performance.now())/1000);const result=await traffic!('healthy_between_periods',seconds,false);
   phases.push({name:'healthy_between_periods',seconds,counter_sampled:false,requests:result.requests});
- },()=>performance.now(),()=>{checkClients();if(performance.now()-start>1200000)throw Error('Cron wall-clock budget expired')})}
+ },()=>performance.now(),()=>{checkClients();checkCronCampaignBudget(start)})}
  function startWorkers(){checkClients();if(!worker||worker.exitCode!==null||worker.signalCode!==null)worker=launch('pooltune-worker',['-target','rookery','-enrollment',enrollment,'-interval','2s','-window','4s']);if(!consumer||consumer.exitCode!==null||consumer.signalCode!==null)consumer=launch('pooltune-consumer',['-target','rookery','-project',fixture.enrollment.project,'-fixture',fixture.id,'-mode',investigatorMode,'-cron-staging-fixture'])}
  try{
   await state.connect();await admin.connect();await observer.connect();await fault.connect();
@@ -121,7 +130,7 @@ export async function runCronTraffic(){
   output.jobs=await waitCronFinalResult(firstCycle,{id:output.consumer_restart.job_id,parent_id:output.consumer_restart.parent_id},jobs,dbNow,async seconds=>{
    const observed=await traffic!('final_verification_healthy',seconds,false);
    phases.push({name:'final_verification_healthy',seconds,counter_sampled:false,requests:observed.requests});
-  },start+1200000);output.current_phase='final_verification';
+  },start+CRON_CAMPAIGN_BUDGET_MS);output.current_phase='final_verification';
   populateJobTimings(output);const final=output.jobs.find((j:any)=>j.id===output.consumer_restart.job_id&&j.parent_id===output.consumer_restart.parent_id&&j.finished_at);output.future_cycle_wait_seconds=final?.result?.cron?.cycle_wait_ms/1000;assert(restarted);assert.equal(final?.result?.outcome,'improved_tested_inputs','Cron follow-up did not verify all future work and traffic');verifyCronModelAction(output.jobs,investigatorMode);output.repair_verified=true;output.passed=true;
  }catch(e:any){output.passed=false;output.failed_phase=e.command_failure?.operation??output.current_phase;output.command_failure=e.command_failure;output.error=clientFailures.length?`Cron client ${clientFailures[0].client} failed`:String(e.message).slice(0,400);process.exitCode=1}
  finally{

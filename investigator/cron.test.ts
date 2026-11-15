@@ -258,6 +258,30 @@ for(const mode of ['missing_proof','late_commit','late_witness','duplicate_witne
 
 function pendingCronFinalJobs():any[]{return [{id:1,finished_at:new Date(106000).toISOString(),result:{outcome:'awaiting_verification'}},{id:2,parent_id:1,finished_at:null,not_before:new Date(722000).toISOString()}]}
 
+test('Cron campaign permits final verification after alignment and all six actual periods',async()=>{
+ const {CRON_CAMPAIGN_BUDGET_MS,checkCronCampaignBudget,waitCronBoundary,waitCronFinalResult}=await import('./cron-traffic.ts');
+ // Worst calendar alignment (2 min) plus the existing controls (6 min) puts
+ // firstCycle at minute 8. The real child is eligible 12 min and 2 s later.
+ const firstCycle=480_000,eligible=1_202_000,observeAt=1_208_000;
+ let now=1_180_000;const start=0;
+ await waitCronBoundary(observeAt,async()=>now,async deadline=>{now=deadline},()=>now,()=>checkCronCampaignBudget(start,now));
+ const parent={id:1,finished_at:new Date(850_000).toISOString(),result:{outcome:'awaiting_verification'}};
+ const child={id:2,parent_id:1,finished_at:null,not_before:new Date(eligible).toISOString()};
+ const final=await waitCronFinalResult(firstCycle,{id:2,parent_id:1},async()=>[parent,now<1_220_000?child:{...child,finished_at:new Date(now).toISOString(),result:{outcome:'improved_tested_inputs'}}],async()=>now,async seconds=>{now+=seconds*1000},start+CRON_CAMPAIGN_BUDGET_MS,()=>now);
+ assert.equal(final[1].result?.outcome,'improved_tested_inputs');
+ assert(now>=1_220_000&&now<1_235_000,'final observation must retain its original +35s bound');
+});
+
+test('Cron campaign deadline still stops boundary and final-result waits',async()=>{
+ const {CRON_CAMPAIGN_BUDGET_MS,checkCronCampaignBudget,waitCronBoundary,waitCronFinalResult}=await import('./cron-traffic.ts');
+ let now=CRON_CAMPAIGN_BUDGET_MS-1;
+ await assert.rejects(waitCronBoundary(CRON_CAMPAIGN_BUDGET_MS+1,async()=>now,async deadline=>{now=deadline},()=>now,()=>checkCronCampaignBudget(0,now)),/wall-clock budget expired/);
+ now=CRON_CAMPAIGN_BUDGET_MS;
+ let reads=0;
+ await assert.rejects(waitCronFinalResult(now-728_000,{id:2,parent_id:1},async()=>{reads++;return pendingCronFinalJobs()},async()=>now,async()=>{},CRON_CAMPAIGN_BUDGET_MS,()=>now),/work budget expired/);
+ assert.equal(reads,0,'expired campaigns must not start another observation');
+});
+
 test('Cron final observation waits beyond the first check for one terminal saved result',async()=>{
  const {waitCronFinalResult}=await import('./cron-traffic.ts');let now=728000,healthy=0,terminalReads=0;
  const rows=pendingCronFinalJobs();const final=rows.map(j=>j.id===2?{...j,finished_at:new Date(740000).toISOString(),result:{outcome:'improved_tested_inputs'}}:j);
