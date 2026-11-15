@@ -215,7 +215,7 @@ func validOwnedCronFixtureRoute(cfg *pgx.ConnConfig, req OwnedCronRequest) bool 
 	installation, match := strings.CutPrefix(req.Target.Project, prefix)
 	project, err := supabaseproject.New(OwnedIndexRookeryRef, installation)
 	if !match || err != nil || project.ID() != req.Target.Project ||
-		(req.Runtime != (OwnedCronRuntime{}) && !validOwnedCronRuntime(req)) ||
+		(req.Runtime != (OwnedCronRuntime{}) && (!validOwnedCronRuntime(req) || !validOwnedCronCounterView(req))) ||
 		req.FirstCycle.IsZero() || !req.FirstCycle.Equal(cronCycle(req.FirstCycle)) || req.Expires.IsZero() ||
 		req.Candidate.Schema != "pt_hosted_cr_"+installation || req.Candidate.Relation != "candidate" ||
 		req.Candidate.TableOID == 0 || req.Candidate.DatabaseOID == 0 || req.Candidate.DatabaseOID != req.Target.DatabaseOID ||
@@ -248,6 +248,12 @@ func readOwnedCronScope(ctx context.Context, conn *pgx.Conn, req OwnedCronReques
 	err = pgx.BeginTxFunc(ctx, conn, pgx.TxOptions{AccessMode: pgx.ReadOnly}, func(tx pgx.Tx) error {
 		if _, err := tx.Exec(ctx, "SET LOCAL search_path=pg_catalog; SET LOCAL statement_timeout='750ms'; SET LOCAL lock_timeout='150ms'"); err != nil {
 			return err
+		}
+		useOwnedCounters := req.Runtime != (OwnedCronRuntime{})
+		if useOwnedCounters {
+			if err := checkOwnedCronCounterView(ctx, tx, req); err != nil {
+				return err
+			}
 		}
 		var valid bool
 		if err := tx.QueryRow(ctx, `SELECT EXISTS (
@@ -283,33 +289,39 @@ func readOwnedCronScope(ctx context.Context, conn *pgx.Conn, req OwnedCronReques
 			return errors.New("the discovered Cron workload no longer matches its exact query")
 		}
 		node = plan.Node.Type
-		checkCounter := func(c Counter) error {
+		checkCounter := func(lane string, c Counter) error {
 			if c.Database != req.Target.DatabaseOID || c.Role != req.Target.OwnerOID {
 				return errors.New("Cron traffic role changed")
 			}
-			ok, err := currentLookupCounters(ctx, tx, EnrolledLookup{Database: c.Database, Role: c.Role, Query: c.Query},
-				[3]time.Time{c.Boot, c.Reset, c.Entry})
+			var ok bool
+			var err error
+			if useOwnedCounters {
+				ok, err = currentOwnedCronCounters(ctx, tx, req, lane, c)
+			} else {
+				ok, err = currentLookupCounters(ctx, tx, EnrolledLookup{Database: c.Database, Role: c.Role, Query: c.Query},
+					[3]time.Time{c.Boot, c.Reset, c.Entry})
+			}
 			if err != nil || !ok {
 				return errors.New("Cron traffic counter generation changed")
 			}
 			return nil
 		}
-		if err := checkCounter(req.Observed); err != nil || controls == nil {
+		if err := checkCounter("target", req.Observed); err != nil || controls == nil {
 			return err
 		}
 		for _, control := range []struct {
-			sql string
-			arg int32
-			c   Counter
+			lane, sql string
+			arg       int32
+			c         Counter
 		}{
-			{"SELECT id FROM ONLY " + qualified(req.Candidate.Schema, "healthy") + " WHERE id=$1", 43, controls.Healthy.Before},
-			{"UPDATE ONLY " + qualified(req.Candidate.Schema, "healthy") + " SET padding=CASE padding WHEN 'a' THEN 'b' ELSE 'a' END WHERE id=$1 RETURNING id", 90001, controls.Write.Before},
+			{"healthy", ownedCronHealthyQuery(req.Candidate.Schema), 43, controls.Healthy.Before},
+			{"write", ownedCronWriteQuery(req.Candidate.Schema), 90001, controls.Write.Before},
 		} {
 			p, err := readLookupPlan(ctx, tx, "EXPLAIN (FORMAT JSON, VERBOSE) "+control.sql, control.arg)
 			if err != nil || p.QueryID != control.c.Query {
 				return errors.New("Cron protected query identity changed")
 			}
-			if err := checkCounter(control.c); err != nil {
+			if err := checkCounter(control.lane, control.c); err != nil {
 				return err
 			}
 		}

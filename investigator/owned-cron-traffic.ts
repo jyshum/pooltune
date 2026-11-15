@@ -19,7 +19,7 @@ type OwnedFixture = {
   Request: {
     Target: {Project: string; DatabaseOID: number; OwnerOID: number; JobID: number; WitnessJobID: number; Name: string; CommandDigest: string};
     Candidate: {Schema: string; DatabaseOID: number; Relation: string; TableOID: number};
-    Runtime: {Schema: string; FunctionOID: number; OwnerOID: number; DefinitionDigest: string};
+    Runtime: {Schema: string; FunctionOID: number; OwnerOID: number; DefinitionDigest: string; CounterViewOID: number; CounterViewDigest: string};
     ReadOID: number;
     ProcedureOID: number;
     ReadDigest: string;
@@ -40,12 +40,12 @@ export function readOwnedCronObserverBinding(raw: string) {
   const first = Date.parse(FirstCycle);
   const expires = Date.parse(Expires);
   const ids = [target.DatabaseOID, target.OwnerOID, target.JobID, target.WitnessJobID, candidate.TableOID, binding.Request.ReadOID,
-    binding.Request.ProcedureOID, runtime.FunctionOID, runtime.OwnerOID];
+    binding.Request.ProcedureOID, runtime.FunctionOID, runtime.OwnerOID, runtime.CounterViewOID];
   const digest = /^[0-9a-f]{64}$/;
   assert(target.Project === project && target.Name === `${schema}_target` && target.JobID !== target.WitnessJobID &&
     target.CommandDigest === createHash('sha256').update(`CALL "${schema}"."pooltune_cron_hold"(200)`).digest('hex') &&
     candidate.Schema === schema && candidate.Relation === 'candidate' && candidate.DatabaseOID === target.DatabaseOID &&
-    runtime.Schema === `pt_cron_guard_${binding.Installation}` && digest.test(runtime.DefinitionDigest) &&
+    runtime.Schema === `pt_cron_guard_${binding.Installation}` && digest.test(runtime.DefinitionDigest) && digest.test(runtime.CounterViewDigest) &&
     digest.test(binding.Request.ReadDigest) && digest.test(binding.Request.ProcedureDigest) &&
     ids.every(id => Number.isSafeInteger(id) && id > 0) && Number.isFinite(first) && first % 120_000 === 0 &&
     expires > first + 12 * 60_000 + 35_000, 'invalid owned Cron fixture binding');
@@ -53,7 +53,7 @@ export function readOwnedCronObserverBinding(raw: string) {
 }
 
 type CounterRow = {
-  query: string; queryid: string; dbid: number; userid: number; boot: string;
+  lane: string; queryid: string; dbid: number; userid: number; boot: string;
   reset: string; entry: string; calls: number; blocks: number; execution_ms: number;
 };
 
@@ -127,10 +127,9 @@ export async function runOwnedCronTraffic(setPhase: (phase: OwnedCronPhase) => v
   const state = client('worker state', {connectionString: stateURL.href});
   const trafficClients = [0, 1, 2, 3].map(index => client(`traffic ${index + 1}`, writer));
   const targetSQL = `SELECT "${schema}"."pooltune_cron_read"() AS id FROM (VALUES (1)) AS invocation(slot)`;
-  const normalizedTarget = targetSQL.replace('VALUES (1)', 'VALUES ($1)');
   const healthySQL = `SELECT id FROM ONLY "${schema}"."healthy" WHERE id=$1`;
   const writeSQL = `UPDATE ONLY "${schema}"."healthy" SET padding=CASE padding WHEN 'a' THEN 'b' ELSE 'a' END WHERE id=$1 RETURNING id`;
-  const normalizedWrite = writeSQL.replace("WHEN 'a' THEN 'b' ELSE 'a'", 'WHEN $2 THEN $3 ELSE $4');
+  const counters = `"${request.Runtime.Schema}".statement_counters`;
   const result = {project, periods_recorded: 0, job_id: '', verification_job_id: '', outcome: ''};
   try {
     setPhase('target_connection');
@@ -189,6 +188,20 @@ export async function runOwnedCronTraffic(setPhase: (phase: OwnedCronPhase) => v
       await connection.connect();
       await connection.query("SET lock_timeout='250ms'");
     }
+    setPhase('counter_catalog');
+    const counterScope = await stats.query<{eligible: boolean}>(`SELECT EXISTS(
+      SELECT FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
+      JOIN pg_rewrite r ON r.ev_class=c.oid AND r.rulename='_RETURN'
+      WHERE c.oid=$1 AND n.nspname=$2 AND c.relname='statement_counters' AND c.relkind='v'
+        AND c.relowner=$3 AND n.nspowner=$3 AND c.relowner='postgres'::regrole::oid
+        AND c.reloptions @> ARRAY['security_invoker=true','security_barrier=true']
+        AND encode(sha256(convert_to(r.ev_action::text,'UTF8')),'hex')=$4
+        AND has_table_privilege(current_user,c.oid,'SELECT')
+        AND NOT EXISTS(SELECT FROM aclexplode(COALESCE(c.relacl,acldefault('r',c.relowner))) a
+          WHERE a.grantee<>c.relowner AND (a.grantee<>current_user::regrole::oid OR a.privilege_type<>'SELECT' OR a.is_grantable))
+      ) AS eligible`, [request.Runtime.CounterViewOID, request.Runtime.Schema, request.Runtime.OwnerOID, request.Runtime.CounterViewDigest]);
+    assert.equal(counterScope.rows[0]?.eligible, true, 'the exact invoker counter view is unavailable');
+    await stats.query(`SELECT count(*) FROM ${counters}`);
     setPhase('activation_wait');
     console.log(JSON.stringify({event: 'owned_cron_observer_ready'}));
     await waitOwnedCronActivation(first, async () => {
@@ -206,30 +219,24 @@ export async function runOwnedCronTraffic(setPhase: (phase: OwnedCronPhase) => v
     await trafficClients[0].query(targetSQL);
     await trafficClients[2].query(healthySQL, [43]);
     await trafficClients[3].query(writeSQL, [90001]);
-    setPhase('counter_catalog');
-    const namespace = (await stats.query<{nspname: string}>(`SELECT n.nspname FROM pg_extension e
-      JOIN pg_namespace n ON n.oid=e.extnamespace WHERE e.extname='pg_stat_statements'`)).rows[0]?.nspname;
-    assert(namespace && /^[a-z_]+$/.test(namespace), 'Cron statement counters are unavailable');
     async function snapshot() {
       check();
       const {rows} = await stats.query<CounterRow & {at: string}>(`SELECT ${sqlISO('clock_timestamp()')} AS at,
-        s.queryid::text,s.query,s.dbid,s.userid,${sqlISO('pg_postmaster_start_time()')} AS boot,
-        ${sqlISO('i.stats_reset')} AS reset,${sqlISO('s.stats_since')} AS entry,s.calls::float8 AS calls,
-        s.total_exec_time AS execution_ms,s.shared_blks_hit::float8+s.shared_blks_read::float8 AS blocks
-        FROM "${namespace}".pg_stat_statements s CROSS JOIN "${namespace}".pg_stat_statements_info i
-        WHERE s.dbid=$1 AND s.userid=$2 AND s.toplevel AND s.query=ANY($3::text[])`,
-      [target.DatabaseOID, target.OwnerOID, [targetSQL, normalizedTarget, healthySQL, writeSQL, normalizedWrite]]);
-      assert.equal(rows.length, 3, 'all three exact observed query counters are required');
+        s.queryid::text,s.lane,s.dbid,s.userid,${sqlISO('s.boot')} AS boot,
+        ${sqlISO('s.reset_at')} AS reset,${sqlISO('s.entry_since')} AS entry,s.calls::float8 AS calls,
+        s.execution_ms,s.blocks::float8 AS blocks FROM ${counters} s
+        WHERE s.dbid=$1 AND s.userid=$2`, [target.DatabaseOID, target.OwnerOID]);
+      assert(rows.length === 3 && new Set(rows.map(row => row.lane)).size === 3, 'all three exact observed query counters are required');
       return {at: rows[0].at, rows};
     }
     setPhase('counter_identity');
     const initial = await snapshot();
-    const id = (...statements: string[]) => {
-      const row = initial.rows.find(item => statements.includes(item.query));
+    const id = (lane: string) => {
+      const row = initial.rows.find(item => item.lane === lane);
       assert(row && /^-?[0-9]+$/.test(row.queryid), 'observed Cron statement identity is missing');
       return row.queryid;
     };
-    const targetID = id(targetSQL, normalizedTarget), healthyID = id(healthySQL), writeID = id(writeSQL, normalizedWrite);
+    const targetID = id('target'), healthyID = id('healthy'), writeID = id('write');
     async function observeBlocks() {
       const {rows} = await observer.query(`SELECT ${sqlISO('clock_timestamp()')} AS at,r.runid::float8 AS run_id,r.jobid::float8 AS job_id,
         a.pid,${sqlISO('a.backend_start')} AS backend_start,w.pid AS waiting_pid,${sqlISO('w.backend_start')} AS waiting_start,w.query_id::text AS query_id

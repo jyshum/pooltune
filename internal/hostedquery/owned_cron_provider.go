@@ -13,10 +13,12 @@ import (
 )
 
 type OwnedCronRuntime struct {
-	Schema           string
-	FunctionOID      uint32
-	OwnerOID         uint32
-	DefinitionDigest string
+	Schema            string
+	FunctionOID       uint32
+	OwnerOID          uint32
+	DefinitionDigest  string
+	CounterViewOID    uint32
+	CounterViewDigest string
 }
 
 const ownedCronRuntimeName = "scheduler_status"
