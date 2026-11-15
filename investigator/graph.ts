@@ -10,7 +10,7 @@ const planSchema = z.strictObject({
   shared_blocks: z.number().int().nonnegative(),
 });
 
-export const evidenceSchema = z.strictObject({
+export const evidenceFields = z.strictObject({
   run_id: z.string().min(1).max(64),
   observed_at: z.iso.datetime(),
   decision: z.enum(["investigate", "no_change", "insufficient_evidence"]),
@@ -27,7 +27,9 @@ export const evidenceSchema = z.strictObject({
     cases: z.array(z.strictObject({ estimated_rows: z.number().int().positive(), actual_rows: z.number().int().positive() })).length(2),
   }).optional(),
   analyze: z.strictObject({ estimated_rows: z.number().int().positive(), actual_rows: z.number().int().positive(), sampled_lookup_fraction: z.number().min(0).max(1).optional() }).optional(),
-}).refine(e => [e.analyze,e.statistics,e.vacuum,e.memory,e.cron].filter(Boolean).length <= 1, "Evidence must contain at most one repair cause.");
+});
+
+export const evidenceSchema = evidenceFields.refine(e => [e.analyze,e.statistics,e.vacuum,e.memory,e.cron].filter(Boolean).length <= 1, "Evidence must contain at most one repair cause.");
 
 export const proposalSchema = z.strictObject({
   outcome: z.enum(["propose", "no_change"]),
@@ -37,7 +39,7 @@ export const proposalSchema = z.strictObject({
   repair: z.enum(["analyze", "statistics", "vacuum", "memory", "cron"]).optional(),
   reason: z.string().min(1).max(1000),
   model_call: z.strictObject({
-    model: z.string().min(1), duration_ms: z.number().nonnegative(), requests: z.literal(1),
+    model: z.string().min(1), duration_ms: z.number().nonnegative(), requests: z.number().int().min(1).max(3),
     input_tokens: z.number().int().nonnegative().optional(), output_tokens: z.number().int().nonnegative().optional(),
   }).optional(),
 });
@@ -57,9 +59,7 @@ function identity(evidence: Evidence) {
   return { run_id: evidence.run_id, table_oid: evidence.table_oid, column_number: evidence.column_number };
 }
 
-export function buildGraph(investigate: Investigator, checkpointer?: BaseCheckpointSaver) {
-  return new StateGraph(state)
-    .addNode("screen_evidence", ({ evidence }) => {
+export function screenEvidence(evidence: Evidence) {
       if (evidence.cron) {
         if(evidence.decision === "investigate" && cronCause(evidence.cron)) return {};
         return {proposal:{...identity(evidence),outcome:"no_change" as const,reason:"Repeated attributed contention or enrolled schedule constraints are insufficient."}};
@@ -95,7 +95,11 @@ export function buildGraph(investigate: Investigator, checkpointer?: BaseCheckpo
         return {};
       }
       return { proposal: { ...identity(evidence), outcome: "no_change" as const, reason: "Evidence does not support a missing index." } };
-    })
+}
+
+export function buildGraph(investigate: Investigator, checkpointer?: BaseCheckpointSaver) {
+  return new StateGraph(state)
+    .addNode("screen_evidence", ({ evidence }) => screenEvidence(evidence))
     .addNode("investigate", async ({ evidence }) => {
       const { plan, covering_index, ...enrollment } = evidence;
       const used = new Set<EvidenceTool>();

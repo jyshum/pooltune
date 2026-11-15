@@ -1,0 +1,340 @@
+package graphrunner
+
+import (
+	"bufio"
+	"bytes"
+	"context"
+	"encoding/json"
+	"errors"
+	"io"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"pooltune/internal/hostedquery"
+	"time"
+)
+
+type DiagnosticIdentity struct {
+	RunID    string `json:"run_id"`
+	TableOID uint32 `json:"table_oid"`
+	Column   int16  `json:"column_number"`
+}
+type DiagnosticObservation struct {
+	DiagnosticIdentity
+	Tool   string          `json:"tool"`
+	At     time.Time       `json:"observed_at"`
+	Status string          `json:"status"`
+	Data   json.RawMessage `json:"data,omitempty"`
+}
+type DiagnosticInput struct {
+	DiagnosticIdentity
+	Decision hostedquery.Decision    `json:"decision"`
+	Initial  []DiagnosticObservation `json:"initial"`
+}
+type DiagnosticResult struct {
+	Proposal   hostedquery.IndexProposal `json:"proposal"`
+	ModelCalls int                       `json:"model_calls"`
+	Reads      int                       `json:"reads"`
+	ModelMS    float64                   `json:"model_ms"`
+	ToolMS     float64                   `json:"tool_ms"`
+	TotalMS    float64                   `json:"total_ms"`
+	StopReason string                    `json:"stop_reason"`
+	History    []json.RawMessage         `json:"history"`
+}
+type DiagnosticReader func(context.Context, string) (DiagnosticObservation, error)
+type DiagnosticInvestigator func(context.Context, DiagnosticInput, DiagnosticReader) (DiagnosticResult, error)
+
+var diagnosticTools = map[string]bool{"plan": true, "indexes": true, "analyze": true, "statistics": true, "vacuum": true, "memory": true, "cron": true}
+
+// DiagnosticProcess persists graph state. The supplied readers own project grants,
+// exact target binding and query bounds. The model can select only a tool name.
+func DiagnosticProcess(stateDSN string) (DiagnosticInvestigator, error) {
+	if stateDSN == "" {
+		return nil, errors.New("diagnostic process requires durable state")
+	}
+	return diagnosticProcess(stateDSN, false)
+}
+
+// DiagnosticReplayProcess has no durable job or action adapter. It is explicitly
+// for model evaluation against retained synthetic evidence, never customer repair.
+func DiagnosticReplayProcess() (DiagnosticInvestigator, error) { return diagnosticProcess("", true) }
+func diagnosticProcess(stateDSN string, replay bool) (DiagnosticInvestigator, error) {
+	if os.Getenv("ANTHROPIC_API_KEY") == "" || os.Getenv("POOLTUNE_ANTHROPIC_MODEL") == "" {
+		return nil, errors.New("diagnostic model configuration required")
+	}
+	path, err := filepath.Abs("investigator/diagnostic-run.ts")
+	if err != nil {
+		return nil, err
+	}
+	if _, err = os.Stat(path); err != nil {
+		return nil, errors.New("run from the Pooltune repository")
+	}
+	node, err := exec.LookPath("node")
+	if err != nil {
+		return nil, err
+	}
+	return func(ctx context.Context, input DiagnosticInput, read DiagnosticReader) (DiagnosticResult, error) {
+		return runDiagnostic(ctx, input, read, func(ctx context.Context) *exec.Cmd {
+			c := exec.CommandContext(ctx, node, path)
+			c.Env = []string{"ANTHROPIC_API_KEY=" + os.Getenv("ANTHROPIC_API_KEY"), "POOLTUNE_ANTHROPIC_MODEL=" + os.Getenv("POOLTUNE_ANTHROPIC_MODEL"), "LANGSMITH_TRACING=false", "POOLTUNE_LAB_STATE_DSN=" + stateDSN, "POOLTUNE_STAGING_PRIVATE_STATE=" + os.Getenv("POOLTUNE_STAGING_PRIVATE_STATE")}
+			if replay {
+				c.Env = append(c.Env, "POOLTUNE_DIAGNOSTIC_REPLAY=1")
+			}
+			return c
+		})
+	}, nil
+}
+func validObservation(o DiagnosticObservation, input DiagnosticInput, tool string) bool {
+	age := time.Since(o.At)
+	return o.DiagnosticIdentity == input.DiagnosticIdentity && o.Tool == tool && diagnosticTools[tool] && !o.At.IsZero() && age >= 0 && age <= 30*time.Second &&
+		((o.Status == "available" && json.Valid(o.Data) && !bytes.Equal(o.Data, []byte("null"))) || (o.Status == "unavailable" && (len(o.Data) == 0 || bytes.Equal(o.Data, []byte("null")))))
+}
+func strictJSON(data []byte, dst any) error {
+	d := json.NewDecoder(bytes.NewReader(data))
+	d.DisallowUnknownFields()
+	if err := d.Decode(dst); err != nil {
+		return err
+	}
+	var extra any
+	if d.Decode(&extra) != io.EOF {
+		return errors.New("trailing JSON")
+	}
+	return nil
+}
+func runDiagnostic(parent context.Context, input DiagnosticInput, read DiagnosticReader, command func(context.Context) *exec.Cmd) (result DiagnosticResult, err error) {
+	started := time.Now()
+	ctx, cancel := context.WithTimeout(parent, 22*time.Second)
+	defer cancel()
+	if input.RunID == "" || len(input.RunID) > 64 || input.TableOID == 0 || input.Column <= 0 || len(input.Initial) > 7 {
+		return result, errors.New("invalid diagnostic input")
+	}
+	observations := map[string]DiagnosticObservation{}
+	for _, o := range input.Initial {
+		if !validObservation(o, input, o.Tool) || observations[o.Tool].Tool != "" {
+			return result, errors.New("invalid initial evidence")
+		}
+		observations[o.Tool] = o
+	}
+	c := command(ctx)
+	stdin, err := c.StdinPipe()
+	if err != nil {
+		return result, err
+	}
+	stdout, err := c.StdoutPipe()
+	if err != nil {
+		return result, err
+	}
+	c.Stderr = io.Discard
+	if err = c.Start(); err != nil {
+		return result, errors.New("diagnostic process failed to start")
+	}
+	defer func() {
+		stdin.Close()
+		cancel()
+		if c.ProcessState == nil {
+			c.Process.Kill()
+			c.Wait()
+		}
+	}()
+	payload, marshalErr := json.Marshal(input)
+	if marshalErr != nil || len(payload) > 60000 {
+		return result, errors.New("oversized diagnostic input")
+	}
+	encoder := json.NewEncoder(stdin)
+	if err = encoder.Encode(input); err != nil {
+		return result, errors.New("diagnostic input failed")
+	}
+	scanner := bufio.NewScanner(stdout)
+	scanner.Buffer(make([]byte, 4096), 65536)
+	reads := 0
+	for scanner.Scan() {
+		var frame struct {
+			Type   string            `json:"type"`
+			Tool   string            `json:"tool,omitempty"`
+			Result *DiagnosticResult `json:"result,omitempty"`
+		}
+		if strictJSON(scanner.Bytes(), &frame) != nil {
+			return result, errors.New("invalid diagnostic frame")
+		}
+		switch frame.Type {
+		case "read":
+			if frame.Result != nil || !diagnosticTools[frame.Tool] || observations[frame.Tool].Tool != "" || reads >= 6 {
+				return result, errors.New("invalid diagnostic evidence request")
+			}
+			reads++
+			o := DiagnosticObservation{DiagnosticIdentity: input.DiagnosticIdentity, Tool: frame.Tool, At: time.Now().UTC(), Status: "unavailable"}
+			if read != nil {
+				callCtx, stop := context.WithTimeout(ctx, 3*time.Second)
+				type reply struct {
+					observation DiagnosticObservation
+					err         error
+				}
+				ready := make(chan reply, 1)
+				go func() { observation, callErr := read(callCtx, frame.Tool); ready <- reply{observation, callErr} }()
+				select {
+				case response := <-ready:
+					o, err = response.observation, response.err
+				case <-callCtx.Done():
+					err = callCtx.Err()
+				}
+				stop()
+				if err != nil {
+					return result, errors.New("diagnostic evidence collection failed")
+				}
+			}
+			if !validObservation(o, input, frame.Tool) {
+				return result, errors.New("invalid diagnostic evidence")
+			}
+			encoded, e := json.Marshal(o)
+			if e != nil || len(encoded) > 60000 {
+				return result, errors.New("oversized diagnostic evidence")
+			}
+			observations[o.Tool] = o
+			if encoder.Encode(struct {
+				Observation DiagnosticObservation `json:"observation"`
+			}{o}) != nil {
+				return result, errors.New("diagnostic evidence handoff failed")
+			}
+		case "result":
+			if frame.Tool != "" || frame.Result == nil {
+				return result, errors.New("invalid diagnostic result")
+			}
+			result = *frame.Result
+			if result.Reads != reads || result.ModelCalls < 0 || result.ModelCalls > 3 || result.ModelMS < 0 || result.ToolMS < 0 || len(result.History) > 3 || validateDiagnosticResult(input, observations, result) != nil {
+				return result, errors.New("unsupported diagnostic result")
+			}
+			stdin.Close()
+			if scanner.Scan() {
+				return DiagnosticResult{}, errors.New("trailing diagnostic frame")
+			}
+			if scanner.Err() != nil || c.Wait() != nil {
+				return DiagnosticResult{}, errors.New("diagnostic process failed")
+			}
+			result.TotalMS = float64(time.Since(started)) / float64(time.Millisecond)
+			return result, nil
+		default:
+			return result, errors.New("unexpected diagnostic frame")
+		}
+	}
+	return result, errors.New("diagnostic process ended without a result")
+}
+func validateDiagnosticResult(input DiagnosticInput, observations map[string]DiagnosticObservation, result DiagnosticResult) error {
+	p := result.Proposal
+	if p.RunID != input.RunID || p.TableOID != input.TableOID || p.Column != input.Column || len(p.Reason) == 0 || len(p.Reason) > 1000 || (p.Outcome != "no_change" && p.Outcome != "propose") {
+		return errors.New("identity")
+	}
+	if p.Outcome == "no_change" {
+		if p.Repair != "" {
+			return errors.New("unexpected repair")
+		}
+		return nil
+	}
+	if input.Decision != hostedquery.Investigate {
+		return errors.New("not actionable")
+	}
+	// The relationship reader's contract includes fresh ordinary ANALYZE. Strong
+	// stale-distribution evidence in the same investigation contradicts it.
+	for _, o := range observations {
+		if !validObservation(o, input, o.Tool) {
+			return errors.New("expired evidence")
+		}
+	}
+	if a, ok := observations["analyze"]; ok && a.Status == "available" {
+		if st, ok := observations["statistics"]; ok && st.Status == "available" {
+			var av hostedquery.AnalyzeEvidence
+			var sv hostedquery.StatisticsEvidence
+			if strictJSON(a.Data, &av) != nil || strictJSON(st.Data, &sv) != nil {
+				return errors.New("invalid statistics evidence")
+			}
+			strong := sv.Correlated && len(sv.Cases) == 2
+			for _, c := range sv.Cases {
+				if c.ActualRows <= 0 || c.EstimatedRows <= 0 || (float64(c.EstimatedRows)/float64(c.ActualRows) < 10 && float64(c.ActualRows)/float64(c.EstimatedRows) < 10) {
+					strong = false
+				}
+			}
+			if strong && av.SampledValueFraction != nil && *av.SampledValueFraction >= .9 && av.ActualRows > 0 && float64(av.EstimatedRows)/float64(av.ActualRows) > 10 {
+				return errors.New("contradictory statistics evidence")
+			}
+		}
+	}
+	required := []string{"plan", "indexes"}
+	if p.Repair != "" {
+		required = append(required, p.Repair)
+	}
+	e := hostedquery.IndexEvidence{RunID: input.RunID, TableOID: input.TableOID, Column: input.Column, Decision: input.Decision, Label: "lookup", At: time.Now()}
+	for _, tool := range required {
+		o, ok := observations[tool]
+		if !ok || !validObservation(o, input, tool) || o.Status != "available" {
+			return errors.New("missing evidence")
+		}
+		if o.At.Before(e.At) {
+			e.At = o.At
+		}
+		var target any
+		switch tool {
+		case "plan":
+			target = &e.Plan
+		case "indexes":
+			var index struct {
+				Covering bool `json:"covering_index"`
+			}
+			if strictJSON(o.Data, &index) != nil {
+				return errors.New("index evidence")
+			}
+			e.Existing = index.Covering
+			continue
+		case "analyze":
+			e.Analyze = &hostedquery.AnalyzeEvidence{}
+			target = e.Analyze
+		case "statistics":
+			e.Statistics = &hostedquery.StatisticsEvidence{}
+			target = e.Statistics
+		case "vacuum":
+			e.Vacuum = &hostedquery.VacuumEvidence{}
+			target = e.Vacuum
+		case "memory":
+			e.Memory = &hostedquery.MemoryEvidence{}
+			target = e.Memory
+		case "cron":
+			e.Cron = &hostedquery.CronEvidence{}
+			target = e.Cron
+		default:
+			return errors.New("repair")
+		}
+		if strictJSON(o.Data, target) != nil {
+			return errors.New("malformed evidence")
+		}
+	}
+	return hostedquery.ValidateDiagnosticProposal(e, p, time.Now())
+}
+
+// SnapshotObservations preserves measurement time; callers may expose several
+// independently collected cause fields. Missing fields are never fabricated.
+func SnapshotObservations(e hostedquery.IndexEvidence) []DiagnosticObservation {
+	id := DiagnosticIdentity{e.RunID, e.TableOID, e.Column}
+	out := []DiagnosticObservation{}
+	add := func(tool string, value any) {
+		data, _ := json.Marshal(value)
+		out = append(out, DiagnosticObservation{id, tool, e.At, "available", data})
+	}
+	add("plan", e.Plan)
+	add("indexes", struct {
+		Covering bool `json:"covering_index"`
+	}{e.Existing})
+	if e.Analyze != nil {
+		add("analyze", e.Analyze)
+	}
+	if e.Statistics != nil {
+		add("statistics", e.Statistics)
+	}
+	if e.Vacuum != nil {
+		add("vacuum", e.Vacuum)
+	}
+	if e.Memory != nil {
+		add("memory", e.Memory)
+	}
+	if e.Cron != nil {
+		add("cron", e.Cron)
+	}
+	return out
+}

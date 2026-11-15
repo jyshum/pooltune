@@ -303,3 +303,29 @@ Initially recommended candidate, subsequently selected by Jared: **rookery**, pr
 Before running: restore database availability, verify the app and database point to the same intended target, and establish a small bounded trial. The existing script defaults to 10/50/100 concurrent users without user think time, checks its size threshold only after each level, deletes its tracked projects on normal remote cleanup, and has no durable interrupted-run cleanup. It needs a separate qualification pass before reuse; it is not yet a Pooltune evaluation harness. Existing foreign-key indexes mean additional index benefit must be measured, not assumed. No project was resumed, no test data created and no load script executed during this inspection.
 
 Follow-up authorization: Rookery may be brought online for the test work. The earlier sentence describes the initial read-only inspection only. A restore request has now been accepted by Supabase; readiness is tracked in progress.md. No load run is required to check connection and privileges. Later performance qualification needs representative data sizes/distributions and repeated comparable query executions; concurrency testing is a separate stage, especially for memory pressure and interfering jobs. High request volume alone is not an index-repair benchmark. Authorization for this personal test project does not define future customers' default grants or approve new V1 repair powers.
+
+
+### Task 27: Bounded multi-cause investigator graph
+
+**Authority/dependencies:** November 14 explicit build request above, existing architecture d-language r2/d-workflow r1/d-reuse r1 and approvals.json. Ask + milestones persist. No new intermediate human stop was agreed; final review covers this diagnostic slice. Earlier repair qualification is evidence, not customer rollout approval.
+**Files:** investigator/diagnostic.ts, diagnostic-model.ts, diagnostic.test.ts; reuse graph.ts evidence field schemas; package.json and langgraph.json registration. Design: diagnostic-loop.md. Keep legacy graph behavior intact.
+**Interfaces:** buildDiagnosticGraph(decide, read, checkpointer?, clock?) accepts typed identity, initial named observations and yields a proposal plus per-turn decisions/read timings. decide receives all available evidence and remaining budgets. read accepts only a named tool and an AbortSignal.
+- [ ] Write and observe failing behavior tests for multi-cause evidence and request→read→compare→proposal, one-call reuse, missing/repeated tools, expiry, identity, model failures and bounded turns.
+- [ ] Implement explicit screen_evidence, compare_causes, request_evidence and finish nodes with typed structured turns and deterministic final eligibility. Register the diagnostic Studio graph with unavailable tools when no Go reader is attached.
+- [ ] Run npm test and npm run typecheck; commit scoped implementation.
+
+### Task 28: Go-controlled evidence requests
+
+**Files:** internal/graphrunner/diagnostic.go and tests, investigator/diagnostic-run.ts. Existing Process/qualified repair route remains available.
+**Interfaces:** DiagnosticProcess(stateDSN) returns a callable taking diagnostic identity/input and a named Go evidence reader. JSON lines carry one bounded request/response at a time, then a final result. No model SQL or target input. Reuse existing evidence via a snapshot adapter; allow supplied Go callbacks for fresh reads.
+- [ ] Write failing tests for real subprocess tool routing, repeated/unknown requests, cancellation, oversized/malformed frames, changed identity and proposal guard validation.
+- [ ] Implement bounded protocol, sanitized failures, inherited deadline and independently checked proposal identity/evidence. Persist graph state using existing Pooltune PostgreSQL route rules.
+- [ ] Exercise an actual local PostgreSQL reader and replay through the process; run Go tests/vet and TS suites; commit.
+
+### Task 29: Real-Claude diagnostic qualification and map update
+
+**Files:** diagnostic evaluation command/tests and evidence/diagnostic-loop results; diagnostic-loop.md, progress.md, roadmap.md, map/status.json and generated design.html.
+- [ ] Predeclare positive six-repair replay cases, competing statistics explanations, withheld evidence, healthy, insufficient and unsupported controls. Keep expected answers outside Claude input. Preserve original measurement timestamps/provenance; replay has no mutation authority.
+- [ ] Use real Claude through the Go request bridge, save decisions and model/tool/total timings, including failed attempts. Demonstrate fresh local PostgreSQL reader separately. No new Rookery mutations or Railway deployment required by this diagnostic-only qualification.
+- [ ] Obtain fresh code review, fix material issues with regressions, run required suites, update scoped map status and report remaining collector/production gaps.
+- [ ] Commit on feat/pooltune-revamp-dev; final human review. No push/merge or customer deployment.

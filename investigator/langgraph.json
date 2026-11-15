@@ -1,5 +1,10 @@
 {
-  "dependencies": ["."],
-  "graphs": {"pooltune_index": "./model.ts:graph"},
+  "dependencies": [
+    "."
+  ],
+  "graphs": {
+    "pooltune_index": "./model.ts:graph",
+    "pooltune_diagnostic": "./diagnostic-model.ts:diagnosticGraph"
+  },
   "env": ".env"
 }
