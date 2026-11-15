@@ -16,7 +16,7 @@ import (
 
 func serveProject(ctx context.Context, monitor *hostedquery.ProjectMonitor, queue *pgx.Conn,
 	target *pgx.ConnConfig, project supabaseproject.Project, epoch int64,
-	queueInterval time.Duration, investigate hostedquery.EnrolledLookupInvestigator, encoder *json.Encoder) error {
+	queueInterval time.Duration, investigate hostedquery.EnrolledLookupInvestigator, logs *hostedquery.TrafficPlanReader, encoder *json.Encoder) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	var logLock sync.Mutex
@@ -51,7 +51,7 @@ func serveProject(ctx context.Context, monitor *hostedquery.ProjectMonitor, queu
 		})
 	}()
 	go func() {
-		done <- consumeProject(ctx, queue, target, project, epoch, queueInterval, investigate, emit)
+		done <- consumeProject(ctx, queue, target, project, epoch, queueInterval, investigate, logs, emit)
 	}()
 	err := <-done
 	cancel()
@@ -64,9 +64,9 @@ func serveProject(ctx context.Context, monitor *hostedquery.ProjectMonitor, queu
 
 func consumeProject(ctx context.Context, queue *pgx.Conn, target *pgx.ConnConfig, project supabaseproject.Project,
 	epoch int64, interval time.Duration, investigate hostedquery.EnrolledLookupInvestigator,
-	emit func(string, any) error) error {
+	logs *hostedquery.TrafficPlanReader, emit func(string, any) error) error {
 	for ctx.Err() == nil {
-		result, err := hostedquery.DiagnoseHostedProjectLookup(ctx, queue, target, project, epoch, investigate)
+		result, err := hostedquery.DiagnoseHostedProjectLookup(ctx, queue, target, project, epoch, investigate, logs)
 		if err != nil && ctx.Err() == nil {
 			if queue.IsClosed() {
 				return err
@@ -96,6 +96,13 @@ func consumeProject(ctx context.Context, queue *pgx.Conn, target *pgx.ConnConfig
 // operational fields, even if the model includes sensitive text in a diagnosis.
 func savedDiagnosisEvent(result *hostedquery.DispatchResult) map[string]any {
 	event := map[string]any{"job_id": result.JobID, "attempt": result.Attempt, "outcome": result.Outcome, "elapsed_ms": result.ElapsedMS}
+	if result.TrafficPlan != nil {
+		event["plan_source"] = "ordinary_traffic"
+		event["plan_node"] = result.TrafficPlan.Node
+		if result.TrafficPlan.Child != "" {
+			event["plan_child_node"] = result.TrafficPlan.Child
+		}
+	}
 	if result.LookupPlan != nil {
 		event["plan_node"] = result.LookupPlan.Node
 	}

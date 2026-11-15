@@ -21,7 +21,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-const usage = "usage: pooltune-project {setup-sql|setup-evidence-sql|setup-plan-sql|connect|run|diagnose|serve|disconnect} -ref PROJECT_REF -key INSTALLATION_KEY"
+const usage = "usage: pooltune-project {setup-sql|setup-evidence-sql|setup-plan-sql|setup-traffic-plan-sql|connect|run|diagnose|serve|disconnect} -ref PROJECT_REF -key INSTALLATION_KEY"
 
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
@@ -38,7 +38,7 @@ func execute(ctx context.Context, args []string, output io.Writer) error {
 	}
 	command := args[0]
 	switch command {
-	case "setup-sql", "setup-evidence-sql", "setup-plan-sql", "connect", "run", "diagnose", "serve", "disconnect":
+	case "setup-sql", "setup-evidence-sql", "setup-plan-sql", "setup-traffic-plan-sql", "connect", "run", "diagnose", "serve", "disconnect":
 	default:
 		return errors.New(usage)
 	}
@@ -76,6 +76,11 @@ func execute(ctx context.Context, args []string, output io.Writer) error {
 	}
 	if command == "setup-plan-sql" {
 		_, err := io.WriteString(output, project.LookupPlanSQL())
+		return err
+	}
+
+	if command == "setup-traffic-plan-sql" {
+		_, err := io.WriteString(output, project.TrafficPlanSQL())
 		return err
 	}
 
@@ -148,6 +153,10 @@ func execute(ctx context.Context, args []string, output io.Writer) error {
 		return err
 	}
 	if command == "serve" {
+		logs, err := hostedquery.NewTrafficPlanReader(os.Getenv("POOLTUNE_PROJECT_LOGS_TOKEN"))
+		if err != nil {
+			return err
+		}
 		investigate, err := graphrunner.ProjectLookupInvestigator(stateDSN)
 		if err != nil {
 			return err
@@ -165,7 +174,7 @@ func execute(ctx context.Context, args []string, output io.Writer) error {
 			return monitorError("register hosted monitor", err)
 		}
 		cancel()
-		return serveProject(ctx, monitor, queue, targetConfig, project, epoch, queueInterval, investigate, encoder)
+		return serveProject(ctx, monitor, queue, targetConfig, project, epoch, queueInterval, investigate, logs, encoder)
 	}
 	if command == "connect" {
 		enrollment, err := monitor.Connect(setup)

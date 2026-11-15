@@ -15,6 +15,7 @@ import (
 )
 
 type LookupEvidence struct {
+	TrafficPlan          *TrafficPlan        `json:"traffic_plan,omitempty"`
 	MeasuredPlan         *LookupMeasuredPlan `json:"measured_plan,omitempty"`
 	ObjectiveMS          float64             `json:"objective_ms"`
 	WindowMeansMS        []float64           `json:"recent_window_mean_ms"`
@@ -84,22 +85,22 @@ func readProjectLookup(ctx context.Context, target *pgx.Conn, project supabasepr
 // DiagnoseProjectLookup consumes only an active managed project's queue. Its
 // result has no repair proposal, action or continuation.
 func DiagnoseProjectLookup(ctx context.Context, state, target *pgx.Conn, project supabaseproject.Project, epoch int64, investigate EnrolledLookupInvestigator) (*DispatchResult, error) {
-	return diagnoseLookup(ctx, state, project, epoch, investigate, func(context.Context) (*pgx.Conn, func(), error) {
+	return diagnoseLookup(ctx, state, project, epoch, investigate, nil, func(context.Context) (*pgx.Conn, func(), error) {
 		return target, func() {}, nil
 	})
 }
 
 // DiagnoseHostedProjectLookup opens a second Supabase session only when a claimed
 // job has eligible detector evidence. Idle queue checks stay on the state database.
-func DiagnoseHostedProjectLookup(ctx context.Context, state *pgx.Conn, target *pgx.ConnConfig, project supabaseproject.Project, epoch int64, investigate EnrolledLookupInvestigator) (*DispatchResult, error) {
-	return diagnoseLookup(ctx, state, project, epoch, investigate, func(ctx context.Context) (*pgx.Conn, func(), error) {
+func DiagnoseHostedProjectLookup(ctx context.Context, state *pgx.Conn, target *pgx.ConnConfig, project supabaseproject.Project, epoch int64, investigate EnrolledLookupInvestigator, logs *TrafficPlanReader) (*DispatchResult, error) {
+	return diagnoseLookup(ctx, state, project, epoch, investigate, logs, func(ctx context.Context) (*pgx.Conn, func(), error) {
 		conn, err := pgx.ConnectConfig(ctx, target)
 		return conn, func() { labdb.Close(conn) }, err
 	})
 }
 
 func diagnoseLookup(ctx context.Context, state *pgx.Conn, project supabaseproject.Project, epoch int64, investigate EnrolledLookupInvestigator,
-	targetSession func(context.Context) (*pgx.Conn, func(), error)) (*DispatchResult, error) {
+	logs *TrafficPlanReader, targetSession func(context.Context) (*pgx.Conn, func(), error)) (*DispatchResult, error) {
 	if epoch <= 0 || investigate == nil {
 		return nil, ErrProjectDisconnected
 	}
@@ -118,7 +119,7 @@ func diagnoseLookup(ctx context.Context, state *pgx.Conn, project supabaseprojec
 			return nil, err
 		}
 		defer closeTarget()
-		if err := diagnoseProjectClaim(ctx, state, target, project, epoch, *claim, windows, investigate, &result); err != nil {
+		if err := diagnoseProjectClaim(ctx, state, target, project, epoch, *claim, windows, investigate, logs, &result); err != nil {
 			return nil, err
 		}
 	}
@@ -130,21 +131,62 @@ func diagnoseLookup(ctx context.Context, state *pgx.Conn, project supabaseprojec
 }
 
 func diagnoseProjectClaim(ctx context.Context, state, target *pgx.Conn, project supabaseproject.Project, epoch int64,
-	claim investigationClaim, windows *ObservedLookupLatency, investigate EnrolledLookupInvestigator, result *DispatchResult) error {
-	grant, evidence, err := readProjectLookup(ctx, target, project, claim, windows)
-	if errors.Is(err, errLookupScope) {
-		return nil
+	claim investigationClaim, windows *ObservedLookupLatency, investigate EnrolledLookupInvestigator, logs *TrafficPlanReader, result *DispatchResult) error {
+	var evidence LookupEvidence
+	var grant lookupGrant
+	var trafficGrant *trafficPlanGrant
+	if logs != nil {
+		var err error
+		trafficGrant, err = readProjectTrafficGrant(ctx, target, project, claim, windows.ObjectiveMS)
+		if err != nil {
+			return err
+		}
+		if trafficGrant != nil {
+			now := time.Now().UTC()
+			start := now.Add(-trafficPlanAge)
+			if trafficGrant.grantedAt.After(start) {
+				start = trafficGrant.grantedAt
+			}
+			for _, at := range claim.Generation {
+				if at.After(start) {
+					start = at
+				}
+			}
+			if plan := logs.read(ctx, project.Ref(), trafficGrant.login, claim.Query, start, now); plan != nil {
+				grant = lookupGrant{tableOID: trafficGrant.tableOID, column: trafficGrant.column}
+				evidence = LookupEvidence{TrafficPlan: plan, ObjectiveMS: windows.ObjectiveMS,
+					WindowMeansMS: windows.WindowMeansMS, WindowCalls: windows.WindowCalls, SharedBlockAccesses: windows.SharedBlockAccesses}
+			} else {
+				result.DiagnosticReason = "traffic_plan_unavailable"
+			}
+		}
 	}
-	if err != nil {
-		return err
+	if evidence.TrafficPlan == nil {
+		var err error
+		grant, evidence, err = readProjectLookup(ctx, target, project, claim, windows)
+		if errors.Is(err, errLookupScope) {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		evidence.MeasuredPlan, err = readProjectLookupPlan(ctx, target, project, claim.Role, claim.Query)
+		if err != nil {
+			return err
+		}
 	}
 
-	evidence.MeasuredPlan, err = readProjectLookupPlan(ctx, target, project, claim.Role, claim.Query)
-	if err != nil {
-		return err
-	}
-
-	recheck := func(ctx context.Context) error {
+	recheckEvidence := func(ctx context.Context) error {
+		if evidence.TrafficPlan != nil {
+			current, err := readProjectTrafficGrant(ctx, target, project, claim, windows.ObjectiveMS)
+			if err != nil {
+				return err
+			}
+			if current == nil || *current != *trafficGrant || time.Since(evidence.TrafficPlan.CapturedAt) > trafficPlanAge {
+				return errLookupScope
+			}
+			return nil
+		}
 		current, _, err := readProjectLookup(ctx, target, project, claim, windows)
 		if err != nil {
 			return err
@@ -161,8 +203,15 @@ func diagnoseProjectClaim(ctx context.Context, state, target *pgx.Conn, project 
 				return errLookupScope
 			}
 		}
+		return nil
+	}
+
+	recheck := func(ctx context.Context) error {
+		if err := recheckEvidence(ctx); err != nil {
+			return err
+		}
 		var active bool
-		err = state.QueryRow(ctx, `
+		err := state.QueryRow(ctx, `
 			SELECT EXISTS (SELECT FROM pooltune_worker.projects p JOIN pooltune_worker.investigations j USING(project_id)
 				WHERE p.project_id=$1 AND p.monitor_epoch=$2 AND j.id=$3 AND j.attempts=$4
 				AND j.finished_at IS NULL AND j.lease_until>clock_timestamp())
@@ -171,6 +220,15 @@ func diagnoseProjectClaim(ctx context.Context, state, target *pgx.Conn, project 
 			return errClaimLost
 		}
 		return err
+	}
+
+	if evidence.TrafficPlan != nil {
+		if err := recheck(ctx); err != nil {
+			if errors.Is(err, errLookupScope) {
+				return nil
+			}
+			return err
+		}
 	}
 
 	runID := fmt.Sprintf("project-lookup-%d-%d", claim.ID, claim.Attempt)
@@ -193,5 +251,6 @@ func diagnoseProjectClaim(ctx context.Context, state, target *pgx.Conn, project 
 	}
 	result.Outcome, result.DiagnosticReason, result.ThreadID = "diagnosed", "", runID
 	result.ObservedLatency, result.LookupDiagnosis, result.LookupPlan = windows, diagnosis, evidence.MeasuredPlan
+	result.TrafficPlan = evidence.TrafficPlan
 	return nil
 }

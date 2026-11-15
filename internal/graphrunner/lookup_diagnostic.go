@@ -19,7 +19,17 @@ func ProjectLookupInvestigator(stateDSN string) (hostedquery.EnrolledLookupInves
 	return func(ctx context.Context, runID string, tableOID uint32, column int16, at time.Time,
 		evidence hostedquery.LookupEvidence, admit func(context.Context) error) (*hostedquery.LookupDiagnosis, error) {
 		identity := DiagnosticIdentity{RunID: runID, TableOID: tableOID, Column: column}
-		data, err := json.Marshal(evidence)
+		var observation any = evidence
+		if evidence.TrafficPlan != nil {
+			observation = struct {
+				Plan        *hostedquery.TrafficPlan `json:"traffic_plan"`
+				ObjectiveMS float64                  `json:"objective_ms"`
+				MeansMS     []float64                `json:"recent_window_mean_ms"`
+				Calls       []int64                  `json:"recent_window_calls"`
+				Blocks      []int64                  `json:"recent_window_shared_block_accesses"`
+			}{evidence.TrafficPlan, evidence.ObjectiveMS, evidence.WindowMeansMS, evidence.WindowCalls, evidence.SharedBlockAccesses}
+		}
+		data, err := json.Marshal(observation)
 		if err != nil {
 			return nil, err
 		}

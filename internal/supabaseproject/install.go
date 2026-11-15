@@ -37,3 +37,11 @@ func (p Project) lookupSQL(template string) string {
 	template = strings.Replace(template, "-- POOLTUNE_ALLOW_LOOKUP", allowLookupSQL, 1)
 	return strings.ReplaceAll(template, "pooltune_monitor_role", p.Role())
 }
+
+//go:embed traffic_plan.sql
+var trafficPlanTemplate string
+
+// TrafficPlanSQL adds an optional authorization for reading actual traffic logs.
+func (p Project) TrafficPlanSQL() string {
+	return strings.ReplaceAll(trafficPlanTemplate, "pooltune_monitor_role", p.Role())
+}

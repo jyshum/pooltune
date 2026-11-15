@@ -29,6 +29,7 @@ func New(ref, key string) (Project, error) {
 	return Project{ref: ref, key: key}, nil
 }
 
+func (p Project) Ref() string  { return p.ref }
 func (p Project) ID() string   { return "supabase/" + p.ref + "/" + p.key }
 func (p Project) Role() string { return "pt_monitor_" + p.key }
 

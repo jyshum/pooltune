@@ -26,9 +26,11 @@ const stateSchema=new StateSchema({input:diagnosticInputSchema,observations:z.ar
  started_at:z.number().default(0),current:diagnosticDecisionSchema.optional(),stop_reason:z.string().default(''),
  proposal:z.custom<Proposal>().optional(),model:z.string().default(''),input_tokens:z.number().default(0),output_tokens:z.number().default(0)});
 const count=z.number().int().nonnegative();
-const lookupSchema=z.strictObject({
+const lookupWindows={
  objective_ms:z.number().positive(),recent_window_mean_ms:z.array(z.number().nonnegative()).length(5),
  recent_window_calls:z.array(count.positive()).length(5),recent_window_shared_block_accesses:z.array(count).length(5),
+};
+const lookupSchema=z.strictObject({...lookupWindows,
  table_pages:count,estimated_table_rows:z.number().nonnegative().nullable(),leading_btree:z.boolean(),
  modified_since_analyze:count,estimated_dead_rows:count,
  measured_plan:z.strictObject({
@@ -37,7 +39,13 @@ const lookupSchema=z.strictObject({
   shared_hit_blocks:count,shared_read_blocks:count,execution_ms:z.number().nonnegative().max(750),
  }).optional(),
 });
-const schemas={lookup:lookupSchema,plan:evidenceFields.shape.plan,indexes:z.strictObject({covering_index:z.boolean()}),analyze:evidenceFields.shape.analyze.unwrap(),statistics:evidenceFields.shape.statistics.unwrap(),vacuum:evidenceFields.shape.vacuum.unwrap(),memory:evidenceFields.shape.memory.unwrap(),cron:evidenceFields.shape.cron.unwrap()};
+const trafficNode=z.enum(['Seq Scan','Index Scan','Index Only Scan','Bitmap Heap Scan','Bitmap Index Scan','Limit','Sort',
+ 'Incremental Sort','Aggregate','Group','Unique','Gather','Gather Merge','Hash Join','Merge Join','Nested Loop','Hash','Materialize','Append','Result']);
+const trafficLookupSchema=z.strictObject({...lookupWindows,traffic_plan:z.strictObject({
+ captured_at:z.iso.datetime(),node:trafficNode,child_node:trafficNode.optional(),estimated_rows:count,actual_rows:count,
+ filtered_rows:count.optional(),shared_hit_blocks:count,shared_read_blocks:count,execution_ms:z.number().nonnegative().max(60000),
+})});
+const schemas={lookup:z.union([lookupSchema,trafficLookupSchema]),plan:evidenceFields.shape.plan,indexes:z.strictObject({covering_index:z.boolean()}),analyze:evidenceFields.shape.analyze.unwrap(),statistics:evidenceFields.shape.statistics.unwrap(),vacuum:evidenceFields.shape.vacuum.unwrap(),memory:evidenceFields.shape.memory.unwrap(),cron:evidenceFields.shape.cron.unwrap()};
 function identity(input:DiagnosticInput){return {run_id:input.run_id,table_oid:input.table_oid,column_number:input.column_number,...(input.column_numbers?{column_numbers:input.column_numbers}:{})};}
 function checkedObservation(raw:unknown,input:DiagnosticInput,now:number,expected?:DiagnosticTool):Observation {
  const o=observationSchema.parse(raw);

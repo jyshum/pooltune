@@ -430,3 +430,11 @@ Tasks 27–29 completed for the explicitly bounded diagnostic slice. Sonnet pass
 - [x] Prove an explicitly permitted, read-only measured sample for the exact app role and statement.
 - [x] Check sample freshness and binding before Sonnet and before publishing the diagnosis, with passive fallback for absent plans.
 - [x] Verify the exact flow on Rookery through Railway, disconnect and clean up, and record the result in the map.
+
+### Task 40: Read measured plans from ordinary enrolled traffic
+
+**Authority:** Jared requested ordinary-traffic plan evidence for more enrolled query shapes, a stale-card fix, and private Railway/Rookery verification on revamp. Keep ask + milestones and native execution. This extends approved evidence reuse (d-reuse r1) and the hosted service (d-hosting r1). Keep the customer mutation boundary and use owned fixtures only.
+
+- [x] Verify Rookery server-generated log identity and a projection that returns only permitted plan fields. Record provider limitations and the role-specific settings.
+- [x] Add the separate owner-enrollment grant and bounded Supabase Logs API reader. Recheck the current query generation and grant before Sonnet and before saving. Preserve the lookup fallback.
+- [ ] Prove on private Railway that two bound query shapes use the plans captured during ordinary traffic, with a healthy control, exact call counts, and cleanup. Update the map and commit on revamp.

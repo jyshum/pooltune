@@ -49,3 +49,19 @@ test('an enrolled measured plan reaches Sonnet input as a separately labeled sam
  assert.equal(result.model_calls,1);
  assert.equal(result.proposal?.outcome,'no_change');
 });
+
+test('diagnoses ordinary traffic plans without inventing catalog evidence', async () => {
+ const sample = {objective_ms:1,recent_window_mean_ms:[4,4,4,4,4],recent_window_calls:[2,2,2,2,2],
+  recent_window_shared_block_accesses:[100,100,100,100,100],traffic_plan:{captured_at:new Date().toISOString(),
+  node:'Limit',child_node:'Sort',estimated_rows:4,actual_rows:4,shared_hit_blocks:100,shared_read_blocks:0,execution_ms:6}};
+ const run = input();
+ run.initial[0].data = sample;
+ const graph = buildDiagnosticGraph(async view => {
+  assert.deepEqual(view.observations[0].data,sample);
+  assert.equal(view.remaining_reads,0);
+  return {decision:{action:'no_change',repair:null,tools:[],assessments,reason:'One ordered sample performed a sort.'}};
+ },async () => { throw Error('Unexpected database read'); });
+ assert.equal((await graph.invoke({input:run})).model_calls,1);
+ run.initial[0].data = {...sample,traffic_plan:{...sample.traffic_plan,query_text:'private'}};
+ assert.equal((await graph.invoke({input:run})).stop_reason,'invalid_evidence');
+});
