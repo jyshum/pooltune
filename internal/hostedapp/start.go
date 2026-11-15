@@ -155,6 +155,10 @@ func (a *App) installAutomaticMonitor(ctx context.Context, row projectRecord, id
 		setup = identity.Reconnect
 	} else if ownedProbe {
 		setup = identity.BootstrapOwnedIndexProbe
+	} else if a.ownedRepair.Matches(identity) && a.ownedRepair.Automatic {
+		setup = func(ctx context.Context, token, password string) error {
+			return identity.BootstrapOwnedRepairProbe(ctx, token, password, a.ownedRepair.Operation)
+		}
 	}
 	if err := setup(ctx, token, credentials.Password); err != nil {
 		return err

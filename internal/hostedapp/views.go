@@ -28,6 +28,7 @@ type ProjectView struct {
 	Capabilities                          []CapabilityView
 	RepairsSelected, RepairsPaused        bool
 	FixtureIndex                          bool
+	FixtureRepair                         *CapabilityView
 	Queries                               []QueryView
 	Runs                                  []RunView
 	Polls                                 []PollView
@@ -108,6 +109,15 @@ func (a *App) showProject(w http.ResponseWriter, r *http.Request, user auth.User
 	view.Role = identity.Role()
 	fixtureMatches := a.ownedIndex.Matches(identity)
 	view.FixtureIndex = fixtureMatches && !a.ownedIndex.Discover
+	repairMatches := a.ownedRepair.Matches(identity)
+	if repairMatches && !a.ownedRepair.Automatic {
+		for _, capability := range projectCapabilities {
+			if capability.Key == a.ownedRepair.Operation {
+				view.FixtureRepair = &capability
+				break
+			}
+		}
+	}
 	if !row.Configured {
 		view.QuickStart = true
 		view.Capabilities = slices.Clone(projectCapabilities)
@@ -128,6 +138,9 @@ func (a *App) showProject(w http.ResponseWriter, r *http.Request, user auth.User
 			if option.Selected {
 				option.Availability = "Waiting for repair support"
 				if fixtureMatches && a.ownedIndex.Discover == configured.Automatic && option.Key == "index" {
+					option.Availability = "Available for the owned Rookery fixture"
+				}
+				if repairMatches && a.ownedRepair.Automatic == configured.Automatic && option.Key == a.ownedRepair.Operation {
 					option.Availability = "Available for the owned Rookery fixture"
 				}
 				if configured.RepairsPaused {

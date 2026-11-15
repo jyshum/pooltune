@@ -58,6 +58,7 @@ type DispatchResult struct {
 	Analyze           *AnalyzeReport           `json:"analyze,omitempty"`
 	Repair            *IndexTrialReport        `json:"repair,omitempty"`
 	IndexRecovery     *ownedIndexRecovery      `json:"index_recovery,omitempty"`
+	ownedOperation    string
 	continuationAt    *time.Time
 	GraphMS           float64 `json:"graph_ms,omitempty"`
 }
@@ -139,6 +140,10 @@ func finishInvestigation(ctx context.Context, state *pgx.Conn, claim investigati
 	if len(expectedEpoch) > 0 {
 		epoch = &expectedEpoch[0]
 	}
+	if result.ownedOperation != "" && (epoch == nil ||
+		result.Outcome != "improved_tested_inputs" && result.Outcome != "inconclusive" && result.Outcome != "regressed") {
+		return errClaimLost
+	}
 	terminalOwnedIndex := ""
 	var recordedIntent *string
 	if recovery := result.IndexRecovery; recovery != nil {
@@ -171,19 +176,29 @@ func finishInvestigation(ctx context.Context, state *pgx.Conn, claim investigati
 			WHERE $6<>'' AND a.job_id=$1 AND a.outcome='pending'
 			  AND ($7::jsonb IS NULL OR a.intent=$7::jsonb)
 			FOR UPDATE OF a
+		), pending_project_action AS MATERIALIZED (
+			SELECT a.job_id,a.project_id
+			FROM pooltune_worker.owned_project_actions a JOIN locked_project USING(project_id)
+			WHERE $8<>'' AND a.job_id=$1 AND a.operation=$8 AND a.outcome='pending'
+			FOR UPDATE OF a
 		), published AS (
 			UPDATE pooltune_worker.investigations SET finished_at=clock_timestamp(), lease_until=NULL, result=$3::jsonb
 			WHERE project_id=(SELECT project_id FROM locked_project) AND id=$1 AND attempts=$2
 			  AND finished_at IS NULL AND lease_until>clock_timestamp()
 			  AND ($6='' OR EXISTS (SELECT FROM pending_action))
+			  AND ($8='' OR EXISTS (SELECT FROM pending_project_action))
 			RETURNING id,project_id
 		), settled_owned_index AS (
 			UPDATE pooltune_worker.owned_index_actions a SET outcome=$6
 			FROM published p JOIN pending_action b ON b.job_id=p.id AND b.project_id=p.project_id
 			WHERE a.job_id=b.job_id AND a.project_id=b.project_id
+		), settled_owned_project_action AS (
+			UPDATE pooltune_worker.owned_project_actions a SET outcome=($3::jsonb->>'outcome')
+			FROM published p JOIN pending_project_action b ON b.job_id=p.id AND b.project_id=p.project_id
+			WHERE a.job_id=b.job_id AND a.project_id=b.project_id
 		)
 		SELECT EXISTS (SELECT FROM published)
-	`, claim.ID, claim.Attempt, string(payload), claim.Project, epoch, terminalOwnedIndex, recordedIntent).Scan(&published)
+	`, claim.ID, claim.Attempt, string(payload), claim.Project, epoch, terminalOwnedIndex, recordedIntent, result.ownedOperation).Scan(&published)
 	if err == nil && !published {
 		return errClaimLost
 	}

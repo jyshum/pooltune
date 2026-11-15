@@ -12,6 +12,7 @@ import (
 	"io/fs"
 	"net/http"
 	"net/url"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -34,6 +35,7 @@ type Config struct {
 	QueueInterval      time.Duration
 	Investigate        hostedquery.EnrolledLookupInvestigator
 	OwnedIndex         *hostedquery.OwnedProjectIndex
+	OwnedRepair        *hostedquery.OwnedProjectRepair
 }
 
 type App struct {
@@ -44,6 +46,7 @@ type App struct {
 	queueInterval time.Duration
 	investigate   hostedquery.EnrolledLookupInvestigator
 	ownedIndex    *hostedquery.OwnedProjectIndex
+	ownedRepair   *hostedquery.OwnedProjectRepair
 	origin        *url.URL
 	invite        [32]byte
 	cookie        string
@@ -112,8 +115,8 @@ func New(ctx context.Context, db *pgxpool.Pool, cfg Config) (*App, error) {
 	a := &App{
 		projects: projectStore{db}, accounts: accounts, vault: vault, policy: cfg.Sampling,
 		queueInterval: cfg.QueueInterval, investigate: cfg.Investigate,
-		ownedIndex: cfg.OwnedIndex,
-		origin:     origin, invite: sha256.Sum256([]byte(cfg.InviteCode)), templates: templates, cookie: "__Host-pooltune",
+		ownedIndex: cfg.OwnedIndex, ownedRepair: cfg.OwnedRepair,
+		origin: origin, invite: sha256.Sum256([]byte(cfg.InviteCode)), templates: templates, cookie: "__Host-pooltune",
 	}
 	if origin.Scheme == "http" {
 		a.cookie = "pooltune_preview"
@@ -343,12 +346,22 @@ func (a *App) connectProject(w http.ResponseWriter, r *http.Request, user auth.U
 		return
 	}
 	var selected []string
-	if project, err := row.identity(); err == nil && a.ownedIndex.Matches(project) && !a.ownedIndex.Discover {
-		var err error
-		selected, err = capabilityChoices(r.PostForm)
-		if err != nil {
-			a.showProject(w, r, user, row, err.Error())
-			return
+	if project, err := row.identity(); err == nil {
+		operation := ""
+		if a.ownedIndex.Matches(project) && !a.ownedIndex.Discover {
+			operation = "index"
+		} else if a.ownedRepair.Matches(project) && !a.ownedRepair.Automatic {
+			operation = a.ownedRepair.Operation
+		}
+		if operation != "" {
+			requested, err := capabilityChoices(r.PostForm)
+			if err != nil {
+				a.showProject(w, r, user, row, err.Error())
+				return
+			}
+			if slices.Contains(requested, operation) {
+				selected = []string{operation}
+			}
 		}
 	}
 	credentials := projectSecrets{

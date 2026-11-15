@@ -259,13 +259,13 @@ func readProjectWindows(ctx context.Context, tx pgx.Tx, projectID string, cutoff
 func readProjectJobs(ctx context.Context, tx pgx.Tx, projectID string, cutoff time.Time) ([]ProjectJob, error) {
 	rows, err := tx.Query(ctx, `
 		SELECT id, database_oid, role_oid, query_id, created_at, claimed_at, finished_at, attempts,
-			CASE WHEN owned.needs_review THEN 'repair_interrupted' ELSE COALESCE(NULLIF(result->>'outcome', ''), CASE
+			CASE WHEN owned.pending_operation IS NOT NULL THEN 'repair_interrupted' ELSE COALESCE(NULLIF(result->>'outcome', ''), CASE
 				WHEN finished_at IS NOT NULL THEN 'finished'
 				WHEN lease_until > transaction_timestamp() THEN 'running'
 				WHEN not_before > transaction_timestamp() THEN 'scheduled'
 				ELSE 'queued'
 			END) END,
-			LEFT(COALESCE(CASE WHEN owned.needs_review THEN 'A recorded index action needs reconciliation' END,
+			LEFT(COALESCE(CASE WHEN owned.pending_operation IS NOT NULL THEN 'A recorded repair needs reconciliation' END,
 				NULLIF(result->>'diagnostic_reason', ''), NULLIF(result#>>'{lookup_diagnosis,reason}', ''),
 				result#>>'{proposal,reason}', ''), 500),
 			LEFT(COALESCE(result#>>'{traffic_plan,node}', result#>>'{lookup_plan,node}', result#>>'{estimated_evidence,estimated,node}',
@@ -284,7 +284,7 @@ func readProjectJobs(ctx context.Context, tx pgx.Tx, projectID string, cutoff ti
 				WHEN jsonb_typeof(result#>'{lookup_diagnosis,model_ms}')='number' THEN (result#>>'{lookup_diagnosis,model_ms}')::double precision
 				WHEN jsonb_typeof(result#>'{proposal,model_call,duration_ms}')='number' THEN (result#>>'{proposal,model_call,duration_ms}')::double precision
 			END,
-			CASE WHEN owned.needs_review THEN jsonb_build_object('index','{}'::jsonb)
+			CASE WHEN owned.pending_operation IS NOT NULL THEN jsonb_build_object(owned.pending_operation,'{}'::jsonb)
 			WHEN finished_at IS NOT NULL THEN jsonb_strip_nulls(jsonb_build_object(
 				'index', COALESCE(result->'index_recovery',result->'repair'),
 				'analyze', result->'analyze', 'statistics', result->'statistics',
@@ -292,10 +292,12 @@ func readProjectJobs(ctx context.Context, tx pgx.Tx, projectID string, cutoff ti
 			)) END
 		FROM pooltune_worker.investigations j
 		CROSS JOIN LATERAL (
-			SELECT (j.finished_at IS NOT NULL OR j.lease_until<=transaction_timestamp()) AND EXISTS (
-				SELECT FROM pooltune_worker.owned_index_actions a
-				WHERE a.project_id=j.project_id AND a.job_id=j.id AND a.outcome='pending'
-			) AS needs_review
+			SELECT CASE WHEN j.finished_at IS NOT NULL OR j.lease_until<=transaction_timestamp() THEN COALESCE(
+				(SELECT 'index' FROM pooltune_worker.owned_index_actions a
+				  WHERE a.project_id=j.project_id AND a.job_id=j.id AND a.outcome='pending'),
+				(SELECT a.operation FROM pooltune_worker.owned_project_actions a
+				  WHERE a.project_id=j.project_id AND a.job_id=j.id AND a.outcome='pending')
+			) END AS pending_operation
 		) owned
 		WHERE project_id=$1 AND created_at >= $2
 		ORDER BY created_at DESC, id DESC LIMIT $3

@@ -117,7 +117,7 @@ func PrepareWorkerState(ctx context.Context, state *pgx.Conn) error {
 			CREATE UNIQUE INDEX IF NOT EXISTS one_open_investigation
 				ON pooltune_worker.investigations (project_id, database_oid, role_oid, query_id)
 				WHERE finished_at IS NULL;
-		`+projectActivitySchema+projectIndexIntentSchema)
+		`+projectActivitySchema+projectIndexIntentSchema+ownedProjectRepairSchema)
 		return err
 	})
 }

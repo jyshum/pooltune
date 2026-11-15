@@ -153,7 +153,7 @@
   {{if ne $project.Status "Monitoring"}}
     {{if $project.QuickStart}}{{template "agent-setup" $project}}{{end}}
     <details class="panel advanced-setup"{{if not $project.QuickStart}} open{{end}}>
-      <summary>{{if $project.FixtureIndex}}Owned Rookery repair setup{{else}}Advanced read-only setup{{end}}</summary>
+      <summary>{{if or $project.FixtureIndex $project.FixtureRepair}}Owned Rookery repair setup{{else}}Advanced read-only setup{{end}}</summary>
       {{template "project-setup" $project}}
     </details>
   {{else if $project.Capabilities}}
@@ -317,7 +317,14 @@ ALTER ROLE {{.Role}} LOGIN;</textarea>
       </label>
       <p class="help">The monitor login stays read-only. A separate login can build the test index.</p>
       {{end}}
-      <button class="button button-primary" type="submit">{{if .FixtureIndex}}Start the Rookery test{{else}}Start read-only monitoring{{end}}</button>
+      {{with .FixtureRepair}}
+      <label class="capability-option">
+        <input type="checkbox" name="capability" value="{{.Key}}">
+        <span>{{.Label}} on the owned Rookery fixture</span>
+      </label>
+      <p class="help">The monitor login stays read-only. A separate login performs the selected test repair.</p>
+      {{end}}
+      <button class="button button-primary" type="submit">{{if or .FixtureIndex .FixtureRepair}}Start the Rookery test{{else}}Start read-only monitoring{{end}}</button>
     </form>
   </section>
 </section>

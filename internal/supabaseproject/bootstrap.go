@@ -33,21 +33,56 @@ const OwnedIndexProbeRef = "osdjqwpzgyzwfaxyufze"
 // Bootstrap uses the one-time setup token only to install the project's
 // dedicated monitor. The hosted worker never receives this token.
 func (p Project) Bootstrap(ctx context.Context, token, password string) error {
-	return p.bootstrap(ctx, token, password, false)
+	return p.bootstrap(ctx, token, password, "", false)
 }
 
 // BootstrapOwnedIndexProbe changes the discovery objective for only the
 // separate synthetic workload login belonging to this Rookery installation.
 func (p Project) BootstrapOwnedIndexProbe(ctx context.Context, token, password string) error {
-	return p.bootstrap(ctx, token, password, true)
+	role := p.OwnedRepairProbeRole("index")
+	if role == "" {
+		return ErrSetupPermission
+	}
+	return p.bootstrap(ctx, token, password, role, true)
 }
 
-func (p Project) bootstrap(ctx context.Context, token, password string, ownedProbe bool) error {
+// OwnedRepairProbeRole names a dedicated writer for one owned staging installation.
+func (p Project) OwnedRepairProbeRole(operation string) string {
+	if p.Ref() != OwnedIndexProbeRef || p.key == "" {
+		return ""
+	}
+	var prefix string
+	switch operation {
+	case "index":
+		prefix = "pt_hosted_ix_"
+	case "analyze", "statistics":
+		prefix = "pt_hosted_st_"
+	case "vacuum":
+		prefix = "pt_hosted_vc_"
+	case "memory":
+		prefix = "pt_hosted_fn_"
+	case "cron":
+		prefix = "pt_hosted_cr_"
+	default:
+		return ""
+	}
+	return prefix + p.key
+}
+
+func (p Project) BootstrapOwnedRepairProbe(ctx context.Context, token, password, operation string) error {
+	role := p.OwnedRepairProbeRole(operation)
+	if role == "" || operation == "index" {
+		return ErrSetupPermission
+	}
+	return p.bootstrap(ctx, token, password, role, false)
+}
+
+func (p Project) bootstrap(ctx context.Context, token, password, discoveryRole string, installIndexReader bool) error {
 	if p.ref == "" || p.key == "" || len(token) == 0 || len(token) > 512 ||
 		strings.ContainsAny(token, " \t\r\n") || password == "" {
 		return ErrSetupPermission
 	}
-	script, err := p.bootstrapSQLWithDiscovery(password, ownedProbe)
+	script, err := p.bootstrapSQLForRole(password, discoveryRole, installIndexReader)
 	if err != nil {
 		return err
 	}
@@ -126,14 +161,24 @@ func (p Project) bootstrapSQL(password string) (string, error) {
 }
 
 func (p Project) bootstrapSQLWithDiscovery(password string, ownedProbe bool) (string, error) {
+	if !ownedProbe {
+		return p.bootstrapSQLForRole(password, "", false)
+	}
+	role := p.OwnedRepairProbeRole("index")
+	if role == "" {
+		return "", ErrSetupPermission
+	}
+	return p.bootstrapSQLForRole(password, role, true)
+}
+
+func (p Project) bootstrapSQLForRole(password, discoveryRole string, installIndexReader bool) (string, error) {
 	discovery := p.AutomaticDiscoverySQL()
 	installers := []string{p.InstallSQL(), discovery, p.discoveredLookupSQL()}
-	if ownedProbe {
-		if p.Ref() != OwnedIndexProbeRef || p.key == "" {
-			return "", ErrSetupPermission
-		}
-		objective := "CASE WHEN a.userid = to_regrole('pt_hosted_ix_" + p.key + "')::oid THEN 2.0 ELSE 1000.0 END"
+	if discoveryRole != "" {
+		objective := "CASE WHEN a.userid = to_regrole('" + discoveryRole + "')::oid THEN 2.0 ELSE 1000.0 END"
 		installers[1] = strings.Replace(discovery, "/* POOLTUNE_DISCOVERY_OBJECTIVE */ 1000", objective, 1)
+	}
+	if installIndexReader {
 		installers = append(installers, p.DiscoveredIndexEvidenceSQL())
 	}
 	var script strings.Builder

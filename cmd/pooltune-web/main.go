@@ -92,8 +92,16 @@ func run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	repair, err := readOwnedRepairFixture(stateDSN)
+	if err != nil {
+		return err
+	}
+	if fixture != nil && repair != nil {
+		return errors.New("enable only one owned Rookery repair fixture")
+	}
 	app, err := hostedapp.New(setup, pool, hostedapp.Config{Origin: origin, InviteCode: os.Getenv("POOLTUNE_SIGNUP_CODE"),
-		Key: key, Sampling: hostedquery.SamplingPolicy{Interval: *interval, Window: *window}, QueueInterval: *queue, Investigate: investigate, OwnedIndex: fixture})
+		Key: key, Sampling: hostedquery.SamplingPolicy{Interval: *interval, Window: *window}, QueueInterval: *queue,
+		Investigate: investigate, OwnedIndex: fixture, OwnedRepair: repair})
 	if err != nil {
 		return fmt.Errorf("dashboard initialization failed: %s", safeStartupError(err))
 	}

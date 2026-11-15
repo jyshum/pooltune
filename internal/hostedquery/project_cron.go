@@ -57,6 +57,7 @@ type ProjectCronGuards struct {
 type ProjectCronResult struct {
 	WriteAttempted      bool
 	After               ProjectCronSnapshot
+	CommitAt            time.Time
 	FirstFutureCycle    time.Time
 	PostCommitWitnesses []CronRun
 }
@@ -229,6 +230,7 @@ func applyProjectCron(ctx context.Context, cfg *pgx.ConnConfig, req ProjectCronR
 		return out, errors.New("Cron job changed before scheduler acknowledgement")
 	}
 	out.After = actual
+	out.CommitAt = committed
 	return out, nil
 }
 
