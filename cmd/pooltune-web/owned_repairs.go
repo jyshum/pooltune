@@ -29,32 +29,19 @@ func readOwnedCronFixture(stateDSN string) (*hostedquery.OwnedProjectCron, error
 		return nil, nil
 	}
 	invalid := errors.New("the owned Rookery Cron fixture configuration is invalid")
-	var settings struct {
-		Installation string
-		Query        int64
-		Request      hostedquery.OwnedCronRequest
-	}
-	if os.Getenv("POOLTUNE_STAGING_PRIVATE_STATE") != "1" || json.Unmarshal([]byte(binding), &settings) != nil {
+	if os.Getenv("POOLTUNE_STAGING_PRIVATE_STATE") != "1" {
 		return nil, invalid
 	}
-	project, err := supabaseproject.New(hostedquery.OwnedIndexRookeryRef, settings.Installation)
-	if err != nil {
-		return nil, invalid
-	}
-	writer, err := supabaseproject.DirectConfig(project.Ref(), project.OwnedRepairProbeRole("cron"),
+	fixture, err := hostedquery.ParseOwnedCronFixture(binding,
 		os.Getenv("POOLTUNE_OWNED_CRON_PASSWORD"), []byte(os.Getenv("POOLTUNE_OWNED_CRON_CA")))
 	if err != nil {
-		return nil, invalid
+		return nil, err
 	}
 	diagnose, err := graphrunner.DiagnosticProcess(stateDSN)
 	if err != nil {
 		return nil, invalid
 	}
-	fixture := &hostedquery.OwnedProjectCron{Config: writer, Request: settings.Request, QueryID: settings.Query,
-		Investigate: graphrunner.AdaptDiagnostic(diagnose, nil)}
-	if !fixture.Matches(project) {
-		return nil, invalid
-	}
+	fixture.Investigate = graphrunner.AdaptDiagnostic(diagnose, nil)
 	return fixture, nil
 }
 
