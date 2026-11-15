@@ -5,7 +5,7 @@
   "workType": "Build progress and remaining work",
   "summary": "Railway verified the compound index and its post-write restart, statistics refresh, joint statistics, table cleanup and function memory on Rookery. Job scheduling and general project repair permissions need qualification.",
   "sourceRevision": {
-    "commit": "69503cc0c756f195c7fcb3df8de7bb2f1e91750f",
+    "commit": "68527b0ce49723c2813f165f50ccf614a837f1fc",
     "dirty": false
   },
   "components": [
@@ -562,7 +562,7 @@
       "id": "richer",
       "label": "Improve statistics detail",
       "type": "service",
-      "purpose": "Railway retained joint statistics for two related columns on Rookery. The matched lookups went from 41.85 ms and 41.30 ms to 0.16 ms and 0.25 ms. Protected traffic passed. A separate column-setting change has local evidence.",
+      "purpose": "Simple setup verified retained joint statistics and a measured individual-column trial that restored the prior setting when the query regressed.",
       "decisionIds": [],
       "sources": [
         {
@@ -584,15 +584,20 @@
           "path": "docs/design/hosted-query-agent/evidence/mvp-owned-statistics-railway.json",
           "revision": "baf9ce5",
           "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/mvp-simple-column-target-railway.json",
+          "revision": "68527b0",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Railway retained joint statistics for two related columns on Rookery. The matched lookups went from 41.85 ms and 41.30 ms to 0.16 ms and 0.25 ms. Protected traffic passed. A separate column-setting change has local evidence.",
+      "changeSummary": "Simple setup verified retained joint statistics and a measured individual-column trial that restored the prior setting when the query regressed.",
       "stack": [
         "Go"
       ],
       "parent": "tools",
-      "after": "Railway retained joint statistics for two related columns on Rookery. The matched lookups went from 41.85 ms and 41.30 ms to 0.16 ms and 0.25 ms. Protected traffic passed. A separate column-setting change has local evidence.",
+      "after": "Simple setup verified retained joint statistics and a measured individual-column trial that restored the prior setting when the query regressed.",
       "expandWhy": "Which statistics improvements exist and which remain?"
     },
     {
@@ -682,7 +687,7 @@
       "id": "cron",
       "label": "Job scheduling: tested case",
       "type": "service",
-      "purpose": "The dedicated Rookery login completed two real native witness jobs. The temporary helper returned only the required scheduler state. The Railway worker and recorder can use that exact login.",
+      "purpose": "Simple setup connected with no manual query IDs, and the dedicated role completed a scheduled target run on Rookery. The first recorder stopped on a query-counter permission and the fixture was removed.",
       "decisionIds": [],
       "sources": [
         {
@@ -729,15 +734,20 @@
           "path": "docs/design/hosted-query-agent/evidence/mvp-simple-cron-witness-rookery.json",
           "revision": "80c8af3",
           "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/mvp-simple-cron-first-run-railway.json",
+          "revision": "eaa7d86",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "The dedicated Rookery login completed two real native witness jobs. The temporary helper returned only the required scheduler state. The Railway worker and recorder can use that exact login.",
+      "changeSummary": "Simple setup connected with no manual query IDs, and the dedicated role completed a scheduled target run on Rookery. The first recorder stopped on a query-counter permission and the fixture was removed.",
       "stack": [
         "Go"
       ],
       "parent": "tools",
-      "after": "The dedicated Rookery login completed two real native witness jobs. The temporary helper returned only the required scheduler state. The Railway worker and recorder can use that exact login."
+      "after": "Simple setup connected with no manual query IDs, and the dedicated role completed a scheduled target run on Rookery. The first recorder stopped on a query-counter permission and the fixture was removed."
     },
     {
       "id": "recovery",
@@ -1447,7 +1457,7 @@
       "label": "Column statistics targets: remaining",
       "type": "service",
       "parent": "richer",
-      "purpose": "The hosted monitor found the exact query with zero manual IDs. The first model call failed before any setting changed. Local PostgreSQL verified scope and restore when benefit fell short.",
+      "purpose": "Railway ran and measured a higher target for one column from simple setup. The row estimate got closer while query latency rose, so PostgreSQL restored the exact previous setting and sample.",
       "decisionIds": [],
       "sources": [
         {
@@ -1469,11 +1479,16 @@
           "path": "docs/design/hosted-query-agent/evidence/mvp-simple-column-target-first-railway.json",
           "revision": "80c8af3",
           "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/mvp-simple-column-target-railway.json",
+          "revision": "68527b0",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "The hosted monitor found the exact query with zero manual IDs. The first model call failed before any setting changed. Local PostgreSQL verified scope and restore when benefit fell short.",
-      "after": "The hosted monitor found the exact query with zero manual IDs. The first model call failed before any setting changed. Local PostgreSQL verified scope and restore when benefit fell short.",
+      "changeSummary": "Railway ran and measured a higher target for one column from simple setup. The row estimate got closer while query latency rose, so PostgreSQL restored the exact previous setting and sample.",
+      "after": "Railway ran and measured a higher target for one column from simple setup. The row estimate got closer while query latency rose, so PostgreSQL restored the exact previous setting and sample.",
       "stack": [
         "Go"
       ]

@@ -1,0 +1,175 @@
+{
+  "phase": "restored_after_trial",
+  "deployment": "1cb981f2-c9a5-45f2-94a1-990fe8efb523",
+  "operation": "statistics",
+  "trial": "column_target",
+  "setup_path": "owner_setup_form",
+  "configured_query_ids": 0,
+  "initial_relation_bytes": 21635072,
+  "catalog_before": {
+    "analyze_count": 1,
+    "statistics": [],
+    "indexes": [
+      {
+        "oid": "29894",
+        "keys": "2",
+        "live": true
+      },
+      {
+        "oid": "29898",
+        "keys": "1",
+        "live": true
+      }
+    ],
+    "protected_row": 0,
+    "configured_target": 1,
+    "sampled_values": "{42}"
+  },
+  "polls_seen": 21,
+  "job_id": 296,
+  "attempts": 1,
+  "outcome": "regressed",
+  "reason": "a measured read or write regressed",
+  "graph_ms": 6348.77595,
+  "model_ms": 5635.667116,
+  "repair": {
+    "kind": "statistics",
+    "action": "restored",
+    "metrics": [
+      {
+        "label": "Input 1 \u00b7 Query mean latency",
+        "unit": "ms",
+        "before": 22.178499999999996,
+        "after": 28.826099999999997
+      },
+      {
+        "label": "Input 1 \u00b7 Protected read mean latency",
+        "unit": "ms",
+        "before": 0.047799999999999995,
+        "after": 0.0452
+      },
+      {
+        "label": "Input 1 \u00b7 Protected write mean latency",
+        "unit": "ms",
+        "before": 0.06480000000000001,
+        "after": 0.06340000000000001
+      },
+      {
+        "label": "Input 1 \u00b7 Block accesses per read",
+        "unit": "",
+        "before": 2430,
+        "after": 2372
+      },
+      {
+        "label": "Input 1 \u00b7 Row estimate error ratio",
+        "unit": "\u00d7",
+        "before": 3680,
+        "after": 1.0263561567424349
+      }
+    ],
+    "analysis_wall_ms": 154.019261
+  },
+  "terminal_job": {
+    "id": 296,
+    "attempts": 1,
+    "outcome": "regressed",
+    "claimed_at": "2026-11-15T23:39:36.964413Z",
+    "finished_at": "2026-11-15T23:39:56.261904Z",
+    "elapsed_ms": 19297.572017
+  },
+  "mixed_traffic": {
+    "candidate": {
+      "before": {
+        "calls": 89,
+        "client_mean_ms": 78.94401640233615
+      },
+      "during": {
+        "calls": 79,
+        "client_mean_ms": 72.83539612721533
+      },
+      "after": {
+        "calls": 31,
+        "client_mean_ms": 72.62185758220092
+      }
+    },
+    "healthy": {
+      "before": {
+        "calls": 90,
+        "client_mean_ms": 28.994296335278907
+      },
+      "during": {
+        "calls": 78,
+        "client_mean_ms": 25.73789952797457
+      },
+      "after": {
+        "calls": 32,
+        "client_mean_ms": 27.442062588306726
+      }
+    },
+    "write": {
+      "before": {
+        "calls": 90,
+        "client_mean_ms": 29.025076367219704
+      },
+      "during": {
+        "calls": 78,
+        "client_mean_ms": 26.55429702374535
+      },
+      "after": {
+        "calls": 32,
+        "client_mean_ms": 26.88067702729313
+      }
+    }
+  },
+  "catalog_after": {
+    "analyze_count": 2,
+    "statistics": [],
+    "indexes": [
+      {
+        "oid": "29894",
+        "keys": "2",
+        "live": true
+      },
+      {
+        "oid": "29898",
+        "keys": "1",
+        "live": true
+      }
+    ],
+    "protected_row": 0,
+    "configured_target": 1,
+    "sampled_values": "{42}"
+  },
+  "manual_query_enrollments": 0,
+  "app_counters": {
+    "candidate": {
+      "database": 5,
+      "role": 29885,
+      "query": 3066944430864431186,
+      "calls": 199,
+      "time_ms": 7536.960912,
+      "blocks": 483570
+    },
+    "healthy": {
+      "database": 5,
+      "role": 29885,
+      "query": -4700807183964653534,
+      "calls": 200,
+      "time_ms": 6.03047799999999,
+      "blocks": 200
+    },
+    "write": {
+      "database": 5,
+      "role": 29885,
+      "query": 8277607209249231645,
+      "calls": 200,
+      "time_ms": 13.704351,
+      "blocks": 600
+    }
+  },
+  "healthy_control_queued": false,
+  "dashboard_disconnected": true,
+  "owned_database_objects_removed": true,
+  "public_index_fingerprint_unchanged": true,
+  "revision": "68527b0"
+}

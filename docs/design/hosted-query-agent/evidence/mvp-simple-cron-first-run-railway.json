@@ -1,0 +1,32 @@
+{
+  "deployment": "c214f9be-1e43-4961-ac7a-eb09fde190aa",
+  "setup_path": "normal_start_form",
+  "manually_enrolled_query_ids": 0,
+  "worker_config_query_id": 0,
+  "scheduler_witness_preflight": {
+    "succeeded": 2
+  },
+  "first_cycle": "2026-11-15T23:36:00Z",
+  "phase": "observer_failed",
+  "railway_lifecycle": {
+    "archived_periods": [],
+    "observer_failure": "42501"
+  },
+  "verified": false,
+  "dashboard_disconnected": true,
+  "owned_scheduler_jobs_removed": true,
+  "owned_database_objects_removed": true,
+  "owned_scheduler_jobs_remaining": 0,
+  "unrelated_scheduler_jobs_unchanged": true,
+  "public_index_fingerprint_unchanged": true,
+  "revision": "eaa7d86",
+  "observed_target_runs": {
+    "succeeded": 1
+  },
+  "observer_failure_phase": "counter_identity",
+  "restricted_role_extension_access": {
+    "namespace_usage": false,
+    "statement_view_select": true,
+    "info_view_select": true
+  }
+}

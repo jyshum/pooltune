@@ -1,5 +1,5 @@
 {
-  "sourceRevision": "69503cc0c756f195c7fcb3df8de7bb2f1e91750f",
+  "sourceRevision": "68527b0ce49723c2813f165f50ccf614a837f1fc",
   "summary": "Railway verified the compound index and its post-write restart, statistics refresh, joint statistics, table cleanup and function memory on Rookery. Job scheduling and general project repair permissions need qualification.",
   "next": [
     "cron",
@@ -178,9 +178,9 @@
       "statusLabel": "Railway refresh verified"
     },
     "richer": {
-      "status": "partial",
-      "scope": "Railway retained joint statistics for two related columns on Rookery. The matched lookups went from 41.85 ms and 41.30 ms to 0.16 ms and 0.25 ms. Protected traffic passed. A separate column-setting change has local evidence.",
-      "remaining": "Bring column-specific settings into the hosted owner flow and qualify general project grants.",
+      "status": "verified",
+      "scope": "Simple setup verified retained joint statistics and a measured individual-column trial that restored the prior setting when the query regressed.",
+      "remaining": "Qualify wider column patterns, permissions and the retained-benefit case for an individual column.",
       "evidence": [
         "docs/design/hosted-query-agent/richer-statistics.md",
         "internal/hostedquery/statistics_samples.go",
@@ -188,9 +188,10 @@
         "internal/hostedquery/project_statistics.go",
         "internal/hostedquery/owned_statistics_repairs_integration_test.go",
         "docs/design/hosted-query-agent/evidence/mvp-owned-statistics-planner-control-railway.json",
-        "docs/design/hosted-query-agent/evidence/mvp-owned-statistics-railway.json"
+        "docs/design/hosted-query-agent/evidence/mvp-owned-statistics-railway.json",
+        "docs/design/hosted-query-agent/evidence/mvp-simple-column-target-railway.json"
       ],
-      "statusLabel": "Joint statistics verified"
+      "statusLabel": "Both statistics routes verified"
     },
     "cleanup": {
       "status": "verified",
@@ -225,8 +226,8 @@
     },
     "cron": {
       "status": "partial",
-      "scope": "The dedicated Rookery login completed two real native witness jobs. The temporary helper returned only the required scheduler state. The Railway worker and recorder can use that exact login.",
-      "remaining": "Run and verify the three original and three future cycles through simple setup.",
+      "scope": "Simple setup connected with no manual query IDs, and the dedicated role completed a scheduled target run on Rookery. The first recorder stopped on a query-counter permission and the fixture was removed.",
+      "remaining": "Finish the scoped counter read and collect three original and three future cycles through Railway.",
       "evidence": [
         "docs/design/hosted-query-agent/cron-staging.md",
         "internal/hostedquery/project_cron.go",
@@ -237,9 +238,10 @@
         "internal/hostedquery/owned_cron_observer_test.go",
         "internal/hostedquery/owned_cron_provider.go",
         "investigator/owned-cron-traffic.ts",
-        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-witness-rookery.json"
+        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-witness-rookery.json",
+        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-first-run-railway.json"
       ],
-      "statusLabel": "Dedicated scheduler witness verified"
+      "statusLabel": "Live target run verified"
     },
     "recovery": {
       "status": "verified",
@@ -490,16 +492,17 @@
       "statusLabel": "Railway joint statistics verified"
     },
     "statistics-target": {
-      "status": "partial",
-      "scope": "The hosted monitor found the exact query with zero manual IDs. The first model call failed before any setting changed. Local PostgreSQL verified scope and restore when benefit fell short.",
-      "remaining": "Complete a hosted apply, measurement and retain-or-restore result.",
+      "status": "verified",
+      "scope": "Railway ran and measured a higher target for one column from simple setup. The row estimate got closer while query latency rose, so PostgreSQL restored the exact previous setting and sample.",
+      "remaining": "Qualify a representative workload where the setting delivers enough measured benefit to retain it.",
       "evidence": [
         "docs/product/query-performance-v1.md",
         "docs/design/hosted-query-agent/roadmap.md",
         "internal/hostedquery/owned_statistics_target.go",
-        "docs/design/hosted-query-agent/evidence/mvp-simple-column-target-first-railway.json"
+        "docs/design/hosted-query-agent/evidence/mvp-simple-column-target-first-railway.json",
+        "docs/design/hosted-query-agent/evidence/mvp-simple-column-target-railway.json"
       ],
-      "statusLabel": "Hosted rerun in progress"
+      "statusLabel": "Hosted trial and restore verified"
     },
     "cleanup-vacuum": {
       "status": "verified",
@@ -926,7 +929,7 @@
     },
     {
       "label": "Tasks 57 and 58 · Scheduler and settings",
-      "summary": "Railway verified cleanup-trigger settings from simple setup. The dedicated Rookery scheduler witness passed. Column statistics is queued for a hosted rerun.",
+      "summary": "Both repair settings passed through simple setup. Cleanup-trigger verification retained its change, and the individual-column trial restored its prior setting after regression. The first Cron target ran before a recorder permission issue.",
       "nodes": [
         "cron",
         "statistics-target",
