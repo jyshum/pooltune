@@ -474,3 +474,9 @@ Task 40 adds an owner-authorized reader for sampled plans from normal enrolled a
 Early qualification hit provider transport errors in Railway even when completed Rookery plan samples were available. The running image lacked system TLS roots. The final image adds the standard root bundle without weakening HTTPS verification. Local coverage includes exact grants, denied active role switching, revocation during the provider response, strict plan fields, and a single queued retry for missing evidence. The staged retry did run once on each earlier job. The final test used the original four-second windows with no deferral needed. [Design and qualification](traffic-plans.md).
 
 The Rookery fixtures were removed and the temporary Logs Read token was revoked. Railway is back in private standby and the build map now shows two verified ordinary-traffic plan shapes. The broader **Inspect existing evidence** card remains partial.
+
+## Account and dashboard implementation started
+
+Jared said “no need to stop between milestones” and asked for account creation, sign-in, the dashboard and a working test flow so he can manually connect his project. This batch uses final-only review for routine milestones. Ask remains the approved design conflict mode. The prior boundary before automated customer changes remains in force. Follow Tasks 41–43 and update the map with each verified capability.
+
+Task 41 source `6c2fe36` passed disposable PostgreSQL integration for scoped poll/window and diagnosis history, reconnect, first-claim timing, missing versus zero, and indexed retention. The map records the verified local state slice.

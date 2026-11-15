@@ -1,5 +1,5 @@
 {
-  "sourceRevision": "c287c2e57a489a7a0e1250555681124a4f5ccad9",
+  "sourceRevision": "6c2fe36bf0a4bcab9225609e1c7dc6195210adcf",
   "summary": "Railway detects slow enrolled Rookery queries and saves Sonnet diagnoses using plans from ordinary app traffic. Two query shapes and six bounded repair cases passed in staging. Broader evidence, repair targeting, and customer setup remain.",
   "next": [
     "connect-project",
@@ -523,6 +523,17 @@
         "internal/hostedquery/traffic_plan.go",
         "internal/supabaseproject/traffic_plan.sql"
       ]
+    },
+    "project-activity-history": {
+      "status": "verified",
+      "statusLabel": "Local PostgreSQL verified",
+      "scope": "Project-scoped polls, measured query windows, and diagnosis timing survived local PostgreSQL disconnect and reconnect. Missing measurements stay distinct from zero calls.",
+      "remaining": "Qualify one full hosted pilot week and expose it through the owner-scoped dashboard.",
+      "evidence": [
+        "internal/hostedquery/project_activity.go",
+        "internal/hostedquery/project_activity_integration_test.go",
+        "docs/design/hosted-query-agent/hosted-preview.md"
+      ]
     }
   },
   "colorMeaning": "Green verifies the stated case only. Yellow means the named area still contains concrete missing implementation or verification. It is not a percentage complete; inspect Build next and Verify next.",
@@ -564,6 +575,13 @@
       "nodes": [
         "enrolled-traffic-plans",
         "inspection"
+      ]
+    },
+    {
+      "label": "Task 41 · Save pilot activity history",
+      "summary": "Local PostgreSQL verified scoped poll and query history, missing measurements, and diagnosis timing.",
+      "nodes": [
+        "project-activity-history"
       ]
     }
   ]

@@ -5,7 +5,7 @@
   "workType": "Build progress and remaining work",
   "summary": "Railway detects slow enrolled Rookery queries and saves Sonnet diagnoses using plans from ordinary app traffic. Two query shapes and six bounded repair cases passed in staging. Broader evidence, repair targeting, and customer setup remain.",
   "sourceRevision": {
-    "commit": "c287c2e57a489a7a0e1250555681124a4f5ccad9",
+    "commit": "6c2fe36bf0a4bcab9225609e1c7dc6195210adcf",
     "dirty": false
   },
   "components": [
@@ -1905,6 +1905,28 @@
         "Supabase",
         "LangGraph"
       ]
+    },
+    {
+      "id": "project-activity-history",
+      "label": "Project activity history",
+      "type": "service",
+      "purpose": "Save project polls, query measurements and diagnosis timing for a pilot timeline.",
+      "decisionIds": [],
+      "sources": [
+        {
+          "path": "internal/hostedquery/project_activity.go",
+          "revision": "6c2fe36bf0a4bcab9225609e1c7dc6195210adcf",
+          "kind": "verified"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Save project polls, query measurements and diagnosis timing for a pilot timeline.",
+      "after": "Save project polls, query measurements and diagnosis timing for a pilot timeline.",
+      "parent": "state",
+      "stack": [
+        "Go",
+        "PostgreSQL"
+      ]
     }
   ],
   "edges": [
@@ -2123,6 +2145,12 @@
       "from": "enrolled-traffic-plans",
       "to": "investigator",
       "label": "supplies measured evidence for diagnosis"
+    },
+    {
+      "id": "e-state-activity-history",
+      "from": "state",
+      "to": "project-activity-history",
+      "label": "retains recent monitoring and diagnosis history"
     }
   ],
   "decisions": [
