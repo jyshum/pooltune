@@ -3,9 +3,9 @@
   "id": "pooltune-hosted-agent",
   "title": "Maintain Supabase query performance",
   "workType": "Build progress and remaining work",
-  "summary": "Pooltune has an invite-only dashboard that connects a manually installed Supabase monitor and shows live query history and Sonnet diagnoses. A Rookery fixture verified the full read-only preview. Broader query evidence, customer repairs and production rollout remain.",
+  "summary": "The existing landing, invite signup, manual Supabase connection and read-only dashboard are ready for the first real-project trial. The full V1 plan still has implementation work in customer repair targeting, evidence, reporting and production operations.",
   "sourceRevision": {
-    "commit": "073f6080631a8ca6e6e924c1283830fcfd5776a1",
+    "commit": "895620198f40338eb335d780fe092e05c932b7f9",
     "dirty": false
   },
   "components": [
@@ -766,6 +766,11 @@
           "path": "docs/design/hosted-query-agent/hosted-diagnostic.md",
           "revision": "Railway qualification 2026-11-14, source 4918260",
           "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/traffic-plans.md",
+          "revision": "895620198f40338eb335d780fe092e05c932b7f9",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
@@ -868,18 +873,23 @@
       "id": "repair-coverage",
       "label": "Qualify broader repairs",
       "type": "service",
-      "purpose": "Remaining: test richer repair variants and ordinary application workloads.",
+      "purpose": "The six bounded repair families ran on owned fixtures. The hosted customer project worker currently ends at a read-only diagnosis.",
       "decisionIds": [],
       "sources": [
         {
           "path": "docs/design/hosted-query-agent/roadmap.md",
           "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
           "kind": "intended"
+        },
+        {
+          "path": "internal/hostedapp/supervisor.go",
+          "revision": "895620198f40338eb335d780fe092e05c932b7f9",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Remaining: test richer repair variants and ordinary application workloads.",
-      "after": "Remaining: test richer repair variants and ordinary application workloads.",
+      "changeSummary": "The six bounded repair families ran on owned fixtures. The hosted customer project worker currently ends at a read-only diagnosis.",
+      "after": "The six bounded repair families ran on owned fixtures. The hosted customer project worker currently ends at a read-only diagnosis.",
       "parent": "tools",
       "stack": [
         "Go"
@@ -921,7 +931,7 @@
       "id": "credential-lifecycle",
       "label": "Credentials and disconnect",
       "type": "service",
-      "purpose": "A dedicated role can be revoked or rotated manually. Disconnect retires queued work and stops the worker.",
+      "purpose": "The hosted preview encrypts each project’s monitor credentials. Rookery passed disconnect and reconnect. The operator path also verified revocation and manual password rotation.",
       "decisionIds": [],
       "sources": [
         {
@@ -933,11 +943,16 @@
           "path": "docs/design/hosted-query-agent/roadmap.md",
           "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
           "kind": "intended"
+        },
+        {
+          "path": "internal/hostedapp/projects.go",
+          "revision": "895620198f40338eb335d780fe092e05c932b7f9",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "A dedicated role can be revoked or rotated manually. Disconnect retires queued work and stops the worker.",
-      "after": "A dedicated role can be revoked or rotated manually. Disconnect retires queued work and stops the worker.",
+      "changeSummary": "The hosted preview encrypts each project’s monitor credentials. Rookery passed disconnect and reconnect. The operator path also verified revocation and manual password rotation.",
+      "after": "The hosted preview encrypts each project’s monitor credentials. Rookery passed disconnect and reconnect. The operator path also verified revocation and manual password rotation.",
       "parent": "backend",
       "stack": [
         "Go"
@@ -981,27 +996,37 @@
     },
     {
       "id": "landing",
-      "label": "Landing and onboarding pages",
+      "label": "Landing and account entry",
       "type": "service",
-      "purpose": "Remaining: explain Pooltune and guide a new user into their first project.",
+      "purpose": "The existing basic landing page explains read-only Supabase monitoring and links to Create account and Sign in. Signed-in owners can open their workspace.",
       "decisionIds": [],
       "sources": [
         {
-          "path": "docs/design/hosted-query-agent/roadmap.md",
-          "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
-          "kind": "intended"
+          "path": "internal/hostedapp/ui/pages.html",
+          "revision": "895620198f40338eb335d780fe092e05c932b7f9",
+          "kind": "verified"
+        },
+        {
+          "path": "internal/hostedapp/app_integration_test.go",
+          "revision": "895620198f40338eb335d780fe092e05c932b7f9",
+          "kind": "verified"
         }
       ],
-      "changeStatus": "new",
-      "changeSummary": "Remaining: explain Pooltune and guide a new user into their first project.",
-      "after": "Remaining: explain Pooltune and guide a new user into their first project.",
-      "parent": "dashboard"
+      "changeStatus": "unchanged",
+      "changeSummary": "The existing basic landing page explains read-only Supabase monitoring and links to Create account and Sign in. Signed-in owners can open their workspace.",
+      "after": "The existing basic landing page explains read-only Supabase monitoring and links to Create account and Sign in. Signed-in owners can open their workspace.",
+      "parent": "dashboard",
+      "stack": [
+        "Go",
+        "HTML",
+        "CSS"
+      ]
     },
     {
       "id": "operations",
       "label": "Production operations",
       "type": "service",
-      "purpose": "Remaining: qualify account separation, operating limits, monitoring and recovery for customer use.",
+      "purpose": "Staging has a healthy single-replica preview and tested account isolation and limits. Production recovery and operations still need qualification.",
       "decisionIds": [],
       "sources": [
         {
@@ -1011,8 +1036,8 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Remaining: qualify account separation, operating limits, monitoring and recovery for customer use.",
-      "after": "Remaining: qualify account separation, operating limits, monitoring and recovery for customer use.",
+      "changeSummary": "Staging has a healthy single-replica preview and tested account isolation and limits. Production recovery and operations still need qualification.",
+      "after": "Staging has a healthy single-replica preview and tested account isolation and limits. Production recovery and operations still need qualification.",
       "stack": [
         "Go",
         "PostgreSQL",
@@ -1846,6 +1871,11 @@
           "path": "docs/design/hosted-query-agent/traffic-plans.md",
           "revision": "c287c2e57a489a7a0e1250555681124a4f5ccad9",
           "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/hosted-preview.md",
+          "revision": "895620198f40338eb335d780fe092e05c932b7f9",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
@@ -1910,18 +1940,23 @@
       "id": "project-activity-history",
       "label": "Project activity history",
       "type": "service",
-      "purpose": "Save project polls, query measurements and diagnosis timing for a pilot timeline.",
+      "purpose": "Project-scoped polls, query windows and diagnosis timings are visible in the owning account’s Railway dashboard and history download. Reconnect preserved the diagnosis.",
       "decisionIds": [],
       "sources": [
         {
           "path": "internal/hostedquery/project_activity.go",
           "revision": "6c2fe36bf0a4bcab9225609e1c7dc6195210adcf",
           "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/hosted-preview-railway.json",
+          "revision": "895620198f40338eb335d780fe092e05c932b7f9",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Save project polls, query measurements and diagnosis timing for a pilot timeline.",
-      "after": "Save project polls, query measurements and diagnosis timing for a pilot timeline.",
+      "changeSummary": "Project-scoped polls, query windows and diagnosis timings are visible in the owning account’s Railway dashboard and history download. Reconnect preserved the diagnosis.",
+      "after": "Project-scoped polls, query windows and diagnosis timings are visible in the owning account’s Railway dashboard and history download. Reconnect preserved the diagnosis.",
       "parent": "state",
       "stack": [
         "Go",
@@ -2150,7 +2185,7 @@
       "id": "e-auth-api",
       "from": "auth",
       "to": "backend",
-      "label": "planned: supplies authenticated account identity"
+      "label": "supplies the signed-in preview account"
     },
     {
       "id": "e-connect-credentials",
@@ -2162,13 +2197,13 @@
       "id": "e-activity-api",
       "from": "activity",
       "to": "backend",
-      "label": "planned: reads authorized activity and pause state"
+      "label": "reads saved history and monitoring state for the owner"
     },
     {
       "id": "e-ops-state",
       "from": "operations",
       "to": "state",
-      "label": "planned: governs isolation, retention and recovery"
+      "label": "production backup, restore and retention qualification pending"
     },
     {
       "id": "e-evidence-return",

@@ -463,3 +463,14 @@ Tasks 27–29 completed for the explicitly bounded diagnostic slice. Sonnet pass
 - [x] Verify staging and document the real-project handoff. Keep broader evidence shapes, customer repair qualification, public onboarding and the week-long pilot statuses accurate.
 
 The Railway preview verified two Rookery runs, one with passive evidence and one with a measured lookup plan. The measured run resumed polling after reconnect and preserved the saved diagnosis. The preview is now on one-minute polls and five-minute windows. [Recorded evidence](evidence/hosted-preview-railway.json) · [Manual connection and pilot](hosted-preview.md)
+
+### Task 44: Verify the existing customer-trial flow and audit the full map
+
+**Authority:** Jared clarified that the existing basic landing page is already the entry point and should lead to account signup and sign-in. He asked to see the verified full map before further landing work. Maintain the read-only customer-trial scope and existing approved V1 design.
+
+**Design:** Restore the existing basic Railway entry point and verify its original account links. Reconcile the full map against the approved V1 scope, current entry path, operator and dashboard evidence, and repair code. Keep the first real-project trial separate from implementation gaps.
+
+- [x] Confirm Railway is serving the original basic landing and the account flow still opens the workspace.
+- [x] Audit all map cards, correct stale statuses and verify that the Build status links open current card details.
+
+[Customer-trial audit](map-audit.md) · [Railway and browser checks](evidence/customer-trial-entry.json)

@@ -1,0 +1,61 @@
+{
+  "source": "895620198f40338eb335d780fe092e05c932b7f9",
+  "matches_prior_app_source": "ed33b1f",
+  "railway_deployment": "67e9b3e9-95be-45a8-87d1-c937714a0f04",
+  "railway_status": "SUCCESS",
+  "health_http": 200,
+  "browser": {
+    "desktop_mobile": [
+      {
+        "width": 1280,
+        "overflow": false,
+        "heading": "Understand why your queries slow down.",
+        "cta": "Create account",
+        "previousTheme": true
+      },
+      {
+        "width": 800,
+        "overflow": false,
+        "heading": "Understand why your queries slow down.",
+        "cta": "Create account",
+        "previousTheme": true
+      },
+      {
+        "width": 390,
+        "overflow": false,
+        "heading": "Understand why your queries slow down.",
+        "cta": "Create account",
+        "previousTheme": true
+      },
+      {
+        "width": 320,
+        "overflow": false,
+        "heading": "Understand why your queries slow down.",
+        "cta": "Create account",
+        "previousTheme": true
+      }
+    ],
+    "invite_gate": true,
+    "signed_in_workspace": true,
+    "sign_out": true,
+    "map_status": true,
+    "sign_in_link": true
+  },
+  "map_links": {
+    "already_selected": true,
+    "different_card": true,
+    "mobile_pilot": true
+  },
+  "map_cards": {
+    "external": 3,
+    "verified": 31,
+    "partial": 14,
+    "planned": 6
+  },
+  "checks": {
+    "go_race": true,
+    "go_vet": true,
+    "targeted_postgres_race": true
+  },
+  "connection_and_diagnosis_evidence": "hosted-preview-railway.json"
+}

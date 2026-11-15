@@ -7,4 +7,6 @@
 .pt-copy { font-size:13px;line-height:1.65;color:var(--text-2);margin:8px 0; }
 .pt-link { display:block;padding:10px 0;border-bottom:1px solid var(--hair);color:var(--text);text-decoration:none;font-size:13px; }
 .pt-legend {display:flex;flex-wrap:wrap;gap:6px;margin:10px 0;}
+.pt-gap-list { padding: 10px 0; border-bottom: 1px solid var(--hair); }
+.pt-gap-list summary { cursor: pointer; font-size: 13px; font-weight: 650; }
 @media(max-width:650px){#pooltune-progress-button{font-size:11px;padding:0 8px;}}

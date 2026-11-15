@@ -1,5 +1,21 @@
 # Build-map audit: what yellow actually means
 
+## November 15 audit for the first customer trial
+
+The read-only trial flow exists from the original landing page through invite signup or sign-in, account-owned project setup, monitoring, saved query history, a Sonnet diagnosis and disconnect. Railway and an owned Rookery fixture verified the connection and diagnosis. The next check is a week of ordinary traffic on the project the owner chooses to connect. [Hosted Rookery evidence](evidence/hosted-preview-railway.json) · [Trial instructions](hosted-preview.md)
+
+| Map area | Verified now | Work before the full V1 card closes |
+|---|---|---|
+| Landing and account entry | Existing basic landing, invite signup, sign-in and the signed-in workspace link. | Public signup, email verification and recovery are tracked under account access. |
+| Connect Supabase and project activity | Dedicated login with verified TLS, encrypted credentials, account separation, query windows, saved diagnoses, history download and disconnect. | Seven days on the intended project. Managed key and credential rotation, production recovery, and repair history remain separate work. |
+| Inspector and investigator | Enrolled lookup evidence, one owner-captured measured plan, and measured plans from two ordinary-traffic query shapes. Sonnet saved bounded diagnoses. | Support more query shapes and evidence for other causes. Exercise hosted resume during model work and realistic competing causes. |
+| Justified experiments and repairs | Six bounded repair paths passed on owned staging fixtures with controls. | Connect owner-granted repairs and their verification history to the hosted project path. Implement real-query index targeting, individual-column statistics targets and cleanup-threshold changes. Qualify experiment budgets, targeted ANALYZE eligibility, function memory under concurrency and owner-approved Cron deadlines. |
+| Developer viewer and production operations | Studio loads the graphs and scripted replays. The Railway preview serves the owner-scoped dashboard from one replica. | Attach live Go evidence to Studio. Qualify secret rotation, deploy and outage behavior, backups and recovery. |
+
+The hosted dashboard supervisor calls the diagnosis-only project worker. The repair tests ran through separate staging drivers. This source boundary is why an automatic-repair customer trial still needs implementation and verification. [Hosted supervisor](../../../internal/hostedapp/supervisor.go) · [Approved V1 scope](../../product/query-performance-v1.md)
+
+## November 14 repair audit
+
 Audited November 14, 2026 against implementation through `99ff9e8` and the retained hosted repair reports. This is a source/status audit, not a new runtime qualification or visual browser test.
 
 The six bounded repair paths are implemented and passed real Sonnet in staging. Yellow parent cards represent larger responsibilities. The earlier map obscured this distinction and had stale overview text saying hosted integration was unfinished. That text is corrected. Cards now separate **Build next** from **Verify next**; existing tested children remain green.

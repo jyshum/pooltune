@@ -10,7 +10,7 @@ Six bounded repair cases have passed live Claude and mixed-traffic qualification
 
 [Plain-English overview](overview.md) · [Mixed-traffic results](mixed-traffic.md) · [Cleanup results](bounded-vacuum.md) · [Function memory](function-memory.md) · [Scheduling staging status](cron-staging.md)
 
-The invite-only preview adds account creation, sign-in, manual Supabase setup, and an owner dashboard with saved poll, query, and diagnosis history. It runs observation and Sonnet diagnosis from the same worker as the operator command. The practical next step is the manual connection and seven-day read-only pilot on the intended project. [Preview signup and pilot guide](hosted-preview.md)
+The existing landing page links to invite signup and sign-in. The hosted preview provides manual Supabase setup and a dashboard with saved poll, query, and diagnosis history. It runs observation and Sonnet diagnosis from the same worker as the operator command. Next, the owner connects the intended project for the seven-day read-only pilot. [Preview signup and pilot guide](hosted-preview.md)
 
 ## Scope clarification
 
