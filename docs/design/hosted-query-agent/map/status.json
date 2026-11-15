@@ -1,6 +1,6 @@
 {
-  "sourceRevision": "088ca7a3c9540369edb4c16f8486802188fd0f77",
-  "summary": "Six bounded repair cases passed hosted Sonnet. On live Rookery, the operator monitor also queued a real enrolled lookup and Sonnet diagnosed it from measured traffic and owner-approved catalog evidence. Broader evidence readers, hosted rollout and customer setup remain.",
+  "sourceRevision": "e5b4dcf26b94a212adb38808c9db4a9367416b45",
+  "summary": "Railway now monitors an owner-enrolled Rookery lookup, queues a slowdown and saves a read-only Sonnet diagnosis. Six earlier repair cases also passed in staging. Live plans for ordinary workloads, general-purpose repair targeting and customer setup remain.",
   "next": [
     "connect-project",
     "activity",
@@ -66,8 +66,8 @@
     },
     "investigator": {
       "status": "partial",
-      "scope": "All six owned repair cases passed hosted Sonnet. The same graph also diagnosed one ordinary enrolled integer lookup on live Rookery.",
-      "remaining": "Build: Extend enrolled diagnosis to additional query shapes and add permitted live plans and cause-specific measurements. Verify: Run the enrolled consumer on Railway, test representative competing causes, and interrupt a hosted model call to exercise recovery.",
+      "scope": "Railway monitored real enrolled Rookery traffic and saved one Sonnet diagnosis. Six owned repair cases also passed.",
+      "remaining": "Build: Expand enrolled query shapes and add authorized live plans and cause-specific evidence. Verify: Test representative competing causes and recovery during a hosted model call.",
       "evidence": [
         "investigator/diagnostic.ts",
         "docs/design/hosted-query-agent/diagnostic-loop.md",
@@ -75,11 +75,12 @@
         "cmd/pooltune-consumer/main.go",
         "internal/hostedquery/diagnostic_planner_readers.go",
         "docs/design/hosted-query-agent/repair-expansion.md",
-        "docs/design/hosted-query-agent/enrolled-diagnosis.md"
+        "docs/design/hosted-query-agent/enrolled-diagnosis.md",
+        "docs/design/hosted-query-agent/enrolled-railway.md"
       ],
-      "remainingBuild": "Extend enrolled diagnosis to additional query shapes and add permitted live plans and cause-specific measurements.",
-      "remainingVerification": "Run the enrolled consumer on Railway, test representative competing causes, and interrupt a hosted model call to exercise recovery.",
-      "statusLabel": "Staging works; scope remains"
+      "remainingBuild": "Expand enrolled query shapes and add authorized live plans and cause-specific evidence.",
+      "remainingVerification": "Test representative competing causes and recovery during a hosted model call.",
+      "statusLabel": "Railway lookup verified"
     },
     "tools": {
       "status": "partial",
@@ -97,8 +98,8 @@
     },
     "inspection": {
       "status": "partial",
-      "scope": "Owner-approved lookup evidence includes measured latency and shared page accesses, current table estimates and a matching B-tree check. Fixture readers cover six repair cases.",
-      "remaining": "Build: Add authorized live plans and cause-specific statistics, visibility, spill and schedule readers for enrolled workloads. Verify: Test requested reads on Railway across more repair families and ordinary workload shapes.",
+      "scope": "Verified one enrolled lookup reader across Railway and Rookery. It reads real traffic counters and current catalog facts.",
+      "remaining": "Build: Add authorized live plans and cause-specific statistics, visibility, spill and schedule evidence for ordinary enrolled workloads. Verify: Exercise new readers on representative workloads and requests across Railway.",
       "evidence": [
         "internal/graphrunner/diagnostic.go",
         "docs/design/hosted-query-agent/diagnostic-loop.md",
@@ -107,19 +108,25 @@
         "internal/hostedquery/diagnostic_planner_readers.go",
         "internal/hostedquery/diagnostic_maintenance_readers.go",
         "docs/design/hosted-query-agent/evidence/repair-expansion/requested-evidence.json",
-        "docs/design/hosted-query-agent/enrolled-diagnosis.md"
+        "docs/design/hosted-query-agent/enrolled-diagnosis.md",
+        "docs/design/hosted-query-agent/enrolled-railway.md"
       ],
-      "remainingBuild": "Add authorized live plans and cause-specific statistics, visibility, spill and schedule readers for enrolled workloads.",
-      "remainingVerification": "Test requested reads on Railway across more repair families and ordinary workload shapes."
+      "remainingBuild": "Add authorized live plans and cause-specific statistics, visibility, spill and schedule evidence for ordinary enrolled workloads.",
+      "remainingVerification": "Exercise new readers on representative workloads and requests across Railway.",
+      "statusLabel": "Enrolled evidence verified"
     },
     "experiments": {
       "status": "partial",
-      "scope": "Controlled before/after trials test whether a permitted change helps and harms other traffic.",
-      "remaining": "General experiment selection, customer resource headroom and representative workloads remain.",
+      "scope": "Controlled before-and-after trials passed in owned repair fixtures.",
+      "remaining": "Build: Choose representative inputs and admit justified experiments for ordinary enrolled queries. Verify: Measure customer resource headroom and check interference with other traffic.",
       "evidence": [
         "docs/design/hosted-query-agent/mixed-traffic.md",
-        "docs/design/hosted-query-agent/function-memory.md"
-      ]
+        "docs/design/hosted-query-agent/function-memory.md",
+        "docs/design/hosted-query-agent/enrolled-railway.md"
+      ],
+      "remainingBuild": "Choose representative inputs and admit justified experiments for ordinary enrolled queries.",
+      "remainingVerification": "Measure customer resource headroom and check interference with other traffic.",
+      "statusLabel": "Fixture trials verified"
     },
     "index": {
       "status": "partial",
@@ -273,17 +280,18 @@
     },
     "connect-project": {
       "status": "partial",
-      "scope": "The operator command verified direct TLS, monitored two enrolled app-role statements and separately diagnosed one owner-approved lookup on Rookery.",
-      "remaining": "Build: Build account-owned setup and broaden the optional diagnostic grant to more query shapes. Verify: Qualify hosted rollout and more representative workloads.",
+      "scope": "The private operator path monitors Rookery and saves one approved lookup diagnosis on Railway.",
+      "remaining": "Build: Build the account-owned setup screen and support more query shapes. Verify: Qualify other real projects, models of workload and hosted credential failures.",
       "evidence": [
         "docs/design/hosted-query-agent/supabase-monitoring.md",
         "cmd/pooltune-project/main.go",
         "internal/supabaseproject/install.sql",
-        "docs/design/hosted-query-agent/enrolled-diagnosis.md"
+        "docs/design/hosted-query-agent/enrolled-diagnosis.md",
+        "docs/design/hosted-query-agent/enrolled-railway.md"
       ],
-      "statusLabel": "Operator monitoring verified on Rookery",
-      "remainingBuild": "Build account-owned setup and broaden the optional diagnostic grant to more query shapes.",
-      "remainingVerification": "Qualify hosted rollout and more representative workloads."
+      "statusLabel": "Railway operator path verified",
+      "remainingBuild": "Build the account-owned setup screen and support more query shapes.",
+      "remainingVerification": "Qualify other real projects, models of workload and hosted credential failures."
     },
     "credential-lifecycle": {
       "status": "partial",
@@ -461,14 +469,59 @@
     },
     "enrolled-lookup-diagnosis": {
       "status": "verified",
-      "scope": "On live Rookery, real Sonnet diagnosed an owner-approved integer lookup from 443 page accesses per call and current index metadata. PostgreSQL recorded no query replay.",
-      "remaining": "One supported query shape and passive evidence. Live execution plans, further shapes and Railway deployment remain.",
+      "scope": "Sonnet identified a likely missing-index cause from real traffic on Rookery. The same read-only path passed in Railway staging.",
+      "remaining": "An actual execution plan and broader query shapes are still needed.",
       "evidence": [
         "docs/design/hosted-query-agent/enrolled-diagnosis.md",
         "internal/hostedquery/lookup_evidence.go",
-        "internal/supabaseproject/lookup_evidence.sql"
+        "internal/supabaseproject/lookup_evidence.sql",
+        "docs/design/hosted-query-agent/enrolled-railway.md"
+      ]
+    },
+    "enrolled-lookup-evidence": {
+      "status": "verified",
+      "scope": "Real traffic counters and current index metadata passed under the exact owner grant. PostgreSQL recorded no lookup replay.",
+      "remaining": "The evidence is passive for a single integer equality lookup. Add authorized plans and more shapes.",
+      "evidence": [
+        "docs/design/hosted-query-agent/enrolled-railway.md",
+        "internal/hostedquery/lookup_evidence.go"
+      ]
+    },
+    "hosted-enrolled-flow": {
+      "status": "verified",
+      "scope": "One Rookery slowdown queued one Railway job and saved one Sonnet diagnosis. The healthy lookup queued nothing.",
+      "remaining": "The private worker is deployed in standby after test cleanup. Customer onboarding, more workloads and hosted mid-model recovery remain.",
+      "evidence": [
+        "docs/design/hosted-query-agent/enrolled-railway.md",
+        "docs/design/hosted-query-agent/evidence/enrolled-railway.json",
+        "cmd/pooltune-project/serve.go"
       ]
     }
   },
-  "colorMeaning": "Green verifies the stated case only. Yellow means the named area still contains concrete missing implementation or verification. It is not a percentage complete; inspect Build next and Verify next."
+  "colorMeaning": "Green verifies the stated case only. Yellow means the named area still contains concrete missing implementation or verification. It is not a percentage complete; inspect Build next and Verify next.",
+  "recent": [
+    {
+      "label": "Task 36 · Connect and enroll",
+      "summary": "Verified TLS and enrolled app-role monitoring on Rookery.",
+      "nodes": [
+        "connect-project",
+        "credential-lifecycle"
+      ]
+    },
+    {
+      "label": "Task 37 · Read evidence and diagnose",
+      "summary": "Sonnet diagnosed one real enrolled lookup using actual traffic and catalog facts.",
+      "nodes": [
+        "enrolled-lookup-evidence",
+        "enrolled-lookup-diagnosis"
+      ]
+    },
+    {
+      "label": "Task 38 · Deploy and test",
+      "summary": "Ran detection through a saved Sonnet result in Railway staging with a healthy control.",
+      "nodes": [
+        "hosted-enrolled-flow"
+      ]
+    }
+  ]
 }

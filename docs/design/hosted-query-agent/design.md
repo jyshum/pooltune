@@ -1,6 +1,6 @@
 # Pooltune: build status and remaining architecture
 
-Updated November 14, 2026. The six repair cases were qualified on Railway in source `517eb87`. Operator monitoring was qualified separately against Rookery using a locally launched worker and disposable Pooltune state. It is an offline snapshot, not a live agent dashboard. The archived design context below records earlier decisions and open questions at the time; current build status is in this section and `map/status.json`.
+Updated November 14, 2026. The six repair cases were qualified on Railway in source `517eb87`. Operator monitoring and diagnosis were qualified on Rookery first from a local process and then through the private Railway service and Railway Postgres. It is an offline snapshot, not a live agent dashboard. The archived design context below records earlier decisions and open questions at the time; current build status is in this section and `map/status.json`.
 
 ## How to read the colors
 
@@ -32,7 +32,7 @@ The Go + TypeScript/LangGraph architecture and six repair families remain consis
 
 ## Next work and trade-offs
 
-Jared authorized parallel implementation of the bounded compound case and the five diagnostic connections. Code and local checks are complete. All six current repair paths passed the hosted diagnostic workflow, including the corrected scheduling campaign. The separate optimized requested-evidence probe passed. The broader variants remain in V1. Next, extend owner-approved evidence to more query shapes and verify the enrolled consumer on Railway. Customer project setup still needs an account-scoped connection flow, production secret management and a visible activity history. The scope of a first pilot must be explicit before customer mutations. A public landing page is not a prerequisite for an internal pilot.
+Jared authorized parallel implementation of the bounded compound case and the five diagnostic connections. Code and local checks are complete. All six current repair paths passed the hosted diagnostic workflow, including the corrected scheduling campaign. The separate optimized requested-evidence probe passed. The broader variants remain in V1. The private Railway service now runs the owner-approved monitoring and diagnosis flow. Next, expand the supported query shapes, add authorized plan evidence and build the customer-facing activity view. Customer project setup still needs an account-scoped connection flow, production secret management and a visible activity history. The scope of a first pilot must be explicit before customer mutations. A public landing page is not a prerequisite for an internal pilot.
 
 Current assessment: keeping one investigator and deterministic Go execution avoids creating six disconnected agents. The alternative is separate agents per repair; they could specialize prompts but would duplicate evidence, budgets and recovery coordination. The diagnostic loop requests additional calls only for decision-changing gaps, preserving the speed benefit of the existing one-call path when evidence is already sufficient.
 

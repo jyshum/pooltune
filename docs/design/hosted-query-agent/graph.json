@@ -3,9 +3,9 @@
   "id": "pooltune-hosted-agent",
   "title": "Maintain Supabase query performance",
   "workType": "Build progress and remaining work",
-  "summary": "Six bounded repair cases passed hosted Sonnet. On live Rookery, the operator monitor also queued a real enrolled lookup and Sonnet diagnosed it from measured traffic and owner-approved catalog evidence. Broader evidence readers, hosted rollout and customer setup remain.",
+  "summary": "Railway now monitors an owner-enrolled Rookery lookup, queues a slowdown and saves a read-only Sonnet diagnosis. Six earlier repair cases also passed in staging. Live plans for ordinary workloads, general-purpose repair targeting and customer setup remain.",
   "sourceRevision": {
-    "commit": "088ca7a3c9540369edb4c16f8486802188fd0f77",
+    "commit": "e5b4dcf26b94a212adb38808c9db4a9367416b45",
     "dirty": false
   },
   "components": [
@@ -160,7 +160,7 @@
     },
     {
       "id": "investigator",
-      "label": "Investigator: staging works",
+      "label": "Investigator: enrolled lookup tested",
       "type": "service",
       "purpose": "Compare causes, request Go evidence and propose repairs: all six bounded paths passed hosted Sonnet.",
       "decisionIds": [
@@ -205,6 +205,11 @@
         {
           "path": "docs/design/hosted-query-agent/enrolled-diagnosis.md",
           "revision": "088ca7a3c9540369edb4c16f8486802188fd0f77",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/enrolled-railway.md",
+          "revision": "e5b4dcf26b94a212adb38808c9db4a9367416b45",
           "kind": "verified"
         }
       ],
@@ -372,7 +377,7 @@
       "id": "inspection",
       "label": "Inspect existing evidence",
       "type": "service",
-      "purpose": "Named readers cover six fixture types; a hosted Sonnet request for fresh ANALYZE evidence passed.",
+      "purpose": "An owner-approved lookup now has verified traffic and catalog evidence. Live plans and broader evidence are still needed.",
       "decisionIds": [
         "d-reuse",
         "d-identity"
@@ -412,10 +417,15 @@
           "path": "docs/design/hosted-query-agent/enrolled-diagnosis.md",
           "revision": "088ca7a3c9540369edb4c16f8486802188fd0f77",
           "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/enrolled-railway.md",
+          "revision": "e5b4dcf26b94a212adb38808c9db4a9367416b45",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Named readers cover six fixture types; a hosted Sonnet request for fresh ANALYZE evidence passed.",
+      "changeSummary": "An owner-approved lookup now has verified traffic and catalog evidence. Live plans and broader evidence are still needed.",
       "stack": [
         "Go"
       ],
@@ -1756,6 +1766,11 @@
           "path": "docs/design/hosted-query-agent/enrolled-diagnosis.md",
           "revision": "088ca7a3c9540369edb4c16f8486802188fd0f77",
           "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/enrolled-railway.md",
+          "revision": "e5b4dcf26b94a212adb38808c9db4a9367416b45",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
@@ -1764,6 +1779,52 @@
       "parent": "investigator",
       "stack": [
         "Go",
+        "PostgreSQL",
+        "LangGraph"
+      ]
+    },
+    {
+      "id": "enrolled-lookup-evidence",
+      "label": "Enrolled lookup evidence: verified",
+      "type": "service",
+      "purpose": "Read measured latency, page accesses, table estimates and index metadata for one owner-approved lookup.",
+      "decisionIds": [],
+      "sources": [
+        {
+          "path": "docs/design/hosted-query-agent/enrolled-railway.md",
+          "revision": "e5b4dcf26b94a212adb38808c9db4a9367416b45",
+          "kind": "verified"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Read measured latency, page accesses, table estimates and index metadata for one owner-approved lookup.",
+      "after": "Read measured latency, page accesses, table estimates and index metadata for one owner-approved lookup.",
+      "parent": "tools",
+      "stack": [
+        "Go",
+        "PostgreSQL"
+      ]
+    },
+    {
+      "id": "hosted-enrolled-flow",
+      "label": "Railway monitor to saved diagnosis",
+      "type": "service",
+      "purpose": "Railway monitored Rookery, queued only the slow lookup, ran Sonnet and saved its read-only result in Postgres.",
+      "decisionIds": [],
+      "sources": [
+        {
+          "path": "docs/design/hosted-query-agent/enrolled-railway.md",
+          "revision": "e5b4dcf26b94a212adb38808c9db4a9367416b45",
+          "kind": "verified"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Railway monitored Rookery, queued only the slow lookup, ran Sonnet and saved its read-only result in Postgres.",
+      "after": "Railway monitored Rookery, queued only the slow lookup, ran Sonnet and saved its read-only result in Postgres.",
+      "parent": "investigator",
+      "stack": [
+        "Go",
+        "Railway",
         "PostgreSQL",
         "LangGraph"
       ]
@@ -1955,6 +2016,18 @@
       "from": "scheduler",
       "to": "hosted-diagnostic-integration",
       "label": "runs queued index work through the diagnostic graph"
+    },
+    {
+      "id": "e-inspection-enrolled-lookup",
+      "from": "inspection",
+      "to": "enrolled-lookup-evidence",
+      "label": "reads the approved lookup evidence"
+    },
+    {
+      "id": "e-railway-enrolled-diagnosis",
+      "from": "hosted-enrolled-flow",
+      "to": "enrolled-lookup-diagnosis",
+      "label": "runs Sonnet and saves the result"
     }
   ],
   "decisions": [

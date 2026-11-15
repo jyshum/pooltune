@@ -1,0 +1,61 @@
+{
+  "traffic_started": "2026-11-15T06:18:33.293363+00:00",
+  "traffic_duration_seconds": 30.024315042013768,
+  "calls": {
+    "slow": 81,
+    "healthy": 81
+  },
+  "baseline": {
+    "slow": 1,
+    "healthy": 1
+  },
+  "successful_pairs": 80,
+  "errors": 0,
+  "source": "e5b4dcf",
+  "active_deployment": "6e2376c3-929b-46eb-b3c2-0d916a046c7d",
+  "first_failed_deployment": "f3066b3e-7a80-442a-8a65-2b5df716afeb",
+  "job_queued": {
+    "id": 153,
+    "at": "2026-11-15T06:18:51.759549128Z",
+    "decisions": {
+      "investigate": 1,
+      "no_change": 1
+    },
+    "target_ms": 141.430351
+  },
+  "diagnosis_saved": {
+    "id": 153,
+    "at": "2026-11-15T06:18:58.084233926Z",
+    "attempt": 1,
+    "model": "claude-sonnet-5-5",
+    "model_ms": 4003.04101,
+    "elapsed_ms": 5872.501212,
+    "outcome": "diagnosed",
+    "supported_causes": [
+      "index"
+    ]
+  },
+  "disconnect": {
+    "deployment": "0d8788a5-e53d-4f61-8ce5-71b76b055901",
+    "at": "2026-11-15T06:19:36.880479422Z",
+    "status": "disconnected"
+  },
+  "standby": {
+    "deployment": "e56de2a6-bc7c-4c84-ac58-afc925a47d08",
+    "at": "2026-11-15T06:21:02.830397457Z",
+    "status": "SUCCESS"
+  },
+  "cleanup": {
+    "pilot_variables_removed": true,
+    "pilot_schemas": 0,
+    "pilot_roles": 0,
+    "pilot_sessions": 0,
+    "public_index_fingerprint_unchanged": true,
+    "staged_changes": 0
+  },
+  "existing_deployments": {
+    "Detector": "08dc4edd-6be5-4e96-a472-e3389b3d2d8f",
+    "Consumer": "c61a85fa-34ab-4876-ae61-fd3473d5da5d",
+    "Postgres": "5e66d902-c6f6-44ed-80dc-a43ec6cff816"
+  }
+}

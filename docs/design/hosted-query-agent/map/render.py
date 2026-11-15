@@ -6,6 +6,9 @@ folder=Path(__file__).resolve().parent;base=folder.parent
 status=json.loads((folder/'status.json').read_text());graph=json.loads((base/'graph.json').read_text())
 assert set(status['nodes'])=={c['id'] for c in graph['components']},'Every card needs an explicit status'
 assert set(status['next'])<=set(status['nodes'])
+for milestone in status['recent']:
+ assert milestone['label'] and milestone['summary'] and milestone['nodes']
+ assert set(milestone['nodes'])<=set(status['nodes'])
 for n in status['nodes'].values():
  assert n['status'] in ['verified','partial','planned','external']
  assert n['scope'] and n['remaining'] and n['evidence']
