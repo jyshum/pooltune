@@ -437,4 +437,4 @@ Tasks 27–29 completed for the explicitly bounded diagnostic slice. Sonnet pass
 
 - [x] Verify Rookery server-generated log identity and a projection that returns only permitted plan fields. Record provider limitations and the role-specific settings.
 - [x] Add the separate owner-enrollment grant and bounded Supabase Logs API reader. Recheck the current query generation and grant before Sonnet and before saving. Preserve the lookup fallback.
-- [ ] Prove on private Railway that two bound query shapes use the plans captured during ordinary traffic, with a healthy control, exact call counts, and cleanup. Update the map and commit on revamp.
+- [x] Prove on private Railway that two bound query shapes use the plans captured during ordinary traffic, with a healthy control, exact call counts, and cleanup. Update the map and commit on revamp.

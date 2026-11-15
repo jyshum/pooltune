@@ -3,9 +3,9 @@
   "id": "pooltune-hosted-agent",
   "title": "Maintain Supabase query performance",
   "workType": "Build progress and remaining work",
-  "summary": "Railway monitors an owner-enrolled Rookery lookup and saves Sonnet’s diagnosis. An owner-captured execution plan for one exact integer lookup now passes from Rookery through Railway. Broader plan shapes, general repair targeting and customer setup remain.",
+  "summary": "Railway detects slow enrolled Rookery queries and saves Sonnet diagnoses using plans from ordinary app traffic. Two query shapes and six bounded repair cases passed in staging. Broader evidence, repair targeting, and customer setup remain.",
   "sourceRevision": {
-    "commit": "3162f73cdf97539484df91ea79abd31f32b3eea2",
+    "commit": "c287c2e57a489a7a0e1250555681124a4f5ccad9",
     "dirty": false
   },
   "components": [
@@ -160,7 +160,7 @@
     },
     {
       "id": "investigator",
-      "label": "Investigator: enrolled lookup tested",
+      "label": "Investigator: enrolled queries tested",
       "type": "service",
       "purpose": "Compare causes, request Go evidence and propose repairs: all six bounded paths passed hosted Sonnet.",
       "decisionIds": [
@@ -215,6 +215,11 @@
         {
           "path": "docs/design/hosted-query-agent/enrolled-plans.md",
           "revision": "3162f73cdf97539484df91ea79abd31f32b3eea2",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/traffic-plans.md",
+          "revision": "c287c2e57a489a7a0e1250555681124a4f5ccad9",
           "kind": "verified"
         }
       ],
@@ -382,7 +387,7 @@
       "id": "inspection",
       "label": "Inspect existing evidence",
       "type": "service",
-      "purpose": "The enrolled lookup can use a measured app-role plan and real traffic evidence. More query shapes and evidence readers remain.",
+      "purpose": "Read one owner-captured lookup plan and two ordinary-traffic query plans. More query shapes and cause-specific evidence remain.",
       "decisionIds": [
         "d-reuse",
         "d-identity"
@@ -432,10 +437,15 @@
           "path": "docs/design/hosted-query-agent/enrolled-plans.md",
           "revision": "3162f73cdf97539484df91ea79abd31f32b3eea2",
           "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/traffic-plans.md",
+          "revision": "c287c2e57a489a7a0e1250555681124a4f5ccad9",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "The enrolled lookup can use a measured app-role plan and real traffic evidence. More query shapes and evidence readers remain.",
+      "changeSummary": "Read one owner-captured lookup plan and two ordinary-traffic query plans. More query shapes and cause-specific evidence remain.",
       "stack": [
         "Go"
       ],
@@ -1831,6 +1841,11 @@
           "path": "docs/design/hosted-query-agent/enrolled-railway.md",
           "revision": "e5b4dcf26b94a212adb38808c9db4a9367416b45",
           "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/traffic-plans.md",
+          "revision": "c287c2e57a489a7a0e1250555681124a4f5ccad9",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
@@ -1864,6 +1879,30 @@
       "stack": [
         "Go",
         "PostgreSQL",
+        "LangGraph"
+      ]
+    },
+    {
+      "id": "enrolled-traffic-plans",
+      "label": "Ordinary-traffic plans: two shapes verified",
+      "type": "service",
+      "purpose": "Read two measured Rookery query plans from ordinary app executions through Supabase logs and send the summaries to the Railway investigator.",
+      "decisionIds": [],
+      "sources": [
+        {
+          "path": "docs/design/hosted-query-agent/traffic-plans.md",
+          "revision": "c287c2e57a489a7a0e1250555681124a4f5ccad9",
+          "kind": "verified"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Read two measured Rookery query plans from ordinary app executions through Supabase logs and send the summaries to the Railway investigator.",
+      "after": "Read two measured Rookery query plans from ordinary app executions through Supabase logs and send the summaries to the Railway investigator.",
+      "parent": "tools",
+      "stack": [
+        "Go",
+        "PostgreSQL",
+        "Supabase",
         "LangGraph"
       ]
     }
@@ -2072,6 +2111,18 @@
       "from": "enrolled-lookup-evidence",
       "to": "enrolled-measured-plan",
       "label": "includes a current owner-captured plan when available"
+    },
+    {
+      "id": "e-inspection-ordinary-traffic-plan",
+      "from": "inspection",
+      "to": "enrolled-traffic-plans",
+      "label": "reads plans from approved app traffic"
+    },
+    {
+      "id": "e-ordinary-traffic-plan-investigator",
+      "from": "enrolled-traffic-plans",
+      "to": "investigator",
+      "label": "supplies measured evidence for diagnosis"
     }
   ],
   "decisions": [

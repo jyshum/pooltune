@@ -17,3 +17,18 @@ Run `pooltune-project setup-traffic-plan-sql -ref "$PROJECT_REF" -key "$INSTALLA
 Set `auto_explain.log_min_duration` and `auto_explain.sample_rate` for the chosen login in `postgres`. Set `log_format=json`, `log_analyze=on`, `log_buffers=on`, `log_timing=off`, `log_nested_statements=off`, `log_level=log`, and `log_parameter_max_length=0` on the same login using the `auto_explain.` prefix. Use bound parameters and open new sessions to pick up those settings. Removing bind logging does not redact a plan predicate. Scope settings to the opt-in role and database. In Railway, provide `POOLTUNE_PROJECT_LOGS_TOKEN` privately to the enrolled service as a fine-grained Supabase token limited to the same project and Logs Read.
 
 Delete the grant to stop eligibility for the next check, and reset the logging settings on that role and close its instrumented sessions to stop capture. Remove and revoke the token when no enrolled statements use the source. Previously emitted provider logs follow Supabase's retention policy.
+
+## Rookery through Railway
+
+Private Enrolled Queries deployment `9d718eac-c601-4612-8d96-34dfaea5258c` ran source `c287c2e`. One direct, dedicated app login ran three bound statements against owned 120,000-row tables. All 120 rounds, or 360 ordinary calls, returned the expected results with zero errors. Each statement counter rose from 1 to 121. The indexed healthy control queued no job. Railway queued two jobs in one detector poll at the original four-second test window and the unchanged objectives.
+
+| Job | Enrolled query shape | Sample actually used by Sonnet | Worker and model time |
+| --- | --- | --- | --- |
+| `198` | Two-filter lookup | Sequential scan returned one row and filtered 119,999. PostgreSQL reported 531 shared hits, zero shared reads and 9.646 ms. | 7.974 s total, including 4.531 s for Sonnet |
+| `199` | Ordered range with a limit | `Limit` above `Sort` returned five rows. PostgreSQL reported 531 shared hits, zero shared reads and 10.449 ms. | 8.295 s total, including 4.389 s for Sonnet |
+
+Each diagnosis used the ordinary-traffic source and one `claude-sonnet-5-5` call. The projected Supabase rows match the saved events' capture timestamps exactly. The model left specific repair causes unconfirmed with this evidence. The traffic counters and runtime path show zero query replays. No database repair was attempted. [Recorded results](evidence/traffic-plans-railway.json)
+
+Early test runs got no usable sample, including after the new delay and with 15-second windows. A separate observer saw both Rookery plan events roughly 18 seconds after execution. The Go reader decoded them when tested locally. Safe hosted status exposed a transport error, and the exact `node:26.3.0-bookworm-slim` Linux base contained no OS certificate files. The runtime now copies the standard trusted roots from the Debian Go build stage. With certificate validation enabled, the same worker read both plans and finished the run at the original window. The one delayed read remains for log delivery lag on plan-only jobs.
+
+Railway disconnected the pilot and returned the private service to standby on deployment `37144a01-65bf-458c-b02e-97ffcb52fdf0`. Rookery reported zero remaining pilot roles, schemas or sessions. The public index fingerprint and the three existing Railway deployments were unchanged. The Rookery-only log token was revoked and rejected with HTTP 401. Railway retained no pilot variables and had no staged changes.

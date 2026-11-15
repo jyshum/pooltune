@@ -1,6 +1,6 @@
 {
-  "sourceRevision": "3162f73cdf97539484df91ea79abd31f32b3eea2",
-  "summary": "Railway monitors an owner-enrolled Rookery lookup and saves Sonnet’s diagnosis. An owner-captured execution plan for one exact integer lookup now passes from Rookery through Railway. Broader plan shapes, general repair targeting and customer setup remain.",
+  "sourceRevision": "c287c2e57a489a7a0e1250555681124a4f5ccad9",
+  "summary": "Railway detects slow enrolled Rookery queries and saves Sonnet diagnoses using plans from ordinary app traffic. Two query shapes and six bounded repair cases passed in staging. Broader evidence, repair targeting, and customer setup remain.",
   "next": [
     "connect-project",
     "activity",
@@ -66,8 +66,8 @@
     },
     "investigator": {
       "status": "partial",
-      "scope": "Railway saved a Sonnet diagnosis with a real measured scan for one owner-enrolled lookup.",
-      "remaining": "Build: Expand enrolled query shapes and add cause-specific evidence adapters. Verify: Exercise representative competing causes and hosted recovery during a model call.",
+      "scope": "Two enrolled Rookery query shapes passed ordinary-traffic plan capture and saved a Sonnet diagnosis through Railway.",
+      "remaining": "Build: Expand enrolled query shapes and add evidence readers for more causes. Verify: Exercise competing causes and hosted recovery during a model call.",
       "evidence": [
         "investigator/diagnostic.ts",
         "docs/design/hosted-query-agent/diagnostic-loop.md",
@@ -77,11 +77,12 @@
         "docs/design/hosted-query-agent/repair-expansion.md",
         "docs/design/hosted-query-agent/enrolled-diagnosis.md",
         "docs/design/hosted-query-agent/enrolled-railway.md",
-        "docs/design/hosted-query-agent/enrolled-plans.md"
+        "docs/design/hosted-query-agent/enrolled-plans.md",
+        "docs/design/hosted-query-agent/traffic-plans.md"
       ],
-      "remainingBuild": "Expand enrolled query shapes and add cause-specific evidence adapters.",
-      "remainingVerification": "Exercise representative competing causes and hosted recovery during a model call.",
-      "statusLabel": "Measured lookup verified"
+      "remainingBuild": "Expand enrolled query shapes and add evidence readers for more causes.",
+      "remainingVerification": "Exercise competing causes and hosted recovery during a model call.",
+      "statusLabel": "Three enrolled shapes tested"
     },
     "tools": {
       "status": "partial",
@@ -99,8 +100,8 @@
     },
     "inspection": {
       "status": "partial",
-      "scope": "One measured lookup plan and the previously verified passive catalog evidence both work through Railway.",
-      "remaining": "Build: Support more plan shapes and add cause-specific evidence for statistics, visibility, spill and scheduling. Verify: Compare more prepared statements, inputs and app-session settings, and test authorized reads across representative workloads.",
+      "scope": "One owner-captured lookup and two ordinary-traffic plan shapes work through Railway.",
+      "remaining": "Build: Expand ordinary capture to more workloads and add evidence for statistics, visibility, spill and scheduling. Verify: Qualify more plan shapes, distinct input patterns and pooled or Data API sessions.",
       "evidence": [
         "internal/graphrunner/diagnostic.go",
         "docs/design/hosted-query-agent/diagnostic-loop.md",
@@ -111,11 +112,12 @@
         "docs/design/hosted-query-agent/evidence/repair-expansion/requested-evidence.json",
         "docs/design/hosted-query-agent/enrolled-diagnosis.md",
         "docs/design/hosted-query-agent/enrolled-railway.md",
-        "docs/design/hosted-query-agent/enrolled-plans.md"
+        "docs/design/hosted-query-agent/enrolled-plans.md",
+        "docs/design/hosted-query-agent/traffic-plans.md"
       ],
-      "remainingBuild": "Support more plan shapes and add cause-specific evidence for statistics, visibility, spill and scheduling.",
-      "remainingVerification": "Compare more prepared statements, inputs and app-session settings, and test authorized reads across representative workloads.",
-      "statusLabel": "One measured plan verified"
+      "remainingBuild": "Expand ordinary capture to more workloads and add evidence for statistics, visibility, spill and scheduling.",
+      "remainingVerification": "Qualify more plan shapes, distinct input patterns and pooled or Data API sessions.",
+      "statusLabel": "Two traffic plan shapes verified"
     },
     "experiments": {
       "status": "partial",
@@ -472,7 +474,7 @@
     "enrolled-lookup-diagnosis": {
       "status": "verified",
       "scope": "Real Sonnet used a measured sequential scan for one owner-approved Rookery lookup through Railway.",
-      "remaining": "Other query shapes, automatic app-traffic plan capture and broader diagnosis remain.",
+      "remaining": "This card covers one integer equality lookup. The ordinary-traffic plan card records two further query shapes. Broader diagnosis remains.",
       "evidence": [
         "docs/design/hosted-query-agent/enrolled-diagnosis.md",
         "internal/hostedquery/lookup_evidence.go",
@@ -484,7 +486,7 @@
     "enrolled-lookup-evidence": {
       "status": "verified",
       "scope": "Real traffic counters and current index metadata passed under the exact owner grant. PostgreSQL recorded no lookup replay.",
-      "remaining": "This card covers passive evidence for one integer equality lookup. The measured plan card records the owner-captured plan. Ordinary-traffic plans and broader query shapes remain.",
+      "remaining": "Passive evidence for one integer equality lookup. The measured plan and ordinary-traffic plan cards show the separate verified plan paths.",
       "evidence": [
         "docs/design/hosted-query-agent/enrolled-railway.md",
         "internal/hostedquery/lookup_evidence.go"
@@ -492,22 +494,34 @@
     },
     "hosted-enrolled-flow": {
       "status": "verified",
-      "scope": "One Rookery slowdown queued one Railway job and saved one Sonnet diagnosis. The healthy lookup queued nothing.",
+      "scope": "Two enrolled Rookery query shapes passed ordinary-traffic plan capture and saved a Sonnet diagnosis through Railway.",
       "remaining": "The private worker is deployed in standby after test cleanup. Customer onboarding, more workloads and hosted mid-model recovery remain.",
       "evidence": [
         "docs/design/hosted-query-agent/enrolled-railway.md",
         "docs/design/hosted-query-agent/evidence/enrolled-railway.json",
-        "cmd/pooltune-project/serve.go"
+        "cmd/pooltune-project/serve.go",
+        "docs/design/hosted-query-agent/traffic-plans.md"
       ]
     },
     "enrolled-measured-plan": {
       "status": "verified",
       "scope": "One approved Rookery lookup returned one row and filtered 99,999 in a measured sequential scan. Railway attached the plan to a saved Sonnet diagnosis.",
-      "remaining": "Owner-operated sample for one exact bounded lookup. More plan shapes and capture from normal traffic remain.",
+      "remaining": "Owner-operated sample for one exact lookup. See the ordinary-traffic plan card for sampled app executions.",
       "evidence": [
         "docs/design/hosted-query-agent/enrolled-plans.md",
         "internal/supabaseproject/lookup_plan.sql",
         "internal/hostedquery/lookup_plan.go"
+      ]
+    },
+    "enrolled-traffic-plans": {
+      "status": "verified",
+      "scope": "Two enrolled Rookery query shapes passed ordinary-traffic plan capture and saved a Sonnet diagnosis through Railway.",
+      "remaining": "Requires opt-in logging for a dedicated direct login on the primary. More workloads, pooled and Data API sessions and cause-specific evidence remain.",
+      "evidence": [
+        "docs/design/hosted-query-agent/traffic-plans.md",
+        "docs/design/hosted-query-agent/evidence/traffic-plans-railway.json",
+        "internal/hostedquery/traffic_plan.go",
+        "internal/supabaseproject/traffic_plan.sql"
       ]
     }
   },
@@ -542,6 +556,14 @@
       "nodes": [
         "enrolled-measured-plan",
         "enrolled-lookup-diagnosis"
+      ]
+    },
+    {
+      "label": "Task 40 · Read plans from ordinary traffic",
+      "summary": "Railway saved Sonnet diagnoses for a two-filter lookup and an ordered range using PostgreSQL plans from normal Rookery calls.",
+      "nodes": [
+        "enrolled-traffic-plans",
+        "inspection"
       ]
     }
   ]

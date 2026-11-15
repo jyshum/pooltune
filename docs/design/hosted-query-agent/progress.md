@@ -465,3 +465,12 @@ Jared requested measured plans next, Rookery verification through Railway, the m
 Task 39 verified job 155 on Railway deployment f4242c95-a401-417a-8a8f-a6b83f3c09a8, source 3162f73. The owner ran a single bounded EXPLAIN ANALYZE on the exact enrolled integer lookup under its Rookery app role. The scan returned one row, removed 99,999 and hit 443 shared blocks. Railway attached the measured plan to one Sonnet call and saved the diagnosis in 6.584 s of worker time. The healthy query queued nothing; all 80 ordinary pairs passed and matched PostgreSQL counters. Sample execution explicitly requires owner action, a <=750 ms statement and <=2 s transaction, a small heap and a maintenance-free capture window. Database publication and read enforce seven typed plan fields. Internal state retains the full admitted diagnosis. [Design and evidence](enrolled-plans.md).
 
 After the disconnect, the Rookery fixture and its credentials were removed. Railway confirmed private standby on deployment `6ed07f5d-39f2-429a-88e7-841631b25a38` with zero staged changes. The map marks this exact plan reader verified and keeps general evidence collection and investigation open.
+
+
+## Execution plans from ordinary traffic
+
+Task 40 adds an owner-authorized reader for sampled plans from normal enrolled app calls. The final private Railway run used source `c287c2e`, with two-filter and ordered-range shapes on Rookery. Jobs `198` and `199` both saved one Sonnet diagnosis with the ordinary-traffic plan attached. The query counters incremented by exactly 120 for each of three enrolled statements, and the healthy control queued nothing. There were zero app errors and zero query replays.
+
+Early qualification hit provider transport errors in Railway even when completed Rookery plan samples were available. The running image lacked system TLS roots. The final image adds the standard root bundle without weakening HTTPS verification. Local coverage includes exact grants, denied active role switching, revocation during the provider response, strict plan fields, and a single queued retry for missing evidence. The staged retry did run once on each earlier job. The final test used the original four-second windows with no deferral needed. [Design and qualification](traffic-plans.md).
+
+The Rookery fixtures were removed and the temporary Logs Read token was revoked. Railway is back in private standby and the build map now shows two verified ordinary-traffic plan shapes. The broader **Inspect existing evidence** card remains partial.

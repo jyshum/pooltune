@@ -1,0 +1,416 @@
+{
+  "source": "c287c2e57a489a7a0e1250555681124a4f5ccad9",
+  "deployment": "9d718eac-c601-4612-8d96-34dfaea5258c",
+  "registered_at": "2026-11-15T08:38:14.792511832Z",
+  "monitor_interval_seconds": 2,
+  "monitor_window_seconds": 4,
+  "baseline_objective_ms": {
+    "conjunction": 0.5,
+    "ordered_range": 0.5,
+    "healthy": 1
+  },
+  "queued": {
+    "at": "2026-11-15T08:38:38.365660207Z",
+    "event": "poll",
+    "decisions": {
+      "investigate": 2,
+      "no_change": 1
+    },
+    "job_ids": [
+      198,
+      199
+    ],
+    "target_ms": 160.097561,
+    "total_ms": 180.434911
+  },
+  "diagnoses_saved": [
+    {
+      "at": "2026-11-15T08:38:46.541071479Z",
+      "event": "diagnosis_saved",
+      "attempt": 1,
+      "elapsed_ms": 7973.568382,
+      "job_id": 198,
+      "model": "claude-sonnet-5-5",
+      "model_ms": 4530.8773,
+      "outcome": "diagnosed",
+      "plan_captured_at": "2026-11-15T08:38:28.516Z",
+      "plan_node": "Seq Scan",
+      "plan_source": "ordinary_traffic",
+      "plan_source_status": "available",
+      "supported_causes": null
+    },
+    {
+      "at": "2026-11-15T08:38:56.646663590Z",
+      "event": "diagnosis_saved",
+      "attempt": 1,
+      "elapsed_ms": 8294.556651,
+      "job_id": 199,
+      "model": "claude-sonnet-5-5",
+      "model_ms": 4389.39674,
+      "outcome": "diagnosed",
+      "plan_captured_at": "2026-11-15T08:38:38.52Z",
+      "plan_child_node": "Sort",
+      "plan_node": "Limit",
+      "plan_source": "ordinary_traffic",
+      "plan_source_status": "available",
+      "supported_causes": null
+    }
+  ],
+  "earlier_trials": {
+    "initial": {
+      "deployment": "63fa4c5c-6a37-4def-9517-852e27c762f6",
+      "source": "a19ab53",
+      "interval_seconds": 2,
+      "window_seconds": 4,
+      "events": [
+        {
+          "at": "2026-11-15T08:16:14.874217386Z",
+          "event": "poll",
+          "decisions": {
+            "investigate": 2,
+            "no_change": 1
+          },
+          "job_ids": [
+            157,
+            158
+          ],
+          "target_ms": 158.92198,
+          "total_ms": 166.329929
+        },
+        {
+          "at": "2026-11-15T08:16:16.339436026Z",
+          "event": "diagnosis_saved",
+          "attempt": 1,
+          "elapsed_ms": 1323.428596,
+          "job_id": 157,
+          "outcome": "insufficient_evidence"
+        },
+        {
+          "at": "2026-11-15T08:16:19.649746932Z",
+          "event": "diagnosis_saved",
+          "attempt": 1,
+          "elapsed_ms": 1302.627285,
+          "job_id": 158,
+          "outcome": "insufficient_evidence"
+        }
+      ],
+      "traffic": {
+        "started_at": "2026-11-15T08:15:58.008771+00:00",
+        "ended_at": "2026-11-15T08:16:53.549526+00:00",
+        "elapsed_seconds": 55.54014570801519,
+        "baseline": {
+          "conjunction": 1,
+          "ordered_range": 1,
+          "healthy": 1
+        },
+        "calls": {
+          "conjunction": 101,
+          "ordered_range": 101,
+          "healthy": 101
+        },
+        "successful_rounds": 100,
+        "errors": 0
+      }
+    },
+    "short_window_retry": {
+      "deployment": "294a4ad7-f111-45a4-af69-2e538382f0a6",
+      "source": "c2f2282",
+      "interval_seconds": 2,
+      "window_seconds": 4,
+      "events": [
+        {
+          "at": "2026-11-15T08:24:18.074757131Z",
+          "event": "poll",
+          "decisions": {
+            "investigate": 2,
+            "no_change": 1
+          },
+          "job_ids": [
+            160,
+            161
+          ],
+          "target_ms": 156.318626,
+          "total_ms": 164.031487
+        },
+        {
+          "at": "2026-11-15T08:24:19.632262196Z",
+          "event": "diagnosis_deferred",
+          "attempt": 1,
+          "elapsed_ms": 1335.177786,
+          "job_id": 160,
+          "outcome": "awaiting_evidence",
+          "reason": "traffic_plan_unavailable"
+        },
+        {
+          "at": "2026-11-15T08:24:22.912887790Z",
+          "event": "diagnosis_deferred",
+          "attempt": 1,
+          "elapsed_ms": 1397.625516,
+          "job_id": 161,
+          "outcome": "awaiting_evidence",
+          "reason": "traffic_plan_unavailable"
+        },
+        {
+          "at": "2026-11-15T08:24:42.290917956Z",
+          "event": "diagnosis_saved",
+          "attempt": 1,
+          "elapsed_ms": 1344.665139,
+          "job_id": 162,
+          "outcome": "insufficient_evidence",
+          "reason": "traffic_plan_unavailable"
+        },
+        {
+          "at": "2026-11-15T08:24:45.651355183Z",
+          "event": "diagnosis_saved",
+          "attempt": 1,
+          "elapsed_ms": 1307.273363,
+          "job_id": 165,
+          "outcome": "insufficient_evidence",
+          "reason": "traffic_plan_unavailable"
+        }
+      ],
+      "traffic": {
+        "started_at": "2026-11-15T08:24:00.468705+00:00",
+        "ended_at": "2026-11-15T08:25:07.155836+00:00",
+        "elapsed_seconds": 66.68635624996386,
+        "baseline": {
+          "conjunction": 1,
+          "ordered_range": 1,
+          "healthy": 1
+        },
+        "calls": {
+          "conjunction": 121,
+          "ordered_range": 121,
+          "healthy": 121
+        },
+        "successful_rounds": 120,
+        "errors": 0
+      }
+    },
+    "wide_window": {
+      "source": "c2f2282",
+      "deployment": "94e22616-3785-489c-a10b-a68f733049bb",
+      "interval_seconds": 3,
+      "window_seconds": 15,
+      "events": [
+        {
+          "at": "2026-11-15T08:31:09.039606496Z",
+          "event": "poll",
+          "decisions": {
+            "investigate": 2,
+            "no_change": 1
+          },
+          "job_ids": [
+            176,
+            177
+          ],
+          "target_ms": 150.461125,
+          "total_ms": 163.110355
+        },
+        {
+          "at": "2026-11-15T08:31:11.747953942Z",
+          "event": "diagnosis_deferred",
+          "attempt": 1,
+          "elapsed_ms": 1492.479975,
+          "job_id": 176,
+          "outcome": "awaiting_evidence",
+          "reason": "traffic_plan_unavailable"
+        },
+        {
+          "at": "2026-11-15T08:31:15.122403153Z",
+          "event": "diagnosis_deferred",
+          "attempt": 1,
+          "elapsed_ms": 1327.909159,
+          "job_id": 177,
+          "outcome": "awaiting_evidence",
+          "reason": "traffic_plan_unavailable"
+        },
+        {
+          "at": "2026-11-15T08:31:44.027477815Z",
+          "event": "diagnosis_saved",
+          "attempt": 1,
+          "elapsed_ms": 1395.385644,
+          "job_id": 178,
+          "outcome": "insufficient_evidence",
+          "reason": "traffic_plan_unavailable"
+        },
+        {
+          "at": "2026-11-15T08:31:44.027481875Z",
+          "event": "diagnosis_saved",
+          "attempt": 1,
+          "elapsed_ms": 1455.808347,
+          "job_id": 179,
+          "outcome": "insufficient_evidence",
+          "reason": "traffic_plan_unavailable"
+        }
+      ],
+      "traffic": {
+        "started_at": "2026-11-15T08:29:57.874709+00:00",
+        "ended_at": "2026-11-15T08:31:59.935781+00:00",
+        "elapsed_seconds": 122.0601950000273,
+        "baseline": {
+          "conjunction": 1,
+          "ordered_range": 1,
+          "healthy": 1
+        },
+        "calls": {
+          "conjunction": 221,
+          "ordered_range": 221,
+          "healthy": 221
+        },
+        "successful_rounds": 220,
+        "errors": 0
+      },
+      "provider_visibility": {
+        "start": "2026-11-15T08:29:57.204990+00:00",
+        "polls": 4,
+        "first_visibility": {
+          "ordered_range": {
+            "observed_at": "2026-11-15T08:30:16.455022+00:00",
+            "earliest_visible_capture": "2026-11-15T08:29:58.180000+00:00",
+            "latest_visible_capture": "2026-11-15T08:30:07.375000+00:00",
+            "earliest_capture_age_seconds": 18.275022,
+            "latest_capture_age_seconds": 9.080022
+          },
+          "conjunction": {
+            "observed_at": "2026-11-15T08:30:16.455022+00:00",
+            "earliest_visible_capture": "2026-11-15T08:29:58.153000+00:00",
+            "latest_visible_capture": "2026-11-15T08:30:07.885000+00:00",
+            "earliest_capture_age_seconds": 18.302022,
+            "latest_capture_age_seconds": 8.570022
+          }
+        }
+      }
+    },
+    "transport_probe": {
+      "source": "afaf14b",
+      "deployment": "840040d9-b061-40e2-b2d0-af36e75270b1",
+      "events": [
+        {
+          "at": "2026-11-15T08:35:33.263033379Z",
+          "event": "poll",
+          "decisions": {
+            "investigate": 2,
+            "no_change": 1
+          },
+          "job_ids": [
+            182,
+            183
+          ],
+          "target_ms": 145.212197,
+          "total_ms": 159.073706
+        },
+        {
+          "at": "2026-11-15T08:35:34.572619531Z",
+          "event": "diagnosis_deferred",
+          "attempt": 1,
+          "elapsed_ms": 1293.029092,
+          "job_id": 182,
+          "outcome": "awaiting_evidence",
+          "plan_source_status": "transport_error",
+          "reason": "traffic_plan_unavailable"
+        },
+        {
+          "at": "2026-11-15T08:35:37.903196475Z",
+          "event": "diagnosis_deferred",
+          "attempt": 1,
+          "elapsed_ms": 1322.242227,
+          "job_id": 183,
+          "outcome": "awaiting_evidence",
+          "plan_source_status": "transport_error",
+          "reason": "traffic_plan_unavailable"
+        }
+      ],
+      "traffic": {
+        "started_at": "2026-11-15T08:34:26.112900+00:00",
+        "ended_at": "2026-11-15T08:36:19.883488+00:00",
+        "elapsed_seconds": 113.77264287503203,
+        "baseline": {
+          "conjunction": 1,
+          "ordered_range": 1,
+          "healthy": 1
+        },
+        "calls": {
+          "conjunction": 206,
+          "ordered_range": 206,
+          "healthy": 206
+        },
+        "successful_rounds": 205,
+        "errors": 0
+      }
+    }
+  },
+  "tls_fix": {
+    "source": "c287c2e",
+    "build_deployment": "68c67b3d-9c64-45e7-bd66-d81f054be109",
+    "old_linux_amd64_node_base": "sha256:3c51471c64f37739d631a7052a65f58f87181cad3794fb46b63c37c1e2b595b1",
+    "old_image_system_certificate_bundle_present": false,
+    "copy_step": "[stage-1 6/8] COPY --from=go-build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt"
+  },
+  "cleanup": {
+    "disconnect": {
+      "deployment": "d841adba-fd78-4e90-bb52-b43d8167a605",
+      "at": "2026-11-15T08:39:55.648778706Z"
+    },
+    "standby": {
+      "deployment": "37144a01-65bf-458c-b02e-97ffcb52fdf0",
+      "at": "2026-11-15T08:41:40.173670644Z",
+      "status": "SUCCESS"
+    },
+    "pilot_roles": 0,
+    "pilot_schemas": 0,
+    "pilot_sessions": 0,
+    "public_index_fingerprint_unchanged": true,
+    "staged_changes": 0,
+    "unchanged_existing_deployments": {
+      "Consumer": "c61a85fa-34ab-4876-ae61-fd3473d5da5d",
+      "Detector": "08dc4edd-6be5-4e96-a472-e3389b3d2d8f",
+      "Postgres": "5e66d902-c6f6-44ed-80dc-a43ec6cff816"
+    },
+    "revoked_token_status": 401,
+    "railway_pilot_variables_remaining": 0
+  },
+  "traffic": {
+    "started_at": "2026-11-15T08:38:17.908422+00:00",
+    "ended_at": "2026-11-15T08:39:24.578648+00:00",
+    "elapsed_seconds": 66.66981508396566,
+    "baseline": {
+      "conjunction": 1,
+      "ordered_range": 1,
+      "healthy": 1
+    },
+    "calls": {
+      "conjunction": 121,
+      "ordered_range": 121,
+      "healthy": 121
+    },
+    "successful_rounds": 120,
+    "errors": 0
+  },
+  "saved_plan_metrics": {
+    "conjunction": {
+      "captured_at": "2026-11-15T08:38:28.516Z",
+      "node": "Seq Scan",
+      "child_node": null,
+      "estimated_rows": 1,
+      "actual_rows": 1,
+      "loops": 1,
+      "filtered_rows": 119999,
+      "shared_hit_blocks": 531,
+      "shared_read_blocks": 0,
+      "execution_ms": 9.646
+    },
+    "ordered_range": {
+      "captured_at": "2026-11-15T08:38:38.52Z",
+      "node": "Limit",
+      "child_node": "Sort",
+      "estimated_rows": 5,
+      "actual_rows": 5,
+      "loops": 1,
+      "filtered_rows": null,
+      "shared_hit_blocks": 531,
+      "shared_read_blocks": 0,
+      "execution_ms": 10.449
+    }
+  }
+}
