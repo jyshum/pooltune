@@ -484,7 +484,7 @@
     "enrolled-lookup-evidence": {
       "status": "verified",
       "scope": "Real traffic counters and current index metadata passed under the exact owner grant. PostgreSQL recorded no lookup replay.",
-      "remaining": "The evidence is passive for a single integer equality lookup. Add authorized plans and more shapes.",
+      "remaining": "This card covers passive evidence for one integer equality lookup. The measured plan card records the owner-captured plan. Ordinary-traffic plans and broader query shapes remain.",
       "evidence": [
         "docs/design/hosted-query-agent/enrolled-railway.md",
         "internal/hostedquery/lookup_evidence.go"
