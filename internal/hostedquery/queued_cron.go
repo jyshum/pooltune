@@ -8,6 +8,53 @@ import (
 	"time"
 )
 
+var errCronHandoffExpired = errors.New("eligible handoff window expired after investigation")
+
+// Only a valid consecutive prefix can justify briefly waiting for its final
+// publication. Missing earlier cycles or invalid evidence must not hold a worker.
+func cronPublicationImminent(periods []CronPeriod, first time.Time) bool {
+	if len(periods) != 2 {
+		return false
+	}
+	for i, p := range periods {
+		if !p.Cycle.Equal(first.Add(time.Duration(i)*2*time.Minute)) || validateCronPeriod(p, true) != nil {
+			return false
+		}
+		if !sameCronCounter(periods[0].Busy.Target.Before, p.Busy.Target.Before) || !sameCronCounter(periods[0].Busy.Healthy.Before, p.Busy.Healthy.Before) || !sameCronCounter(periods[0].Busy.Write.Before, p.Busy.Write.Before) {
+			return false
+		}
+	}
+	return true
+}
+
+func waitCronPeriodPublication(ctx context.Context, state *pgx.Conn, id string, first time.Time, periods []CronPeriod, margin time.Duration) ([]CronPeriod, error) {
+	wait, cancel := context.WithTimeout(ctx, min(2*time.Second, margin))
+	defer cancel()
+	deadline, _ := wait.Deadline()
+	ticker := time.NewTicker(250 * time.Millisecond)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-wait.Done():
+			return periods, ctx.Err()
+		case <-ticker.C:
+			// Do not start a state query at the timeout boundary: cancellation
+			// could discard the connection needed to publish the durable child.
+			if wait.Err() != nil || time.Until(deadline) <= 250*time.Millisecond {
+				return periods, ctx.Err()
+			}
+			fresh, err := loadCronPeriods(wait, state, id, first)
+			if err != nil {
+				return nil, err
+			}
+			periods = fresh
+			if !cronPublicationImminent(periods, first) {
+				return periods, nil
+			}
+		}
+	}
+}
+
 // Recovery intake is independent of the ordinary two-attempt claim budget.
 // It schedules inspection only; a pending intent never authorizes another mutation.
 func ensureCronRecoveryClaim(ctx context.Context, state *pgx.Conn, project, id string) error {
@@ -193,6 +240,33 @@ func DispatchFixtureCron(ctx context.Context, state *pgx.Conn, config *pgx.ConnC
 		if err != nil {
 			return err
 		}
+		if cronPublicationImminent(r.Before, f.FirstCycle) {
+			r.Before, err = waitCronPeriodPublication(ctx, state, fixture.ID, f.FirstCycle, r.Before, admissionCutoff.Sub(now))
+			if err != nil {
+				return err
+			}
+			previous := now
+			now, g, err = readCronClock(ctx, target)
+			if err != nil {
+				return err
+			}
+			if now.Before(previous) || !g.same(f.Generation) || !now.Before(f.Expires) {
+				return final("inconclusive", "scheduler clock, generation or fixture lifetime changed while awaiting evidence")
+			}
+			if !now.Before(admissionCutoff) {
+				return final("inconclusive", "eligible handoff window expired before model admission")
+			}
+			var currentStatus string
+			if err = state.QueryRow(ctx, "SELECT status FROM "+journalTable+" WHERE id=$1 AND target=$2", fixture.ID, journalTargetConfig(config, route)).Scan(&currentStatus); err != nil {
+				return err
+			}
+			if currentStatus != status {
+				return final("inconclusive", "Cron action state changed while awaiting evidence")
+			}
+			if err = validateCronFixture(ctx, target, state, fixture.ID, f, cronOriginal); err != nil {
+				return final("inconclusive", err.Error())
+			}
+		}
 		// The earliest evidence time does not guarantee the recorder committed.
 		// Keep missing periods pending through the existing durable continuation,
 		// bounded by the unchanged model-admission cutoff. Never fabricate them.
@@ -256,6 +330,17 @@ func DispatchFixtureCron(ctx context.Context, state *pgx.Conn, config *pgx.ConnC
 		if !cronCause(r.Evidence) {
 			return final("no_change", "Cron cause not qualified")
 		}
+		previous := now
+		now, g, err = readCronClock(ctx, target)
+		if err != nil {
+			return err
+		}
+		if now.Before(previous) || !g.same(f.Generation) || !now.Before(f.Expires) {
+			return final("inconclusive", "scheduler clock, generation or fixture lifetime changed before investigation")
+		}
+		if !now.Before(admissionCutoff) {
+			return final("inconclusive", "eligible handoff window expired before model admission")
+		}
 		beforeModelClock := now
 		if err = runIndexInvestigator(ctx, claim, result, r.Evidence, investigate); err != nil {
 			return err
@@ -284,6 +369,9 @@ func DispatchFixtureCron(ctx context.Context, state *pgx.Conn, config *pgx.ConnC
 			}
 			if now.Before(beforeModelClock) {
 				return errors.New("target database clock reversed during investigation")
+			}
+			if g.same(f.Generation) && !now.Before(deadline.Add(-8*time.Second)) {
+				return errCronHandoffExpired
 			}
 			if err = validateCronWitness(f.Witness.ID, r.PreWitness, last.Add(time.Minute), deadline.Add(-8*time.Second), now, f.Generation, g); err != nil {
 				return err
@@ -320,6 +408,9 @@ func DispatchFixtureCron(ctx context.Context, state *pgx.Conn, config *pgx.ConnC
 			_, err = tx.Exec(ctx, "SELECT cron.alter_job($1::bigint,schedule := $2)", f.Target.ID, cronAlternate)
 			return err
 		})
+		if errors.Is(err, errCronHandoffExpired) {
+			return final("inconclusive", errCronHandoffExpired.Error())
+		}
 		if err != nil {
 			return err
 		}

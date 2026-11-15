@@ -138,9 +138,7 @@ type trialReader interface {
 	QueryRow(context.Context, string, ...any) pgx.Row
 }
 
-func loadFixture(ctx context.Context, db trialReader, id string) (fixtureObjects, error) {
-	var ids fixtureObjects
-	err := db.QueryRow(ctx, `
+const loadFixtureSQL = `
 		SELECT n.oid,n.nspowner,c.oid,h.oid,cp.oid,hp.oid
 		FROM pg_namespace n JOIN pg_class c ON c.relnamespace=n.oid AND c.relname='candidate'
 		JOIN pg_class h ON h.relnamespace=n.oid AND h.relname='healthy'
@@ -153,8 +151,14 @@ func loadFixture(ctx context.Context, db trialReader, id string) (fixtureObjects
 		AND NOT EXISTS (SELECT FROM aclexplode(COALESCE(n.nspacl,acldefault('n',n.nspowner))) acl
 			WHERE acl.grantee<>n.nspowner)
 		AND c.relkind='r' AND h.relkind='r' AND NOT c.relispartition AND NOT h.relispartition
-	`, trialSchema(id), "pooltune trial "+id).Scan(&ids.Schema, &ids.Owner, &ids.Candidate, &ids.Healthy, &ids.CandidatePK, &ids.HealthyPK)
-	return ids, err
+	`
+
+func scanFixtureObjects(row pgx.Row) (ids fixtureObjects, err error) {
+	err = row.Scan(&ids.Schema, &ids.Owner, &ids.Candidate, &ids.Healthy, &ids.CandidatePK, &ids.HealthyPK)
+	return
+}
+func loadFixture(ctx context.Context, db trialReader, id string) (fixtureObjects, error) {
+	return scanFixtureObjects(db.QueryRow(ctx, loadFixtureSQL, trialSchema(id), "pooltune trial "+id))
 }
 
 func expectedFixture(ctx context.Context, state *pgx.Conn, id string) (fixtureObjects, error) {

@@ -84,14 +84,25 @@ END`, expires.UTC().Format(time.RFC3339Nano), qualified(schema, "candidate"))
 	}
 	return nil
 }
-func readCronRoutine(ctx context.Context, db trialReader, schema, name string) (r CronRoutine, err error) {
-	err = db.QueryRow(ctx, `SELECT p.oid,p.proowner,pg_get_functiondef(p.oid),pg_get_function_identity_arguments(p.oid),NOT p.prosecdef AND NOT EXISTS(SELECT FROM aclexplode(COALESCE(p.proacl,acldefault('f',p.proowner))) a WHERE a.grantee<>p.proowner) FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname=$1 AND p.proname=$2`, schema, name).Scan(&r.OID, &r.Owner, &r.Definition, &r.Signature, &r.Private)
+
+const readCronRoutineSQL = `SELECT p.oid,p.proowner,pg_get_functiondef(p.oid),pg_get_function_identity_arguments(p.oid),NOT p.prosecdef AND NOT EXISTS(SELECT FROM aclexplode(COALESCE(p.proacl,acldefault('f',p.proowner))) a WHERE a.grantee<>p.proowner) FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname=$1 AND p.proname=$2`
+const readCronJobSQL = `SELECT jobid,jobname,username,database,command,schedule,active FROM cron.job WHERE jobname=$1`
+
+func scanCronRoutine(row pgx.Row) (r CronRoutine, err error) {
+	err = row.Scan(&r.OID, &r.Owner, &r.Definition, &r.Signature, &r.Private)
 	return
 }
-func readCronJob(ctx context.Context, db trialReader, name string) (j CronJob, err error) {
-	err = db.QueryRow(ctx, `SELECT jobid,jobname,username,database,command,schedule,active FROM cron.job WHERE jobname=$1`, name).Scan(&j.ID, &j.Name, &j.Owner, &j.Database, &j.Command, &j.Schedule, &j.Active)
+func readCronRoutine(ctx context.Context, db trialReader, schema, name string) (CronRoutine, error) {
+	return scanCronRoutine(db.QueryRow(ctx, readCronRoutineSQL, schema, name))
+}
+func scanCronJob(row pgx.Row) (j CronJob, err error) {
+	err = row.Scan(&j.ID, &j.Name, &j.Owner, &j.Database, &j.Command, &j.Schedule, &j.Active)
 	return
 }
+func readCronJob(ctx context.Context, db trialReader, name string) (CronJob, error) {
+	return scanCronJob(db.QueryRow(ctx, readCronJobSQL, name))
+}
+
 func sameCronJob(a, b CronJob, allowSchedule bool) bool {
 	if a.ID <= 0 || b.ID != a.ID {
 		return false
@@ -234,29 +245,41 @@ func CreateCronFixture(ctx context.Context, target, state *pgx.Conn, route strin
 	return f, errors.Join(err, RemoveConsumerFixture(cleanup, tc, sc, route, f.ID))
 }
 
-func validateCronFixture(ctx context.Context, db trialReader, state *pgx.Conn, id string, f CronFixture, schedule string) error {
+type cronCatalogReader interface {
+	SendBatch(context.Context, *pgx.Batch) pgx.BatchResults
+}
+
+func validateCronFixture(ctx context.Context, db cronCatalogReader, state *pgx.Conn, id string, f CronFixture, schedule string) (err error) {
 	objects, err := expectedFixture(ctx, state, id)
 	if err != nil {
 		return err
 	}
-	actual, err := loadFixture(ctx, db, id)
+	// Only independent catalog observations are pipelined. The exact existing
+	// SQL and decoders are shared with individual reads, and every comparison
+	// below must still pass before the caller can measure or mutate anything.
+	batch := &pgx.Batch{}
+	batch.Queue(loadFixtureSQL, trialSchema(id), "pooltune trial "+id)
+	batch.Queue(readCronRoutineSQL, trialSchema(id), cronReadFunction)
+	batch.Queue(readCronRoutineSQL, trialSchema(id), cronProcedure)
+	batch.Queue(readCronJobSQL, f.Target.Name)
+	batch.Queue(readCronJobSQL, f.Witness.Name)
+	results := db.SendBatch(ctx, batch)
+	defer func() { err = errors.Join(err, results.Close()) }()
+	actual, err := scanFixtureObjects(results.QueryRow())
 	if err != nil || actual != objects {
 		return errors.Join(errors.New("Cron table identity changed"), err)
 	}
-	for _, pair := range []struct {
-		name     string
-		expected CronRoutine
-	}{{cronReadFunction, f.Read}, {cronProcedure, f.Procedure}} {
-		r, err := readCronRoutine(ctx, db, trialSchema(id), pair.name)
+	for _, expected := range []CronRoutine{f.Read, f.Procedure} {
+		r, err := scanCronRoutine(results.QueryRow())
 		if err != nil {
 			return err
 		}
-		if !r.Private || !reflect.DeepEqual(r, pair.expected) {
+		if !r.Private || !reflect.DeepEqual(r, expected) {
 			return errors.New("Cron routine identity changed")
 		}
 	}
 	for _, j := range []CronJob{f.Target, f.Witness} {
-		current, err := readCronJob(ctx, db, j.Name)
+		current, err := scanCronJob(results.QueryRow())
 		if err != nil {
 			return err
 		}

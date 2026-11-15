@@ -1320,5 +1320,184 @@
       "execution_ms_per_second": 1.784649599999966,
       "scope": "Selected collector statements present during on windows and absent from matched off windows. Not total CPU, memory or connection cost."
     }
+  },
+  {
+    "file": "cron-20261114-212237.json",
+    "repair": "cron",
+    "passed": false,
+    "error": "Cron acknowledgement publication deadline expired",
+    "detection_seconds": 19.862,
+    "repair_seconds": 304.646,
+    "traffic_errors": 0,
+    "missed_requests": 0,
+    "fixture_removed": true,
+    "public_indexes_unchanged": true,
+    "workers": [
+      {
+        "job_id": "146",
+        "outcome": "awaiting_evidence",
+        "elapsed_ms": 2875.191055,
+        "family": "cron",
+        "timings": {
+          "action_wall_ms": 0,
+          "investigation_wall_ms": 0
+        }
+      },
+      {
+        "job_id": "148",
+        "outcome": "awaiting_evidence",
+        "elapsed_ms": 2004.019291,
+        "family": "cron",
+        "timings": {
+          "action_wall_ms": 0,
+          "investigation_wall_ms": 0
+        }
+      },
+      {
+        "job_id": "149",
+        "outcome": null,
+        "elapsed_ms": null
+      }
+    ],
+    "monitoring_comparison": [
+      {
+        "phase": "monitor_off",
+        "seconds": 20,
+        "target_database_mean_ms": 0.14216484999999998,
+        "requests": {
+          "target": {
+            "completed": 40,
+            "errors": 0,
+            "missed": 0,
+            "p50_ms": 143.0225070000015,
+            "p95_ms": 146.1271010000055,
+            "p99_ms": 149.00117600000522
+          },
+          "healthy": {
+            "completed": 80,
+            "errors": 0,
+            "missed": 0,
+            "p50_ms": 149.546749000001,
+            "p95_ms": 150.34882800000196,
+            "p99_ms": 152.96099800000957
+          },
+          "write": {
+            "completed": 40,
+            "errors": 0,
+            "missed": 0,
+            "p50_ms": 152.34175000000687,
+            "p95_ms": 153.44298900000285,
+            "p99_ms": 155.5766050000093
+          }
+        }
+      },
+      {
+        "phase": "monitor_on",
+        "seconds": 20,
+        "target_database_mean_ms": 0.10342577500000001,
+        "requests": {
+          "target": {
+            "completed": 40,
+            "errors": 0,
+            "missed": 0,
+            "p50_ms": 139.40114799998992,
+            "p95_ms": 144.66259100000025,
+            "p99_ms": 145.00904499999888
+          },
+          "healthy": {
+            "completed": 80,
+            "errors": 0,
+            "missed": 0,
+            "p50_ms": 149.38343999999051,
+            "p95_ms": 150.96341199999733,
+            "p99_ms": 151.74009099999967
+          },
+          "write": {
+            "completed": 40,
+            "errors": 0,
+            "missed": 0,
+            "p50_ms": 152.13016099999368,
+            "p95_ms": 153.2036300000036,
+            "p99_ms": 186.98203499999363
+          }
+        }
+      },
+      {
+        "phase": "monitor_on",
+        "seconds": 20,
+        "target_database_mean_ms": 0.09863054999999998,
+        "requests": {
+          "target": {
+            "completed": 40,
+            "errors": 0,
+            "missed": 0,
+            "p50_ms": 140.0759390000021,
+            "p95_ms": 144.4398940000101,
+            "p99_ms": 144.581995000015
+          },
+          "healthy": {
+            "completed": 80,
+            "errors": 0,
+            "missed": 0,
+            "p50_ms": 149.52092700000503,
+            "p95_ms": 150.27541400000337,
+            "p99_ms": 150.75808400000096
+          },
+          "write": {
+            "completed": 40,
+            "errors": 0,
+            "missed": 0,
+            "p50_ms": 152.22899999999208,
+            "p95_ms": 152.86432300001616,
+            "p99_ms": 153.5023790000123
+          }
+        }
+      },
+      {
+        "phase": "monitor_off",
+        "seconds": 20,
+        "target_database_mean_ms": 0.09119587499999997,
+        "requests": {
+          "target": {
+            "completed": 40,
+            "errors": 0,
+            "missed": 0,
+            "p50_ms": 140.80327499998384,
+            "p95_ms": 144.65313200000674,
+            "p99_ms": 145.18828699999722
+          },
+          "healthy": {
+            "completed": 80,
+            "errors": 0,
+            "missed": 0,
+            "p50_ms": 149.6282829999982,
+            "p95_ms": 150.27092700000503,
+            "p99_ms": 150.3956499999913
+          },
+          "write": {
+            "completed": 40,
+            "errors": 0,
+            "missed": 0,
+            "p50_ms": 152.18395099998452,
+            "p95_ms": 153.03530600000522,
+            "p99_ms": 153.71426199999405
+          }
+        }
+      }
+    ],
+    "selected_extra_statements": {
+      "calls": 20,
+      "execution_ms": 73.66284099999939,
+      "observed_seconds": 40,
+      "execution_ms_per_second": 1.8415710249999848,
+      "scope": "Selected collector statements present during on windows and absent from matched off windows. Not total CPU, memory or connection cost."
+    }
+  },
+  {
+    "file": "cron-failure-checkpoint.json",
+    "repair": "cron",
+    "public_indexes_unchanged": true,
+    "workers": [],
+    "monitoring_comparison": []
   }
 ]
