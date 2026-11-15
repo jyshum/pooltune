@@ -1,0 +1,82 @@
+{
+  "source": "3162f73",
+  "pilot_deployment": "f4242c95-a401-417a-8a8f-a6b83f3c09a8",
+  "sample": {
+    "captured_at": "2026-11-15T07:23:03.953786+00:00",
+    "sample": {
+      "node": "Seq Scan",
+      "actual_rows": 1,
+      "execution_ms": 35.827,
+      "filtered_rows": 99999,
+      "estimated_rows": 1,
+      "shared_hit_blocks": 443,
+      "shared_read_blocks": 0
+    },
+    "ordinary_query_count": {
+      "slow": 1,
+      "healthy": 1
+    }
+  },
+  "traffic": {
+    "traffic_started": "2026-11-15T07:23:31.397933+00:00",
+    "traffic_duration_seconds": 29.346118917048443,
+    "calls": {
+      "slow": 81,
+      "healthy": 81
+    },
+    "baseline": {
+      "slow": 1,
+      "healthy": 1
+    },
+    "successful_pairs": 80,
+    "errors": 0
+  },
+  "job_queued": {
+    "at": "2026-11-15T07:23:48.863499639Z",
+    "decisions": {
+      "investigate": 1,
+      "no_change": 1
+    },
+    "job_ids": [
+      155
+    ],
+    "target_ms": 144.672858,
+    "total_ms": 154.522042
+  },
+  "diagnosis_saved": {
+    "at": "2026-11-15T07:23:55.503826975Z",
+    "attempt": 1,
+    "elapsed_ms": 6584.49193,
+    "job_id": 155,
+    "model": "claude-sonnet-5-5",
+    "model_ms": 4327.664281,
+    "outcome": "diagnosed",
+    "plan_node": "Seq Scan",
+    "supported_causes": [
+      "index"
+    ]
+  },
+  "disconnect": {
+    "deployment": "bae5b25c-da2b-494e-a6be-f604314c9a14",
+    "at": "2026-11-15T07:24:31.458717198Z",
+    "status": "disconnected"
+  },
+  "standby": {
+    "deployment": "6ed07f5d-39f2-429a-88e7-841631b25a38",
+    "at": "2026-11-15T07:26:09.686049835Z",
+    "status": "SUCCESS"
+  },
+  "cleanup": {
+    "pilot_variables_removed": true,
+    "pilot_schemas": 0,
+    "pilot_roles": 0,
+    "pilot_sessions": 0,
+    "public_index_fingerprint_unchanged": true,
+    "staged_changes": 0
+  },
+  "existing_deployments": {
+    "Consumer": "c61a85fa-34ab-4876-ae61-fd3473d5da5d",
+    "Detector": "08dc4edd-6be5-4e96-a472-e3389b3d2d8f",
+    "Postgres": "5e66d902-c6f6-44ed-80dc-a43ec6cff816"
+  }
+}

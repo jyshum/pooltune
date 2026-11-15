@@ -461,3 +461,7 @@ Review found a startup race with a first disconnect. A local regression demonstr
 ## Live execution plans for enrolled lookups
 
 Jared requested measured plans next, Rookery verification through Railway, the map update and a local revamp commit. Base 4c101e0. Inherited Ask + milestones and native execution. One separately owner-captured representative app-role plan is added to passive diagnostic evidence; no new automatic repair, provider-token grant or customer rollout.
+
+Task 39 verified job 155 on Railway deployment f4242c95-a401-417a-8a8f-a6b83f3c09a8, source 3162f73. The owner ran a single bounded EXPLAIN ANALYZE on the exact enrolled integer lookup under its Rookery app role. The scan returned one row, removed 99,999 and hit 443 shared blocks. Railway attached the measured plan to one Sonnet call and saved the diagnosis in 6.584 s of worker time. The healthy query queued nothing; all 80 ordinary pairs passed and matched PostgreSQL counters. Sample execution explicitly requires owner action, a <=750 ms statement and <=2 s transaction, a small heap and a maintenance-free capture window. Database publication and read enforce seven typed plan fields. Internal state retains the full admitted diagnosis. [Design and evidence](enrolled-plans.md).
+
+After the disconnect, the Rookery fixture and its credentials were removed. Railway confirmed private standby on deployment `6ed07f5d-39f2-429a-88e7-841631b25a38` with zero staged changes. The map marks this exact plan reader verified and keeps general evidence collection and investigation open.

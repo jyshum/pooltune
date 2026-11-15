@@ -3,9 +3,9 @@
   "id": "pooltune-hosted-agent",
   "title": "Maintain Supabase query performance",
   "workType": "Build progress and remaining work",
-  "summary": "Railway now monitors an owner-enrolled Rookery lookup, queues a slowdown and saves a read-only Sonnet diagnosis. Six earlier repair cases also passed in staging. Live plans for ordinary workloads, general-purpose repair targeting and customer setup remain.",
+  "summary": "Railway monitors an owner-enrolled Rookery lookup and saves Sonnet’s diagnosis. An owner-captured execution plan for one exact integer lookup now passes from Rookery through Railway. Broader plan shapes, general repair targeting and customer setup remain.",
   "sourceRevision": {
-    "commit": "e5b4dcf26b94a212adb38808c9db4a9367416b45",
+    "commit": "3162f73cdf97539484df91ea79abd31f32b3eea2",
     "dirty": false
   },
   "components": [
@@ -211,6 +211,11 @@
           "path": "docs/design/hosted-query-agent/enrolled-railway.md",
           "revision": "e5b4dcf26b94a212adb38808c9db4a9367416b45",
           "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/enrolled-plans.md",
+          "revision": "3162f73cdf97539484df91ea79abd31f32b3eea2",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
@@ -377,7 +382,7 @@
       "id": "inspection",
       "label": "Inspect existing evidence",
       "type": "service",
-      "purpose": "An owner-approved lookup now has verified traffic and catalog evidence. Live plans and broader evidence are still needed.",
+      "purpose": "The enrolled lookup can use a measured app-role plan and real traffic evidence. More query shapes and evidence readers remain.",
       "decisionIds": [
         "d-reuse",
         "d-identity"
@@ -422,10 +427,15 @@
           "path": "docs/design/hosted-query-agent/enrolled-railway.md",
           "revision": "e5b4dcf26b94a212adb38808c9db4a9367416b45",
           "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/enrolled-plans.md",
+          "revision": "3162f73cdf97539484df91ea79abd31f32b3eea2",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "An owner-approved lookup now has verified traffic and catalog evidence. Live plans and broader evidence are still needed.",
+      "changeSummary": "The enrolled lookup can use a measured app-role plan and real traffic evidence. More query shapes and evidence readers remain.",
       "stack": [
         "Go"
       ],
@@ -1771,6 +1781,11 @@
           "path": "docs/design/hosted-query-agent/enrolled-railway.md",
           "revision": "e5b4dcf26b94a212adb38808c9db4a9367416b45",
           "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/enrolled-plans.md",
+          "revision": "3162f73cdf97539484df91ea79abd31f32b3eea2",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
@@ -1825,6 +1840,29 @@
       "stack": [
         "Go",
         "Railway",
+        "PostgreSQL",
+        "LangGraph"
+      ]
+    },
+    {
+      "id": "enrolled-measured-plan",
+      "label": "Measured lookup plan: verified",
+      "type": "service",
+      "purpose": "Read one approved measured PostgreSQL plan with actual rows, filtered rows, buffers and execution time.",
+      "decisionIds": [],
+      "sources": [
+        {
+          "path": "docs/design/hosted-query-agent/enrolled-plans.md",
+          "revision": "3162f73cdf97539484df91ea79abd31f32b3eea2",
+          "kind": "verified"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Read one approved measured PostgreSQL plan with actual rows, filtered rows, buffers and execution time.",
+      "after": "Read one approved measured PostgreSQL plan with actual rows, filtered rows, buffers and execution time.",
+      "parent": "tools",
+      "stack": [
+        "Go",
         "PostgreSQL",
         "LangGraph"
       ]
@@ -2028,6 +2066,12 @@
       "from": "hosted-enrolled-flow",
       "to": "enrolled-lookup-diagnosis",
       "label": "runs Sonnet and saves the result"
+    },
+    {
+      "id": "e-enrolled-evidence-measured-plan",
+      "from": "enrolled-lookup-evidence",
+      "to": "enrolled-measured-plan",
+      "label": "includes a current owner-captured plan when available"
     }
   ],
   "decisions": [

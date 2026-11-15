@@ -427,6 +427,6 @@ Tasks 27–29 completed for the explicitly bounded diagnostic slice. Sonnet pass
 
 **Authority:** Jared requested live execution plans, Railway/Rookery qualification, a map update and a local revamp commit. Continue existing ask + milestones and native execution. The [bounded sample design](enrolled-plans.md) preserves the stopped-before-customer-mutation review boundary and adds no repair. Scope uses owner-approved test objects and the existing staging service.
 
-- [ ] Prove an explicitly permitted, read-only measured sample for the exact app role and statement.
-- [ ] Check sample freshness and binding before Sonnet and before publishing the diagnosis, with passive fallback for absent plans.
-- [ ] Verify the exact flow on Rookery through Railway, disconnect and clean up, and record the result in the map.
+- [x] Prove an explicitly permitted, read-only measured sample for the exact app role and statement.
+- [x] Check sample freshness and binding before Sonnet and before publishing the diagnosis, with passive fallback for absent plans.
+- [x] Verify the exact flow on Rookery through Railway, disconnect and clean up, and record the result in the map.
