@@ -5,11 +5,12 @@ import { evidenceFields, orderedColumnsSchema, screenEvidence, type Evidence, ty
 
 export const toolSchema=z.enum(['plan','indexes','analyze','statistics','vacuum','memory','cron']);
 export type DiagnosticTool=z.infer<typeof toolSchema>;
+const observationToolSchema=z.enum([...toolSchema.options,'lookup']);
 const repairSchema=z.enum(['index','analyze','statistics','vacuum','memory','cron']);
 const identityShape={run_id:z.string().min(1).max(64),table_oid:z.number().int().positive().max(4294967295),column_number:z.number().int().positive().max(32767),column_numbers:orderedColumnsSchema.optional()};
-export const observationSchema=z.strictObject({...identityShape,tool:toolSchema,observed_at:z.iso.datetime(),status:z.enum(['available','unavailable']),data:z.unknown().optional()});
+export const observationSchema=z.strictObject({...identityShape,tool:observationToolSchema,observed_at:z.iso.datetime(),status:z.enum(['available','unavailable']),data:z.unknown().optional()});
 export type Observation=z.infer<typeof observationSchema>;
-export const diagnosticInputSchema=z.strictObject({...identityShape,decision:z.enum(['investigate','no_change','insufficient_evidence']),initial:z.array(observationSchema).max(7)});
+export const diagnosticInputSchema=z.strictObject({...identityShape,mode:z.literal('enrolled_lookup').optional(),decision:z.enum(['investigate','no_change','insufficient_evidence']),initial:z.array(observationSchema).max(7)});
 export type DiagnosticInput=z.infer<typeof diagnosticInputSchema>;
 export const diagnosticDecisionSchema=z.strictObject({
  action:z.enum(['request_evidence','propose','no_change']),repair:repairSchema.nullable(),tools:z.array(toolSchema).max(3),
@@ -17,14 +18,21 @@ export const diagnosticDecisionSchema=z.strictObject({
  reason:z.string().min(1).max(300),
 });
 export type DiagnosticDecision=z.infer<typeof diagnosticDecisionSchema>;
-export type DiagnosticView={identity:{run_id:string;table_oid:number;column_number:number;column_numbers?:[2,3]};observations:Observation[];history:DiagnosticDecision[];remaining_model_calls:number;remaining_reads:number};
+export type DiagnosticView={mode?:'enrolled_lookup';identity:{run_id:string;table_oid:number;column_number:number;column_numbers?:[2,3]};observations:Observation[];history:DiagnosticDecision[];remaining_model_calls:number;remaining_reads:number};
 export type DiagnosticDecider=(view:DiagnosticView,signal:AbortSignal)=>Promise<{decision:unknown;model?:string;input_tokens?:number;output_tokens?:number}>;
 export type DiagnosticReader=(tool:DiagnosticTool,signal:AbortSignal)=>Promise<unknown>;
 const stateSchema=new StateSchema({input:diagnosticInputSchema,observations:z.array(observationSchema).default([]),history:z.array(diagnosticDecisionSchema).default([]),
  model_calls:z.number().default(0),reads:z.number().default(0),model_ms:z.number().default(0),tool_ms:z.number().default(0),
  started_at:z.number().default(0),current:diagnosticDecisionSchema.optional(),stop_reason:z.string().default(''),
  proposal:z.custom<Proposal>().optional(),model:z.string().default(''),input_tokens:z.number().default(0),output_tokens:z.number().default(0)});
-const schemas={plan:evidenceFields.shape.plan,indexes:z.strictObject({covering_index:z.boolean()}),analyze:evidenceFields.shape.analyze.unwrap(),statistics:evidenceFields.shape.statistics.unwrap(),vacuum:evidenceFields.shape.vacuum.unwrap(),memory:evidenceFields.shape.memory.unwrap(),cron:evidenceFields.shape.cron.unwrap()};
+const count=z.number().int().nonnegative();
+const lookupSchema=z.strictObject({
+ objective_ms:z.number().positive(),recent_window_mean_ms:z.array(z.number().nonnegative()).length(5),
+ recent_window_calls:z.array(count.positive()).length(5),recent_window_shared_block_accesses:z.array(count).length(5),
+ table_pages:count,estimated_table_rows:z.number().nonnegative().nullable(),leading_btree:z.boolean(),
+ modified_since_analyze:count,estimated_dead_rows:count,
+});
+const schemas={lookup:lookupSchema,plan:evidenceFields.shape.plan,indexes:z.strictObject({covering_index:z.boolean()}),analyze:evidenceFields.shape.analyze.unwrap(),statistics:evidenceFields.shape.statistics.unwrap(),vacuum:evidenceFields.shape.vacuum.unwrap(),memory:evidenceFields.shape.memory.unwrap(),cron:evidenceFields.shape.cron.unwrap()};
 function identity(input:DiagnosticInput){return {run_id:input.run_id,table_oid:input.table_oid,column_number:input.column_number,...(input.column_numbers?{column_numbers:input.column_numbers}:{})};}
 function checkedObservation(raw:unknown,input:DiagnosticInput,now:number,expected?:DiagnosticTool):Observation {
  const o=observationSchema.parse(raw);
@@ -48,22 +56,25 @@ export function buildDiagnosticGraph(decide:DiagnosticDecider,read:DiagnosticRea
   if(s.input.decision!=='investigate')return {started_at,stop_reason:s.input.decision};
   try{
    const observations=s.input.initial.map(o=>checkedObservation(o,s.input,now()));
+   if(s.input.mode==='enrolled_lookup'&&(observations.length!==1||observations[0].tool!=='lookup'||observations[0].status!=='available'))throw Error('lookup evidence');
+   if(!s.input.mode&&observations.some(o=>o.tool==='lookup'))throw Error('unexpected lookup');
    if(new Set(observations.map(o=>o.tool)).size!==observations.length)throw Error('duplicate');
    return {started_at,observations};
   }catch{return {started_at,stop_reason:'invalid_evidence'};}
  })
  .addNode('compare_causes',async s=>{
   if(now()-s.started_at>=20000)return {stop_reason:'time_budget_exhausted'};
-  if(s.model_calls>=3)return {stop_reason:'model_budget_exhausted'};
+  const lookup=s.input.mode==='enrolled_lookup';
+  if(s.model_calls>=(lookup?1:3))return {stop_reason:'model_budget_exhausted'};
   try{for(const o of s.observations)checkedObservation(o,s.input,now());}catch{return {stop_reason:'invalid_evidence'};}
   const start=performance.now();
   try{
-   const result=await bounded(signal=>decide({identity:identity(s.input),observations:s.observations,history:s.history,remaining_model_calls:3-s.model_calls,remaining_reads:6-s.reads},signal),Math.min(8500,20000-(now()-s.started_at)));
+   const result=await bounded(signal=>decide({...(lookup?{mode:s.input.mode}:{}),identity:identity(s.input),observations:s.observations,history:s.history,remaining_model_calls:(lookup?1:3)-s.model_calls,remaining_reads:lookup?0:6-s.reads},signal),Math.min(8500,20000-(now()-s.started_at)));
    const meta={model_calls:s.model_calls+1,model_ms:s.model_ms+performance.now()-start,model:result.model||s.model,input_tokens:s.input_tokens+(result.input_tokens||0),output_tokens:s.output_tokens+(result.output_tokens||0)};
    const parsed=diagnosticDecisionSchema.safeParse(result.decision);
    if(!parsed.success)return {...meta,stop_reason:'invalid_model_output'};
    const d=parsed.data;
-   if(new Set(d.assessments.map(a=>a.cause)).size!==d.assessments.length||
+   if((lookup&&d.action!=='no_change')||new Set(d.assessments.map(a=>a.cause)).size!==d.assessments.length||
     (d.action==='request_evidence'&&(d.repair!==null||d.tools.length===0||new Set(d.tools).size!==d.tools.length))||
     (d.action!=='request_evidence'&&d.tools.length!==0)||
     (d.action==='propose'&&d.repair===null)||(d.action==='no_change'&&d.repair!==null))return {...meta,stop_reason:'invalid_model_output'};

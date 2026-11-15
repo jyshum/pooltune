@@ -31,8 +31,10 @@ type DiagnosticObservation struct {
 }
 type DiagnosticInput struct {
 	DiagnosticIdentity
-	Decision hostedquery.Decision    `json:"decision"`
-	Initial  []DiagnosticObservation `json:"initial"`
+	Mode       string                      `json:"mode,omitempty"`
+	AdmitModel func(context.Context) error `json:"-"`
+	Decision   hostedquery.Decision        `json:"decision"`
+	Initial    []DiagnosticObservation     `json:"initial"`
 }
 type DiagnosticResult struct {
 	Proposal      hostedquery.IndexProposal `json:"proposal"`
@@ -109,7 +111,7 @@ func diagnosticProcess(stateDSN string, replay bool) (DiagnosticInvestigator, er
 }
 func validObservation(o DiagnosticObservation, input DiagnosticInput, tool string) bool {
 	age := time.Since(o.At)
-	return SameDiagnosticIdentity(o.DiagnosticIdentity, input.DiagnosticIdentity) && o.Tool == tool && diagnosticTools[tool] && !o.At.IsZero() && age >= 0 && age <= 30*time.Second &&
+	return SameDiagnosticIdentity(o.DiagnosticIdentity, input.DiagnosticIdentity) && o.Tool == tool && (diagnosticTools[tool] || (input.Mode == "enrolled_lookup" && tool == "lookup")) && !o.At.IsZero() && age >= 0 && age <= 30*time.Second &&
 		((o.Status == "available" && json.Valid(o.Data) && !bytes.Equal(o.Data, []byte("null"))) || (o.Status == "unavailable" && (len(o.Data) == 0 || bytes.Equal(o.Data, []byte("null")))))
 }
 func strictJSON(data []byte, dst any) error {
@@ -144,6 +146,15 @@ func runDiagnostic(parent context.Context, input DiagnosticInput, read Diagnosti
 	defer cancel()
 	if input.RunID == "" || len(input.RunID) > 64 || input.TableOID == 0 || !hostedquery.ValidIndexColumns(input.Column, input.Columns) || len(input.Initial) > 7 {
 		return result, errors.New("invalid diagnostic input")
+	}
+	lookup := input.Mode == "enrolled_lookup"
+	if (input.Mode != "" && !lookup) || (lookup && (input.AdmitModel == nil || len(input.Initial) != 1 ||
+		input.Initial[0].Tool != "lookup" || input.Initial[0].Status != "available")) {
+		return result, errors.New("invalid enrolled lookup input")
+	}
+	maxAttempts := 3
+	if lookup {
+		maxAttempts = 1
 	}
 	observations := map[string]DiagnosticObservation{}
 	for _, o := range input.Initial {
@@ -198,7 +209,12 @@ func runDiagnostic(parent context.Context, input DiagnosticInput, read Diagnosti
 			if frame.Tool != "" || frame.Result != nil {
 				return result, errors.New("invalid model admission frame")
 			}
-			allowed := attempts < 3
+			allowed := attempts < maxAttempts
+			if allowed && input.AdmitModel != nil {
+				if err := input.AdmitModel(ctx); err != nil {
+					return result, err
+				}
+			}
 			if allowed && len(budget) > 0 && budget[0].reserve != nil {
 				var reserveErr error
 				attempts, reserveErr = budget[0].reserve(ctx)
@@ -212,7 +228,7 @@ func runDiagnostic(parent context.Context, input DiagnosticInput, read Diagnosti
 				return result, errors.New("model admission handoff failed")
 			}
 		case "read":
-			if frame.Result != nil || !diagnosticTools[frame.Tool] || observations[frame.Tool].Tool != "" || reads >= 6 {
+			if lookup || frame.Result != nil || !diagnosticTools[frame.Tool] || observations[frame.Tool].Tool != "" || reads >= 6 {
 				return result, errors.New("invalid diagnostic evidence request")
 			}
 			reads++
@@ -255,7 +271,7 @@ func runDiagnostic(parent context.Context, input DiagnosticInput, read Diagnosti
 			}
 			result = *frame.Result
 			result.ModelAttempts = attempts
-			if result.Reads != reads || result.ModelCalls < 0 || result.ModelCalls > 3 || result.ModelMS < 0 || result.ToolMS < 0 || len(result.History) > 3 || validateDiagnosticResult(input, observations, result) != nil {
+			if result.Reads != reads || result.ModelCalls < 0 || result.ModelCalls > maxAttempts || result.ModelMS < 0 || result.ToolMS < 0 || len(result.History) > 3 || validateDiagnosticResult(input, observations, result) != nil {
 				return result, errors.New("unsupported diagnostic result")
 			}
 			stdin.Close()
@@ -277,6 +293,9 @@ func validateDiagnosticResult(input DiagnosticInput, observations map[string]Dia
 	p := result.Proposal
 	if p.RunID != input.RunID || p.TableOID != input.TableOID || p.Column != input.Column || !slices.Equal(p.Columns, input.Columns) || len(p.Reason) == 0 || len(p.Reason) > 1000 || (p.Outcome != "no_change" && p.Outcome != "propose") {
 		return errors.New("identity")
+	}
+	if input.Mode == "enrolled_lookup" && p.Outcome != "no_change" {
+		return errors.New("enrolled diagnosis does not authorize repair")
 	}
 	if p.Outcome == "no_change" {
 		if p.Repair != "" {

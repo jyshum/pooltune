@@ -406,3 +406,11 @@ Tasks 27–29 completed for the explicitly bounded diagnostic slice. Sonnet pass
 - [x] Prove the owner setup and dedicated identity with a failing real PostgreSQL test first. Cover distinct app/monitor roles, exact statement identity, absent/unenrolled counters, unauthorized grants, TLS and revocation.
 - [x] Prove disconnect/unenroll with a failing queue test first. Implement registration, observation and disconnect using the existing polling lock/state and persist the detector handoff.
 - [x] Qualify the normal entry points on local PostgreSQL and synthetic traffic on the real Rookery direct TLS endpoint. Observe a healthy and a slow query, restarts, revoked access and cleanup. Run Go race/vet and affected PostgreSQL tests, review and commit locally.
+
+### Task 37: Diagnose a real enrolled query
+
+**Authority:** Jared asked for the evidence reader next, real Sonnet on Rookery, and a local revamp commit. Inherited ask + milestones and native execution. Existing approval boundaries before automatic changes stay in force. Task 36's connection is the dependency and no further intermediate checkpoint was agreed for read-only diagnosis.
+
+- [x] Build and test the optional owner-installed lookup grant and narrow live catalog reader.
+- [x] Connect the existing managed queue to the same LangGraph in diagnosis-only mode. Recheck access during model admission and before saving a result.
+- [x] Exercise detector, reader, and real Sonnet on owned Rookery traffic. Verify no unauthorized evidence or repair, cleanup, regression checks and scoped local commits.

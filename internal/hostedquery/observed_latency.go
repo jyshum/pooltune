@@ -15,8 +15,9 @@ type ObservedLookupLatency struct {
 	SharedBlockAccesses []int64   `json:"recent_window_shared_block_accesses,omitempty"`
 }
 
+const maxObservedLookupAge = 10 * time.Minute
+
 func observedLookupLatency(raw []byte, planObservedAt time.Time) *ObservedLookupLatency {
-	const maxAge = 10 * time.Minute
 	var queued struct {
 		ObjectiveMS  float64         `json:"objective_ms"`
 		WindowCalls  []int64         `json:"recent_window_calls"`
@@ -32,7 +33,7 @@ func observedLookupLatency(raw []byte, planObservedAt time.Time) *ObservedLookup
 	if !nonnegativeFinite(observed.ObjectiveMS) || observed.ObjectiveMS == 0 ||
 		len(queued.Means) != 5 || len(observed.WindowCalls) != 5 ||
 		last.Start.IsZero() || !last.End.After(last.Start) || last.End.After(planObservedAt) ||
-		planObservedAt.Sub(last.End) > maxAge || last.Decision != Investigate ||
+		planObservedAt.Sub(last.End) > maxObservedLookupAge || last.Decision != Investigate ||
 		last.Calls != observed.WindowCalls[4] {
 		return nil
 	}

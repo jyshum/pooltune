@@ -13,6 +13,7 @@ import (
 	"syscall"
 	"time"
 
+	"pooltune/internal/graphrunner"
 	"pooltune/internal/hostedquery"
 	"pooltune/internal/labdb"
 	"pooltune/internal/supabaseproject"
@@ -20,7 +21,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-const usage = "usage: pooltune-project {setup-sql|connect|run|disconnect} -ref PROJECT_REF -key INSTALLATION_KEY"
+const usage = "usage: pooltune-project {setup-sql|setup-evidence-sql|connect|run|diagnose|disconnect} -ref PROJECT_REF -key INSTALLATION_KEY"
 
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
@@ -37,7 +38,7 @@ func execute(ctx context.Context, args []string, output io.Writer) error {
 	}
 	command := args[0]
 	switch command {
-	case "setup-sql", "connect", "run", "disconnect":
+	case "setup-sql", "setup-evidence-sql", "connect", "run", "diagnose", "disconnect":
 	default:
 		return errors.New(usage)
 	}
@@ -62,7 +63,12 @@ func execute(ctx context.Context, args []string, output io.Writer) error {
 		return err
 	}
 
-	stateConfig, err := labdb.StateConfig(os.Getenv("POOLTUNE_WORKER_STATE_DSN"))
+	if command == "setup-evidence-sql" {
+		_, err := io.WriteString(output, project.LookupEvidenceSQL())
+		return err
+	}
+	stateDSN := os.Getenv("POOLTUNE_WORKER_STATE_DSN")
+	stateConfig, err := labdb.StateConfig(stateDSN)
 	if err != nil {
 		return fmt.Errorf("Pooltune state configuration: %w", err)
 	}
@@ -87,7 +93,7 @@ func execute(ctx context.Context, args []string, output io.Writer) error {
 		return encoder.Encode(map[string]string{"project": project.ID(), "status": "disconnected"})
 	}
 	var epoch int64
-	if command == "run" {
+	if command == "run" || command == "diagnose" {
 		epoch, err = hostedquery.ProjectMonitorEpoch(setup, state, project)
 		if err != nil {
 			return monitorError("read project registration", err)
@@ -106,6 +112,18 @@ func execute(ctx context.Context, args []string, output io.Writer) error {
 		return labdb.Diagnostic("connect to the Supabase monitor", err)
 	}
 	defer labdb.Close(target)
+	if command == "diagnose" {
+		cancel()
+		investigate, err := graphrunner.ProjectLookupInvestigator(stateDSN)
+		if err != nil {
+			return err
+		}
+		result, err := hostedquery.DiagnoseProjectLookup(ctx, state, target, project, epoch, investigate)
+		if err != nil {
+			return monitorError("diagnose enrolled query", err)
+		}
+		return encoder.Encode(result)
+	}
 	monitor, err := hostedquery.NewProjectMonitor(target, state, project, policy)
 	if err != nil {
 		return err

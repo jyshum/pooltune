@@ -13,3 +13,11 @@ var installTemplate string
 func (p Project) InstallSQL() string {
 	return strings.ReplaceAll(installTemplate, "pooltune_monitor_role", p.Role())
 }
+
+//go:embed lookup_evidence.sql
+var lookupEvidenceTemplate string
+
+// LookupEvidenceSQL adds optional diagnosis permissions to an existing monitor.
+func (p Project) LookupEvidenceSQL() string {
+	return strings.ReplaceAll(lookupEvidenceTemplate, "pooltune_monitor_role", p.Role())
+}

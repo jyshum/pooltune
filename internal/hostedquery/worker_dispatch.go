@@ -26,6 +26,7 @@ type investigationClaim struct {
 }
 
 type DispatchResult struct {
+	LookupDiagnosis  *LookupDiagnosis         `json:"lookup_diagnosis,omitempty"`
 	JobID            int64                    `json:"job_id"`
 	Attempt          int                      `json:"attempt"`
 	Outcome          string                   `json:"outcome"`
@@ -52,10 +53,14 @@ type DispatchResult struct {
 type InvestigationEvidence func(context.Context, InvestigationJob) (IndexEvidence, error)
 
 func claimInvestigation(ctx context.Context, state *pgx.Conn, project string) (*investigationClaim, error) {
+	return claimProjectInvestigation(ctx, state, project, nil)
+}
+
+func claimProjectInvestigation(ctx context.Context, state *pgx.Conn, project string, epoch *int64) (*investigationClaim, error) {
 	claim := investigationClaim{Project: project}
 	err := pgx.BeginTxFunc(ctx, state, pgx.TxOptions{IsoLevel: pgx.ReadCommitted}, func(tx pgx.Tx) error {
 		var locked string
-		if err := tx.QueryRow(ctx, "SELECT project_id FROM pooltune_worker.projects WHERE project_id=$1 AND monitor_epoch IS NULL FOR UPDATE", project).Scan(&locked); err != nil {
+		if err := tx.QueryRow(ctx, "SELECT project_id FROM pooltune_worker.projects WHERE project_id=$1 AND monitor_epoch IS NOT DISTINCT FROM $2::bigint FOR UPDATE", project, epoch).Scan(&locked); err != nil {
 			return err
 		}
 		// A new statement after the project lock sees a competing consumer's committed claim.
