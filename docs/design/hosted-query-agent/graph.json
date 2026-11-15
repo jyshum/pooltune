@@ -3,7 +3,7 @@
   "id": "pooltune-hosted-agent",
   "title": "Maintain Supabase query performance",
   "workType": "Build progress and remaining work",
-  "summary": "The simple repair route passed local checks and a Railway preflight. The live run still needs a scoped Rookery token. Local PostgreSQL also verified discovered evidence, a targeted statistics refresh and index recovery.",
+  "summary": "The simple setup passed a complete compound-index repair on Railway with no manual query IDs. The other five repair families and hosted interruption recovery still need the same product-flow verification.",
   "sourceRevision": {
     "commit": "c76a49bb8b52127f9e3b58998afa6bee0c61b030",
     "dirty": false
@@ -387,7 +387,7 @@
       "id": "inspection",
       "label": "Inspect existing evidence",
       "type": "service",
-      "purpose": "Two ordinary plan shapes passed earlier on Railway. Local PostgreSQL now ties discovered one- and two-key integer lookups to their real table, keys, app role, and statistics generation.",
+      "purpose": "Two ordinary-traffic plan shapes passed earlier. The Railway worker now used the actual query and catalog keys discovered after simple setup to verify one compound repair.",
       "decisionIds": [
         "d-reuse",
         "d-identity"
@@ -445,12 +445,12 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Two ordinary plan shapes passed earlier on Railway. Local PostgreSQL now ties discovered one- and two-key integer lookups to their real table, keys, app role, and statistics generation.",
+      "changeSummary": "Two ordinary-traffic plan shapes passed earlier. The Railway worker now used the actual query and catalog keys discovered after simple setup to verify one compound repair.",
       "stack": [
         "Go"
       ],
       "parent": "tools",
-      "after": "Two ordinary plan shapes passed earlier on Railway. Local PostgreSQL now ties discovered one- and two-key integer lookups to their real table, keys, app role, and statistics generation.",
+      "after": "Two ordinary-traffic plan shapes passed earlier. The Railway worker now used the actual query and catalog keys discovered after simple setup to verify one compound repair.",
       "expandWhy": "Which discovered statements can Pooltune match to their app role and database objects?"
     },
     {
@@ -492,7 +492,7 @@
       "id": "index",
       "label": "Add a nonunique index",
       "type": "service",
-      "purpose": "A compound repair passed through the advanced hosted form. Local checks and a healthy staging deployment qualify the new simple-form route before activation.",
+      "purpose": "Both advanced enrollment and simple setup ran a compound repair through Railway. The simple form selected indexes and PostgreSQL verified the exact discovered key pair.",
       "decisionIds": [
         "d-trials"
       ],
@@ -509,12 +509,12 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "A compound repair passed through the advanced hosted form. Local checks and a healthy staging deployment qualify the new simple-form route before activation.",
+      "changeSummary": "Both advanced enrollment and simple setup ran a compound repair through Railway. The simple form selected indexes and PostgreSQL verified the exact discovered key pair.",
       "stack": [
         "Go"
       ],
       "parent": "tools",
-      "after": "A compound repair passed through the advanced hosted form. Local checks and a healthy staging deployment qualify the new simple-form route before activation.",
+      "after": "Both advanced enrollment and simple setup ran a compound repair through Railway. The simple form selected indexes and PostgreSQL verified the exact discovered key pair.",
       "expandWhy": "Which index shapes can Pooltune create today?"
     },
     {
@@ -875,7 +875,7 @@
       "id": "repair-coverage",
       "label": "Qualify broader repairs",
       "type": "service",
-      "purpose": "Six bounded repair cases passed earlier. Local PostgreSQL now verifies an enrolled statistics refresh against a real column position with measured improvement.",
+      "purpose": "Earlier fixtures verified all six bounded families. The compound case now passes through simple setup on Railway. The enrolled statistics-refresh component passed in local PostgreSQL.",
       "decisionIds": [],
       "sources": [
         {
@@ -890,8 +890,8 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Six bounded repair cases passed earlier. Local PostgreSQL now verifies an enrolled statistics refresh against a real column position with measured improvement.",
-      "after": "Six bounded repair cases passed earlier. Local PostgreSQL now verifies an enrolled statistics refresh against a real column position with measured improvement.",
+      "changeSummary": "Earlier fixtures verified all six bounded families. The compound case now passes through simple setup on Railway. The enrolled statistics-refresh component passed in local PostgreSQL.",
+      "after": "Earlier fixtures verified all six bounded families. The compound case now passes through simple setup on Railway. The enrolled statistics-refresh component passed in local PostgreSQL.",
       "parent": "tools",
       "stack": [
         "Go"
@@ -901,7 +901,7 @@
       "id": "connect-project",
       "label": "Connect and enroll a project",
       "type": "service",
-      "purpose": "The simple form offers six repair choices. The Railway staging check verified the signed-in index option with a Rookery fixture configured without query IDs.",
+      "purpose": "The Railway simple form took a Rookery-scoped setup token, certificate and one index selection. It started a read-only monitor, discovered the workload and enabled the owned repair.",
       "decisionIds": [],
       "sources": [
         {
@@ -921,8 +921,8 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "The simple form offers six repair choices. The Railway staging check verified the signed-in index option with a Rookery fixture configured without query IDs.",
-      "after": "The simple form offers six repair choices. The Railway staging check verified the signed-in index option with a Rookery fixture configured without query IDs.",
+      "changeSummary": "The Railway simple form took a Rookery-scoped setup token, certificate and one index selection. It started a read-only monitor, discovered the workload and enabled the owned repair.",
+      "after": "The Railway simple form took a Rookery-scoped setup token, certificate and one index selection. It started a read-only monitor, discovered the workload and enabled the owned repair.",
       "parent": "backend",
       "stack": [
         "Go",
@@ -982,7 +982,7 @@
       "id": "activity",
       "label": "Project activity and controls",
       "type": "service",
-      "purpose": "The dashboard displayed a real owned compound repair. Local PostgreSQL also verified that an interrupted action can report a catalog result without claiming a measured improvement.",
+      "purpose": "The signed-in dashboard recorded the automatically discovered compound repair and its before-and-after measurements. Local checks also cover interrupted-action history.",
       "decisionIds": [],
       "sources": [
         {
@@ -992,8 +992,8 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "The dashboard displayed a real owned compound repair. Local PostgreSQL also verified that an interrupted action can report a catalog result without claiming a measured improvement.",
-      "after": "The dashboard displayed a real owned compound repair. Local PostgreSQL also verified that an interrupted action can report a catalog result without claiming a measured improvement.",
+      "changeSummary": "The signed-in dashboard recorded the automatically discovered compound repair and its before-and-after measurements. Local checks also cover interrupted-action history.",
+      "after": "The signed-in dashboard recorded the automatically discovered compound repair and its before-and-after measurements. Local checks also cover interrupted-action history.",
       "parent": "dashboard"
     },
     {
@@ -1028,7 +1028,7 @@
       "id": "operations",
       "label": "Production operations",
       "type": "service",
-      "purpose": "Railway previously verified an advanced compound repair and now serves the updated preview. The simple-form preflight passed, and regular settings were restored.",
+      "purpose": "Railway passed the simple form, discovery, repair and verification on owned Rookery. The token and fixture were removed and regular monitoring resumed.",
       "decisionIds": [],
       "sources": [
         {
@@ -1038,8 +1038,8 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Railway previously verified an advanced compound repair and now serves the updated preview. The simple-form preflight passed, and regular settings were restored.",
-      "after": "Railway previously verified an advanced compound repair and now serves the updated preview. The simple-form preflight passed, and regular settings were restored.",
+      "changeSummary": "Railway passed the simple form, discovery, repair and verification on owned Rookery. The token and fixture were removed and regular monitoring resumed.",
+      "after": "Railway passed the simple form, discovery, repair and verification on owned Rookery. The token and fixture were removed and regular monitoring resumed.",
       "stack": [
         "Go",
         "PostgreSQL",
@@ -1785,7 +1785,7 @@
       "label": "Choose indexes for real queries",
       "type": "service",
       "parent": "index",
-      "purpose": "The native executor resolved and verified ordered pairs [5,3] and [2,4]. The [2,4] case used the connected dashboard worker.",
+      "purpose": "The native executor resolved and verified ordered pairs [5,3] and [2,4]. Railway ran the [2,4] repair through simple setup and automatic discovery.",
       "decisionIds": [],
       "sources": [
         {
@@ -1795,8 +1795,8 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "The native executor resolved and verified ordered pairs [5,3] and [2,4]. The [2,4] case used the connected dashboard worker.",
-      "after": "The native executor resolved and verified ordered pairs [5,3] and [2,4]. The [2,4] case used the connected dashboard worker.",
+      "changeSummary": "The native executor resolved and verified ordered pairs [5,3] and [2,4]. Railway ran the [2,4] repair through simple setup and automatic discovery.",
+      "after": "The native executor resolved and verified ordered pairs [5,3] and [2,4]. Railway ran the [2,4] repair through simple setup and automatic discovery.",
       "stack": [
         "Go",
         "TypeScript"
@@ -2035,7 +2035,7 @@
       "id": "agent-permission-setup",
       "label": "Agent setup and repair choices",
       "type": "service",
-      "purpose": "Railway shows a scoped setup token and six repair choices, including Select all. No query IDs or table list are required.",
+      "purpose": "Railway served the six repair choices and used the selected index permission to run an eligible owned repair after the scoped setup request.",
       "decisionIds": [],
       "sources": [
         {
@@ -2045,8 +2045,8 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Railway shows a scoped setup token and six repair choices, including Select all. No query IDs or table list are required.",
-      "after": "Railway shows a scoped setup token and six repair choices, including Select all. No query IDs or table list are required.",
+      "changeSummary": "Railway served the six repair choices and used the selected index permission to run an eligible owned repair after the scoped setup request.",
+      "after": "Railway served the six repair choices and used the selected index permission to run an eligible owned repair after the scoped setup request.",
       "parent": "connect-project",
       "stack": [
         "Go",
@@ -2057,7 +2057,7 @@
       "id": "automatic-workload-discovery",
       "label": "Discover app traffic",
       "type": "service",
-      "purpose": "The installed monitor found two ordinary Rookery query shapes without manual query enrollment. One also returned bound passive evidence.",
+      "purpose": "The Rookery monitor found ordinary app traffic without manual query enrollment. Railway matched the discovered slow query to the saved verified compound repair.",
       "decisionIds": [],
       "sources": [
         {
@@ -2067,8 +2067,8 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "The installed monitor found two ordinary Rookery query shapes without manual query enrollment. One also returned bound passive evidence.",
-      "after": "The installed monitor found two ordinary Rookery query shapes without manual query enrollment. One also returned bound passive evidence.",
+      "changeSummary": "The Rookery monitor found ordinary app traffic without manual query enrollment. Railway matched the discovered slow query to the saved verified compound repair.",
+      "after": "The Rookery monitor found ordinary app traffic without manual query enrollment. Railway matched the discovered slow query to the saved verified compound repair.",
       "parent": "inspection",
       "stack": [
         "Go",
@@ -2146,7 +2146,7 @@
       "id": "discovered-index-evidence",
       "label": "Bind discovered lookup evidence",
       "type": "service",
-      "purpose": "Local PostgreSQL bound scalar and compound app queries to real table and ordered column identities and refused stale or unauthorized evidence.",
+      "purpose": "Local PostgreSQL bound scalar and compound lookups to their ordered keys. The Railway worker used that evidence for the automatic Rookery compound repair.",
       "decisionIds": [],
       "sources": [
         {
@@ -2156,8 +2156,8 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Local PostgreSQL bound scalar and compound app queries to real table and ordered column identities and refused stale or unauthorized evidence.",
-      "after": "Local PostgreSQL bound scalar and compound app queries to real table and ordered column identities and refused stale or unauthorized evidence.",
+      "changeSummary": "Local PostgreSQL bound scalar and compound lookups to their ordered keys. The Railway worker used that evidence for the automatic Rookery compound repair.",
+      "after": "Local PostgreSQL bound scalar and compound lookups to their ordered keys. The Railway worker used that evidence for the automatic Rookery compound repair.",
       "parent": "inspection",
       "stack": [
         "Go",
@@ -2166,20 +2166,20 @@
     },
     {
       "id": "automatic-hosted-index",
-      "label": "Repair a discovered lookup from simple setup",
+      "label": "Simple setup repair: verified",
       "type": "service",
-      "purpose": "The Railway preflight verified the simple setup form and an owned test target configured without query IDs.",
+      "purpose": "Railway used the simple index checkbox and a Rookery-scoped token. Ordinary Rookery traffic supplied the query identity. Pooltune built the approved compound index and recorded the measured improvement.",
       "decisionIds": [],
       "sources": [
         {
           "path": "internal/hostedquery/owned_project_index.go",
-          "revision": "e7ac83d98a52a446ae844e60e6942ccee5b15143",
-          "kind": "intended"
+          "revision": "c76a49bb8b52127f9e3b58998afa6bee0c61b030",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "The Railway preflight verified the simple setup form and an owned test target configured without query IDs.",
-      "after": "The Railway preflight verified the simple setup form and an owned test target configured without query IDs.",
+      "changeSummary": "Railway used the simple index checkbox and a Rookery-scoped token. Ordinary Rookery traffic supplied the query identity. Pooltune built the approved compound index and recorded the measured improvement.",
+      "after": "Railway used the simple index checkbox and a Rookery-scoped token. Ordinary Rookery traffic supplied the query identity. Pooltune built the approved compound index and recorded the measured improvement.",
       "parent": "index",
       "stack": [
         "Go",

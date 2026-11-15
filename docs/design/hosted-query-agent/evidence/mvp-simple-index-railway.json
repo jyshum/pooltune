@@ -1,0 +1,126 @@
+{
+  "deployment": "fc10e6e0-cd48-4e58-ac36-047b72586e30",
+  "installation": "872f35d075a48637",
+  "phase": "verified",
+  "setup_path": "existing simple setup form in Chrome, operated by Codex using the disposable project owner account",
+  "configured_query_ids": 0,
+  "initial_relation_bytes": 10731520,
+  "setup_fields": [
+    "setup_token",
+    "ca",
+    "capability"
+  ],
+  "polls_seen": 24,
+  "job_outcomes": [
+    "improved_tested_inputs"
+  ],
+  "mixed_traffic": {
+    "candidate": {
+      "before": {
+        "calls": 157,
+        "client_mean_ms": 41.85086864552455
+      },
+      "after": {
+        "calls": 36,
+        "client_mean_ms": 24.35749191499781
+      }
+    },
+    "healthy": {
+      "before": {
+        "calls": 157,
+        "client_mean_ms": 24.97540685907303
+      },
+      "after": {
+        "calls": 36,
+        "client_mean_ms": 23.816732659017564
+      }
+    },
+    "write": {
+      "before": {
+        "calls": 157,
+        "client_mean_ms": 28.899757903377722
+      },
+      "after": {
+        "calls": 36,
+        "client_mean_ms": 26.06332067160919
+      }
+    }
+  },
+  "job_id": 216,
+  "outcome": "improved_tested_inputs",
+  "model_ms": 3317.301164,
+  "metrics": {
+    "Measured latency for one input": {
+      "label": "Measured latency for one input",
+      "unit": "ms",
+      "before": 16.605,
+      "after": 0.07
+    },
+    "Block accesses for one input": {
+      "label": "Block accesses for one input",
+      "unit": "",
+      "before": 866,
+      "after": 4
+    }
+  },
+  "index_bytes": 3620864,
+  "prior_indexes_preserved": true,
+  "active_dashboard_verified": true,
+  "manual_query_enrollments": 0,
+  "query_id_readback_after_ordinary_traffic": true,
+  "target_counter_matched_job": true,
+  "healthy_control_queued": false,
+  "postgres_app_counters": {
+    "candidate": {
+      "query_id": -3021527920096250619,
+      "calls": 193,
+      "total_ms": 2456.027992,
+      "blocks": 130086
+    },
+    "healthy": {
+      "query_id": 1502779726511483422,
+      "calls": 193,
+      "total_ms": 14.925549,
+      "blocks": 864
+    },
+    "write": {
+      "query_id": 702562570535297747,
+      "calls": 193,
+      "total_ms": 55.728463,
+      "blocks": 2262
+    }
+  },
+  "dashboard_disconnected": true,
+  "owned_database_objects_removed": true,
+  "public_index_fingerprint_unchanged": true,
+  "source": "c76a49bb8b52127f9e3b58998afa6bee0c61b030",
+  "selected_repair_permissions": [
+    "index"
+  ],
+  "temporary_provider_access": {
+    "project": "Rookery",
+    "permission": "Database Read-write",
+    "expiry_option": "24 hours",
+    "revoked_after_test": true,
+    "provider_list_confirmed_removal": true
+  },
+  "postgres_catalog": {
+    "ordered_key_positions": [
+      2,
+      4
+    ],
+    "nonunique": true,
+    "valid_ready_live": true,
+    "prior_fixture_indexes_preserved": true
+  },
+  "regular_preview": {
+    "deployment": "4db5ebf5-ac18-4a0d-9022-1766cda50a4b",
+    "health_http": 200,
+    "fixture_variables_removed": true,
+    "sampling_interval": "1m",
+    "window": "5m",
+    "other_four_services_unchanged": true,
+    "pending_work": 0
+  },
+  "limits": "One owned compound case with a pre-authorized native fixture writer and a 2 ms test objective for the fixture workload. Ordinary traffic triggered the repair. Before and after database measurements use one bound input. Wider permissions, remaining repair families and a live restart during a repair still need qualification."
+}
