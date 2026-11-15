@@ -55,9 +55,15 @@ function checkedObservation(raw:unknown,input:DiagnosticInput,now:number,expecte
  else if(o.data!==undefined&&o.data!==null)throw Error('unavailable data');
  return o;
 }
+class DiagnosticDeadline extends Error {}
+
 async function bounded<T>(action:(signal:AbortSignal)=>Promise<T>,ms:number):Promise<T>{
  const controller=new AbortController();let timer:ReturnType<typeof setTimeout>;
- try{return await Promise.race([action(controller.signal),new Promise<never>((_,reject)=>{timer=setTimeout(()=>{controller.abort();reject(Error('deadline'));},Math.max(1,ms));})]);}
+ try{return await Promise.race([action(controller.signal),new Promise<never>((_,reject)=>{
+  // Classify our deadline before aborting the provider. The abort handler
+  // can also reject synchronously and otherwise hide the deadline.
+  timer=setTimeout(()=>{reject(new DiagnosticDeadline());controller.abort();},Math.max(1,ms));
+ })]);}
  finally{clearTimeout(timer!);}
 }
 
@@ -96,7 +102,12 @@ export function buildDiagnosticGraph(decide:DiagnosticDecider,read:DiagnosticRea
     if(d.tools.some(t=>s.observations.some(o=>o.tool===t)))return {...meta,stop_reason:'repeated_evidence_request'};
    }
    return {...meta,current:d,history:[...s.history,d]};
-  }catch(error){return {model_calls:s.model_calls+1,model_ms:s.model_ms+performance.now()-start,stop_reason:error instanceof Error&&error.name==='DiagnosticModelOutputError'&&['model_output_length','model_output_invalid'].includes(error.message)?error.message:'model_failed'};}
+  }catch(error){
+   let stop_reason='model_failed';
+   if(error instanceof DiagnosticDeadline||(error instanceof Error&&error.name==='APIConnectionTimeoutError'))stop_reason='model_timeout';
+   else if(error instanceof Error&&error.name==='DiagnosticModelOutputError'&&['model_output_length','model_output_invalid'].includes(error.message))stop_reason=error.message;
+   return {model_calls:s.model_calls+1,model_ms:s.model_ms+performance.now()-start,stop_reason};
+  }
  })
  .addNode('request_evidence',async s=>{
   const observations=[...s.observations];let reads=s.reads;const start=performance.now();
@@ -113,7 +124,8 @@ export function buildDiagnosticGraph(decide:DiagnosticDecider,read:DiagnosticRea
  })
  .addNode('finish',s=>{
   let stop_reason=s.stop_reason;
-  let proposal:Proposal={...identity(s.input),outcome:'no_change',reason:stop_reason||s.current?.reason||'Insufficient evidence.'};
+  const reason=stop_reason==='model_timeout'?'The model did not respond within its time budget.':stop_reason||s.current?.reason||'Insufficient evidence.';
+  let proposal:Proposal={...identity(s.input),outcome:'no_change',reason};
   if(!stop_reason&&s.current?.action==='propose'){
    try{
     if(now()-s.started_at>=20000)throw Error('deadline');

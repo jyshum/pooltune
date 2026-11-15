@@ -117,6 +117,37 @@ test('the hosted diagnostic accepts a column-target trial and declines contradic
  assert.equal(contradictory.stop_reason,'contradictory_evidence');
 });
 
+test('the graph reports its model deadline and aborts the pending call at the existing limit',async t=>{
+ t.mock.timers.enable({apis:['setTimeout']});
+ const started=Promise.withResolvers<void>();
+ let aborted=false;
+ const graph=buildDiagnosticGraph(async (_view,signal)=>await new Promise((_resolve,reject)=>{
+  signal.addEventListener('abort',()=>{aborted=true;reject(Error('private transport detail'));},{once:true});
+  started.resolve();
+ }),async()=>{throw Error('unexpected read');});
+ const run=graph.invoke({input:input(base)});
+ await started.promise;
+ t.mock.timers.tick(8499);
+ assert.equal(aborted,false);
+ t.mock.timers.tick(1);
+ const result=await run;
+ assert.equal(aborted,true);
+ assert.equal(result.model_calls,1);
+ assert.equal(result.proposal?.outcome,'no_change');
+ assert.equal(result.stop_reason,'model_timeout');
+ assert.equal(result.proposal?.reason,'The model did not respond within its time budget.');
+});
+
+test('provider timeouts use a typed stop reason without exposing provider detail',async()=>{
+ const providerError=new Error('private request status detail');
+ providerError.name='APIConnectionTimeoutError';
+ const graph=buildDiagnosticGraph(async()=>{throw providerError;},async()=>{throw Error('unexpected read');});
+ const result=await graph.invoke({input:input(base)});
+ assert.equal(result.proposal?.outcome,'no_change');
+ assert.equal(result.stop_reason,'model_timeout');
+ assert.doesNotMatch(result.proposal?.reason??'',/private request/);
+});
+
 test('expired initial evidence and elapsed investigation deadline stop without more work',async()=>{
  let clock=now,calls=0;
  const graph=buildDiagnosticGraph(async()=>{calls++;clock+=21000;return {decision:propose()};},async()=>{throw Error('Unexpected read');},undefined,()=>clock);
