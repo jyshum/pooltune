@@ -5,6 +5,7 @@ package hostedquery
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"sync"
 	"testing"
@@ -14,6 +15,50 @@ import (
 
 	"github.com/jackc/pgx/v5"
 )
+
+func TestManagedPollSkipsRepairFenceAndResumes(t *testing.T) {
+	ctx, config, _ := testpg.Start(t)
+	poll := openMonitorConn(t, ctx, config)
+	repair := openMonitorConn(t, ctx, config)
+	if err := PrepareWorkerState(ctx, poll); err != nil {
+		t.Fatal(err)
+	}
+	const project = "repair-fence"
+	if _, err := poll.Exec(ctx, "INSERT INTO pooltune_worker.projects(project_id,monitor_epoch) VALUES($1,5)", project); err != nil {
+		t.Fatal(err)
+	}
+	fence, err := repair.Begin(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer fence.Rollback(ctx)
+	if _, err := fence.Exec(ctx, "SELECT project_id FROM pooltune_worker.projects WHERE project_id=$1 FOR UPDATE", project); err != nil {
+		t.Fatal(err)
+	}
+	policy := SamplingPolicy{Interval: time.Second, Window: time.Second}
+	collects := 0
+	collect := func(context.Context) (Enrollment, map[queryKey]Counter, error) {
+		collects++
+		return Enrollment{Project: project}, nil, nil
+	}
+	at := time.Now().UTC()
+	bounded, cancel := context.WithTimeout(ctx, 300*time.Millisecond)
+	defer cancel()
+	skip, err := recordProjectPoll(bounded, poll, project, policy, at, 5, collect)
+	if err != nil || !skip.Skipped || collects != 0 {
+		t.Fatalf("held repair fence should skip a sample: result=%+v reads=%d err=%v", skip, collects, err)
+	}
+	if _, err := recordProjectPoll(bounded, poll, project, policy, at, 4, collect); !errors.Is(err, ErrProjectDisconnected) {
+		t.Fatalf("stale epoch under repair fence: %v", err)
+	}
+	if err := fence.Rollback(ctx); err != nil {
+		t.Fatal(err)
+	}
+	next, err := recordProjectPoll(ctx, poll, project, policy, at.Add(time.Second), 5, collect)
+	if err != nil || next.Skipped || collects != 1 {
+		t.Fatalf("poll resumes after the repair: result=%+v reads=%d err=%v", next, collects, err)
+	}
+}
 
 func TestRecordPollUpgradesHistoricalNumericCounter(t *testing.T) {
 	ctx, config, _ := testpg.Start(t)

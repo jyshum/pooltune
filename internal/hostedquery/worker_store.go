@@ -144,8 +144,24 @@ func recordProjectPoll(ctx context.Context, state *pgx.Conn, project string, pol
 		var last *time.Time
 		var raw []byte
 		var registered *int64
-		err := tx.QueryRow(ctx, "SELECT last_poll, evidence, monitor_epoch FROM pooltune_worker.projects WHERE project_id=$1 FOR UPDATE", project).Scan(&last, &raw, &registered)
-		if managed && (errors.Is(err, pgx.ErrNoRows) || (err == nil && (registered == nil || *registered != epoch))) {
+		lockProject := "SELECT last_poll, evidence, monitor_epoch FROM pooltune_worker.projects WHERE project_id=$1 FOR UPDATE"
+		if managed {
+			lockProject += " SKIP LOCKED"
+		}
+		err := tx.QueryRow(ctx, lockProject, project).Scan(&last, &raw, &registered)
+		if managed && errors.Is(err, pgx.ErrNoRows) {
+			// An active repair holds this row to fence pause and disconnect.
+			// Skip this sample without stopping the worker that owns the repair.
+			if err := tx.QueryRow(ctx, `SELECT monitor_epoch FROM pooltune_worker.projects WHERE project_id=$1`, project).Scan(&registered); err != nil && !errors.Is(err, pgx.ErrNoRows) {
+				return err
+			}
+			if registered == nil || *registered != epoch {
+				return ErrProjectDisconnected
+			}
+			result.Skipped = true
+			return nil
+		}
+		if managed && err == nil && (registered == nil || *registered != epoch) {
 			return ErrProjectDisconnected
 		}
 		if err != nil {
