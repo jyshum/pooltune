@@ -1,7 +1,8 @@
 {
   "sourceRevision": "baf9ce564a592f0c4bfb3006ceb0367b733079a1",
-  "summary": "Railway verified simple compound indexes, restart recovery, statistics refresh, table cleanup and function memory on Rookery. The remaining owned paths are joint statistics and job scheduling.",
+  "summary": "Railway verified the compound index and its post-write restart, statistics refresh, joint statistics, table cleanup and function memory on Rookery. Job scheduling and general project repair permissions need qualification.",
   "next": [
+    "cron",
     "repair-coverage",
     "inspection",
     "experiments",
@@ -158,7 +159,7 @@
       ],
       "statusLabel": "Simple compound repair verified",
       "remainingBuild": "Expand verified project authority for single-column and compound operations.",
-      "remainingVerification": "Qualify more filters, ordering and paused or interrupted builds."
+      "remainingVerification": "Qualify more filters and ordering, paused builds, and interruption before or during the PostgreSQL write. The post-write restart passed for the exact owned case."
     },
     "refresh": {
       "status": "verified",
@@ -177,22 +178,23 @@
     },
     "richer": {
       "status": "partial",
-      "scope": "Local PostgreSQL verified joint statistics and a separate column adjustment. Two Rookery controls used a fast index and correctly did not trigger a change.",
-      "remaining": "Verify joint statistics end to end against the qualified slow-plan fixture. Wire the individual-column settings case.",
+      "scope": "Railway retained joint statistics for two related columns on Rookery. The matched lookups went from 41.85 ms and 41.30 ms to 0.16 ms and 0.25 ms. Protected traffic passed. A separate column-setting change has local evidence.",
+      "remaining": "Bring column-specific settings into the hosted owner flow and qualify general project grants.",
       "evidence": [
         "docs/design/hosted-query-agent/richer-statistics.md",
         "internal/hostedquery/statistics_samples.go",
         "docs/product/query-performance-v1.md",
         "internal/hostedquery/project_statistics.go",
         "internal/hostedquery/owned_statistics_repairs_integration_test.go",
-        "docs/design/hosted-query-agent/evidence/mvp-owned-statistics-planner-control-railway.json"
+        "docs/design/hosted-query-agent/evidence/mvp-owned-statistics-planner-control-railway.json",
+        "docs/design/hosted-query-agent/evidence/mvp-owned-statistics-railway.json"
       ],
-      "statusLabel": "Joint statistics under qualification"
+      "statusLabel": "Joint statistics verified"
     },
     "cleanup": {
-      "status": "verified",
-      "scope": "Railway verified one targeted VACUUM on an owned Rookery table. Heap fetches went from 50,000 to zero and matched latency from 55.16 ms to 12.56 ms. Protected traffic passed.",
-      "remaining": "Wire the separate cleanup-trigger settings and qualify simple setup on regular connected projects.",
+      "status": "partial",
+      "scope": "Railway verified one targeted cleanup on an owned Rookery table. Heap fetches fell from 50,000 to zero and matched query time from 55.16 ms to 12.56 ms. Protected traffic passed.",
+      "remaining": "Wire cleanup-trigger settings and qualify simple setup on regular connected projects.",
       "evidence": [
         "docs/design/hosted-query-agent/bounded-vacuum.md",
         "docs/product/query-performance-v1.md",
@@ -203,7 +205,7 @@
         "docs/design/hosted-query-agent/evidence/mvp-owned-vacuum-first-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-owned-vacuum-railway.json"
       ],
-      "statusLabel": "Railway cleanup verified"
+      "statusLabel": "Plain cleanup verified"
     },
     "memory": {
       "status": "verified",
@@ -321,8 +323,8 @@
     },
     "repair-coverage": {
       "status": "partial",
-      "scope": "Compound indexes, targeted refresh, targeted cleanup and function memory have verified owner results on Railway. Scheduler recovery passed locally and the hosted index restart passed.",
-      "remaining": "Finish joint statistics and job scheduling in the owner flow. Hook remaining settings variants and qualify repair permissions on a generally connected project.",
+      "scope": "Compound indexes, targeted refresh, joint statistics, targeted cleanup and function memory have verified owner results on Railway. The index restart passed there and scheduler recovery passed locally.",
+      "remaining": "Verify Cron through the owner flow. Wire settings variants and verify the remaining checkbox permissions on a generally connected project.",
       "evidence": [
         "docs/design/hosted-query-agent/roadmap.md",
         "internal/hostedapp/supervisor.go",
@@ -337,9 +339,10 @@
         "internal/hostedquery/owned_cron_dispatch_integration_test.go",
         "docs/design/hosted-query-agent/evidence/mvp-owned-memory-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-owned-vacuum-railway.json",
-        "docs/design/hosted-query-agent/evidence/mvp-owned-cron-role-preflight-rookery.json"
+        "docs/design/hosted-query-agent/evidence/mvp-owned-cron-role-preflight-rookery.json",
+        "docs/design/hosted-query-agent/evidence/mvp-owned-statistics-railway.json"
       ],
-      "statusLabel": "Owner repair qualification continues"
+      "statusLabel": "Five owner repair cases verified"
     },
     "connect-project": {
       "status": "partial",
@@ -468,11 +471,13 @@
     },
     "statistics-joint": {
       "status": "verified",
-      "scope": "Joint-statistics case verified for related predicate columns.",
-      "remaining": "Column statistics targets and broader data distributions remain.",
+      "scope": "Railway retained joint statistics for two related columns on Rookery. The matched lookups went from 41.85 ms and 41.30 ms to 0.16 ms and 0.25 ms. Protected traffic passed.",
+      "remaining": "Qualify more column pairs, default planner settings and the simple setup flow.",
       "evidence": [
-        "docs/design/hosted-query-agent/richer-statistics.md"
-      ]
+        "docs/design/hosted-query-agent/richer-statistics.md",
+        "docs/design/hosted-query-agent/evidence/mvp-owned-statistics-railway.json"
+      ],
+      "statusLabel": "Railway joint statistics verified"
     },
     "statistics-target": {
       "status": "planned",
@@ -485,11 +490,13 @@
     },
     "cleanup-vacuum": {
       "status": "verified",
-      "scope": "Plain VACUUM case verified: reduce visibility work without replacing the index.",
-      "remaining": "Recurring cleanup settings and broader maintenance workloads remain.",
+      "scope": "Railway verified one targeted cleanup on an owned Rookery table. Heap fetches fell from 50,000 to zero and matched query time from 55.16 ms to 12.56 ms. Protected traffic passed.",
+      "remaining": "Qualify plain cleanup under normal project permissions and for wider table shapes.",
       "evidence": [
-        "docs/design/hosted-query-agent/bounded-vacuum.md"
-      ]
+        "docs/design/hosted-query-agent/bounded-vacuum.md",
+        "docs/design/hosted-query-agent/evidence/mvp-owned-vacuum-railway.json"
+      ],
+      "statusLabel": "Railway plain cleanup verified"
     },
     "cleanup-settings": {
       "status": "planned",
@@ -683,12 +690,13 @@
     },
     "generalized-compound-action": {
       "status": "verified",
-      "scope": "Real Sonnet and the native executor verified two different two-column pairs on owned Rookery. One ran through the Railway dashboard.",
-      "remaining": "General permissions, wider filters and ordering, and interrupted-action recovery remain.",
+      "scope": "Sonnet and PostgreSQL verified two owned two-column pairs. A separate Railway restart recovered the exact written index without building it again.",
+      "remaining": "Qualify general project permissions, more filters and ordering, and additional interruptions before or during the PostgreSQL write.",
       "evidence": [
         "internal/hostedquery/project_index_action.go",
         "docs/design/hosted-query-agent/evidence/mvp-compound-rookery.json",
-        "docs/design/hosted-query-agent/evidence/mvp-hosted-owned-index.json"
+        "docs/design/hosted-query-agent/evidence/mvp-hosted-owned-index.json",
+        "docs/design/hosted-query-agent/evidence/mvp-owned-index-restart-railway.json"
       ],
       "statusLabel": "Two real column pairs tested"
     },
@@ -873,12 +881,12 @@
     },
     {
       "label": "Task 55 · Qualify the remaining owner repairs",
-      "summary": "Railway saved verified refresh, function-memory and cleanup repairs. The monitor fix lets a repair finish while its permission lock is held.",
+      "summary": "Railway saved four more verified owner repairs on Rookery. Scheduling can resume locally and still needs scoped provider authority for six live cycles.",
       "nodes": [
         "refresh",
+        "statistics-joint",
+        "cleanup-vacuum",
         "memory",
-        "richer",
-        "cleanup",
         "cron",
         "repair-coverage"
       ]

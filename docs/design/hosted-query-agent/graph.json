@@ -3,7 +3,7 @@
   "id": "pooltune-hosted-agent",
   "title": "Maintain Supabase query performance",
   "workType": "Build progress and remaining work",
-  "summary": "Railway verified simple compound indexes, restart recovery, statistics refresh, table cleanup and function memory on Rookery. The remaining owned paths are joint statistics and job scheduling.",
+  "summary": "Railway verified the compound index and its post-write restart, statistics refresh, joint statistics, table cleanup and function memory on Rookery. Job scheduling and general project repair permissions need qualification.",
   "sourceRevision": {
     "commit": "baf9ce564a592f0c4bfb3006ceb0367b733079a1",
     "dirty": false
@@ -557,7 +557,7 @@
       "id": "richer",
       "label": "Improve statistics detail",
       "type": "service",
-      "purpose": "Local PostgreSQL verified joint statistics and a separate column adjustment. Two Rookery controls used a fast index and correctly did not trigger a change.",
+      "purpose": "Railway retained joint statistics for two related columns on Rookery. The matched lookups went from 41.85 ms and 41.30 ms to 0.16 ms and 0.25 ms. Protected traffic passed. A separate column-setting change has local evidence.",
       "decisionIds": [],
       "sources": [
         {
@@ -574,22 +574,27 @@
           "path": "docs/design/hosted-query-agent/evidence/mvp-owned-statistics-planner-control-railway.json",
           "revision": "768607f",
           "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/mvp-owned-statistics-railway.json",
+          "revision": "baf9ce5",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Local PostgreSQL verified joint statistics and a separate column adjustment. Two Rookery controls used a fast index and correctly did not trigger a change.",
+      "changeSummary": "Railway retained joint statistics for two related columns on Rookery. The matched lookups went from 41.85 ms and 41.30 ms to 0.16 ms and 0.25 ms. Protected traffic passed. A separate column-setting change has local evidence.",
       "stack": [
         "Go"
       ],
       "parent": "tools",
-      "after": "Local PostgreSQL verified joint statistics and a separate column adjustment. Two Rookery controls used a fast index and correctly did not trigger a change.",
+      "after": "Railway retained joint statistics for two related columns on Rookery. The matched lookups went from 41.85 ms and 41.30 ms to 0.16 ms and 0.25 ms. Protected traffic passed. A separate column-setting change has local evidence.",
       "expandWhy": "Which statistics improvements exist and which remain?"
     },
     {
       "id": "cleanup",
       "label": "Perform targeted cleanup",
       "type": "service",
-      "purpose": "Railway verified one targeted VACUUM on an owned Rookery table. Heap fetches went from 50,000 to zero and matched latency from 55.16 ms to 12.56 ms. Protected traffic passed.",
+      "purpose": "Railway verified one targeted cleanup on an owned Rookery table. Heap fetches fell from 50,000 to zero and matched query time from 55.16 ms to 12.56 ms. Protected traffic passed.",
       "decisionIds": [],
       "sources": [
         {
@@ -614,12 +619,12 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Railway verified one targeted VACUUM on an owned Rookery table. Heap fetches went from 50,000 to zero and matched latency from 55.16 ms to 12.56 ms. Protected traffic passed.",
+      "changeSummary": "Railway verified one targeted cleanup on an owned Rookery table. Heap fetches fell from 50,000 to zero and matched query time from 55.16 ms to 12.56 ms. Protected traffic passed.",
       "stack": [
         "Go"
       ],
       "parent": "tools",
-      "after": "Railway verified one targeted VACUUM on an owned Rookery table. Heap fetches went from 50,000 to zero and matched latency from 55.16 ms to 12.56 ms. Protected traffic passed.",
+      "after": "Railway verified one targeted cleanup on an owned Rookery table. Heap fetches fell from 50,000 to zero and matched query time from 55.16 ms to 12.56 ms. Protected traffic passed.",
       "expandWhy": "Which cleanup actions exist and which remain?"
     },
     {
@@ -930,7 +935,7 @@
       "id": "repair-coverage",
       "label": "Qualify broader repairs",
       "type": "service",
-      "purpose": "Compound indexes, targeted refresh, targeted cleanup and function memory have verified owner results on Railway. Scheduler recovery passed locally and the hosted index restart passed.",
+      "purpose": "Compound indexes, targeted refresh, joint statistics, targeted cleanup and function memory have verified owner results on Railway. The index restart passed there and scheduler recovery passed locally.",
       "decisionIds": [],
       "sources": [
         {
@@ -972,11 +977,16 @@
           "path": "docs/design/hosted-query-agent/evidence/mvp-owned-cron-role-preflight-rookery.json",
           "revision": "baf9ce5",
           "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/mvp-owned-statistics-railway.json",
+          "revision": "baf9ce5",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Compound indexes, targeted refresh, targeted cleanup and function memory have verified owner results on Railway. Scheduler recovery passed locally and the hosted index restart passed.",
-      "after": "Compound indexes, targeted refresh, targeted cleanup and function memory have verified owner results on Railway. Scheduler recovery passed locally and the hosted index restart passed.",
+      "changeSummary": "Compound indexes, targeted refresh, joint statistics, targeted cleanup and function memory have verified owner results on Railway. The index restart passed there and scheduler recovery passed locally.",
+      "after": "Compound indexes, targeted refresh, joint statistics, targeted cleanup and function memory have verified owner results on Railway. The index restart passed there and scheduler recovery passed locally.",
       "parent": "tools",
       "stack": [
         "Go"
@@ -1361,18 +1371,23 @@
       "label": "Joint statistics: tested",
       "type": "service",
       "parent": "richer",
-      "purpose": "Joint-statistics case verified for related predicate columns.",
+      "purpose": "Railway retained joint statistics for two related columns on Rookery. The matched lookups went from 41.85 ms and 41.30 ms to 0.16 ms and 0.25 ms. Protected traffic passed.",
       "decisionIds": [],
       "sources": [
         {
           "path": "docs/design/hosted-query-agent/richer-statistics.md",
           "revision": "e0606a28145f5406503defa87e16070a580490a9",
           "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/mvp-owned-statistics-railway.json",
+          "revision": "baf9ce5",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Joint-statistics case verified for related predicate columns.",
-      "after": "Joint-statistics case verified for related predicate columns.",
+      "changeSummary": "Railway retained joint statistics for two related columns on Rookery. The matched lookups went from 41.85 ms and 41.30 ms to 0.16 ms and 0.25 ms. Protected traffic passed.",
+      "after": "Railway retained joint statistics for two related columns on Rookery. The matched lookups went from 41.85 ms and 41.30 ms to 0.16 ms and 0.25 ms. Protected traffic passed.",
       "stack": [
         "Go"
       ]
@@ -1408,18 +1423,23 @@
       "label": "Plain VACUUM: tested",
       "type": "service",
       "parent": "cleanup",
-      "purpose": "Plain VACUUM case verified: reduce visibility work without replacing the index.",
+      "purpose": "Railway verified one targeted cleanup on an owned Rookery table. Heap fetches fell from 50,000 to zero and matched query time from 55.16 ms to 12.56 ms. Protected traffic passed.",
       "decisionIds": [],
       "sources": [
         {
           "path": "docs/design/hosted-query-agent/bounded-vacuum.md",
           "revision": "e0606a28145f5406503defa87e16070a580490a9",
           "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/mvp-owned-vacuum-railway.json",
+          "revision": "768607f",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Plain VACUUM case verified: reduce visibility work without replacing the index.",
-      "after": "Plain VACUUM case verified: reduce visibility work without replacing the index.",
+      "changeSummary": "Railway verified one targeted cleanup on an owned Rookery table. Heap fetches fell from 50,000 to zero and matched query time from 55.16 ms to 12.56 ms. Protected traffic passed.",
+      "after": "Railway verified one targeted cleanup on an owned Rookery table. Heap fetches fell from 50,000 to zero and matched query time from 55.16 ms to 12.56 ms. Protected traffic passed.",
       "stack": [
         "Go"
       ]
@@ -2164,18 +2184,23 @@
       "id": "generalized-compound-action",
       "label": "Compound index on real column identities",
       "type": "service",
-      "purpose": "Real Sonnet and the native executor verified two different two-column pairs on owned Rookery. One ran through the Railway dashboard.",
+      "purpose": "Sonnet and PostgreSQL verified two owned two-column pairs. A separate Railway restart recovered the exact written index without building it again.",
       "decisionIds": [],
       "sources": [
         {
           "path": "internal/hostedquery/project_index_action.go",
           "revision": "13cfd6c5021f5c339014cbb3836b7220b7aa66af",
           "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/mvp-owned-index-restart-railway.json",
+          "revision": "9077969",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Real Sonnet and the native executor verified two different two-column pairs on owned Rookery. One ran through the Railway dashboard.",
-      "after": "Real Sonnet and the native executor verified two different two-column pairs on owned Rookery. One ran through the Railway dashboard.",
+      "changeSummary": "Sonnet and PostgreSQL verified two owned two-column pairs. A separate Railway restart recovered the exact written index without building it again.",
+      "after": "Sonnet and PostgreSQL verified two owned two-column pairs. A separate Railway restart recovered the exact written index without building it again.",
       "parent": "index",
       "stack": [
         "Go",
