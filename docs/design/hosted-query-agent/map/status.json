@@ -1,12 +1,11 @@
 {
-  "sourceRevision": "e0606a28145f5406503defa87e16070a580490a9",
-  "summary": "Green means the named test scope passed, not full production readiness. Six bounded repairs work; only the single-column index is connected to the hosted diagnostic investigator. Compound indexes and five diagnostic connections remain. Amber is partial; gray is remaining. This is an offline snapshot.",
+  "sourceRevision": "687899729324c8c9ec1a25b6db2be2c9efe1a6ad",
+  "summary": "Six bounded repair tools and their diagnostic connections are implemented. 6 of six cases in this expansion passed hosted Sonnet traffic qualification. Requested fresh evidence also passed a separate hosted check. Green means only the stated verified scope, amber is partial, gray is remaining. Offline snapshot; customer rollout is unfinished.",
   "next": [
-    "index-compound",
-    "diagnostic-adapter-coverage",
     "connect-project",
     "activity",
     "repair-coverage",
+    "index-compound-general",
     "auth",
     "credential-lifecycle",
     "operations"
@@ -66,8 +65,8 @@
     },
     "investigator": {
       "status": "partial",
-      "scope": "One diagnostic graph compares causes and requests evidence. Its index adapter now runs through the Railway consumer and guarded repair executor.",
-      "remaining": "Five diagnostic execution adapters, general customer collectors and broader workload qualification remain.",
+      "scope": "One diagnostic graph compares causes, requests named Go evidence and routes permitted proposals to all six guarded executors. Current hosted results are linked in the repair-connection children.",
+      "remaining": "General customer collectors, broader workloads, remaining requested-reader coverage and hosted mid-model recovery remain.",
       "evidence": [
         "investigator/diagnostic.ts",
         "docs/design/hosted-query-agent/diagnostic-loop.md",
@@ -85,8 +84,8 @@
     },
     "inspection": {
       "status": "partial",
-      "scope": "Go reuses initial evidence and exposes bounded plan/index/statistics readers for the owned index fixture, with real PostgreSQL identity checks.",
-      "remaining": "The hosted index run needed no extra read. Requested live Rookery reads for broader cases and general readers for all six families remain.",
+      "scope": "Named bounded readers now cover the six owned repair fixture types. Local PostgreSQL evidence/refusal checks passed.",
+      "remaining": "Qualify requested live Rookery reads and hosted outcomes; general enrolled customer readers remain.",
       "evidence": [
         "internal/graphrunner/diagnostic.go",
         "docs/design/hosted-query-agent/diagnostic-loop.md",
@@ -105,8 +104,8 @@
     },
     "index": {
       "status": "partial",
-      "scope": "Single-column index case verified with real Claude and ongoing traffic.",
-      "remaining": "Compound indexes, broader query shapes and committed writes to the repaired table remain.",
+      "scope": "Single-column and one ordered two-column staging case verified with real Claude and traffic.",
+      "remaining": "Broaden query shapes, customer enrollment and committed writes to the repaired table.",
       "evidence": [
         "docs/design/hosted-query-agent/mixed-traffic.md"
       ]
@@ -205,7 +204,7 @@
     "diagnose-causes": {
       "status": "verified",
       "scope": "Sonnet passed 15/15 bounded local/replay cases. In Railway it selected an index and rejected statistics/cleanup explanations before a verified repair.",
-      "remaining": "Broad customer workloads and the other five diagnostic execution adapters remain unqualified.",
+      "remaining": "Replay covers 18 bounded cases. Current hosted repair connections are listed separately; broader customer diagnosis and representative mixed causes remain unqualified.",
       "evidence": [
         "investigator/diagnostic.ts",
         "investigator/diagnostic-model.ts",
@@ -215,11 +214,10 @@
     },
     "request-evidence": {
       "status": "verified",
-      "scope": "Built: named Go readers, fresh local PostgreSQL evidence with real Claude, persisted evidence receipts, restart recovery and model-attempt limits.",
-      "remaining": "The index consumer is wired, but its live run needed no extra read. General live readers for the other five adapters and hosted mid-model resume remain.",
+      "scope": "Named Go readers and local durable evidence recovery are built. A separate Railway/Rookery test had real Sonnet request fresh ANALYZE evidence before choosing a repair; no repair executed in that probe.",
+      "remaining": "Requested hosted evidence for the remaining families and hosted mid-model checkpoint recovery remain unqualified.",
       "evidence": [
-        "internal/graphrunner/diagnostic.go",
-        "internal/graphrunner/diagnostic_journal.go",
+        "docs/design/hosted-query-agent/evidence/repair-expansion/requested-evidence.json",
         "internal/graphrunner/diagnostic_integration_test.go"
       ]
     },
@@ -283,7 +281,7 @@
     "hosted-diagnostic-integration": {
       "status": "verified",
       "scope": "Connected and verified for the owned index fixture: Railway queue → diagnostic Sonnet graph → Go index repair → measured improvement. Queued job survived an actual service restart.",
-      "remaining": "Only the index adapter is enabled. The live run reused initial evidence; requested reads and mid-model resume have separate local tests. See the remaining five-adapter node.",
+      "remaining": "The bounded single-column service-restart proof remains distinct from the newer per-repair runs. All six routes are implemented; see each connection for its verified scope. Hosted mid-model recovery remains.",
       "evidence": [
         "cmd/pooltune-consumer/main.go",
         "internal/graphrunner/consumer.go",
@@ -292,29 +290,30 @@
       ]
     },
     "diagnostic-adapter-coverage": {
-      "status": "planned",
-      "scope": "Next: connect ANALYZE, richer statistics, cleanup, function memory and scheduling to the diagnostic consumer.",
-      "remaining": "Qualify each live evidence reader and diagnostic-to-action adapter with real Sonnet, healthy controls, timings and recovery. The existing six-family legacy tests remain valid but are not new-adapter qualification.",
+      "status": "verified",
+      "scope": "All five existing repair tools now run through the shared diagnostic investigator and guarded Go executor, with real Sonnet and owned Rookery traffic.",
+      "remaining": "General customer collectors, requested-reader coverage across every family and broader workload qualification remain.",
       "evidence": [
-        "docs/design/hosted-query-agent/roadmap.md",
-        "docs/design/hosted-query-agent/hosted-diagnostic.md"
+        "docs/design/hosted-query-agent/repair-expansion.md",
+        "docs/design/hosted-query-agent/evidence/repair-expansion/summary.json"
       ]
     },
     "index-single": {
       "status": "verified",
       "scope": "Single-column index case verified with real Claude and ongoing traffic.",
-      "remaining": "Compound indexes, broader query shapes and committed writes to the repaired table remain.",
+      "remaining": "Broader query shapes and committed writes to the repaired table remain; the bounded two-column case has its own verified node.",
       "evidence": [
         "docs/design/hosted-query-agent/mixed-traffic.md"
       ]
     },
     "index-compound": {
-      "status": "planned",
-      "scope": "Remaining V1 work: create nonunique indexes on multiple ordered columns. Current proposals and execution support one column only.",
-      "remaining": "Define allowed ordered keys and query shapes across Go and TypeScript, then implement catalog checks, execution, verification and recovery with real Claude.",
+      "status": "verified",
+      "scope": "One ordered two-column nonunique B-tree case passed real Sonnet, guarded build, before/after traffic and cleanup in Railway/Rookery. Local tests cover identity and interrupted recovery.",
+      "remaining": "Broader compound query shapes, customer grants and concurrent committed writes to the repaired table remain unqualified.",
       "evidence": [
-        "docs/product/query-performance-v1.md",
-        "docs/design/hosted-query-agent/roadmap.md"
+        "docs/design/hosted-query-agent/evidence/repair-expansion/compound-20261114-201546.json",
+        "internal/hostedquery/compound_index.go",
+        "internal/hostedquery/compound_integration_test.go"
       ]
     },
     "statistics-joint": {
@@ -352,48 +351,56 @@
       ]
     },
     "diagnostic-analyze": {
-      "status": "planned",
-      "scope": "Remaining: Collect current estimate errors and stale-statistics evidence, then connect targeted ANALYZE to the diagnostic consumer.",
-      "remaining": "The bounded executor already passed the earlier Claude path. Its new reader and diagnostic connection need real Sonnet, healthy controls, timings and recovery qualification.",
+      "status": "verified",
+      "scope": "Statistics refresh: diagnostic Sonnet chose the repair through the Railway consumer; Go applied it and verified benefit under owned Rookery traffic. Healthy and brief-spike controls passed.",
+      "remaining": "General customer enrollment and representative workloads remain. This successful action run reused initial evidence; it does not prove every named reader was requested live.",
       "evidence": [
-        "docs/design/hosted-query-agent/hosted-diagnostic.md",
-        "docs/design/hosted-query-agent/roadmap.md"
+        "docs/design/hosted-query-agent/evidence/repair-expansion/analyze-20261114-195906.json",
+        "docs/design/hosted-query-agent/repair-expansion.md"
       ]
     },
     "diagnostic-statistics": {
-      "status": "planned",
-      "scope": "Remaining: Collect evidence across related predicates and connect joint-statistics execution to the diagnostic consumer.",
-      "remaining": "The bounded executor already passed the earlier Claude path. Its new reader and diagnostic connection need real Sonnet, healthy controls, timings and recovery qualification.",
+      "status": "verified",
+      "scope": "Joint statistics: diagnostic Sonnet chose the repair through the Railway consumer; Go applied it and verified benefit under owned Rookery traffic. Healthy and brief-spike controls passed.",
+      "remaining": "General customer enrollment and representative workloads remain. This successful action run reused initial evidence; it does not prove every named reader was requested live.",
       "evidence": [
-        "docs/design/hosted-query-agent/hosted-diagnostic.md",
-        "docs/design/hosted-query-agent/roadmap.md"
+        "docs/design/hosted-query-agent/evidence/repair-expansion/statistics-20261114-200207.json",
+        "docs/design/hosted-query-agent/repair-expansion.md"
       ]
     },
     "diagnostic-vacuum": {
-      "status": "planned",
-      "scope": "Remaining: Collect current visibility and cleanup evidence and connect plain VACUUM to the diagnostic consumer.",
-      "remaining": "The bounded executor already passed the earlier Claude path. Its new reader and diagnostic connection need real Sonnet, healthy controls, timings and recovery qualification.",
+      "status": "verified",
+      "scope": "Targeted cleanup: diagnostic Sonnet chose the repair through the Railway consumer; Go applied it and verified benefit under owned Rookery traffic. Healthy and brief-spike controls passed.",
+      "remaining": "General customer enrollment and representative workloads remain. This successful action run reused initial evidence; it does not prove every named reader was requested live.",
       "evidence": [
-        "docs/design/hosted-query-agent/hosted-diagnostic.md",
-        "docs/design/hosted-query-agent/roadmap.md"
+        "docs/design/hosted-query-agent/evidence/repair-expansion/vacuum-20261114-200629.json",
+        "docs/design/hosted-query-agent/repair-expansion.md"
       ]
     },
     "diagnostic-memory": {
-      "status": "planned",
-      "scope": "Remaining: Collect attributed disk spill and admitted memory limits and connect function tuning to the diagnostic consumer.",
-      "remaining": "The bounded executor already passed the earlier Claude path. Its new reader and diagnostic connection need real Sonnet, healthy controls, timings and recovery qualification.",
+      "status": "verified",
+      "scope": "Function memory: diagnostic Sonnet chose the repair through the Railway consumer; Go applied it and verified benefit under owned Rookery traffic. Healthy and brief-spike controls passed.",
+      "remaining": "General customer enrollment and representative workloads remain. This successful action run reused initial evidence; it does not prove every named reader was requested live.",
       "evidence": [
-        "docs/design/hosted-query-agent/hosted-diagnostic.md",
-        "docs/design/hosted-query-agent/roadmap.md"
+        "docs/design/hosted-query-agent/evidence/repair-expansion/memory-20261114-200950.json",
+        "docs/design/hosted-query-agent/repair-expansion.md"
       ]
     },
     "diagnostic-cron": {
-      "status": "planned",
-      "scope": "Remaining: Collect enrolled job identity, completed periods and deadlines and connect future scheduling to the diagnostic consumer.",
-      "remaining": "The bounded executor already passed the earlier Claude path. Its new reader and diagnostic connection need real Sonnet, healthy controls, timings and recovery qualification.",
+      "status": "verified",
+      "scope": "Job scheduling: diagnostic Sonnet chose the repair through the Railway consumer; Go applied it and verified benefit under owned Rookery traffic. Healthy and brief-spike controls passed.",
+      "remaining": "General customer enrollment and representative workloads remain. This successful action run reused initial evidence; it does not prove every named reader was requested live.",
       "evidence": [
-        "docs/design/hosted-query-agent/hosted-diagnostic.md",
-        "docs/design/hosted-query-agent/roadmap.md"
+        "docs/design/hosted-query-agent/evidence/repair-expansion/cron-20261114-220423.json",
+        "docs/design/hosted-query-agent/repair-expansion.md"
+      ]
+    },
+    "index-compound-general": {
+      "status": "planned",
+      "scope": "Qualify compound indexes on representative enrolled customer query shapes beyond the fixed two-equality fixture, including write/storage cost and safe recovery.",
+      "remaining": "Design candidate selection and validate representative inputs, roles, workload interference and current owner grants.",
+      "evidence": [
+        "docs/product/query-performance-v1.md"
       ]
     }
   }

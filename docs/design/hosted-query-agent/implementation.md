@@ -393,4 +393,4 @@ Tasks 27–29 completed for the explicitly bounded diagnostic slice. Sonnet pass
 - [x] Add failing route-selection/adapter tests; connect each supported reader without weakening fixture scope.
 - [x] Run local integration and fresh broad review; fix material findings before deployment.
 - [x] Deploy reviewed source to existing Railway staging and run repair trials serially against owned Rookery fixtures.
-- [ ] Update map with only demonstrated scope, document trade-offs and results, commit locally and present final human review.
+- [x] Update map with only demonstrated scope, document trade-offs and results, commit locally and present final human review.

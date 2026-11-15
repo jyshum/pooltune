@@ -3,9 +3,9 @@
   "id": "pooltune-hosted-agent",
   "title": "Maintain Supabase query performance",
   "workType": "Build progress and remaining work",
-  "summary": "Green means the named test scope passed, not full production readiness. Six bounded repairs work; only the single-column index is connected to the hosted diagnostic investigator. Compound indexes and five diagnostic connections remain. Amber is partial; gray is remaining. This is an offline snapshot.",
+  "summary": "Six bounded repair tools and their diagnostic connections are implemented. 6 of six cases in this expansion passed hosted Sonnet traffic qualification. Requested fresh evidence also passed a separate hosted check. Green means only the stated verified scope, amber is partial, gray is remaining. Offline snapshot; customer rollout is unfinished.",
   "sourceRevision": {
-    "commit": "e0606a28145f5406503defa87e16070a580490a9",
+    "commit": "687899729324c8c9ec1a25b6db2be2c9efe1a6ad",
     "dirty": false
   },
   "components": [
@@ -451,7 +451,7 @@
       "id": "index",
       "label": "Add a nonunique index",
       "type": "service",
-      "purpose": "Single-column index case verified with real Claude and ongoing traffic. Other V1 variants remain.",
+      "purpose": "Single-column staging case verified; bounded two-column implementation now has local tests and real model decision evidence.",
       "decisionIds": [
         "d-trials"
       ],
@@ -468,7 +468,7 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Single-column index case verified with real Claude and ongoing traffic. Other V1 variants remain.",
+      "changeSummary": "Single-column staging case verified; bounded two-column implementation now has local tests and real model decision evidence.",
       "stack": [
         "Go"
       ],
@@ -739,9 +739,9 @@
     },
     {
       "id": "request-evidence",
-      "label": "Request evidence: local tests",
+      "label": "Request evidence: tested",
       "type": "service",
-      "purpose": "Built: named Go readers, fresh local PostgreSQL evidence with real Claude, persisted evidence receipts, restart recovery and model-attempt limits.",
+      "purpose": "Named Go readers and local durable evidence recovery are built. A separate Railway/Rookery test had real Sonnet request fresh ANALYZE evidence before choosing a repair; no repair executed in that probe.",
       "decisionIds": [],
       "sources": [
         {
@@ -773,11 +773,51 @@
           "path": "docs/design/hosted-query-agent/hosted-diagnostic.md",
           "revision": "Railway qualification 2026-11-14, source 4918260",
           "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/repair-expansion/requested-evidence.json",
+          "revision": "57fd1a2240bc82f09e4c0b85b2ad55aaa4163d0b",
+          "kind": "verified"
+        },
+        {
+          "path": "internal/graphrunner/diagnostic_integration_test.go",
+          "revision": "57fd1a2240bc82f09e4c0b85b2ad55aaa4163d0b",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/repair-expansion/requested-evidence.json",
+          "revision": "97abe2bb22b4fb2f50211f95983972f69258d15b",
+          "kind": "verified"
+        },
+        {
+          "path": "internal/graphrunner/diagnostic_integration_test.go",
+          "revision": "97abe2bb22b4fb2f50211f95983972f69258d15b",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/repair-expansion/requested-evidence.json",
+          "revision": "517eb87046fb44a12b94f5c9a9fafeaf61560888",
+          "kind": "verified"
+        },
+        {
+          "path": "internal/graphrunner/diagnostic_integration_test.go",
+          "revision": "517eb87046fb44a12b94f5c9a9fafeaf61560888",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/repair-expansion/requested-evidence.json",
+          "revision": "687899729324c8c9ec1a25b6db2be2c9efe1a6ad",
+          "kind": "verified"
+        },
+        {
+          "path": "internal/graphrunner/diagnostic_integration_test.go",
+          "revision": "687899729324c8c9ec1a25b6db2be2c9efe1a6ad",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Built: named Go readers, fresh local PostgreSQL evidence with real Claude, persisted evidence receipts, restart recovery and model-attempt limits.",
-      "after": "Built: named Go readers, fresh local PostgreSQL evidence with real Claude, persisted evidence receipts, restart recovery and model-attempt limits.",
+      "changeSummary": "Named Go readers and local durable evidence recovery are built. A separate Railway/Rookery test had real Sonnet request fresh ANALYZE evidence before choosing a repair; no repair executed in that probe.",
+      "after": "Named Go readers and local durable evidence recovery are built. A separate Railway/Rookery test had real Sonnet request fresh ANALYZE evidence before choosing a repair; no repair executed in that probe.",
       "parent": "investigator",
       "stack": [
         "TypeScript",
@@ -959,21 +999,36 @@
     },
     {
       "id": "diagnostic-adapter-coverage",
-      "label": "Connect the other five repairs",
+      "label": "Five repair connections: tested",
       "type": "service",
       "parent": "investigator",
-      "purpose": "Next: connect ANALYZE, richer statistics, cleanup, function memory and scheduling to the diagnostic consumer.",
+      "purpose": "All five existing repair tools now run through the shared diagnostic investigator and guarded Go executor, with real Sonnet and owned Rookery traffic.",
       "decisionIds": [],
       "sources": [
         {
           "path": "docs/design/hosted-query-agent/roadmap.md",
           "revision": "Remaining after hosted index qualification",
           "kind": "intended"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/repair-expansion.md",
+          "revision": "bc5ae375ea8d29a6e4d6b3ea81f1e02d4456cd6b",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/repair-expansion.md",
+          "revision": "687899729324c8c9ec1a25b6db2be2c9efe1a6ad",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/repair-expansion/summary.json",
+          "revision": "687899729324c8c9ec1a25b6db2be2c9efe1a6ad",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Five repair executors retain the earlier model path until their diagnostic adapters and live readers are qualified.",
-      "after": "Qualify each live evidence reader and diagnostic-to-action adapter with real Sonnet, healthy controls, timings and recovery. The existing six-family legacy tests remain valid but are not new-adapter qualification.",
+      "changeSummary": "All five existing repair tools now run through the shared diagnostic investigator and guarded Go executor, with real Sonnet and owned Rookery traffic.",
+      "after": "All five existing repair tools now run through the shared diagnostic investigator and guarded Go executor, with real Sonnet and owned Rookery traffic.",
       "stack": [
         "Go",
         "TypeScript",
@@ -1004,10 +1059,10 @@
     },
     {
       "id": "index-compound",
-      "label": "Compound indexes: remaining",
+      "label": "Two-column index: tested",
       "type": "service",
       "parent": "index",
-      "purpose": "Remaining V1 work: create nonunique indexes on multiple ordered columns. Current proposals and execution support one column only.",
+      "purpose": "One ordered two-column nonunique B-tree case passed real Sonnet, guarded build, before/after traffic and cleanup in Railway/Rookery. Local tests cover identity and interrupted recovery.",
       "decisionIds": [],
       "sources": [
         {
@@ -1034,11 +1089,106 @@
           "path": "investigator/graph.ts",
           "revision": "e0606a28145f5406503defa87e16070a580490a9",
           "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/repair-expansion.md",
+          "revision": "bc5ae375ea8d29a6e4d6b3ea81f1e02d4456cd6b",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/repair-expansion/compound-20261114-201546.json",
+          "revision": "5758367290ca64ad02da4f83ae03e4e4f61ac363",
+          "kind": "verified"
+        },
+        {
+          "path": "internal/hostedquery/compound_index.go",
+          "revision": "5758367290ca64ad02da4f83ae03e4e4f61ac363",
+          "kind": "verified"
+        },
+        {
+          "path": "internal/hostedquery/compound_integration_test.go",
+          "revision": "5758367290ca64ad02da4f83ae03e4e4f61ac363",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/repair-expansion/compound-20261114-201546.json",
+          "revision": "76172500605bc536c981974b4de575594f9fd78c",
+          "kind": "verified"
+        },
+        {
+          "path": "internal/hostedquery/compound_index.go",
+          "revision": "76172500605bc536c981974b4de575594f9fd78c",
+          "kind": "verified"
+        },
+        {
+          "path": "internal/hostedquery/compound_integration_test.go",
+          "revision": "76172500605bc536c981974b4de575594f9fd78c",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/repair-expansion/compound-20261114-201546.json",
+          "revision": "57fd1a2240bc82f09e4c0b85b2ad55aaa4163d0b",
+          "kind": "verified"
+        },
+        {
+          "path": "internal/hostedquery/compound_index.go",
+          "revision": "57fd1a2240bc82f09e4c0b85b2ad55aaa4163d0b",
+          "kind": "verified"
+        },
+        {
+          "path": "internal/hostedquery/compound_integration_test.go",
+          "revision": "57fd1a2240bc82f09e4c0b85b2ad55aaa4163d0b",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/repair-expansion/compound-20261114-201546.json",
+          "revision": "97abe2bb22b4fb2f50211f95983972f69258d15b",
+          "kind": "verified"
+        },
+        {
+          "path": "internal/hostedquery/compound_index.go",
+          "revision": "97abe2bb22b4fb2f50211f95983972f69258d15b",
+          "kind": "verified"
+        },
+        {
+          "path": "internal/hostedquery/compound_integration_test.go",
+          "revision": "97abe2bb22b4fb2f50211f95983972f69258d15b",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/repair-expansion/compound-20261114-201546.json",
+          "revision": "517eb87046fb44a12b94f5c9a9fafeaf61560888",
+          "kind": "verified"
+        },
+        {
+          "path": "internal/hostedquery/compound_index.go",
+          "revision": "517eb87046fb44a12b94f5c9a9fafeaf61560888",
+          "kind": "verified"
+        },
+        {
+          "path": "internal/hostedquery/compound_integration_test.go",
+          "revision": "517eb87046fb44a12b94f5c9a9fafeaf61560888",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/repair-expansion/compound-20261114-201546.json",
+          "revision": "687899729324c8c9ec1a25b6db2be2c9efe1a6ad",
+          "kind": "verified"
+        },
+        {
+          "path": "internal/hostedquery/compound_index.go",
+          "revision": "687899729324c8c9ec1a25b6db2be2c9efe1a6ad",
+          "kind": "verified"
+        },
+        {
+          "path": "internal/hostedquery/compound_integration_test.go",
+          "revision": "687899729324c8c9ec1a25b6db2be2c9efe1a6ad",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Remaining V1 work: create nonunique indexes on multiple ordered columns. Current proposals and execution support one column only.",
-      "after": "Remaining V1 work: create nonunique indexes on multiple ordered columns. Current proposals and execution support one column only.",
+      "changeSummary": "One ordered two-column nonunique B-tree case passed real Sonnet, guarded build, before/after traffic and cleanup in Railway/Rookery. Local tests cover identity and interrupted recovery.",
+      "after": "One ordered two-column nonunique B-tree case passed real Sonnet, guarded build, before/after traffic and cleanup in Railway/Rookery. Local tests cover identity and interrupted recovery.",
       "stack": [
         "Go",
         "TypeScript"
@@ -1140,10 +1290,10 @@
     },
     {
       "id": "diagnostic-analyze",
-      "label": "Connect statistics refresh",
+      "label": "Statistics refresh: connected",
       "type": "service",
       "parent": "diagnostic-adapter-coverage",
-      "purpose": "Remaining: Collect current estimate errors and stale-statistics evidence, then connect targeted ANALYZE to the diagnostic consumer.",
+      "purpose": "Statistics refresh: diagnostic Sonnet chose the repair through the Railway consumer; Go applied it and verified benefit under owned Rookery traffic. Healthy and brief-spike controls passed.",
       "decisionIds": [],
       "sources": [
         {
@@ -1155,11 +1305,76 @@
           "path": "docs/design/hosted-query-agent/roadmap.md",
           "revision": "e0606a28145f5406503defa87e16070a580490a9",
           "kind": "intended"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/repair-expansion.md",
+          "revision": "bc5ae375ea8d29a6e4d6b3ea81f1e02d4456cd6b",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/repair-expansion/analyze-20261114-195906.json",
+          "revision": "5758367290ca64ad02da4f83ae03e4e4f61ac363",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/repair-expansion.md",
+          "revision": "5758367290ca64ad02da4f83ae03e4e4f61ac363",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/repair-expansion/analyze-20261114-195906.json",
+          "revision": "76172500605bc536c981974b4de575594f9fd78c",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/repair-expansion.md",
+          "revision": "76172500605bc536c981974b4de575594f9fd78c",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/repair-expansion/analyze-20261114-195906.json",
+          "revision": "57fd1a2240bc82f09e4c0b85b2ad55aaa4163d0b",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/repair-expansion.md",
+          "revision": "57fd1a2240bc82f09e4c0b85b2ad55aaa4163d0b",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/repair-expansion/analyze-20261114-195906.json",
+          "revision": "97abe2bb22b4fb2f50211f95983972f69258d15b",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/repair-expansion.md",
+          "revision": "97abe2bb22b4fb2f50211f95983972f69258d15b",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/repair-expansion/analyze-20261114-195906.json",
+          "revision": "517eb87046fb44a12b94f5c9a9fafeaf61560888",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/repair-expansion.md",
+          "revision": "517eb87046fb44a12b94f5c9a9fafeaf61560888",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/repair-expansion/analyze-20261114-195906.json",
+          "revision": "687899729324c8c9ec1a25b6db2be2c9efe1a6ad",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/repair-expansion.md",
+          "revision": "687899729324c8c9ec1a25b6db2be2c9efe1a6ad",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Remaining: Collect current estimate errors and stale-statistics evidence, then connect targeted ANALYZE to the diagnostic consumer.",
-      "after": "Remaining: Collect current estimate errors and stale-statistics evidence, then connect targeted ANALYZE to the diagnostic consumer.",
+      "changeSummary": "Statistics refresh: diagnostic Sonnet chose the repair through the Railway consumer; Go applied it and verified benefit under owned Rookery traffic. Healthy and brief-spike controls passed.",
+      "after": "Statistics refresh: diagnostic Sonnet chose the repair through the Railway consumer; Go applied it and verified benefit under owned Rookery traffic. Healthy and brief-spike controls passed.",
       "stack": [
         "Go",
         "TypeScript",
@@ -1168,10 +1383,10 @@
     },
     {
       "id": "diagnostic-statistics",
-      "label": "Connect richer statistics",
+      "label": "Joint statistics: connected",
       "type": "service",
       "parent": "diagnostic-adapter-coverage",
-      "purpose": "Remaining: Collect evidence across related predicates and connect joint-statistics execution to the diagnostic consumer.",
+      "purpose": "Joint statistics: diagnostic Sonnet chose the repair through the Railway consumer; Go applied it and verified benefit under owned Rookery traffic. Healthy and brief-spike controls passed.",
       "decisionIds": [],
       "sources": [
         {
@@ -1183,11 +1398,76 @@
           "path": "docs/design/hosted-query-agent/roadmap.md",
           "revision": "e0606a28145f5406503defa87e16070a580490a9",
           "kind": "intended"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/repair-expansion.md",
+          "revision": "bc5ae375ea8d29a6e4d6b3ea81f1e02d4456cd6b",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/repair-expansion/statistics-20261114-200207.json",
+          "revision": "5758367290ca64ad02da4f83ae03e4e4f61ac363",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/repair-expansion.md",
+          "revision": "5758367290ca64ad02da4f83ae03e4e4f61ac363",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/repair-expansion/statistics-20261114-200207.json",
+          "revision": "76172500605bc536c981974b4de575594f9fd78c",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/repair-expansion.md",
+          "revision": "76172500605bc536c981974b4de575594f9fd78c",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/repair-expansion/statistics-20261114-200207.json",
+          "revision": "57fd1a2240bc82f09e4c0b85b2ad55aaa4163d0b",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/repair-expansion.md",
+          "revision": "57fd1a2240bc82f09e4c0b85b2ad55aaa4163d0b",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/repair-expansion/statistics-20261114-200207.json",
+          "revision": "97abe2bb22b4fb2f50211f95983972f69258d15b",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/repair-expansion.md",
+          "revision": "97abe2bb22b4fb2f50211f95983972f69258d15b",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/repair-expansion/statistics-20261114-200207.json",
+          "revision": "517eb87046fb44a12b94f5c9a9fafeaf61560888",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/repair-expansion.md",
+          "revision": "517eb87046fb44a12b94f5c9a9fafeaf61560888",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/repair-expansion/statistics-20261114-200207.json",
+          "revision": "687899729324c8c9ec1a25b6db2be2c9efe1a6ad",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/repair-expansion.md",
+          "revision": "687899729324c8c9ec1a25b6db2be2c9efe1a6ad",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Remaining: Collect evidence across related predicates and connect joint-statistics execution to the diagnostic consumer.",
-      "after": "Remaining: Collect evidence across related predicates and connect joint-statistics execution to the diagnostic consumer.",
+      "changeSummary": "Joint statistics: diagnostic Sonnet chose the repair through the Railway consumer; Go applied it and verified benefit under owned Rookery traffic. Healthy and brief-spike controls passed.",
+      "after": "Joint statistics: diagnostic Sonnet chose the repair through the Railway consumer; Go applied it and verified benefit under owned Rookery traffic. Healthy and brief-spike controls passed.",
       "stack": [
         "Go",
         "TypeScript",
@@ -1196,10 +1476,10 @@
     },
     {
       "id": "diagnostic-vacuum",
-      "label": "Connect cleanup",
+      "label": "Targeted cleanup: connected",
       "type": "service",
       "parent": "diagnostic-adapter-coverage",
-      "purpose": "Remaining: Collect current visibility and cleanup evidence and connect plain VACUUM to the diagnostic consumer.",
+      "purpose": "Targeted cleanup: diagnostic Sonnet chose the repair through the Railway consumer; Go applied it and verified benefit under owned Rookery traffic. Healthy and brief-spike controls passed.",
       "decisionIds": [],
       "sources": [
         {
@@ -1211,11 +1491,76 @@
           "path": "docs/design/hosted-query-agent/roadmap.md",
           "revision": "e0606a28145f5406503defa87e16070a580490a9",
           "kind": "intended"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/repair-expansion.md",
+          "revision": "bc5ae375ea8d29a6e4d6b3ea81f1e02d4456cd6b",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/repair-expansion/vacuum-20261114-200629.json",
+          "revision": "5758367290ca64ad02da4f83ae03e4e4f61ac363",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/repair-expansion.md",
+          "revision": "5758367290ca64ad02da4f83ae03e4e4f61ac363",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/repair-expansion/vacuum-20261114-200629.json",
+          "revision": "76172500605bc536c981974b4de575594f9fd78c",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/repair-expansion.md",
+          "revision": "76172500605bc536c981974b4de575594f9fd78c",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/repair-expansion/vacuum-20261114-200629.json",
+          "revision": "57fd1a2240bc82f09e4c0b85b2ad55aaa4163d0b",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/repair-expansion.md",
+          "revision": "57fd1a2240bc82f09e4c0b85b2ad55aaa4163d0b",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/repair-expansion/vacuum-20261114-200629.json",
+          "revision": "97abe2bb22b4fb2f50211f95983972f69258d15b",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/repair-expansion.md",
+          "revision": "97abe2bb22b4fb2f50211f95983972f69258d15b",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/repair-expansion/vacuum-20261114-200629.json",
+          "revision": "517eb87046fb44a12b94f5c9a9fafeaf61560888",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/repair-expansion.md",
+          "revision": "517eb87046fb44a12b94f5c9a9fafeaf61560888",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/repair-expansion/vacuum-20261114-200629.json",
+          "revision": "687899729324c8c9ec1a25b6db2be2c9efe1a6ad",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/repair-expansion.md",
+          "revision": "687899729324c8c9ec1a25b6db2be2c9efe1a6ad",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Remaining: Collect current visibility and cleanup evidence and connect plain VACUUM to the diagnostic consumer.",
-      "after": "Remaining: Collect current visibility and cleanup evidence and connect plain VACUUM to the diagnostic consumer.",
+      "changeSummary": "Targeted cleanup: diagnostic Sonnet chose the repair through the Railway consumer; Go applied it and verified benefit under owned Rookery traffic. Healthy and brief-spike controls passed.",
+      "after": "Targeted cleanup: diagnostic Sonnet chose the repair through the Railway consumer; Go applied it and verified benefit under owned Rookery traffic. Healthy and brief-spike controls passed.",
       "stack": [
         "Go",
         "TypeScript",
@@ -1224,10 +1569,10 @@
     },
     {
       "id": "diagnostic-memory",
-      "label": "Connect function memory",
+      "label": "Function memory: connected",
       "type": "service",
       "parent": "diagnostic-adapter-coverage",
-      "purpose": "Remaining: Collect attributed disk spill and admitted memory limits and connect function tuning to the diagnostic consumer.",
+      "purpose": "Function memory: diagnostic Sonnet chose the repair through the Railway consumer; Go applied it and verified benefit under owned Rookery traffic. Healthy and brief-spike controls passed.",
       "decisionIds": [],
       "sources": [
         {
@@ -1239,11 +1584,76 @@
           "path": "docs/design/hosted-query-agent/roadmap.md",
           "revision": "e0606a28145f5406503defa87e16070a580490a9",
           "kind": "intended"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/repair-expansion.md",
+          "revision": "bc5ae375ea8d29a6e4d6b3ea81f1e02d4456cd6b",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/repair-expansion/memory-20261114-200950.json",
+          "revision": "5758367290ca64ad02da4f83ae03e4e4f61ac363",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/repair-expansion.md",
+          "revision": "5758367290ca64ad02da4f83ae03e4e4f61ac363",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/repair-expansion/memory-20261114-200950.json",
+          "revision": "76172500605bc536c981974b4de575594f9fd78c",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/repair-expansion.md",
+          "revision": "76172500605bc536c981974b4de575594f9fd78c",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/repair-expansion/memory-20261114-200950.json",
+          "revision": "57fd1a2240bc82f09e4c0b85b2ad55aaa4163d0b",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/repair-expansion.md",
+          "revision": "57fd1a2240bc82f09e4c0b85b2ad55aaa4163d0b",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/repair-expansion/memory-20261114-200950.json",
+          "revision": "97abe2bb22b4fb2f50211f95983972f69258d15b",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/repair-expansion.md",
+          "revision": "97abe2bb22b4fb2f50211f95983972f69258d15b",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/repair-expansion/memory-20261114-200950.json",
+          "revision": "517eb87046fb44a12b94f5c9a9fafeaf61560888",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/repair-expansion.md",
+          "revision": "517eb87046fb44a12b94f5c9a9fafeaf61560888",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/repair-expansion/memory-20261114-200950.json",
+          "revision": "687899729324c8c9ec1a25b6db2be2c9efe1a6ad",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/repair-expansion.md",
+          "revision": "687899729324c8c9ec1a25b6db2be2c9efe1a6ad",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Remaining: Collect attributed disk spill and admitted memory limits and connect function tuning to the diagnostic consumer.",
-      "after": "Remaining: Collect attributed disk spill and admitted memory limits and connect function tuning to the diagnostic consumer.",
+      "changeSummary": "Function memory: diagnostic Sonnet chose the repair through the Railway consumer; Go applied it and verified benefit under owned Rookery traffic. Healthy and brief-spike controls passed.",
+      "after": "Function memory: diagnostic Sonnet chose the repair through the Railway consumer; Go applied it and verified benefit under owned Rookery traffic. Healthy and brief-spike controls passed.",
       "stack": [
         "Go",
         "TypeScript",
@@ -1252,10 +1662,10 @@
     },
     {
       "id": "diagnostic-cron",
-      "label": "Connect job scheduling",
+      "label": "Job scheduling: connected",
       "type": "service",
       "parent": "diagnostic-adapter-coverage",
-      "purpose": "Remaining: Collect enrolled job identity, completed periods and deadlines and connect future scheduling to the diagnostic consumer.",
+      "purpose": "Job scheduling: diagnostic Sonnet chose the repair through the Railway consumer; Go applied it and verified benefit under owned Rookery traffic. Healthy and brief-spike controls passed.",
       "decisionIds": [],
       "sources": [
         {
@@ -1267,15 +1677,52 @@
           "path": "docs/design/hosted-query-agent/roadmap.md",
           "revision": "e0606a28145f5406503defa87e16070a580490a9",
           "kind": "intended"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/repair-expansion.md",
+          "revision": "bc5ae375ea8d29a6e4d6b3ea81f1e02d4456cd6b",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/repair-expansion/cron-20261114-220423.json",
+          "revision": "687899729324c8c9ec1a25b6db2be2c9efe1a6ad",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/repair-expansion.md",
+          "revision": "687899729324c8c9ec1a25b6db2be2c9efe1a6ad",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Remaining: Collect enrolled job identity, completed periods and deadlines and connect future scheduling to the diagnostic consumer.",
-      "after": "Remaining: Collect enrolled job identity, completed periods and deadlines and connect future scheduling to the diagnostic consumer.",
+      "changeSummary": "Job scheduling: diagnostic Sonnet chose the repair through the Railway consumer; Go applied it and verified benefit under owned Rookery traffic. Healthy and brief-spike controls passed.",
+      "after": "Job scheduling: diagnostic Sonnet chose the repair through the Railway consumer; Go applied it and verified benefit under owned Rookery traffic. Healthy and brief-spike controls passed.",
       "stack": [
         "Go",
         "TypeScript",
         "LangGraph"
+      ]
+    },
+    {
+      "id": "index-compound-general",
+      "label": "More compound query shapes",
+      "type": "service",
+      "parent": "index",
+      "purpose": "Qualify compound indexes on representative enrolled customer query shapes beyond the fixed two-equality fixture, including write/storage cost and safe recovery.",
+      "decisionIds": [],
+      "sources": [
+        {
+          "path": "docs/product/query-performance-v1.md",
+          "revision": "Accepted V1 scope",
+          "kind": "intended"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Qualify compound indexes on representative enrolled customer query shapes beyond the fixed two-equality fixture, including write/storage cost and safe recovery.",
+      "after": "Qualify compound indexes on representative enrolled customer query shapes beyond the fixed two-equality fixture, including write/storage cost and safe recovery.",
+      "stack": [
+        "Go",
+        "TypeScript"
       ]
     }
   ],
