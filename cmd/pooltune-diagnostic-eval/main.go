@@ -75,11 +75,26 @@ func run() error {
 				actual = "index"
 			}
 		}
-		passed := runErr == nil && actual == c.Expected && len(requested) >= c.MinReads
+		modelChoice := "no_change"
+		if len(result.History) > 0 {
+			var last struct {
+				Action string  `json:"action"`
+				Repair *string `json:"repair"`
+			}
+			if json.Unmarshal(result.History[len(result.History)-1], &last) != nil {
+				modelChoice = "invalid"
+			} else {
+				modelChoice = last.Action
+				if last.Action == "propose" && last.Repair != nil {
+					modelChoice = *last.Repair
+				}
+			}
+		}
+		passed := runErr == nil && actual == c.Expected && modelChoice == c.Expected && len(requested) >= c.MinReads && (result.StopReason == "" || result.StopReason == "no_change")
 		if !passed {
 			failed = true
 		}
-		record := map[string]any{"name": c.Name, "kind": c.Kind, "source": c.Source, "source_observed_at": original, "replay_clock_rebased": true, "no_database_mutation": true, "expected": c.Expected, "actual": actual, "passed": passed, "requested_tools": requested, "result": result}
+		record := map[string]any{"model_choice": modelChoice, "guard_veto": actual != modelChoice, "name": c.Name, "kind": c.Kind, "source": c.Source, "source_observed_at": original, "replay_clock_rebased": true, "no_database_mutation": true, "expected": c.Expected, "actual": actual, "passed": passed, "requested_tools": requested, "result": result}
 		if runErr != nil {
 			record["error"] = "diagnostic process or proposal validation failed"
 		}

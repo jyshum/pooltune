@@ -17,6 +17,10 @@ func ValidateDiagnosticProposal(e IndexEvidence, p IndexProposal, now time.Time)
 		return qualifyIndex(e, p, now)
 	case "analyze":
 		eligible = qualifyAnalyze(AnalyzeReport{Evidence: e, Proposal: p}, e.TableOID, now)
+		if eligible {
+			a := e.Analyze
+			eligible = e.Plan.Node == "Seq Scan" && e.Plan.ExaminedRows > 0 && a.ActualRows == e.Plan.ReturnedRows && a.SampledValueFraction != nil && *a.SampledValueFraction/(float64(a.ActualRows)/float64(e.Plan.ExaminedRows)) >= 10
+		}
 	case "statistics":
 		s := e.Statistics
 		eligible = s != nil && s.Correlated && len(s.Cases) == 2

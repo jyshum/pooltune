@@ -8,9 +8,9 @@ const identity={run_id:'diagnostic-test',table_oid:42,column_number:2};
 const observation=(tool:DiagnosticTool,data:unknown):Observation=>({...identity,tool,observed_at:new Date(now).toISOString(),status:'available',data});
 const input=(initial:Observation[]=[]):DiagnosticInput=>({...identity,decision:'investigate',initial});
 const plan={node:'Seq Scan',examined_rows:100000,returned_rows:1,shared_blocks:1200};
-const compare=[{cause:'index',assessment:'rejected',reason:'A covering index exists.'},{cause:'analyze',assessment:'supported',reason:'Stored frequencies contradict measured rows.'}];
+const compare=[{cause:'index',assessment:'rejected',blocks_decision:false,reason:'A covering index exists.'},{cause:'analyze',assessment:'supported',blocks_decision:false,reason:'Stored frequencies contradict measured rows.'}];
 const propose=(repair='analyze')=>({action:'propose',repair,tools:[],assessments:compare,reason:'Refresh stale lookup statistics.'});
-const request=(tools:string[])=>({action:'request_evidence',repair:null,tools,assessments:[{cause:'analyze',assessment:'uncertain',reason:'Need stored frequencies.'},{cause:'statistics',assessment:'uncertain',reason:'Need evidence of relationships.'}],reason:'Distinguish stale statistics from missing relationship information.'});
+const request=(tools:string[])=>({action:'request_evidence',repair:null,tools,assessments:[{cause:'analyze',assessment:'uncertain',blocks_decision:true,reason:'Need stored frequencies.'},{cause:'statistics',assessment:'uncertain',blocks_decision:true,reason:'Need evidence of relationships.'}],reason:'Distinguish stale statistics from missing relationship information.'});
 const base=[observation('plan',plan),observation('indexes',{covering_index:true})];
 
 test('requests a missing measurement, compares mixed causes, and returns the supported repair',async()=>{
@@ -26,7 +26,7 @@ test('requests a missing measurement, compares mixed causes, and returns the sup
 
 test('reuses sufficient evidence in one model call without a reader call',async()=>{
  const graph=buildDiagnosticGraph(async()=>({decision:propose()}),async()=>{throw Error('Must reuse evidence');});
- const out=await graph.invoke({input:input([...base,observation('analyze',{estimated_rows:100000,actual_rows:1})])});
+ const out=await graph.invoke({input:input([...base,observation('analyze',{estimated_rows:100000,actual_rows:1,sampled_lookup_fraction:1})])});
  assert.equal(out.proposal?.outcome,'propose');assert.equal(out.model_calls,1);assert.equal(out.reads,0);
 });
 
@@ -65,7 +65,7 @@ for(const [name,mutate] of [
  ['future evidence',(o:any)=>({...o,observed_at:new Date(now+60000).toISOString()})],
  ['invalid data',(o:any)=>({...o,data:{sql:'DROP TABLE x'}})],
 ] as const)test(`rejects ${name} from a reader`,async()=>{
- const graph=buildDiagnosticGraph(async()=>({decision:request(['analyze'])}),async tool=>mutate(observation(tool,{estimated_rows:100000,actual_rows:1})),undefined,()=>now);
+ const graph=buildDiagnosticGraph(async()=>({decision:request(['analyze'])}),async tool=>mutate(observation(tool,{estimated_rows:100000,actual_rows:1,sampled_lookup_fraction:1})),undefined,()=>now);
  const out=await graph.invoke({input:input(base)});assert.equal(out.proposal?.outcome,'no_change');assert.equal(out.stop_reason,'invalid_evidence');
 });
 
@@ -85,7 +85,7 @@ test('model failures and reader failures end without a proposal',async()=>{
 
 test('checkpoint resume does not repeat completed evidence reads',async()=>{
  let reads=0;const saver=new MemorySaver();
- const graph=buildDiagnosticGraph(async view=>({decision:view.observations.some(o=>o.tool==='analyze')?propose():request(['analyze'])}),async tool=>{reads++;return observation(tool,{estimated_rows:100000,actual_rows:1});},saver);
+ const graph=buildDiagnosticGraph(async view=>({decision:view.observations.some(o=>o.tool==='analyze')?propose():request(['analyze'])}),async tool=>{reads++;return observation(tool,{estimated_rows:100000,actual_rows:1,sampled_lookup_fraction:1});},saver);
  const config={configurable:{thread_id:'resume'},interruptAfter:['request_evidence' as const]};
  await graph.invoke({input:input(base)},config);
  const out=await graph.invoke(null,{configurable:{thread_id:'resume'}});
@@ -93,7 +93,7 @@ test('checkpoint resume does not repeat completed evidence reads',async()=>{
 });
 
 test('contradictory stale and freshly analyzed relationship evidence cannot authorize a repair',async()=>{
- const graph=buildDiagnosticGraph(async()=>({decision:{...propose('statistics'),assessments:[{cause:'statistics',assessment:'supported',reason:'Relationship error.'},{cause:'analyze',assessment:'rejected',reason:'Ignore stale frequencies.'}]}}),async()=>{throw Error('Unexpected read');});
+ const graph=buildDiagnosticGraph(async()=>({decision:{...propose('statistics'),assessments:[{cause:'statistics',assessment:'supported',blocks_decision:false,reason:'Relationship error.'},{cause:'analyze',assessment:'rejected',blocks_decision:false,reason:'Ignore stale frequencies.'}]}}),async()=>{throw Error('Unexpected read');});
  const out=await graph.invoke({input:input([...base,observation('analyze',{estimated_rows:100000,actual_rows:1,sampled_lookup_fraction:1}),observation('statistics',{correlated_columns:true,cases:[{estimated_rows:25000,actual_rows:1},{estimated_rows:25000,actual_rows:1}]})])});
  assert.equal(out.proposal?.outcome,'no_change');assert.equal(out.stop_reason,'contradictory_evidence');
 });
@@ -103,6 +103,18 @@ test('expired initial evidence and elapsed investigation deadline stop without m
  const graph=buildDiagnosticGraph(async()=>{calls++;clock+=21000;return {decision:propose()};},async()=>{throw Error('Unexpected read');},undefined,()=>clock);
  const stale=await graph.invoke({input:input(base.map(o=>({...o,observed_at:new Date(now-31000).toISOString()})))});
  assert.equal(stale.proposal?.outcome,'no_change');assert.equal(calls,0);
- const out=await graph.invoke({input:input([...base,observation('analyze',{estimated_rows:100000,actual_rows:1})])});
+ const out=await graph.invoke({input:input([...base,observation('analyze',{estimated_rows:100000,actual_rows:1,sampled_lookup_fraction:1})])});
  assert.equal(out.proposal?.outcome,'no_change');assert.equal(calls,1);
+});
+
+test('an unresolved relevant alternative vetoes a proposed repair',async()=>{
+ const graph=buildDiagnosticGraph(async()=>({decision:{...propose(),assessments:[{cause:'analyze',assessment:'supported',blocks_decision:false,reason:'Stale frequency.'},{cause:'statistics',assessment:'uncertain',blocks_decision:true,reason:'Missing evidence could change the repair.'}]}}),async()=>{throw Error('Unexpected read');});
+ const out=await graph.invoke({input:input([...base,observation('analyze',{estimated_rows:100000,actual_rows:1,sampled_lookup_fraction:1})])});
+ assert.equal(out.proposal?.outcome,'no_change');
+});
+
+test('estimate error alone is not proof that statistics are stale',async()=>{
+ const graph=buildDiagnosticGraph(async()=>({decision:propose()}),async()=>{throw Error('Unexpected read');});
+ const out=await graph.invoke({input:input([...base,observation('analyze',{estimated_rows:100000,actual_rows:1})])});
+ assert.equal(out.proposal?.outcome,'no_change');
 });

@@ -29,10 +29,10 @@ func helperCommand(t *testing.T, body string) func(context.Context) *exec.Cmd {
 func TestDiagnosticBridgeRequestsBoundReader(t *testing.T) {
 	input := diagnosticFixture()
 	reads := 0
-	command := helperCommand(t, `console.log(JSON.stringify({type:'read',tool:'analyze'})); const obs=JSON.parse((await lines.next()).value); if(obs.observation.data.actual_rows!==1)process.exit(2); console.log(JSON.stringify({type:'result',result:{proposal:{outcome:'propose',repair:'analyze',run_id:'test',table_oid:42,column_number:2,reason:'Stale statistics'},model_calls:2,reads:1,model_ms:10,tool_ms:2,stop_reason:'',history:[]}}));`)
+	command := helperCommand(t, `console.log(JSON.stringify({type:'read',tool:'analyze'})); const obs=JSON.parse((await lines.next()).value); if(obs.observation.data.actual_rows!==1)process.exit(2); console.log(JSON.stringify({type:'result',result:{proposal:{outcome:'propose',repair:'analyze',run_id:'test',table_oid:42,column_number:2,reason:'Stale statistics'},model_calls:2,reads:1,model_ms:10,tool_ms:2,stop_reason:'',history:[{action:'propose',repair:'analyze',tools:[],reason:'Stale statistics',assessments:[{cause:'analyze',assessment:'supported',blocks_decision:false,reason:'Stale distribution'},{cause:'index',assessment:'rejected',blocks_decision:false,reason:'Index exists'}]}]}}));`)
 	result, err := runDiagnostic(context.Background(), input, func(ctx context.Context, tool string) (DiagnosticObservation, error) {
 		reads++
-		return DiagnosticObservation{DiagnosticIdentity: input.DiagnosticIdentity, Tool: tool, At: time.Now().UTC(), Status: "available", Data: json.RawMessage(`{"estimated_rows":100000,"actual_rows":1}`)}, nil
+		return DiagnosticObservation{DiagnosticIdentity: input.DiagnosticIdentity, Tool: tool, At: time.Now().UTC(), Status: "available", Data: json.RawMessage(`{"estimated_rows":100000,"actual_rows":1,"sampled_lookup_fraction":1}`)}, nil
 	}, command)
 	if err != nil {
 		t.Fatal(err)
@@ -66,8 +66,8 @@ func TestDiagnosticBridgeCancelsHangingProcess(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 	defer cancel()
 	start := time.Now()
-	_, err := runDiagnostic(ctx, diagnosticFixture(), nil, helperCommand(t, `await new Promise(()=>{});`))
-	if err == nil || time.Since(start) > time.Second {
+	result, err := runDiagnostic(ctx, diagnosticFixture(), nil, helperCommand(t, `await new Promise(()=>{});`))
+	if err == nil || time.Since(start) > time.Second || result.TotalMS <= 0 {
 		t.Fatal("process did not terminate promptly")
 	}
 }
@@ -104,5 +104,32 @@ func TestDiagnosticBridgeVetoesContradictoryStatistics(t *testing.T) {
 	_, err := runDiagnostic(context.Background(), input, nil, command)
 	if err == nil {
 		t.Fatal("accepted contradictory evidence")
+	}
+}
+
+func TestDiagnosticGoGuardRequiresResolvedCausesAndStaleness(t *testing.T) {
+	input := diagnosticFixture()
+	observations := map[string]DiagnosticObservation{}
+	for _, o := range input.Initial {
+		observations[o.Tool] = o
+	}
+	observations["analyze"] = DiagnosticObservation{input.DiagnosticIdentity, "analyze", time.Now().UTC(), "available", json.RawMessage(`{"estimated_rows":100000,"actual_rows":1,"sampled_lookup_fraction":1}`)}
+	history := func(blocks string) json.RawMessage {
+		return json.RawMessage(`{"action":"propose","repair":"analyze","tools":[],"reason":"Stale distribution","assessments":[{"cause":"analyze","assessment":"supported","blocks_decision":false,"reason":"Stored frequency contradicts measured rows"},{"cause":"statistics","assessment":"uncertain","blocks_decision":` + blocks + `,"reason":"Relationship evidence"}]}`)
+	}
+	result := DiagnosticResult{Proposal: hostedquery.IndexProposal{Outcome: "propose", Repair: "analyze", RunID: input.RunID, TableOID: input.TableOID, Column: input.Column, Reason: "Stale distribution"}, History: []json.RawMessage{history("false")}}
+	if err := validateDiagnosticResult(input, observations, result); err != nil {
+		t.Fatal(err)
+	}
+	result.History = []json.RawMessage{history("true")}
+	if validateDiagnosticResult(input, observations, result) == nil {
+		t.Fatal("accepted unresolved alternative")
+	}
+	result.History = []json.RawMessage{history("false")}
+	o := observations["analyze"]
+	o.Data = json.RawMessage(`{"estimated_rows":100000,"actual_rows":1}`)
+	observations["analyze"] = o
+	if validateDiagnosticResult(input, observations, result) == nil {
+		t.Fatal("accepted estimate error without distribution evidence")
 	}
 }

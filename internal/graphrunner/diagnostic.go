@@ -11,6 +11,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"pooltune/internal/hostedquery"
+	"pooltune/internal/labdb"
 	"time"
 )
 
@@ -32,14 +33,15 @@ type DiagnosticInput struct {
 	Initial  []DiagnosticObservation `json:"initial"`
 }
 type DiagnosticResult struct {
-	Proposal   hostedquery.IndexProposal `json:"proposal"`
-	ModelCalls int                       `json:"model_calls"`
-	Reads      int                       `json:"reads"`
-	ModelMS    float64                   `json:"model_ms"`
-	ToolMS     float64                   `json:"tool_ms"`
-	TotalMS    float64                   `json:"total_ms"`
-	StopReason string                    `json:"stop_reason"`
-	History    []json.RawMessage         `json:"history"`
+	Proposal      hostedquery.IndexProposal `json:"proposal"`
+	ModelAttempts int                       `json:"model_attempts"`
+	ModelCalls    int                       `json:"model_calls"`
+	Reads         int                       `json:"reads"`
+	ModelMS       float64                   `json:"model_ms"`
+	ToolMS        float64                   `json:"tool_ms"`
+	TotalMS       float64                   `json:"total_ms"`
+	StopReason    string                    `json:"stop_reason"`
+	History       []json.RawMessage         `json:"history"`
 }
 type DiagnosticReader func(context.Context, string) (DiagnosticObservation, error)
 type DiagnosticInvestigator func(context.Context, DiagnosticInput, DiagnosticReader) (DiagnosticResult, error)
@@ -73,7 +75,26 @@ func diagnosticProcess(stateDSN string, replay bool) (DiagnosticInvestigator, er
 	if err != nil {
 		return nil, err
 	}
-	return func(ctx context.Context, input DiagnosticInput, read DiagnosticReader) (DiagnosticResult, error) {
+	return func(ctx context.Context, input DiagnosticInput, read DiagnosticReader) (result DiagnosticResult, err error) {
+		started := time.Now()
+		defer func() { result.TotalMS = float64(time.Since(started)) / float64(time.Millisecond) }()
+		ctx, cancel := context.WithTimeout(ctx, 22*time.Second)
+		defer cancel()
+		var reserve func(context.Context) (int, error)
+		if !replay {
+			config, err := labdb.StateConfig(stateDSN)
+			if err != nil {
+				return DiagnosticResult{}, errors.New("invalid diagnostic state route")
+			}
+			config.RuntimeParams["statement_timeout"] = "3s"
+			journal, err := openDiagnosticJournal(ctx, config, input)
+			if err != nil {
+				return DiagnosticResult{}, err
+			}
+			defer journal.close()
+			read = journal.reader(read)
+			reserve = journal.reserveModel
+		}
 		return runDiagnostic(ctx, input, read, func(ctx context.Context) *exec.Cmd {
 			c := exec.CommandContext(ctx, node, path)
 			c.Env = []string{"ANTHROPIC_API_KEY=" + os.Getenv("ANTHROPIC_API_KEY"), "POOLTUNE_ANTHROPIC_MODEL=" + os.Getenv("POOLTUNE_ANTHROPIC_MODEL"), "LANGSMITH_TRACING=false", "POOLTUNE_LAB_STATE_DSN=" + stateDSN, "POOLTUNE_STAGING_PRIVATE_STATE=" + os.Getenv("POOLTUNE_STAGING_PRIVATE_STATE")}
@@ -81,7 +102,7 @@ func diagnosticProcess(stateDSN string, replay bool) (DiagnosticInvestigator, er
 				c.Env = append(c.Env, "POOLTUNE_DIAGNOSTIC_REPLAY=1")
 			}
 			return c
-		})
+		}, reserve)
 	}, nil
 }
 func validObservation(o DiagnosticObservation, input DiagnosticInput, tool string) bool {
@@ -101,8 +122,9 @@ func strictJSON(data []byte, dst any) error {
 	}
 	return nil
 }
-func runDiagnostic(parent context.Context, input DiagnosticInput, read DiagnosticReader, command func(context.Context) *exec.Cmd) (result DiagnosticResult, err error) {
+func runDiagnostic(parent context.Context, input DiagnosticInput, read DiagnosticReader, command func(context.Context) *exec.Cmd, reserve ...func(context.Context) (int, error)) (result DiagnosticResult, err error) {
 	started := time.Now()
+	defer func() { result.TotalMS = float64(time.Since(started)) / float64(time.Millisecond) }()
 	ctx, cancel := context.WithTimeout(parent, 22*time.Second)
 	defer cancel()
 	if input.RunID == "" || len(input.RunID) > 64 || input.TableOID == 0 || input.Column <= 0 || len(input.Initial) > 7 {
@@ -147,6 +169,7 @@ func runDiagnostic(parent context.Context, input DiagnosticInput, read Diagnosti
 	scanner := bufio.NewScanner(stdout)
 	scanner.Buffer(make([]byte, 4096), 65536)
 	reads := 0
+	attempts := 0
 	for scanner.Scan() {
 		var frame struct {
 			Type   string            `json:"type"`
@@ -157,6 +180,23 @@ func runDiagnostic(parent context.Context, input DiagnosticInput, read Diagnosti
 			return result, errors.New("invalid diagnostic frame")
 		}
 		switch frame.Type {
+		case "model_start":
+			if frame.Tool != "" || frame.Result != nil {
+				return result, errors.New("invalid model admission frame")
+			}
+			allowed := attempts < 3
+			if allowed && len(reserve) > 0 && reserve[0] != nil {
+				var reserveErr error
+				attempts, reserveErr = reserve[0](ctx)
+				allowed = reserveErr == nil
+			} else if allowed {
+				attempts++
+			}
+			if encoder.Encode(struct {
+				Permit bool `json:"permit"`
+			}{allowed}) != nil {
+				return result, errors.New("model admission handoff failed")
+			}
 		case "read":
 			if frame.Result != nil || !diagnosticTools[frame.Tool] || observations[frame.Tool].Tool != "" || reads >= 6 {
 				return result, errors.New("invalid diagnostic evidence request")
@@ -200,6 +240,7 @@ func runDiagnostic(parent context.Context, input DiagnosticInput, read Diagnosti
 				return result, errors.New("invalid diagnostic result")
 			}
 			result = *frame.Result
+			result.ModelAttempts = attempts
 			if result.Reads != reads || result.ModelCalls < 0 || result.ModelCalls > 3 || result.ModelMS < 0 || result.ToolMS < 0 || len(result.History) > 3 || validateDiagnosticResult(input, observations, result) != nil {
 				return result, errors.New("unsupported diagnostic result")
 			}
@@ -228,6 +269,50 @@ func validateDiagnosticResult(input DiagnosticInput, observations map[string]Dia
 			return errors.New("unexpected repair")
 		}
 		return nil
+	}
+	if len(result.History) == 0 {
+		return errors.New("missing cause assessment")
+	}
+	var decision struct {
+		Action      string   `json:"action"`
+		Repair      *string  `json:"repair"`
+		Tools       []string `json:"tools"`
+		Reason      string   `json:"reason"`
+		Assessments []struct {
+			Cause      string `json:"cause"`
+			Assessment string `json:"assessment"`
+			Blocks     *bool  `json:"blocks_decision"`
+			Reason     string `json:"reason"`
+		} `json:"assessments"`
+	}
+	if strictJSON(result.History[len(result.History)-1], &decision) != nil || decision.Action != "propose" || decision.Repair == nil || len(decision.Tools) != 0 || len(decision.Assessments) < 2 || len(decision.Assessments) > 7 {
+		return errors.New("invalid cause assessment")
+	}
+	chosen := p.Repair
+	if chosen == "" {
+		chosen = "index"
+	}
+	if *decision.Repair != chosen {
+		return errors.New("changed selected repair")
+	}
+	supported := 0
+	seen := map[string]bool{}
+	for _, a := range decision.Assessments {
+		if a.Blocks == nil || *a.Blocks || seen[a.Cause] || a.Reason == "" || len(a.Reason) > 200 {
+			return errors.New("unresolved cause assessment")
+		}
+		seen[a.Cause] = true
+		if a.Assessment == "supported" {
+			supported++
+			if a.Cause != chosen {
+				return errors.New("competing cause")
+			}
+		} else if a.Assessment != "rejected" && a.Assessment != "uncertain" {
+			return errors.New("invalid assessment")
+		}
+	}
+	if supported != 1 {
+		return errors.New("unsupported cause")
 	}
 	if input.Decision != hostedquery.Investigate {
 		return errors.New("not actionable")

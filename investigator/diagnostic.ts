@@ -13,7 +13,7 @@ export const diagnosticInputSchema=z.strictObject({...identityShape,decision:z.e
 export type DiagnosticInput=z.infer<typeof diagnosticInputSchema>;
 export const diagnosticDecisionSchema=z.strictObject({
  action:z.enum(['request_evidence','propose','no_change']),repair:repairSchema.nullable(),tools:z.array(toolSchema).max(3),
- assessments:z.array(z.strictObject({cause:z.enum([...repairSchema.options,'unsupported']),assessment:z.enum(['supported','rejected','uncertain']),reason:z.string().min(1).max(200)})).min(2).max(7),
+ assessments:z.array(z.strictObject({cause:z.enum([...repairSchema.options,'unsupported']),assessment:z.enum(['supported','rejected','uncertain']),blocks_decision:z.boolean(),reason:z.string().min(1).max(200)})).min(2).max(7),
  reason:z.string().min(1).max(300),
 });
 export type DiagnosticDecision=z.infer<typeof diagnosticDecisionSchema>;
@@ -106,9 +106,15 @@ export function buildDiagnosticGraph(decide:DiagnosticDecider,read:DiagnosticRea
     }
     if(!p||!i||(repair!=='index'&&!get(repair)))throw Error('missing support');
     const supported=s.current.assessments.filter(a=>a.assessment==='supported');
-    if(supported.length!==1||supported[0].cause!==repair)throw Error('ambiguous');
+    if(supported.length!==1||supported[0].cause!==repair||s.current.assessments.some(a=>a.blocks_decision))throw Error('ambiguous');
     const raw={...identity(s.input),observed_at:p.observed_at,decision:'investigate',lookup_column:'lookup',plan:p.data,...i.data as object,...(repair==='index'?{}:{[repair]:get(repair)!.data})};
     const e=evidenceFields.parse(raw) as Evidence;
+    if(repair==='analyze'){
+     const a=e.analyze!;
+     const observed=e.plan.examined_rows>0?a.actual_rows/e.plan.examined_rows:0;
+     if(e.plan.node!=='Seq Scan'||a.actual_rows!==e.plan.returned_rows||a.sampled_lookup_fraction===undefined||observed<=0||a.sampled_lookup_fraction/observed<10)throw Error('staleness not established');
+    }
+
     if(screenEvidence(e).proposal)throw Error('ineligible');
     proposal={...identity(s.input),outcome:'propose',reason:s.current.reason,...(repair==='index'?{}:{repair})};
    }catch{stop_reason='unsupported_proposal';proposal.reason='Available evidence does not justify this repair.';}

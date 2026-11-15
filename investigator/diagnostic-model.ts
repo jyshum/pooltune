@@ -8,7 +8,7 @@ Return one structured diagnostic_step:
 - request_evidence: name 1–3 missing tools, repair=null, explain the decision gap. Batch independent requests. Never request a tool already present, including unavailable results. A tool absent from observations has NOT been tried and IS requestable. If a missing measurement could resolve a plausible cause and budget remains, request it instead of stopping just because it was not supplied. Unavailable means Go tried or denied that measurement; it is unknown, not healthy or absent. Do not ask for every tool without a relevant reason.
 - propose: select exactly one supported repair, tools=[], and assess at least one plausible alternative. If an uncertain competing cause could change the repair choice, request its missing evidence or return no_change.
 - no_change: repair=null, tools=[], explain healthy, unsupported, ambiguous, insufficient or exhausted evidence. Never invent observations to finish.
-Use two or three relevant cause assessments, each one short sentence of at most 120 characters. The final reason is one sentence of at most 200 characters. This is an evidence summary rather than hidden reasoning. Do not demand evidence for unrelated repair families once a cause is established. Missing evidence never rules a cause out. Prefer a one-call answer when sufficient evidence is present. Respect remaining call/read budgets. On the last call either propose from sufficient evidence or decline.
+Every assessment includes blocks_decision. Set it true when unresolved uncertainty could change the chosen repair. A proposal is forbidden while any assessment blocks the decision. An irrelevant unknown may be marked false with an explanation. Use two or three relevant cause assessments, each one short sentence of at most 120 characters. The final reason is one sentence of at most 200 characters. This is an evidence summary rather than hidden reasoning. Do not demand evidence for unrelated repair families once a cause is established. Missing evidence never rules a cause out. Prefer a one-call answer when sufficient evidence is present. Respect remaining call/read budgets. On the last call either propose from sufficient evidence or decline.
 Tools and repairs:
 plan: measured scan/sort shape, examined and returned rows, shared blocks. This is execution evidence, not merely estimates.
 indexes: whether a usable covering index exists. A selective Seq Scan examining >=10000 rows, >=10 examined per returned row, with no covering index can support repair=index. An existing covering index rules it out for this bounded capability.
@@ -56,7 +56,7 @@ export const diagnosticDecider:DiagnosticDecider=async(view,signal)=>{
  const modelName=process.env.POOLTUNE_ANTHROPIC_MODEL;
  if(!modelName||!process.env.ANTHROPIC_API_KEY)throw Error('Model configuration required');
  const model=new ChatAnthropic({model:modelName,maxTokens:1200,maxRetries:0,clientOptions:{timeout:8500}});
- const result=await model.withStructuredOutput(diagnosticDecisionSchema,{name:'diagnostic_step',includeRaw:true}).invoke([
+ const result=await model.withStructuredOutput(diagnosticDecisionSchema,{name:'diagnostic_step',method:'jsonSchema',includeRaw:true}).invoke([
   new SystemMessage(diagnosticInstructions),new HumanMessage(JSON.stringify({...view,measurement_summary:summarizeDiagnosticEvidence(view.observations)})),
  ],{signal});
  const decision=parseDiagnosticModelOutput(result);
