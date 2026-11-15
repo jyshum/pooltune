@@ -1,0 +1,111 @@
+{
+  "phase": "mixed_traffic",
+  "deployment": "8ac5824b-f9c4-4bbb-b306-ab1741128fce",
+  "operation": "statistics",
+  "trial": "column_target",
+  "setup_path": "owner_setup_form",
+  "configured_query_ids": 0,
+  "initial_relation_bytes": 21635072,
+  "catalog_before": {
+    "analyze_count": 1,
+    "statistics": [],
+    "indexes": [
+      {
+        "oid": "29858",
+        "keys": "2",
+        "live": true
+      },
+      {
+        "oid": "29862",
+        "keys": "1",
+        "live": true
+      }
+    ],
+    "protected_row": 0,
+    "configured_target": 1,
+    "sampled_values": "{42}"
+  },
+  "polls_seen": 18,
+  "job_id": 292,
+  "attempts": 1,
+  "outcome": "inconclusive",
+  "reason": "the column statistics adjustment stopped before changing PostgreSQL",
+  "graph_ms": 5392.26829,
+  "model_ms": 4683.411815,
+  "repair": {},
+  "terminal_job": {
+    "id": 292,
+    "attempts": 1,
+    "outcome": "inconclusive",
+    "claimed_at": "2026-11-15T23:28:06.532037Z",
+    "finished_at": "2026-11-15T23:28:22.140609Z",
+    "elapsed_ms": 15612.887391
+  },
+  "mixed_traffic": {
+    "candidate": {
+      "before": {
+        "calls": 79,
+        "client_mean_ms": 156.36444197823235
+      },
+      "during": {
+        "calls": 60,
+        "client_mean_ms": 92.71117157283395
+      },
+      "after": {
+        "calls": 32,
+        "client_mean_ms": 85.00790497419075
+      }
+    },
+    "healthy": {
+      "before": {
+        "calls": 85,
+        "client_mean_ms": 27.778091130312532
+      },
+      "during": {
+        "calls": 60,
+        "client_mean_ms": 25.013813204714097
+      },
+      "after": {
+        "calls": 31,
+        "client_mean_ms": 26.49277816301272
+      }
+    },
+    "write": {
+      "before": {
+        "calls": 85,
+        "client_mean_ms": 28.4073657458922
+      },
+      "during": {
+        "calls": 60,
+        "client_mean_ms": 26.82866533480895
+      },
+      "after": {
+        "calls": 31,
+        "client_mean_ms": 27.18138706780249
+      }
+    }
+  },
+  "catalog_after": {
+    "analyze_count": 1,
+    "statistics": [],
+    "indexes": [
+      {
+        "oid": "29858",
+        "keys": "2",
+        "live": true
+      },
+      {
+        "oid": "29862",
+        "keys": "1",
+        "live": true
+      }
+    ],
+    "protected_row": 0,
+    "configured_target": 1,
+    "sampled_values": "{42}"
+  },
+  "dashboard_disconnected": true,
+  "owned_database_objects_removed": true,
+  "public_index_fingerprint_unchanged": true,
+  "revision": "7112ae4"
+}

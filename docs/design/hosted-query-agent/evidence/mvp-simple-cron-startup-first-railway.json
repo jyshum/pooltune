@@ -1,0 +1,20 @@
+{
+  "deployment": "6bc6c36e-7d33-46ad-addb-9332825fbd9f",
+  "setup_path": "normal_start_form",
+  "manually_enrolled_query_ids": 0,
+  "worker_config_query_id": 0,
+  "scheduler_witness_preflight": {
+    "succeeded": 2
+  },
+  "first_cycle": "2026-11-15T23:28:00Z",
+  "phase": "observer_failed",
+  "railway_lifecycle": {
+    "archived_periods": [],
+    "observer_failure": "ERR_ASSERTION"
+  },
+  "verified": false,
+  "revision": "69503cc",
+  "target_started": false,
+  "fixture_identity_unchanged": true,
+  "startup_failure": "The recorder required an active witness before the fixture controller could start it."
+}

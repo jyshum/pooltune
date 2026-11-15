@@ -1,0 +1,111 @@
+{
+  "phase": "mixed_traffic",
+  "deployment": "f49b3390-be2c-4656-9aba-81d903fb8914",
+  "operation": "statistics",
+  "trial": "column_target",
+  "setup_path": "owner_setup_form",
+  "configured_query_ids": 0,
+  "initial_relation_bytes": 21635072,
+  "catalog_before": {
+    "analyze_count": 2,
+    "statistics": [],
+    "indexes": [
+      {
+        "oid": "29604",
+        "keys": "2",
+        "live": true
+      },
+      {
+        "oid": "29608",
+        "keys": "1",
+        "live": true
+      }
+    ],
+    "protected_row": 0,
+    "configured_target": 1,
+    "sampled_values": "{42}"
+  },
+  "polls_seen": 19,
+  "job_id": 274,
+  "attempts": 1,
+  "outcome": "no_change",
+  "reason": "model_failed",
+  "graph_ms": 9214.035262,
+  "model_ms": null,
+  "repair": {},
+  "terminal_job": {
+    "id": 274,
+    "attempts": 1,
+    "outcome": "no_change",
+    "claimed_at": "2026-11-15T23:13:07.946377Z",
+    "finished_at": "2026-11-15T23:13:22.688999Z",
+    "elapsed_ms": 14743.105633
+  },
+  "mixed_traffic": {
+    "candidate": {
+      "before": {
+        "calls": 90,
+        "client_mean_ms": 93.2725453574676
+      },
+      "during": {
+        "calls": 57,
+        "client_mean_ms": 78.31594230006694
+      },
+      "after": {
+        "calls": 32,
+        "client_mean_ms": 77.34327352773107
+      }
+    },
+    "healthy": {
+      "before": {
+        "calls": 94,
+        "client_mean_ms": 27.394815172846528
+      },
+      "during": {
+        "calls": 57,
+        "client_mean_ms": 26.944447332266066
+      },
+      "after": {
+        "calls": 32,
+        "client_mean_ms": 24.751246188316145
+      }
+    },
+    "write": {
+      "before": {
+        "calls": 94,
+        "client_mean_ms": 26.355376765577795
+      },
+      "during": {
+        "calls": 57,
+        "client_mean_ms": 24.588978034444153
+      },
+      "after": {
+        "calls": 32,
+        "client_mean_ms": 24.69352484695264
+      }
+    }
+  },
+  "catalog_after": {
+    "analyze_count": 2,
+    "statistics": [],
+    "indexes": [
+      {
+        "oid": "29604",
+        "keys": "2",
+        "live": true
+      },
+      {
+        "oid": "29608",
+        "keys": "1",
+        "live": true
+      }
+    ],
+    "protected_row": 0,
+    "configured_target": 1,
+    "sampled_values": "{42}"
+  },
+  "dashboard_disconnected": true,
+  "owned_database_objects_removed": true,
+  "public_index_fingerprint_unchanged": true,
+  "revision": "80c8af3"
+}

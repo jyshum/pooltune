@@ -1,0 +1,12 @@
+{
+  "environment": "Rookery staging",
+  "scope": "exact disposable Cron writer and read-only operator helper",
+  "scoped_helper_read": true,
+  "scheduled_target_active": false,
+  "scheduler_witness": {
+    "succeeded": 2
+  },
+  "worker_config_query_id": 0,
+  "phase": "provider_admission_only",
+  "revision": "80c8af3"
+}

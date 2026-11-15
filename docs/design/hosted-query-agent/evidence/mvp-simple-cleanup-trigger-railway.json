@@ -1,0 +1,162 @@
+{
+  "phase": "verified",
+  "deployment": "1cf107c7-e6b7-4821-ac37-f6b28e033b5e",
+  "configured_query_ids": 0,
+  "setup": "ordinary_start_form",
+  "capability": "vacuum",
+  "initial": {
+    "option": "0.20",
+    "dead": 0,
+    "manual_vacuums": 0,
+    "autovacuums": 0,
+    "last_autovacuum": null,
+    "updated": 0,
+    "rows_estimate": 100000,
+    "bytes": 19611648,
+    "naptime_seconds": 60
+  },
+  "before": {
+    "option": "0.20",
+    "dead": 16000,
+    "manual_vacuums": 0,
+    "autovacuums": 0,
+    "last_autovacuum": null,
+    "updated": 16000,
+    "rows_estimate": 100000,
+    "bytes": 22724608,
+    "naptime_seconds": 60
+  },
+  "polls_seen": 56,
+  "observed_jobs": [
+    {
+      "id": 283,
+      "outcome": "improved_tested_inputs",
+      "reason": "PostgreSQL automatically cleared the backlog, and the measured query improved without a sampled regression."
+    },
+    {
+      "id": 278,
+      "outcome": "awaiting_verification",
+      "reason": "The table setting changed. Waiting for PostgreSQL to clean the measured backlog."
+    }
+  ],
+  "after": {
+    "option": "0.15",
+    "dead": 1500,
+    "manual_vacuums": 0,
+    "autovacuums": 1,
+    "last_autovacuum": "2026-11-15T23:16:06.95103+00:00",
+    "updated": 19500,
+    "rows_estimate": 100000,
+    "bytes": 22732800,
+    "naptime_seconds": 60
+  },
+  "job_id": 283,
+  "outcome": "improved_tested_inputs",
+  "model_ms": 3627.434402,
+  "mixed_traffic": {
+    "candidate": {
+      "before": {
+        "calls": 458,
+        "client_mean_ms": 54.169141180868216
+      },
+      "after": {
+        "calls": 33,
+        "client_mean_ms": 46.889027818741106
+      }
+    },
+    "healthy": {
+      "before": {
+        "calls": 458,
+        "client_mean_ms": 26.30377501807497
+      },
+      "after": {
+        "calls": 32,
+        "client_mean_ms": 23.142492196711828
+      }
+    },
+    "write": {
+      "before": {
+        "calls": 457,
+        "client_mean_ms": 26.71815170672125
+      },
+      "after": {
+        "calls": 33,
+        "client_mean_ms": 25.08524996687122
+      }
+    }
+  },
+  "ordinary_backlog_writes": 3500,
+  "postgres_app_counter_delta": {
+    "candidate": {
+      "ordinary": 491,
+      "controlled_readbacks": 2,
+      "total": 493
+    },
+    "healthy": {
+      "ordinary": 490,
+      "controlled_readbacks": 0,
+      "total": 490
+    },
+    "write": {
+      "ordinary": 490,
+      "controlled_readbacks": 0,
+      "total": 490
+    }
+  },
+  "metrics": {
+    "Dead tuples": {
+      "label": "Dead tuples",
+      "unit": "",
+      "before": 17459,
+      "after": 1500
+    },
+    "Automatic cleanups": {
+      "label": "Automatic cleanups",
+      "unit": "",
+      "before": 0,
+      "after": 1
+    },
+    "Query mean latency": {
+      "label": "Query mean latency",
+      "unit": "ms",
+      "before": 42.925200000000004,
+      "after": 23.6768
+    },
+    "Protected read mean latency": {
+      "label": "Protected read mean latency",
+      "unit": "ms",
+      "before": 0.027299999999999998,
+      "after": 0.037200000000000004
+    },
+    "Protected write mean latency": {
+      "label": "Protected write mean latency",
+      "unit": "ms",
+      "before": 0.056299999999999996,
+      "after": 0.0653
+    },
+    "Block accesses per read": {
+      "label": "Block accesses per read",
+      "unit": "",
+      "before": 52382,
+      "after": 21848
+    },
+    "Heap fetches": {
+      "label": "Heap fetches",
+      "unit": "",
+      "before": 52200,
+      "after": 21665
+    },
+    "Row estimate error ratio": {
+      "label": "Row estimate error ratio",
+      "unit": "\u00d7",
+      "before": 0,
+      "after": 0
+    }
+  },
+  "active_dashboard_verified": true,
+  "manual_query_enrollments": 0,
+  "dashboard_disconnected": true,
+  "owned_database_objects_removed": true,
+  "public_index_fingerprint_unchanged": true,
+  "revision": "80c8af3"
+}
