@@ -3,9 +3,9 @@
   "id": "pooltune-hosted-agent",
   "title": "Maintain Supabase query performance",
   "workType": "Build progress and remaining work",
-  "summary": "Six bounded repair cases passed hosted Sonnet. A separate operator test used live Rookery to verify direct TLS, monitor owner-enrolled app statements, queue the slow statement and disconnect. The ordinary-query evidence reader, hosted rollout and customer setup screen remain to be built.",
+  "summary": "Six bounded repair cases passed hosted Sonnet. On live Rookery, the operator monitor also queued a real enrolled lookup and Sonnet diagnosed it from measured traffic and owner-approved catalog evidence. Broader evidence readers, hosted rollout and customer setup remain.",
   "sourceRevision": {
-    "commit": "cb9a6eb6d3213f6ced8d1f8a32b328dcdd00ba8b",
+    "commit": "088ca7a3c9540369edb4c16f8486802188fd0f77",
     "dirty": false
   },
   "components": [
@@ -200,6 +200,11 @@
         {
           "path": "docs/design/hosted-query-agent/hosted-diagnostic.md",
           "revision": "Railway qualification 2026-11-14, source 4918260",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/enrolled-diagnosis.md",
+          "revision": "088ca7a3c9540369edb4c16f8486802188fd0f77",
           "kind": "verified"
         }
       ],
@@ -401,6 +406,11 @@
         {
           "path": "docs/design/hosted-query-agent/hosted-diagnostic.md",
           "revision": "Railway qualification 2026-11-14, source 4918260",
+          "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/enrolled-diagnosis.md",
+          "revision": "088ca7a3c9540369edb4c16f8486802188fd0f77",
           "kind": "verified"
         }
       ],
@@ -1733,6 +1743,29 @@
       "stack": [
         "Go",
         "TypeScript"
+      ]
+    },
+    {
+      "id": "enrolled-lookup-diagnosis",
+      "label": "Enrolled lookup diagnosis",
+      "type": "service",
+      "purpose": "Diagnoses a single owner-approved integer lookup from five measured windows and current table and index metadata.",
+      "decisionIds": [],
+      "sources": [
+        {
+          "path": "docs/design/hosted-query-agent/enrolled-diagnosis.md",
+          "revision": "088ca7a3c9540369edb4c16f8486802188fd0f77",
+          "kind": "verified"
+        }
+      ],
+      "changeStatus": "new",
+      "changeSummary": "Diagnoses a single owner-approved integer lookup from five measured windows and current table and index metadata.",
+      "after": "Diagnoses a single owner-approved integer lookup from five measured windows and current table and index metadata.",
+      "parent": "investigator",
+      "stack": [
+        "Go",
+        "PostgreSQL",
+        "LangGraph"
       ]
     }
   ],

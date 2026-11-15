@@ -1,6 +1,6 @@
 {
-  "sourceRevision": "cb9a6eb6d3213f6ced8d1f8a32b328dcdd00ba8b",
-  "summary": "Six bounded repair cases passed hosted Sonnet. A separate operator test used live Rookery to verify direct TLS, monitor owner-enrolled app statements, queue the slow statement and disconnect. The ordinary-query evidence reader, hosted rollout and customer setup screen remain to be built.",
+  "sourceRevision": "088ca7a3c9540369edb4c16f8486802188fd0f77",
+  "summary": "Six bounded repair cases passed hosted Sonnet. On live Rookery, the operator monitor also queued a real enrolled lookup and Sonnet diagnosed it from measured traffic and owner-approved catalog evidence. Broader evidence readers, hosted rollout and customer setup remain.",
   "next": [
     "connect-project",
     "activity",
@@ -66,18 +66,19 @@
     },
     "investigator": {
       "status": "partial",
-      "scope": "Compare causes, request Go evidence and propose repairs: all six bounded paths passed hosted Sonnet.",
-      "remaining": "Build: Connect the graph to evidence for ordinary enrolled project queries. Current diagnostic execution selects one owned repair fixture. Preserve complete timings when a worker attempt fails. Verify: Request fresh hosted evidence for the other repair families; interrupt and resume a hosted investigation during a model call. Local recovery tests already exist.",
+      "scope": "All six owned repair cases passed hosted Sonnet. The same graph also diagnosed one ordinary enrolled integer lookup on live Rookery.",
+      "remaining": "Build: Extend enrolled diagnosis to additional query shapes and add permitted live plans and cause-specific measurements. Verify: Run the enrolled consumer on Railway, test representative competing causes, and interrupt a hosted model call to exercise recovery.",
       "evidence": [
         "investigator/diagnostic.ts",
         "docs/design/hosted-query-agent/diagnostic-loop.md",
         "docs/design/hosted-query-agent/hosted-diagnostic.md",
         "cmd/pooltune-consumer/main.go",
         "internal/hostedquery/diagnostic_planner_readers.go",
-        "docs/design/hosted-query-agent/repair-expansion.md"
+        "docs/design/hosted-query-agent/repair-expansion.md",
+        "docs/design/hosted-query-agent/enrolled-diagnosis.md"
       ],
-      "remainingBuild": "Connect the graph to evidence for ordinary enrolled project queries. Current diagnostic execution selects one owned repair fixture. Preserve complete timings when a worker attempt fails.",
-      "remainingVerification": "Request fresh hosted evidence for the other repair families; interrupt and resume a hosted investigation during a model call. Local recovery tests already exist.",
+      "remainingBuild": "Extend enrolled diagnosis to additional query shapes and add permitted live plans and cause-specific measurements.",
+      "remainingVerification": "Run the enrolled consumer on Railway, test representative competing causes, and interrupt a hosted model call to exercise recovery.",
       "statusLabel": "Staging works; scope remains"
     },
     "tools": {
@@ -96,8 +97,8 @@
     },
     "inspection": {
       "status": "partial",
-      "scope": "Named readers cover six fixture types; a hosted Sonnet request for fresh ANALYZE evidence passed.",
-      "remaining": "Build: Collect identity-bound plans, indexes, statistics, visibility, function spill and job history for authorized real targets rather than fixture-specific catalogs. Verify: Exercise the remaining named readers when requested by Claude in hosting, including changed or revoked enrollment.",
+      "scope": "Owner-approved lookup evidence includes measured latency and shared page accesses, current table estimates and a matching B-tree check. Fixture readers cover six repair cases.",
+      "remaining": "Build: Add authorized live plans and cause-specific statistics, visibility, spill and schedule readers for enrolled workloads. Verify: Test requested reads on Railway across more repair families and ordinary workload shapes.",
       "evidence": [
         "internal/graphrunner/diagnostic.go",
         "docs/design/hosted-query-agent/diagnostic-loop.md",
@@ -105,10 +106,11 @@
         "internal/hostedquery/diagnostic_reader_integration_test.go",
         "internal/hostedquery/diagnostic_planner_readers.go",
         "internal/hostedquery/diagnostic_maintenance_readers.go",
-        "docs/design/hosted-query-agent/evidence/repair-expansion/requested-evidence.json"
+        "docs/design/hosted-query-agent/evidence/repair-expansion/requested-evidence.json",
+        "docs/design/hosted-query-agent/enrolled-diagnosis.md"
       ],
-      "remainingBuild": "Collect identity-bound plans, indexes, statistics, visibility, function spill and job history for authorized real targets rather than fixture-specific catalogs.",
-      "remainingVerification": "Exercise the remaining named readers when requested by Claude in hosting, including changed or revoked enrollment."
+      "remainingBuild": "Add authorized live plans and cause-specific statistics, visibility, spill and schedule readers for enrolled workloads.",
+      "remainingVerification": "Test requested reads on Railway across more repair families and ordinary workload shapes."
     },
     "experiments": {
       "status": "partial",
@@ -242,13 +244,14 @@
     "diagnose-causes": {
       "status": "verified",
       "scope": "Sonnet passed 18/18 bounded replay cases. All six owned repair routes passed hosted diagnostic runs; a separate hosted probe requested missing evidence.",
-      "remaining": "Collect evidence from ordinary customer queries and test representative competing causes; do not infer general diagnosis from constructed fixtures.",
+      "remaining": "One enrolled integer lookup also passed real Sonnet. Additional shapes and representative competing causes remain open.",
       "evidence": [
         "investigator/diagnostic.ts",
         "investigator/diagnostic-model.ts",
         "docs/design/hosted-query-agent/evidence/diagnostic-loop/summary.json",
         "docs/design/hosted-query-agent/hosted-diagnostic.md",
-        "docs/design/hosted-query-agent/repair-expansion.md"
+        "docs/design/hosted-query-agent/repair-expansion.md",
+        "docs/design/hosted-query-agent/enrolled-diagnosis.md"
       ]
     },
     "request-evidence": {
@@ -270,16 +273,17 @@
     },
     "connect-project": {
       "status": "partial",
-      "scope": "The operator command verified direct TLS, read two owner-enrolled app-role statements and queued only the slow one on live Rookery.",
-      "remaining": "Build: Build the customer setup screen and an evidence reader for live enrolled statements. Tie project registration to an authenticated owner. Verify: Run the monitor against the hosted Pooltune state database, then qualify more projects and representative app workloads.",
+      "scope": "The operator command verified direct TLS, monitored two enrolled app-role statements and separately diagnosed one owner-approved lookup on Rookery.",
+      "remaining": "Build: Build account-owned setup and broaden the optional diagnostic grant to more query shapes. Verify: Qualify hosted rollout and more representative workloads.",
       "evidence": [
         "docs/design/hosted-query-agent/supabase-monitoring.md",
         "cmd/pooltune-project/main.go",
-        "internal/supabaseproject/install.sql"
+        "internal/supabaseproject/install.sql",
+        "docs/design/hosted-query-agent/enrolled-diagnosis.md"
       ],
       "statusLabel": "Operator monitoring verified on Rookery",
-      "remainingBuild": "Build the customer setup screen and an evidence reader for live enrolled statements. Tie project registration to an authenticated owner.",
-      "remainingVerification": "Run the monitor against the hosted Pooltune state database, then qualify more projects and representative app workloads."
+      "remainingBuild": "Build account-owned setup and broaden the optional diagnostic grant to more query shapes.",
+      "remainingVerification": "Qualify hosted rollout and more representative workloads."
     },
     "credential-lifecycle": {
       "status": "partial",
@@ -454,6 +458,16 @@
       ],
       "remainingBuild": "Represent authorized real table/column identities and choose key order from query predicates. Define supported combinations such as equality with a range or ordering; do not assume all shapes are supported.",
       "remainingVerification": "Test accepted shapes with real Sonnet, representative inputs, existing indexes, writes, storage cost and interrupted recovery."
+    },
+    "enrolled-lookup-diagnosis": {
+      "status": "verified",
+      "scope": "On live Rookery, real Sonnet diagnosed an owner-approved integer lookup from 443 page accesses per call and current index metadata. PostgreSQL recorded no query replay.",
+      "remaining": "One supported query shape and passive evidence. Live execution plans, further shapes and Railway deployment remain.",
+      "evidence": [
+        "docs/design/hosted-query-agent/enrolled-diagnosis.md",
+        "internal/hostedquery/lookup_evidence.go",
+        "internal/supabaseproject/lookup_evidence.sql"
+      ]
     }
   },
   "colorMeaning": "Green verifies the stated case only. Yellow means the named area still contains concrete missing implementation or verification. It is not a percentage complete; inspect Build next and Verify next."
