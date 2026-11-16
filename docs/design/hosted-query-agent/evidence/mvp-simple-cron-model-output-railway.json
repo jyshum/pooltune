@@ -1,0 +1,36 @@
+{
+  "deployment": "1e72c3d8-75b7-4d12-8258-d7285683af6e",
+  "setup_path": "normal_start_form",
+  "manually_enrolled_query_ids": 0,
+  "worker_config_query_id": 0,
+  "scheduler_witness_preflight": {
+    "succeeded": 3
+  },
+  "first_cycle": "2026-11-16T00:46:00Z",
+  "phase": "observer_failed",
+  "railway_lifecycle": {
+    "archived_periods": [
+      1,
+      2,
+      3
+    ],
+    "observer_failure": "OBSERVER_ERROR"
+  },
+  "verified": false,
+  "dashboard_disconnected": true,
+  "owned_scheduler_jobs_removed": true,
+  "owned_database_objects_removed": true,
+  "owned_scheduler_jobs_remaining": 0,
+  "unrelated_scheduler_jobs_unchanged": true,
+  "public_index_fingerprint_unchanged": true,
+  "revision": "9e4d4ed",
+  "observer_failure_phase": "handoff_acknowledgement",
+  "original_target_runs_succeeded": 3,
+  "observed_original_schedule": "*/2 * * * *",
+  "schedule_write_attempted": false,
+  "dashboard_job": {
+    "id": 309,
+    "outcome": "no_change",
+    "reason": "model_output_invalid"
+  }
+}

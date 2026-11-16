@@ -251,7 +251,8 @@
         "docs/design/hosted-query-agent/evidence/mvp-simple-cron-first-run-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-simple-cron-handoff-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-simple-cron-activation-timeout-railway.json",
-        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-witness-timeout-railway.json"
+        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-witness-timeout-railway.json",
+        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-model-output-railway.json"
       ],
       "statusLabel": "Live target run verified"
     },

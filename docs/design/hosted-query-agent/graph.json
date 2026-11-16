@@ -799,6 +799,11 @@
           "path": "docs/design/hosted-query-agent/evidence/mvp-simple-cron-witness-timeout-railway.json",
           "revision": "7be68c9",
           "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/mvp-simple-cron-model-output-railway.json",
+          "revision": "9e4d4ed",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
