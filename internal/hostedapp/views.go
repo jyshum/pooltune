@@ -16,6 +16,8 @@ import (
 
 type Page struct {
 	Title, User, Error string
+	Notice             string
+	GoogleEnabled      bool
 	RepairWorkerKey    string
 	Invite             bool
 	Projects           []ProjectView

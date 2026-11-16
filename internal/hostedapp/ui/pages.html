@@ -18,6 +18,7 @@
       <nav class="topnav" aria-label="Account">
         <a href="/app">Projects</a>
         <span class="account">{{.User}}</span>
+        {{if .GoogleEnabled}}<a href="/app/account">Account</a>{{end}}
         <form action="/signout" method="post"><button class="button button-quiet" type="submit">Sign out</button></form>
       </nav>
       {{else}}
@@ -58,6 +59,14 @@
       {{if .Invite}}<p>Enter your preview invite code to get started.</p>{{end}}
     </div>
     {{template "error" .}}
+    {{if .GoogleEnabled}}
+    <form class="fields" action="/auth/google/start" method="post">
+      <input type="hidden" name="mode" value="signup">
+      <div class="field"><label for="google-invite">Invite code for Google signup</label><input type="password" id="google-invite" name="invite_code" autocomplete="off" required></div>
+      <button class="button button-secondary" type="submit">Continue with Google</button>
+    </form>
+    <p>Or create an account with email and password.</p>
+    {{end}}
     <form class="fields" action="/signup" method="post">
       <div class="field"><label for="email">Email</label><input type="email" id="email" name="email" autocomplete="email" maxlength="254" required></div>
       <div class="field">
@@ -78,6 +87,10 @@
   <section class="form-panel" aria-labelledby="form-title">
     <div class="section-intro"><h1 id="form-title">Sign in</h1><p>Open your Pooltune workspace.</p></div>
     {{template "error" .}}
+    {{if .GoogleEnabled}}
+    <form action="/auth/google/start" method="post"><input type="hidden" name="mode" value="signin"><button class="button button-secondary" type="submit">Continue with Google</button></form>
+    <p>Or sign in with email and password.</p>
+    {{end}}
     <form class="fields" action="/signin" method="post">
       <div class="field"><label for="email">Email</label><input type="email" id="email" name="email" autocomplete="username" maxlength="254" required></div>
       <div class="field"><label for="password">Password</label><input type="password" id="password" name="password" autocomplete="current-password" required></div>
@@ -459,3 +472,15 @@ ALTER ROLE {{.Role}} LOGIN;</textarea>
   </section>
 </div>
 {{end}}
+
+{{define "google-result"}}{{template "header" .}}
+<main class="shell auth-page" id="main"><section class="form-panel"><h1>Google sign-in</h1>{{template "error" .}}
+<p><a href="/signin">Sign in</a> · <a href="/signup">Create an account</a> · <a href="/app/account">Account</a></p>
+</section></main>{{template "footer" .}}{{end}}
+
+{{define "account-settings"}}{{template "header" .}}
+<main class="shell auth-page" id="main"><section class="form-panel"><h1>Account</h1><p>{{.User}}</p>
+{{if .Notice}}<p role="status">{{.Notice}}</p>{{end}}
+{{if .GoogleEnabled}}<p>Link Google to sign in to this account. Choose the Google account with the same email address.</p>
+<form action="/auth/google/start" method="post"><input type="hidden" name="mode" value="link"><button class="button button-primary" type="submit">Link Google account</button></form>{{end}}
+<p><a href="/app">Back to projects</a></p></section></main>{{template "footer" .}}{{end}}

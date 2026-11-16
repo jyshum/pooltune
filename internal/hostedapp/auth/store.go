@@ -79,7 +79,10 @@ func New(ctx context.Context, pool *pgxpool.Pool) (*Store, error) {
 			CREATE INDEX IF NOT EXISTS sessions_by_user ON pooltune_app.sessions(user_id, expires_at);
 			REVOKE ALL ON TABLE pooltune_app.users, pooltune_app.sessions FROM PUBLIC;
 		`)
-		return err
+		if err != nil {
+			return err
+		}
+		return prepareGoogle(ctx, tx)
 	})
 	if err != nil {
 		return nil, storeError("initialize account store", err)
@@ -137,6 +140,7 @@ func (s *Store) SignIn(ctx context.Context, email, password string) (User, strin
 	user := User{Email: address}
 	var salt, hash []byte
 	var iterations int
+	var reserved bool
 	// Reserve a slot before deriving the password hash so concurrent requests
 	// cannot all pass a separate read of the account's remaining attempts.
 	err := s.pool.QueryRow(ctx, `
@@ -151,10 +155,10 @@ func (s *Store) SignIn(ctx context.Context, email, password string) (User, strin
 			  AND (login_window_start IS NULL OR login_window_start <= limits.expired OR login_attempts < $3)
 			RETURNING u.id, u.password_salt, u.password_hash, u.password_iterations
 		)
-		SELECT u.id, r.password_salt, r.password_hash, COALESCE(r.password_iterations, 0)
+		SELECT u.id, r.password_salt, r.password_hash, COALESCE(r.password_iterations, 0), r.id IS NOT NULL
 		FROM pooltune_app.users AS u LEFT JOIN reserved AS r USING (id)
 		WHERE u.email = $1
-	`, address, int64(loginWindow/time.Second), loginAttempts).Scan(&user.ID, &salt, &hash, &iterations)
+	`, address, int64(loginWindow/time.Second), loginAttempts).Scan(&user.ID, &salt, &hash, &iterations, &reserved)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		return User{}, "", storeError("reserve sign-in", err)
 	}
@@ -162,8 +166,9 @@ func (s *Store) SignIn(ctx context.Context, email, password string) (User, strin
 	// Use equivalent work for unknown and throttled identities. The application
 	// independently limits request volume to bound this CPU cost.
 	unknown := errors.Is(err, pgx.ErrNoRows)
-	limited := !unknown && iterations == 0
-	if unknown || limited {
+	limited := !unknown && !reserved
+	passwordless := !unknown && reserved && iterations == 0
+	if unknown || limited || passwordless {
 		salt, hash, iterations = s.dummySalt[:], make([]byte, sha256.Size), passwordIterations
 	}
 	derived, err := pbkdf2.Key(sha256.New, password, salt, iterations, sha256.Size)
@@ -174,7 +179,7 @@ func (s *Store) SignIn(ctx context.Context, email, password string) (User, strin
 	if limited {
 		return User{}, "", ErrRateLimited
 	}
-	if unknown || !matches {
+	if unknown || passwordless || !matches {
 		return User{}, "", ErrInvalidCredentials
 	}
 

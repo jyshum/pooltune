@@ -29,20 +29,22 @@ import (
 var frontend embed.FS
 
 type Config struct {
-	Origin, InviteCode string
-	Key                []byte
-	Sampling           hostedquery.SamplingPolicy
-	QueueInterval      time.Duration
-	Investigate        hostedquery.EnrolledLookupInvestigator
-	InvestigateRepair  hostedquery.IndexInvestigator
-	OwnedIndex         *hostedquery.OwnedProjectIndex
-	OwnedRepair        *hostedquery.OwnedProjectRepair
-	OwnedCron          *hostedquery.OwnedProjectCron
+	Origin, InviteCode                 string
+	GoogleClientID, GoogleClientSecret string
+	Key                                []byte
+	Sampling                           hostedquery.SamplingPolicy
+	QueueInterval                      time.Duration
+	Investigate                        hostedquery.EnrolledLookupInvestigator
+	InvestigateRepair                  hostedquery.IndexInvestigator
+	OwnedIndex                         *hostedquery.OwnedProjectIndex
+	OwnedRepair                        *hostedquery.OwnedProjectRepair
+	OwnedCron                          *hostedquery.OwnedProjectCron
 }
 
 type App struct {
 	projects          projectStore
 	accounts          *auth.Store
+	google            *googleOIDC
 	vault             vault
 	policy            hostedquery.SamplingPolicy
 	queueInterval     time.Duration
@@ -120,12 +122,16 @@ func New(ctx context.Context, db *pgxpool.Pool, cfg Config) (*App, error) {
 	if err != nil {
 		return nil, err
 	}
+	google, err := newGoogleOIDC(cfg.GoogleClientID, cfg.GoogleClientSecret, cfg.Origin)
+	if err != nil {
+		return nil, err
+	}
 	accounts, err := auth.New(ctx, db)
 	if err != nil {
 		return nil, err
 	}
 	a := &App{
-		projects: projectStore{db}, accounts: accounts, vault: vault, policy: cfg.Sampling,
+		projects: projectStore{db}, accounts: accounts, google: google, vault: vault, policy: cfg.Sampling,
 		queueInterval: cfg.QueueInterval, investigate: cfg.Investigate,
 		investigateRepair: cfg.InvestigateRepair,
 		ownedIndex:        cfg.OwnedIndex, ownedRepair: cfg.OwnedRepair, ownedCron: cfg.OwnedCron,
@@ -157,6 +163,9 @@ func (a *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Security-Policy", "default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'")
+	if a.google != nil {
+		w.Header().Set("Content-Security-Policy", strings.Replace(w.Header().Get("Content-Security-Policy"), "form-action 'self'", "form-action 'self' https://accounts.google.com", 1))
+	}
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.Header().Set("Referrer-Policy", "same-origin")
 	if a.origin.Scheme == "https" {
@@ -190,6 +199,9 @@ func (a *App) routes() *http.ServeMux {
 	mux.HandleFunc("GET /signin", func(w http.ResponseWriter, r *http.Request) { a.accountPage(w, r, "signin") })
 	mux.HandleFunc("POST /signin", func(w http.ResponseWriter, r *http.Request) { a.signIn(w, r, false) })
 	mux.HandleFunc("POST /signout", a.signOut)
+	mux.HandleFunc("POST /auth/google/start", a.googleStart)
+	mux.HandleFunc("GET /auth/google/callback", a.googleCallback)
+	mux.HandleFunc("GET /app/account", a.requireAccount(a.accountSettings))
 	mux.HandleFunc("GET /app", a.requireAccount(a.dashboard))
 	mux.HandleFunc("GET /app/projects/new", a.requireAccount(a.newProject))
 	mux.HandleFunc("POST /app/projects/new", a.requireAccount(a.createProject))
@@ -209,6 +221,7 @@ func (a *App) routes() *http.ServeMux {
 }
 
 func (a *App) render(w http.ResponseWriter, status int, name string, data Page) {
+	data.GoogleEnabled = a.google != nil
 	var body bytes.Buffer
 	if err := a.templates.ExecuteTemplate(&body, name, data); err != nil {
 		http.Error(w, "This page cannot be rendered right now.", http.StatusInternalServerError)
