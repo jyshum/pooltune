@@ -5,10 +5,13 @@ package hostedapp
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -148,6 +151,63 @@ func TestAccountDashboardAndProjectOwnership(t *testing.T) {
 	if err := (projectStore{pool}).admitModel(ctx, projectID, row.Epoch); !errors.Is(err, hostedquery.ErrProjectModelBudget) {
 		t.Fatalf("budget did not survive store reconnect: %v", err)
 	}
+	keyPath := projectPath + "/repair-worker-key"
+	apiPath := "/api/projects/" + projectID + "/repair-worker"
+	workerRequest := func(method, path, key, payload string) *httptest.ResponseRecorder {
+		t.Helper()
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(method, origin+path, strings.NewReader(payload))
+		if key != "" {
+			r.Header.Set("Authorization", "Bearer "+key)
+		}
+		r.Header.Set("Content-Type", "application/json")
+		app.ServeHTTP(w, r)
+		return w
+	}
+	issueKey := func() string {
+		t.Helper()
+		w := request(http.MethodPost, keyPath, url.Values{"mode": {"issue"}}, owner, origin)
+		key := regexp.MustCompile(`[0-9a-f]{64}`).FindString(w.Body.String())
+		if w.Code != 200 || key == "" || w.Header().Get("Cache-Control") != "no-store" {
+			t.Fatalf("worker key was not issued privately: %d", w.Code)
+		}
+		return key
+	}
+	if w := request(http.MethodPost, keyPath, url.Values{"mode": {"issue"}}, other, origin); w.Code != 404 {
+		t.Fatalf("another account could issue a key: %d", w.Code)
+	}
+	if w := workerRequest(http.MethodGet, apiPath, "", ""); w.Code != 401 {
+		t.Fatalf("worker API was usable without a key: %d", w.Code)
+	}
+	key := issueKey()
+	if w := workerRequest(http.MethodGet, "/api/projects/aaaaaaaaaaaaaaaa/repair-worker", key, ""); w.Code != 401 {
+		t.Fatalf("worker key was accepted on another project: %d", w.Code)
+	}
+	var policy struct {
+		Project      string
+		Epoch        int64
+		Capabilities []string
+		Paused       bool
+	}
+	w := workerRequest(http.MethodGet, apiPath, key, "")
+	identity, err := row.identity()
+	if err != nil || w.Code != 200 || json.Unmarshal(w.Body.Bytes(), &policy) != nil || policy.Project != identity.ID() ||
+		policy.Epoch != row.Epoch || strings.Join(policy.Capabilities, ",") != "index,analyze" || policy.Paused {
+		t.Fatalf("worker did not receive the current permission selection: %d %+v", w.Code, policy)
+	}
+	report := func(epoch int64, operation string) string {
+		return fmt.Sprintf(`{"epoch":%d,"operations":[{"operation":%q,"status":"granted"}]}`, epoch, operation)
+	}
+	if w := workerRequest(http.MethodPost, apiPath, key, report(row.Epoch, "cron")); w.Code != 400 {
+		t.Fatalf("worker reported a disabled repair: %d", w.Code)
+	}
+	if w := workerRequest(http.MethodPost, apiPath, key, report(row.Epoch, "analyze")); w.Code != 204 {
+		t.Fatalf("worker could not submit valid permission report: %d", w.Code)
+	}
+	if w := request(http.MethodGet, projectPath, nil, owner, ""); w.Code != 200 ||
+		!strings.Contains(w.Body.String(), "Database access reported") || strings.Contains(w.Body.String(), key) {
+		t.Fatal("the dashboard did not show the report privately")
+	}
 	if got := request(http.MethodPost, projectPath+"/repair-mode", url.Values{"mode": {"pause"}}, owner, origin).Code; got != 303 {
 		t.Fatalf("pause repairs returned %d", got)
 	}
@@ -158,6 +218,12 @@ func TestAccountDashboardAndProjectOwnership(t *testing.T) {
 	options, err := app.vault.open(paused, paused.Secret)
 	if err != nil || !options.RepairsPaused {
 		t.Fatalf("pause preference was not persisted: %v", err)
+	}
+	if w := workerRequest(http.MethodPost, apiPath, key, report(row.Epoch, "analyze")); w.Code != 409 {
+		t.Fatalf("stale worker report passed pause fence: %d", w.Code)
+	}
+	if w := workerRequest(http.MethodPost, apiPath, key, report(paused.Epoch, "analyze")); w.Code != 409 {
+		t.Fatalf("paused worker reported a new permission: %d", w.Code)
 	}
 	if got := request(http.MethodPost, projectPath+"/repair-mode", url.Values{"mode": {"resume"}}, owner, origin).Code; got != 303 {
 		t.Fatalf("resume repairs returned %d", got)
@@ -170,11 +236,30 @@ func TestAccountDashboardAndProjectOwnership(t *testing.T) {
 	if err != nil || options.RepairsPaused {
 		t.Fatalf("resume preference was not persisted: %v", err)
 	}
+	rotated := issueKey()
+	if rotated == key || workerRequest(http.MethodGet, apiPath, key, "").Code != 401 {
+		t.Fatal("replacing the key left old access usable")
+	}
+	if w := request(http.MethodPost, projectPath+"/repair-mode", url.Values{"mode": {"choices"}, "capability": {"analyze"}}, owner, origin); w.Code != 303 {
+		t.Fatalf("changing choices on an existing connection returned %d", w.Code)
+	}
+	if w := workerRequest(http.MethodGet, apiPath, rotated, ""); w.Code != 200 || json.Unmarshal(w.Body.Bytes(), &policy) != nil ||
+		policy.Epoch <= resumed.Epoch || strings.Join(policy.Capabilities, ",") != "analyze" {
+		t.Fatalf("the connected worker did not receive the updated choices: %d %+v", w.Code, policy)
+	}
+	if w := request(http.MethodPost, keyPath, url.Values{"mode": {"revoke"}}, owner, origin); w.Code != 303 ||
+		workerRequest(http.MethodGet, apiPath, rotated, "").Code != 401 {
+		t.Fatal("owner revocation did not stop the worker")
+	}
+	linked := issueKey()
 	if w := request(http.MethodPost, projectPath+"/disconnect", nil, owner, origin); w.Code != 303 {
 		t.Fatalf("disconnect returned %d", w.Code)
 	}
 	if stopped, err := app.projects.find(ctx, ownerUser.ID, projectID); err != nil || stopped.Configured || stopped.Epoch >= 0 {
 		t.Fatalf("disconnect kept the credentials or an active epoch: %v", err)
+	}
+	if w := workerRequest(http.MethodGet, apiPath, linked, ""); w.Code != 401 {
+		t.Fatalf("disconnect preserved the worker key: %d", w.Code)
 	}
 	if w := request(http.MethodPost, "/signout", nil, owner, origin); w.Code != 303 {
 		t.Fatalf("sign out returned %d", w.Code)

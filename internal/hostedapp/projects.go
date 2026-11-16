@@ -98,6 +98,13 @@ func (s projectStore) prepare(ctx context.Context) error {
 				CHECK ((secret IS NOT NULL) = (epoch > 0))
 			);
 			ALTER TABLE pooltune_app.projects ADD COLUMN IF NOT EXISTS pending_setup bytea;
+			CREATE TABLE IF NOT EXISTS pooltune_app.repair_worker_links (
+				project_id text PRIMARY KEY REFERENCES pooltune_app.projects(id) ON DELETE CASCADE,
+				token_digest bytea NOT NULL CHECK (octet_length(token_digest)=32),
+				report_epoch bigint,
+				report jsonb,
+				reported_at timestamptz
+			);
 			CREATE TABLE IF NOT EXISTS pooltune_app.model_budgets (
 				project_id text NOT NULL REFERENCES pooltune_app.projects(id) ON DELETE CASCADE,
 				utc_day date NOT NULL,
@@ -230,6 +237,9 @@ func (s projectStore) disconnect(ctx context.Context, project projectRecord) err
 			return nil
 		}
 		if err := hostedquery.DisconnectProjectMonitorTx(ctx, tx, identity); err != nil {
+			return err
+		}
+		if _, err := tx.Exec(ctx, `DELETE FROM pooltune_app.repair_worker_links WHERE project_id=$1`, project.ID); err != nil {
 			return err
 		}
 		_, err := tx.Exec(ctx, `UPDATE pooltune_app.projects SET epoch=-$3::bigint,secret=NULL WHERE owner_id=$1 AND id=$2`, project.Owner, project.ID, epoch)

@@ -233,6 +233,20 @@
       {{end}}
     </tbody>
   </table>
+  <details>
+    <summary>Edit repair choices</summary>
+    <form class="fields" action="/app/projects/{{.ID}}/repair-mode" method="post">
+      <div class="capability-options">
+        {{range .Capabilities}}
+        <label class="capability-option">
+          <input type="checkbox" name="capability" value="{{.Key}}"{{if .Selected}} checked{{end}}>
+          <span>{{.Label}}</span>
+        </label>
+        {{end}}
+      </div>
+      <button class="button button-secondary" type="submit" name="mode" value="choices">Save repair choices</button>
+    </form>
+  </details>
   {{if .RepairsSelected}}
   <div class="disconnect">
     <p>Monitoring continues while repairs are paused.</p>
@@ -246,7 +260,32 @@
   </div>
   {{end}}
 </section>
+{{if or .RepairsSelected .RepairWorkerLinked}}
+<section class="panel" aria-labelledby="repair-worker-title">
+  <div class="panel-heading"><h2 id="repair-worker-title">Repair worker</h2></div>
+  <p>{{.RepairWorkerSummary}}</p>
+  <form class="actions" action="/app/projects/{{.ID}}/repair-worker-key" method="post">
+    {{if .RepairsSelected}}
+    <button class="button button-secondary" type="submit" name="mode" value="issue">{{if .RepairWorkerLinked}}Replace worker key{{else}}Create worker key{{end}}</button>
+    {{end}}
+    {{if .RepairWorkerLinked}}<button class="button button-quiet" type="submit" name="mode" value="revoke">Revoke worker key</button>{{end}}
+  </form>
+</section>
 {{end}}
+{{end}}
+
+{{define "repair-worker-key"}}{{template "header" .}}
+<main class="shell auth-page" id="main">
+  <section class="form-panel" aria-labelledby="worker-key-title">
+    <h1 id="worker-key-title">Repair worker key</h1>
+    <p>Save this key as <code>POOLTUNE_REPAIR_WORKER_TOKEN</code> in the Go worker’s environment. This is the only time Pooltune displays it.</p>
+    <div class="field"><label for="worker-key">Key for {{.Project.Name}}</label>
+      <textarea id="worker-key" rows="2" readonly spellcheck="false" autocomplete="off">{{.RepairWorkerKey}}</textarea>
+    </div>
+    <a class="button button-secondary" href="/app/projects/{{.Project.ID}}">Return to project</a>
+  </section>
+</main>
+{{template "footer" .}}{{end}}
 
 {{define "project-setup"}}
 <section class="setup-grid" aria-labelledby="setup-title">

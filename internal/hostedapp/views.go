@@ -16,6 +16,7 @@ import (
 
 type Page struct {
 	Title, User, Error string
+	RepairWorkerKey    string
 	Invite             bool
 	Projects           []ProjectView
 	Project            ProjectView
@@ -27,6 +28,8 @@ type ProjectView struct {
 	QuickStart                            bool
 	Capabilities                          []CapabilityView
 	RepairsSelected, RepairsPaused        bool
+	RepairWorkerLinked                    bool
+	RepairWorkerSummary                   string
 	FixtureIndex                          bool
 	FixtureRepair                         *CapabilityView
 	Queries                               []QueryView
@@ -133,10 +136,11 @@ func (a *App) showProject(w http.ResponseWriter, r *http.Request, user auth.User
 		}
 		view.SetupSQL = identity.InstallSQL() + "\n" + identity.LookupEvidenceSQL() + "\n" + identity.LookupPlanSQL() + "\n" + identity.TrafficPlanSQL()
 		view.QuerySQL = queryEnrollment(identity)
-	} else if configured, err := a.vault.open(row, row.Secret); err == nil && (configured.Automatic || len(configured.Capabilities) > 0) {
+	} else if configured, err := a.vault.open(row, row.Secret); err == nil {
 		view.Capabilities = slices.Clone(projectCapabilities)
 		view.RepairsSelected = len(configured.Capabilities) > 0
 		view.RepairsPaused = configured.RepairsPaused
+		view.RepairWorkerLinked, view.RepairWorkerSummary = a.repairWorkerStatus(r.Context(), row)
 		for i := range view.Capabilities {
 			option := &view.Capabilities[i]
 			option.Selected = slices.Contains(configured.Capabilities, option.Key)

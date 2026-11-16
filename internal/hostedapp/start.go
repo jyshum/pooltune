@@ -191,18 +191,34 @@ func (a *App) changeRepairMode(w http.ResponseWriter, r *http.Request, user auth
 		return
 	}
 	mode := r.PostForm.Get("mode")
-	if mode != "pause" && mode != "resume" {
-		http.Error(w, "Choose pause or resume.", http.StatusBadRequest)
-		return
-	}
 	credentials, err := a.vault.open(row, row.Secret)
-	if err != nil || len(credentials.Capabilities) == 0 {
-		http.Error(w, "This project has no repair permissions to change.", http.StatusBadRequest)
+	if err != nil {
+		http.Error(w, "Could not load the project's repair permissions.", http.StatusBadRequest)
 		return
 	}
-	paused := mode == "pause"
-	if credentials.RepairsPaused != paused {
+	var changed bool
+	switch mode {
+	case "choices":
+		choices, err := capabilityChoices(r.PostForm)
+		if err != nil {
+			a.showProject(w, r, user, row, err.Error())
+			return
+		}
+		changed = !slices.Equal(credentials.Capabilities, choices)
+		credentials.Capabilities = choices
+	case "pause", "resume":
+		if len(credentials.Capabilities) == 0 {
+			http.Error(w, "This project has no repair permissions to pause or resume.", http.StatusBadRequest)
+			return
+		}
+		paused := mode == "pause"
+		changed = credentials.RepairsPaused != paused
 		credentials.RepairsPaused = paused
+	default:
+		http.Error(w, "Choose repair permissions, pause or resume.", http.StatusBadRequest)
+		return
+	}
+	if changed {
 		sealed, err := a.vault.seal(row, credentials)
 		if err == nil {
 			err = a.projects.replaceActivePermissions(r.Context(), row, sealed)

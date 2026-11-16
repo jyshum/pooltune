@@ -53,6 +53,16 @@ var projectRepairAccessOperations = [...]ProjectRepairAccess{
 	{Operation: "cron", Capability: "cron", Requirement: "Enrolled job-owner login, cron.alter_job, and approved schedule window"},
 }
 
+// RepairAccessCapability returns the setup checkbox for a native operation.
+func RepairAccessCapability(operation string) (string, bool) {
+	for _, entry := range projectRepairAccessOperations {
+		if entry.Operation == operation {
+			return entry.Capability, true
+		}
+	}
+	return "", false
+}
+
 // ReadProjectRepairAccess checks live native permissions for a caller-verified
 // connection. It issues catalog reads only. The dispatch fence, evidence,
 // capacity, and action-time checks must still run before a database change.
