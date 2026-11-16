@@ -379,7 +379,7 @@
     "connect-project": {
       "status": "partial",
       "scope": "Railway verified all six repair checkboxes from the normal owner form with zero manual query IDs on prepared Rookery workloads.",
-      "remaining": "Bind the selected operations to exact authorized targets on a normally connected project.",
+      "remaining": "Choose where the project-side repair executor runs. Then verify that the selected operations bind to exact authorized database targets.",
       "evidence": [
         "docs/design/hosted-query-agent/supabase-monitoring.md",
         "cmd/pooltune-project/main.go",
@@ -397,7 +397,8 @@
         "docs/design/hosted-query-agent/evidence/mvp-simple-vacuum-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-simple-memory-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-simple-cron-handoff-railway.json",
-        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-railway.json"
+        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-railway.json",
+        "docs/design/hosted-query-agent/repair-authority.md"
       ],
       "statusLabel": "Six checkboxes verified"
     },

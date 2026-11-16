@@ -1203,6 +1203,11 @@
           "path": "docs/design/hosted-query-agent/evidence/mvp-simple-cron-railway.json",
           "revision": "9065dd4d200945c211482ecf3eaa8aedee7617a7",
           "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/repair-authority.md",
+          "revision": "2026-11-15 pending repair authority proposal",
+          "kind": "intended"
         }
       ],
       "changeStatus": "new",
