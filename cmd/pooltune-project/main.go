@@ -21,7 +21,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-const usage = "usage: pooltune-project {setup-sql|setup-evidence-sql|setup-plan-sql|setup-traffic-plan-sql|connect|run|diagnose|serve|disconnect} -ref PROJECT_REF -key INSTALLATION_KEY"
+const usage = "usage: pooltune-project {setup-sql|setup-evidence-sql|setup-plan-sql|setup-traffic-plan-sql|connect|run|diagnose|serve|disconnect|repair-access} -ref PROJECT_REF -key INSTALLATION_KEY"
 
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
@@ -38,7 +38,7 @@ func execute(ctx context.Context, args []string, output io.Writer) error {
 	}
 	command := args[0]
 	switch command {
-	case "setup-sql", "setup-evidence-sql", "setup-plan-sql", "setup-traffic-plan-sql", "connect", "run", "diagnose", "serve", "disconnect":
+	case "setup-sql", "setup-evidence-sql", "setup-plan-sql", "setup-traffic-plan-sql", "connect", "run", "diagnose", "serve", "disconnect", "repair-access":
 	default:
 		return errors.New(usage)
 	}
@@ -46,6 +46,10 @@ func execute(ctx context.Context, args []string, output io.Writer) error {
 	flags.SetOutput(io.Discard)
 	ref := flags.String("ref", "", "Supabase project reference")
 	key := flags.String("key", "", "16-character lowercase hex installation key")
+	var repairScope string
+	if command == "repair-access" {
+		flags.StringVar(&repairScope, "scope", "", "JSON file with the selected repair capabilities and exact targets")
+	}
 	policy := hostedquery.SamplingPolicy{Interval: time.Minute, Window: 5 * time.Minute}
 	queueInterval := 2 * time.Second
 	if command == "run" || command == "serve" {
@@ -64,6 +68,9 @@ func execute(ctx context.Context, args []string, output io.Writer) error {
 	project, err := supabaseproject.New(*ref, *key)
 	if err != nil {
 		return err
+	}
+	if command == "repair-access" {
+		return inspectRepairAccess(ctx, project, repairScope, output)
 	}
 	if command == "setup-sql" {
 		_, err := io.WriteString(output, project.InstallSQL())

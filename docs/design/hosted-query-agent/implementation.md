@@ -534,3 +534,12 @@ Use an exact owned target job, native scheduler permissions and an approved test
 ### Task 58: Connect the two remaining repair settings
 
 Use the existing statistics and cleanup checkboxes for individual column statistics targets and cleanup-trigger settings. Require the exact allowed relation, evidence of the cause, recorded intent and a verified before-and-after result. Preserve the prior setting when evidence fails or a repair regresses. Cleanup must observe real autovacuum activity after an action. Keep the owner flow and raw evidence separate from the narrower component tests.
+
+### Task 59: Verify repair access in the connected project's Go tooling
+
+Jared asked to build operation-specific permissions for a real project. Keep the approved Go tool boundary and Ask plus final-only workflow. Implement the native access checks that the owner-hosted Go path needs. The proposal to use a different runtime remains separate.
+
+- [x] Pin the read-only preflight to the registered Supabase installation and native PostgreSQL login. Exercise owner, exact `MAINTAIN`, revoked and foreign-target cases on real local PostgreSQL.
+- [x] Check the eight native actions behind the six product choices. Bind to table, function or job catalog identity, require a selected operation, and reject stale identity and a mismatched Cron window.
+- [x] Expose the same check through `pooltune-project repair-access` so the owner can see which exact permission is missing without sending their repair credential to the hosted app. Disclose the same requirements in signed-in project setup.
+- [ ] Connect the permission grant to the owner-side Go executor and the normal Railway project queue. Exercise the signed-in setup, refusal, action, verification and revocation on Rookery before marking the connection green.

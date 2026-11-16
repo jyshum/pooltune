@@ -22,12 +22,12 @@ type CapabilityView struct {
 }
 
 var projectCapabilities = []CapabilityView{
-	{Key: "index", Label: "Add indexes", Description: "Create nonunique indexes for eligible queries."},
-	{Key: "analyze", Label: "Refresh statistics", Description: "Refresh PostgreSQL's estimates when they are stale."},
-	{Key: "statistics", Label: "Improve statistics detail", Description: "Adjust statistics for eligible columns and column groups."},
-	{Key: "vacuum", Label: "Maintain tables", Description: "Run bounded cleanup or adjust when it starts."},
-	{Key: "memory", Label: "Tune function memory", Description: "Adjust memory for eligible functions that spill to disk."},
-	{Key: "cron", Label: "Reschedule jobs", Description: "Move eligible jobs inside approved operating windows."},
+	{Key: "index", Label: "Add indexes", Description: "Create nonunique indexes for eligible queries. Requires table-owner access."},
+	{Key: "analyze", Label: "Refresh statistics", Description: "Refresh PostgreSQL's estimates when they are stale. Requires table-owner access or a direct MAINTAIN grant on the table."},
+	{Key: "statistics", Label: "Improve statistics detail", Description: "Adjust statistics for eligible columns and column groups. Requires table-owner access."},
+	{Key: "vacuum", Label: "Maintain tables", Description: "Plain cleanup uses table-owner access or a direct MAINTAIN grant. Changing when cleanup starts requires table-owner access."},
+	{Key: "memory", Label: "Tune function memory", Description: "Adjust memory for eligible functions that spill to disk. Requires function-owner access."},
+	{Key: "cron", Label: "Reschedule jobs", Description: "Move eligible jobs to reduce interference. Requires job-owner access and an approved schedule window."},
 }
 
 func capabilityChoices(form url.Values) ([]string, error) {

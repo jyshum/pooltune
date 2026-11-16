@@ -1,6 +1,6 @@
 # Repair authority for a connected Supabase project
 
-**Status** Proposed. The repair execution and provisioning design needs a decision. The existing connected monitor and the six bounded Railway repair proofs remain the baseline.
+**Status** Go permission checks and setup disclosures are implemented and tested locally. The owner-side worker still needs to receive and authorize repair work from the normal Railway queue. The existing connected monitor and the six bounded Railway repair proofs remain the hosted baseline.
 
 ## What the current flow does
 
@@ -21,7 +21,7 @@ A disposable PostgreSQL 17.11 instance reproduced these results. The test admin 
 
 `MAINTAIN` also allows other table maintenance operations, so it does not encode the six individual Pooltune selections. A SQL function cannot cover the native-session actions. [PostgreSQL privileges](https://www.postgresql.org/docs/17/ddl-priv.html), [CREATE INDEX](https://www.postgresql.org/docs/17/sql-createindex.html), [VACUUM](https://www.postgresql.org/docs/17/sql-vacuum.html)
 
-## Recommended design
+## Supabase-hosted option
 
 Provision a small repair executor inside the connected Supabase project through an Edge Function. The single short-lived setup token would add **Edge Functions Read-write** for that project alongside **Database Read-write**. The hosted Go backend would continue to discover workloads, check the owner's policy, admit evidence, record intent and verify effects. The proposed TypeScript executor is a change to the approved Go-only database tool design. It would perform a second, independent check before a native database action. The project-side executor would use a deployment-pinned version and a project-specific, revocable request identity. The setup token would no longer be needed after provisioning. [Function deployment permission](https://supabase.com/docs/reference/api/v1-deploy-a-function), [Edge Function database access](https://supabase.com/docs/guides/functions/connect-to-postgres)
 
@@ -31,9 +31,21 @@ Table discovery stays automatic within the owner's selected repair policy. For f
 
 Before implementing the action routes, prove that the Supabase-hosted executor can open TLS-verified, native owner-capable sessions while preserving the application's traffic path. Supabase documents a transaction-pooled connection example for Edge Functions, which is insufficient for the current session-level locks and native-session checks. The Rookery test must prove a usable direct connection and an owner-controlled way to revoke the executor. The local PostgreSQL probe does not establish either provider property.
 
-## Alternative
+## Owner-hosted Go path
 
 Keep privileged execution in Go and run the same narrow interface as an owner-hosted service. The owner gives the service native database access in their own environment, and Pooltune continues to send bounded, revocable repair requests. This reuses more of the present Go executors and preserves the approved language decision. It adds a worker deployment and credential configuration to onboarding. Keeping the existing setup token in Railway for arbitrary database queries is outside the proposed designs.
+
+## Go permission checks
+
+The signed-in project setup lists the database requirements for each checkbox. The owner can keep the repair login and password in their own environment and run the same native check through `pooltune-project repair-access`. The command verifies the managed installation against its normal setup markers, connects to the canonical Supabase endpoint using its trusted CA, and reports each operation's current PostgreSQL permission.
+
+Set `POOLTUNE_PROJECT_CA_FILE`, `POOLTUNE_REPAIR_DB_ROLE`, and `POOLTUNE_REPAIR_DB_PASSWORD` in the owner's environment. Run the command with the active project reference and installation key.
+
+```sh
+pooltune-project repair-access -ref PROJECT_REF -key INSTALLATION_KEY -scope authorized-targets.json
+```
+
+The operator scope contains the exact installation ID in `project`, its six checkbox keys in `capabilities`, and the applicable `table`, `function`, `cron`, and `cron_window` objects. Callers can supply a specific table as `{"DatabaseOID": 5, "TableOID": 16400, "Schema": "app", "Relation": "orders"}`. These object IDs identify what the native check may inspect. They are not query IDs. The regular project setup continues to discover workload without asking the owner for them. A `granted` result is a live database privilege check. The repair still requires an authenticated action request, a current owner grant, admitted workload evidence, a durable intent and independent verification.
 
 ## Verification sequence after the design decision
 

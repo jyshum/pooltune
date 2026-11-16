@@ -168,6 +168,10 @@ func TestBootstrapSQLAndReconnect(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	if err := project.VerifyRepairInstallation(ctx, app); err != nil {
+		app.Close(ctx)
+		t.Fatalf("native login could not verify the normal setup markers: %v", err)
+	}
 	var value int
 	err = app.QueryRow(ctx, "SELECT lookup FROM app_data.items WHERE lookup = $1", 17).Scan(&value)
 	app.Close(ctx)
@@ -196,6 +200,9 @@ func TestBootstrapSQLAndReconnect(t *testing.T) {
 	readSnapshot()
 	if _, err := admin.Exec(ctx, "COMMENT ON SCHEMA "+project.Role()+" IS NULL"); err != nil {
 		t.Fatal(err)
+	}
+	if err := project.VerifyRepairInstallation(ctx, admin); err == nil {
+		t.Fatal("normal setup marker loss did not invalidate repair preflight")
 	}
 	if _, err := admin.Exec(ctx, project.reconnectSQL(scram), pgx.QueryExecModeSimpleProtocol); err == nil {
 		t.Fatal("unrecognized installation could rotate credentials")

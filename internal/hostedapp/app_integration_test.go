@@ -94,8 +94,14 @@ func TestAccountDashboardAndProjectOwnership(t *testing.T) {
 	if w := request(http.MethodGet, "/app", nil, other, ""); w.Code != 200 || strings.Contains(w.Body.String(), "Rookery fixture") {
 		t.Fatal("project visible to another account")
 	}
-	if w := request(http.MethodGet, projectPath, nil, owner, ""); w.Code != 200 || !strings.Contains(w.Body.String(), "CREATE ROLE pt_monitor_") {
+	setupPage := request(http.MethodGet, projectPath, nil, owner, "")
+	if setupPage.Code != 200 || !strings.Contains(setupPage.Body.String(), "CREATE ROLE pt_monitor_") {
 		t.Fatal("owner setup did not render generated SQL")
+	}
+	for _, requirement := range []string{"Requires table-owner access", "direct MAINTAIN grant", "Requires function-owner access", "Requires job-owner access and an approved schedule window"} {
+		if !strings.Contains(setupPage.Body.String(), requirement) {
+			t.Errorf("owner setup did not disclose %q", requirement)
+		}
 	}
 	for _, route := range []struct{ method, path string }{{"GET", ""}, {"GET", "/activity"}, {"POST", "/connect"}, {"POST", "/start"}, {"POST", "/repair-mode"}, {"POST", "/disconnect"}} {
 		if w := request(route.method, projectPath+route.path, nil, other, origin); w.Code != 404 {
