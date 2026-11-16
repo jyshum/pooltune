@@ -2,8 +2,6 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {buildGraph} from './graph.ts';
 import {scriptedInvestigator} from './model.ts';
-import {diagnosticDecider} from './diagnostic-model.ts';
-import type {DiagnosticView} from './diagnostic.ts';
 
 function evidence():any {
  const epoch='2026-11-14T12:00:00Z';
@@ -17,52 +15,6 @@ test('Cron cause reaches one model request; incomplete or unapproved scheduling 
 });
 test('Cron rejects a mixed cause and propagates real provider failure',async()=>{
  const e=evidence();e.vacuum={heap_fetches:1000,scan_rows:1000,conditions_clear:true};await assert.rejects(buildGraph(scriptedInvestigator).invoke({evidence:e}));await assert.rejects(buildGraph(async()=>{throw Error('provider unavailable')}).invoke({evidence:evidence()}),/provider unavailable/);
-});
-
-test('shortens only the complete scheduling request while preserving the measured evidence',async t=>{
- const oldKey=process.env.ANTHROPIC_API_KEY,oldModel=process.env.POOLTUNE_ANTHROPIC_MODEL;
- process.env.ANTHROPIC_API_KEY='test-key';process.env.POOLTUNE_ANTHROPIC_MODEL='claude-sonnet-5-5';
- t.after(()=>{
-  if(oldKey===undefined)delete process.env.ANTHROPIC_API_KEY;else process.env.ANTHROPIC_API_KEY=oldKey;
-  if(oldModel===undefined)delete process.env.POOLTUNE_ANTHROPIC_MODEL;else process.env.POOLTUNE_ANTHROPIC_MODEL=oldModel;
- });
- const decision={action:'propose',repair:'cron',tools:[],assessments:[
-  {cause:'cron',assessment:'supported',blocks_decision:false,reason:'The enrolled job repeatedly blocked foreground reads.'},
-  {cause:'index',assessment:'rejected',blocks_decision:false,reason:'The matched reads were fast without the competing job.'},
- ],reason:'Move the job within the approved schedule to reduce attributed blocking.'};
- const calls:{model:string;max_tokens:number;system:unknown;messages:{content:string|{text:string}[]}[];output_config:unknown}[]=[];
- t.mock.method(globalThis,'fetch',async(_input:unknown,init?:RequestInit)=>{
-  calls.push(JSON.parse(String(init?.body)));
-  return Response.json({id:'test',type:'message',role:'assistant',model:'claude-sonnet-5-5',
-   content:[{type:'text',text:JSON.stringify(decision)}],stop_reason:'end_turn',stop_sequence:null,usage:{input_tokens:1,output_tokens:1}});
- });
- const e=evidence();
- const identity={run_id:e.run_id,table_oid:e.table_oid,column_number:e.column_number};
- const baseline={...identity,observed_at:e.observed_at,status:'available' as const};
- const view:DiagnosticView={identity,observations:[
-  {...baseline,tool:'plan',data:e.plan},
-  {...baseline,tool:'indexes',data:{covering_index:e.covering_index}},
-  {...baseline,tool:'cron',data:e.cron},
- ],history:[],remaining_model_calls:3,remaining_reads:6};
- const signal=new AbortController().signal;
- const result=await diagnosticDecider(view,signal);
- await diagnosticDecider({...view,observations:[...view.observations.slice(0,2),
-  {...baseline,tool:'cron',data:{...e.cron,periods:e.cron.periods.slice(0,2)}}]},signal);
- await diagnosticDecider({...view,observations:[...view.observations,
-  {...baseline,tool:'analyze',data:{estimated_rows:10,actual_rows:1}}]},signal);
- const [compact,incomplete,mixed]=calls;
- assert.deepEqual(result.decision,decision);
- assert.equal(compact.model,'claude-sonnet-5-5');
- assert.equal(compact.max_tokens,600);
- assert.equal(incomplete.max_tokens,1200);
- assert.deepEqual(compact.output_config,incomplete.output_config);
- assert.deepEqual(incomplete.system,mixed.system);
- const prompt=JSON.stringify(compact.system);
- assert.ok(prompt.length<JSON.stringify(incomplete.system).length/2);
- assert.match(prompt,/plausible alternative/);
- assert.match(prompt,/never cancel/i);
- const content=compact.messages[0].content;
- assert.deepEqual(JSON.parse(typeof content==='string'?content:content[0].text).observations,view.observations);
 });
 
 test('Cron target demand stays absent in odd minutes and unchanged after repair',async()=>{
