@@ -10,7 +10,7 @@
 
 The MVP is the joined flow. An owner connects an existing Supabase project and grants specific repair powers. Pooltune watches the chosen workload in the background, investigates a problem, carries out an eligible repair, checks its effect, and shows what happened. A healthy query, insufficient evidence or denied permission produces an explained no-change outcome.
 
-See the [latest build progress](progress.md#tasks-45-and-46-simpler-project-setup-and-automatic-query-discovery) for the simplified onboarding, automatic discovery and the first owned dashboard repair.
+Railway has verified five repair families from the normal setup with zero manual query IDs, plus index restart recovery and both settings. The scheduling fixture reached a native schedule change and still needs follow-up verification. Operation-specific repair authority for a normally connected project remains open. [Latest build progress](progress.md#tasks-5658-simple-repair-setup-scheduling-and-the-remaining-settings)
 
 ## Build in this order
 
@@ -44,7 +44,7 @@ See the [latest build progress](progress.md#tasks-45-and-46-simpler-project-setu
 
 **Build.** Connect the dashboard's background worker to the repair and verification path. Use one investigator for all six approved operations. Go checks the current target, owner grant, existing objects and resource limits before it executes a repair. Persist the intended action before changing PostgreSQL.
 
-| Repair family | What still needs to work on an enrolled project |
+| Repair family | Required behavior on an enrolled project |
 | --- | --- |
 | [Add a nonunique index](design.html#v=n%3Atools&s=n%3Aindex) | Choose authorized table and column names from the query's filters and ordering. Build single-column and compound indexes with the correct key order. Use real column positions and avoid equivalent indexes. Verify supported shapes, including two equality filters and representative equality with range or ordering. Measure storage and effect on writes. |
 | [Refresh statistics](design.html#v=n%3Atools&s=n%3Arefresh) | Use targeted ANALYZE on the eligible tables or columns for the affected query. Show that fresh statistics improve the outcome under representative traffic. |
