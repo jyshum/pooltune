@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -126,7 +127,9 @@ func (f *OwnedProjectCron) dispatchWith(ctx context.Context, state *pgx.Conn, pr
 	if prior == nil {
 		investigate = f.Investigate
 		guards = OwnedCronGuards{CheckPermission: verify, AdmitModel: f.AdmitModel,
-			CheckCapacity: func(ctx context.Context, _ ProjectCronIntent) error { return f.checkCapacity(ctx) },
+			CheckCapacity: func(ctx context.Context, writer *pgx.Conn, _ ProjectCronIntent) error {
+				return f.checkCapacity(ctx, writer)
+			},
 			RecordIntent: func(ctx context.Context, action OwnedCronAction) error {
 				if fence != nil {
 					return errClaimLost
@@ -154,10 +157,21 @@ func (f *OwnedProjectCron) dispatchWith(ctx context.Context, state *pgx.Conn, pr
 	if errors.Is(err, ErrProjectModelBudget) && prior == nil && fence == nil {
 		decision = ownedCronResult(CronReport{Fixture: req.Candidate.Schema, JobID: claim.ID}, "diagnosis_unavailable", "daily_model_limit")
 	} else if err != nil {
+		if acknowledgement != nil {
+			slog.Info("owned Cron acknowledgement publication stopped", "job", claim.ID, "phase", "fence_release", "category", ownedRepairErrorCategory(err))
+		}
 		return nil, err
 	}
-	if _, err := publishOwnedCronCheckpoint(ctx, state, epoch, claim, decision, acknowledgement); err != nil {
+	started := time.Now()
+	child, err := publishOwnedCronCheckpoint(ctx, state, epoch, claim, decision, acknowledgement)
+	if err != nil {
+		if acknowledgement != nil {
+			slog.Info("owned Cron acknowledgement publication stopped", "job", claim.ID, "phase", "checkpoint_publish", "category", ownedRepairErrorCategory(err))
+		}
 		return nil, err
+	}
+	if acknowledgement != nil {
+		slog.Info("owned Cron acknowledgement published", "job", claim.ID, "verification_job", child, "elapsed_ms", elapsedMS(started))
 	}
 	result := DispatchResult{JobID: claim.ID, Attempt: claim.Attempt, DiagnosticReason: decision.Report.Reason}
 	cronSave(&result, &decision.Report)
@@ -176,12 +190,7 @@ func isOwnedCronEvidenceContinuation(ctx context.Context, state trialReader, cla
 	return waiting, err
 }
 
-func (f *OwnedProjectCron) checkCapacity(ctx context.Context) error {
-	writer, err := pgx.ConnectConfig(ctx, f.Config.Copy())
-	if err != nil {
-		return err
-	}
-	defer closeVacuumConnection(writer)
+func (f *OwnedProjectCron) checkCapacity(ctx context.Context, writer *pgx.Conn) error {
 	var available bool
 	if err := writer.QueryRow(ctx, `SELECT sum(numbackends)*3 < current_setting('max_connections')::int*2 FROM pg_stat_database`).Scan(&available); err != nil {
 		return err

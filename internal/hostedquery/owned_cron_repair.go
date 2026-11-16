@@ -39,7 +39,7 @@ type OwnedCronAction struct {
 
 type OwnedCronGuards struct {
 	CheckPermission       func(context.Context, ProjectCronIntent) error
-	CheckCapacity         func(context.Context, ProjectCronIntent) error
+	CheckCapacity         func(context.Context, *pgx.Conn, ProjectCronIntent) error
 	AdmitModel            func(context.Context) error
 	RecordIntent          func(context.Context, OwnedCronAction) error
 	RecordAcknowledgement func(context.Context, OwnedCronAction) error
@@ -181,7 +181,7 @@ func RunOwnedCronRepair(ctx context.Context, cfg *pgx.ConnConfig, req OwnedCronR
 			}
 			return guards.CheckPermission(ctx, i)
 		},
-		CheckCapacity: guards.CheckCapacity,
+		CheckCapacity: func(ctx context.Context, i ProjectCronIntent) error { return guards.CheckCapacity(ctx, conn, i) },
 		RecordIntent: func(ctx context.Context, i ProjectCronIntent) error {
 			if _, err := readOwnedCronScope(ctx, conn, req, &before[0].Busy); err != nil {
 				return err
@@ -268,21 +268,16 @@ func readOwnedCronScope(ctx context.Context, conn *pgx.Conn, req OwnedCronReques
 			"Pooltune hosted cron fixture "+req.Target.Project, req.Target.WitnessJobID).Scan(&valid); err != nil || !valid {
 			return errors.New("Cron fixture ownership or exact witness could not be verified")
 		}
-		for _, want := range []struct {
-			name, signature, kind, digest string
-			oid                           uint32
-		}{
-			{cronReadFunction, "()", "f", req.ReadDigest, req.ReadOID},
-			{cronProcedure, "(integer)", "p", req.ProcedureDigest, req.ProcedureOID},
-		} {
-			if err := tx.QueryRow(ctx, `SELECT EXISTS (
-				SELECT FROM pg_proc p WHERE p.oid=to_regprocedure($1) AND p.oid=$2 AND p.proowner=$3 AND p.prokind::text=$4
-				  AND p.provolatile='v' AND NOT p.prosecdef
-				  AND encode(sha256(convert_to(pg_get_functiondef(p.oid),'UTF8')),'hex')=$5
-				  AND NOT EXISTS(SELECT FROM aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) a WHERE a.grantee<>p.proowner)
-			)`, qualified(req.Candidate.Schema, want.name)+want.signature, want.oid, req.Target.OwnerOID, want.kind, want.digest).Scan(&valid); err != nil || !valid {
-				return errors.New("owned Cron routine definition or ownership changed")
-			}
+		if err := tx.QueryRow(ctx, `SELECT NOT EXISTS (
+			SELECT FROM (VALUES ($1::text,$2::oid,'f',$3::text),($4::text,$5::oid,'p',$6::text)) want(signature,oid,kind,digest)
+			WHERE NOT EXISTS(SELECT FROM pg_proc p WHERE p.oid=to_regprocedure(want.signature) AND p.oid=want.oid
+			  AND p.proowner=$7 AND p.prokind::text=want.kind AND p.provolatile='v' AND NOT p.prosecdef
+			  AND encode(sha256(convert_to(pg_get_functiondef(p.oid),'UTF8')),'hex')=want.digest
+			  AND NOT EXISTS(SELECT FROM aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) a WHERE a.grantee<>p.proowner))
+		)`, qualified(req.Candidate.Schema, cronReadFunction)+"()", req.ReadOID, req.ReadDigest,
+			qualified(req.Candidate.Schema, cronProcedure)+"(integer)", req.ProcedureOID, req.ProcedureDigest,
+			req.Target.OwnerOID).Scan(&valid); err != nil || !valid {
+			return errors.New("owned Cron routine definition or ownership changed")
 		}
 		plan, err := readLookupPlan(ctx, tx, "EXPLAIN (FORMAT JSON, VERBOSE) "+ownedCronQuery(req.Candidate.Schema))
 		if err != nil || plan.QueryID != req.Observed.Query || plan.Node.Type == "" {
@@ -372,6 +367,15 @@ func verifyOwnedCronFollowup(ctx context.Context, conn *pgx.Conn, req OwnedCronR
 		return ownedCronResult(report, "inconclusive", "the recorded Cron action did not match the current job and workload"), nil
 	}
 	current, err := ReadProjectCron(ctx, conn, req.Target)
+	if err == nil && report.CommitAt.IsZero() {
+		switch {
+		case current == prior.Intent.Before:
+			return ownedCronResult(report, "inconclusive", "the original Cron schedule was observed after an unacknowledged action"), nil
+		case current.Schedule == cronAlternate && current.Fingerprint == prior.Intent.Before.Fingerprint &&
+			current.Generation != prior.Intent.Before.Generation:
+			return ownedCronResult(report, "inconclusive", "the alternate Cron schedule was observed without durable acknowledgement"), nil
+		}
+	}
 	if err != nil || current != prior.After || current.Schedule != cronAlternate ||
 		current.Fingerprint != prior.Intent.Before.Fingerprint || current.Generation == prior.Intent.Before.Generation ||
 		report.CommitAt.IsZero() || !report.CommitAt.Before(future) ||

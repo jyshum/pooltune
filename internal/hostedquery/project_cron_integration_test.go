@@ -7,6 +7,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -223,4 +224,55 @@ func TestProjectCronChangesOnlyApprovedSchedule(t *testing.T) {
 	if r, e := applyProjectCron(ctx, cfg, req, guard, missingWitness); e == nil || r.WriteAttempted {
 		t.Fatalf("lost acknowledgement allowed a repeated write: %+v %v", r, e)
 	}
+	exec(`UPDATE cron.job SET schedule='2-59/10 * * * *' WHERE jobid=17;
+		DELETE FROM cron.job_run_details WHERE runid>=300`)
+	req.Baseline, err = ReadProjectCron(ctx, conn, job)
+	if err != nil {
+		t.Fatal(err)
+	}
+	trace := &projectCronReadbackTrace{}
+	lateReadback := cfg.Copy()
+	lateReadback.Tracer = trace
+	postCommitClockReads = 0
+	accurateAcknowledgement := provider
+	for i := range 2 {
+		at := now.Add(time.Duration(1+i*2) * time.Second)
+		exec(`INSERT INTO cron.job_run_details VALUES ($1,18,32,$2,$3,'succeeded')`, int64(400+i), at, at.Add(time.Second))
+	}
+	accurateAcknowledgement.clock = func(_ context.Context, reader trialReader) (time.Time, CronGeneration, error) {
+		if _, committed := reader.(*pgx.Conn); !committed {
+			return now, g, nil
+		}
+		postCommitClockReads++
+		switch postCommitClockReads {
+		case 1:
+			if trace.readbackBeforeClock {
+				return now.Add(2 * time.Second), g, nil
+			}
+			return now, g, nil
+		case 2:
+			return now.Add(5 * time.Second), g, nil
+		default:
+			return now.Add(10 * time.Second), g, nil
+		}
+	}
+	if r, e := applyProjectCron(ctx, lateReadback, req, guard, accurateAcknowledgement); e != nil || len(r.PostCommitWitnesses) != 2 || !r.CommitAt.Equal(now) {
+		t.Fatalf("catalog round trip obscured a real later witness: %+v %v", r, e)
+	}
 }
+
+type projectCronReadbackTrace struct {
+	committed, readbackBeforeClock bool
+}
+
+func (t *projectCronReadbackTrace) TraceQueryStart(ctx context.Context, _ *pgx.Conn, query pgx.TraceQueryStartData) context.Context {
+	if query.SQL == "commit" {
+		t.committed = true
+	}
+	if t.committed && strings.Contains(query.SQL, "SELECT j.schedule,") {
+		t.readbackBeforeClock = true
+	}
+	return ctx
+}
+
+func (*projectCronReadbackTrace) TraceQueryEnd(context.Context, *pgx.Conn, pgx.TraceQueryEndData) {}

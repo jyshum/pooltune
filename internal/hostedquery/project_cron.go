@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -174,13 +175,34 @@ func applyProjectCron(ctx context.Context, cfg *pgx.ConnConfig, req ProjectCronR
 	if err != nil || original != req.Baseline.Schedule {
 		return out, errors.New("Cron job does not match the approved schedule pair")
 	}
+	started := time.Now()
 	ctx, cancel := context.WithTimeout(ctx, 12*time.Second)
 	defer cancel()
+	phase := "writer_connection"
+	var commitConfirmed bool
+	var observedClock time.Time
+	var futureCycle time.Time
+	defer func() {
+		if !req.ownedHandoff || err == nil {
+			return
+		}
+		cause := err
+		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+			cause = ctx.Err()
+		}
+		fields := []any{"phase", phase, "run", req.RunID, "job", req.Target.JobID, "elapsed_ms", elapsedMS(started),
+			"write_attempted", out.WriteAttempted, "commit_confirmed", commitConfirmed, "category", ownedRepairErrorCategory(cause)}
+		if !observedClock.IsZero() && !futureCycle.IsZero() {
+			fields = append(fields, "observation_margin_ms", ownedCronHandoffDeadline(futureCycle).Sub(observedClock).Milliseconds())
+		}
+		slog.Info("owned Cron native action stopped", fields...)
+	}()
 	db, err := pgx.ConnectConfig(ctx, cfg.Copy())
 	if err != nil {
 		return out, err
 	}
 	defer closeVacuumConnection(db)
+	phase = "provider_preflight"
 	var pid int32
 	if err := db.QueryRow(ctx, "SELECT pg_catalog.pg_backend_pid()").Scan(&pid); err != nil || pid != int32(db.PgConn().PID()) {
 		return out, errors.New("Cron change requires a native PostgreSQL session")
@@ -194,6 +216,7 @@ func applyProjectCron(ctx context.Context, cfg *pgx.ConnConfig, req ProjectCronR
 	var expected ProjectCronSnapshot
 	var witnessBefore string
 	var lastClock time.Time
+	phase = "handoff_locks"
 	err = pgx.BeginTxFunc(ctx, db, pgx.TxOptions{IsoLevel: pgx.RepeatableRead}, func(tx pgx.Tx) error {
 		if _, err := tx.Exec(ctx, "SET LOCAL idle_in_transaction_session_timeout='5s'"); err != nil {
 			return err
@@ -202,14 +225,18 @@ func applyProjectCron(ctx context.Context, cfg *pgx.ConnConfig, req ProjectCronR
 		if err := tx.QueryRow(ctx, `SELECT pg_try_advisory_xact_lock(hashtextextended('pooltune-project-cron/'||$1::text,0))`, req.Target.JobID).Scan(&locked); err != nil || !locked {
 			return errors.New("another Cron action holds this exact job")
 		}
+		phase = "handoff_history"
 		now, generation, err := provider.clock(ctx, tx)
 		if err != nil {
 			return err
 		}
+		observedClock = now
 		firstFuture, err := verifyProjectCronHandoff(ctx, tx, req, now, generation)
 		if err != nil {
 			return err
 		}
+		futureCycle = firstFuture
+		phase = "handoff_identity"
 		before, err := readProjectCronJob(ctx, tx, req.Target)
 		if err != nil || before != req.Baseline {
 			return errors.New("Cron job identity or schedule changed before its handoff")
@@ -220,12 +247,20 @@ func applyProjectCron(ctx context.Context, cfg *pgx.ConnConfig, req ProjectCronR
 		}
 		intent := ProjectCronIntent{Target: req.Target, Window: req.Window, Before: before, Generation: generation,
 			RunID: req.RunID, ProposedSchedule: proposed, FirstFutureCycle: firstFuture}
-		for _, check := range []func(context.Context, ProjectCronIntent) error{guards.CheckPermission, guards.CheckCapacity, guards.RecordIntent, guards.CheckPermission} {
-			if err := check(ctx, intent); err != nil {
+		for _, check := range []struct {
+			phase string
+			run   func(context.Context, ProjectCronIntent) error
+		}{{"permission", guards.CheckPermission}, {"capacity", guards.CheckCapacity}, {"intent", guards.RecordIntent}, {"permission_recheck", guards.CheckPermission}} {
+			phase = check.phase
+			if err := check.run(ctx, intent); err != nil {
 				return err
 			}
 		}
+		phase = "pre_write_clock"
 		lastClock, generation, err = provider.clock(ctx, tx)
+		if !lastClock.IsZero() {
+			observedClock = lastClock
+		}
 		latest := firstFuture.Add(-8 * time.Second)
 		if req.ownedHandoff {
 			latest = ownedCronHandoffDeadline(firstFuture)
@@ -234,6 +269,7 @@ func applyProjectCron(ctx context.Context, cfg *pgx.ConnConfig, req ProjectCronR
 			return errors.New("Cron scheduler changed or passed its safe handoff window")
 		}
 		out.WriteAttempted = true
+		phase = "schedule_write"
 		// The witness is already active in this snapshot. Its same-value API
 		// update detects concurrent stops or edits and holds its row until commit.
 		if _, err := tx.Exec(ctx, `SELECT cron.alter_job($1::bigint,active := true)`, req.Target.WitnessJobID); err != nil {
@@ -242,6 +278,7 @@ func applyProjectCron(ctx context.Context, cfg *pgx.ConnConfig, req ProjectCronR
 		if _, err := tx.Exec(ctx, `SELECT cron.alter_job($1::bigint,schedule := $2::text)`, req.Target.JobID, proposed); err != nil {
 			return err
 		}
+		phase = "transaction_identity"
 		expected, err = readProjectCronJob(ctx, tx, req.Target)
 		if err != nil || expected.Schedule != proposed || expected.Fingerprint != before.Fingerprint || expected.Generation == before.Generation {
 			return errors.New("Cron provider changed fields outside the approved schedule")
@@ -251,27 +288,38 @@ func applyProjectCron(ctx context.Context, cfg *pgx.ConnConfig, req ProjectCronR
 			return errors.New("Cron provider changed the owned scheduler witness")
 		}
 		out.FirstFutureCycle = firstFuture
+		phase = "commit"
 		return nil
 	})
 	if err != nil {
 		return out, err
 	}
-	actual, err := readProjectCronJob(ctx, db, req.Target)
-	if err != nil || actual != expected {
-		return out, errors.New("Cron change acknowledgement requires reconciliation")
-	}
+	commitConfirmed = true
+	phase = "commit_clock"
 	witnessLimit := out.FirstFutureCycle
 	if req.ownedHandoff {
 		witnessLimit = ownedCronHandoffDeadline(witnessLimit)
 	}
+	// A successful COMMIT reply is the barrier. Read the provider clock before
+	// catalog readback so that it does not consume a genuine later witness start.
 	committed, generation, err := provider.clock(ctx, db)
+	if !committed.IsZero() {
+		observedClock = committed
+	}
 	if err != nil || committed.Before(lastClock) || !generation.same(req.Generation) || !committed.Before(witnessLimit) {
 		return out, errors.New("Cron scheduler changed around the schedule commit")
 	}
+	phase = "post_commit_identity"
+	actual, err := readProjectCronJob(ctx, db, req.Target)
+	if err != nil || actual != expected {
+		return out, errors.New("Cron change acknowledgement requires reconciliation")
+	}
+	phase = "post_commit_witnesses"
 	out.PostCommitWitnesses, err = waitProjectCronWitnesses(ctx, db, req, provider, committed, witnessLimit)
 	if err != nil {
 		return out, err
 	}
+	phase = "acknowledgement_identity"
 	actual, err = readProjectCronJob(ctx, db, req.Target)
 	if err != nil || actual != expected {
 		return out, errors.New("Cron job changed before scheduler acknowledgement")
@@ -282,6 +330,11 @@ func applyProjectCron(ctx context.Context, cfg *pgx.ConnConfig, req ProjectCronR
 	}
 	out.After = actual
 	out.CommitAt = committed
+	if req.ownedHandoff {
+		slog.Info("owned Cron native action acknowledged", "run", req.RunID, "job", req.Target.JobID,
+			"elapsed_ms", elapsedMS(started), "commit_margin_ms", witnessLimit.Sub(committed).Milliseconds(),
+			"witnesses", len(out.PostCommitWitnesses))
+	}
 	return out, nil
 }
 

@@ -27,26 +27,43 @@ func verifyProjectCronHandoff(ctx context.Context, tx pgx.Tx, req ProjectCronReq
 		return time.Time{}, errors.New("Cron is outside the safe between-cycle handoff")
 	}
 	first := cycle.Add(-2 * cycleDuration)
-	var ready bool
-	err := tx.QueryRow(ctx, `SELECT EXISTS(SELECT FROM cron.job w JOIN cron.job t ON t.jobid=$1
-		WHERE w.jobid=$2 AND w.username=t.username AND w.database=t.database AND w.active AND w.command='SELECT 1' AND w.schedule='2 seconds')
-		AND NOT EXISTS(SELECT FROM cron.job_run_details WHERE jobid=$1 AND (end_time IS NULL OR status IS NULL OR status NOT IN ('succeeded','failed')
-		  OR ($3::boolean AND start_time<$4::timestamptz)))`,
-		req.Target.JobID, req.Target.WitnessJobID, req.ownedHandoff, first).Scan(&ready)
-	if err != nil || !ready {
-		return time.Time{}, errors.New("Cron job is active or its owned scheduler witness is missing")
-	}
 	witnessSince := now.Add(-30 * time.Second)
 	if req.ownedHandoff && witnessSince.Before(cycle.Add(newOffset)) {
 		witnessSince = cycle.Add(newOffset)
 	}
-	witness, err := projectCronRuns(ctx, tx, req.Target.WitnessJobID, witnessSince, now)
+	// These reads share the existing snapshot and neither result changes the
+	// others' inputs. Pipeline them to keep the bounded network handoff short.
+	batch := &pgx.Batch{}
+	batch.Queue(`SELECT EXISTS(SELECT FROM cron.job w JOIN cron.job t ON t.jobid=$1
+		WHERE w.jobid=$2 AND w.username=t.username AND w.database=t.database AND w.active AND w.command='SELECT 1' AND w.schedule='2 seconds')
+		AND NOT EXISTS(SELECT FROM cron.job_run_details WHERE jobid=$1 AND (end_time IS NULL OR status IS NULL OR status NOT IN ('succeeded','failed')
+		  OR ($3::boolean AND start_time<$4::timestamptz)))`, req.Target.JobID, req.Target.WitnessJobID, req.ownedHandoff, first)
+	batch.Queue(projectCronRunsSQL, req.Target.WitnessJobID, witnessSince, now)
+	batch.Queue(projectCronRunsSQL, req.Target.JobID, first, now)
+	results := tx.SendBatch(ctx, batch)
+	defer results.Close()
+	var ready bool
+	if err := results.QueryRow().Scan(&ready); err != nil || !ready {
+		return time.Time{}, errors.New("Cron job is active or its owned scheduler witness is missing")
+	}
+	witnessRows, err := results.Query()
+	if err != nil {
+		return time.Time{}, err
+	}
+	witness, err := collectProjectCronRuns(witnessRows)
 	if err != nil || validateCronWitness(req.Target.WitnessJobID, witness, witnessSince, next, now, req.Generation, generation) != nil {
 		return time.Time{}, errors.New("Cron scheduler did not record two distinct recent witness runs")
 	}
-	history, err := projectCronRuns(ctx, tx, req.Target.JobID, first, now)
+	historyRows, err := results.Query()
+	if err != nil {
+		return time.Time{}, err
+	}
+	history, err := collectProjectCronRuns(historyRows)
 	if err != nil || len(history) != 3 {
 		return time.Time{}, errors.New("Cron scheduler history did not record one run in each of three preceding cycles")
+	}
+	if err := results.Close(); err != nil {
+		return time.Time{}, err
 	}
 	for i, p := range req.Periods {
 		start := first.Add(time.Duration(i) * cycleDuration)
@@ -110,13 +127,18 @@ type projectCronHistoryReader interface {
 	Query(context.Context, string, ...any) (pgx.Rows, error)
 }
 
+const projectCronRunsSQL = `SELECT runid,jobid,COALESCE(job_pid,0),start_time,COALESCE(end_time,'epoch'::timestamptz),COALESCE(status,'')
+	FROM cron.job_run_details WHERE jobid=$1 AND start_time>=$2 AND start_time<$3 ORDER BY start_time,runid LIMIT 64`
+
 func projectCronRuns(ctx context.Context, db projectCronHistoryReader, job int64, since, until time.Time) ([]CronRun, error) {
-	rows, err := db.Query(ctx, `SELECT runid,jobid,COALESCE(job_pid,0),start_time,COALESCE(end_time,'epoch'::timestamptz),COALESCE(status,'')
-		FROM cron.job_run_details WHERE jobid=$1 AND start_time>=$2 AND start_time<$3 ORDER BY start_time,runid LIMIT 64`, job, since, until)
+	rows, err := db.Query(ctx, projectCronRunsSQL, job, since, until)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	return collectProjectCronRuns(rows)
+}
+
+func collectProjectCronRuns(rows pgx.Rows) ([]CronRun, error) {
 	return pgx.CollectRows(rows, func(row pgx.CollectableRow) (r CronRun, err error) {
 		err = row.Scan(&r.ID, &r.JobID, &r.PID, &r.Start, &r.End, &r.Status)
 		return
