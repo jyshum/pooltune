@@ -29,6 +29,7 @@ type IndexTrialReport struct {
 	Proposal     IndexProposal `json:"proposal"`
 	Before       TrialSample   `json:"before"`
 	After        TrialSample   `json:"after"`
+	Reverted     bool          `json:"reverted,omitempty"`
 	IndexValid   bool          `json:"index_valid"`
 	HealthyBuilt bool          `json:"healthy_index_built"`
 	IndexBytes   int64         `json:"index_bytes"`

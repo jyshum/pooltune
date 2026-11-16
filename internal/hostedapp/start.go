@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"slices"
+	"strconv"
 	"strings"
 	"time"
 
@@ -65,14 +66,24 @@ func (a *App) startProject(w http.ResponseWriter, r *http.Request, user auth.Use
 		a.showProject(w, r, user, row, "Enter your project-scoped setup token and Supabase root certificate.", selected)
 		return
 	}
-	if err := a.startAutomaticProject(r.Context(), row, token, ca, selected); err != nil {
+	objectiveMS, err := setupObjective(r.PostForm.Get("mean_latency_ms"))
+	if err != nil {
+		a.showProject(w, r, user, row, err.Error(), selected)
+		return
+	}
+	repairPassword := r.PostForm.Get("repair_password")
+	if len(repairPassword) > 512 || strings.ContainsRune(repairPassword, 0) {
+		a.showProject(w, r, user, row, "Enter a valid database credential.", selected)
+		return
+	}
+	if err := a.startAutomaticProject(r.Context(), row, token, ca, selected, repairPassword, objectiveMS); err != nil {
 		a.showProject(w, r, user, row, err.Error(), selected)
 		return
 	}
 	http.Redirect(w, r, "/app/projects/"+row.ID, http.StatusSeeOther)
 }
 
-func (a *App) startAutomaticProject(parent context.Context, row projectRecord, token, ca string, selected []string) error {
+func (a *App) startAutomaticProject(parent context.Context, row projectRecord, token, ca string, selected []string, repairPassword string, objectiveMS int) error {
 	ctx, cancel := context.WithTimeout(parent, 18*time.Second)
 	defer cancel()
 	generic := errors.New("could not start this agent. Check the connection and try again")
@@ -86,6 +97,16 @@ func (a *App) startAutomaticProject(parent context.Context, row projectRecord, t
 	}
 	credentials := projectSecrets{
 		Password: base64.RawURLEncoding.EncodeToString(random), CA: ca, Automatic: true, Capabilities: selected,
+	}
+	credentials.ObjectiveMS = objectiveMS
+	if objectiveMS < 0 || objectiveMS > 1000 {
+		return errors.New("choose a mean query latency goal between 1 and 1000 milliseconds")
+	}
+	if len(selected) > 0 {
+		credentials.RepairPassword = repairPassword
+	}
+	if len(credentials.RepairPassword) > 512 || strings.ContainsRune(credentials.RepairPassword, 0) {
+		return errors.New("enter a valid database credential")
 	}
 	if _, err := identity.Config(credentials.Password, []byte(ca)); err != nil {
 		return errors.New("paste a valid Supabase root certificate")
@@ -126,10 +147,17 @@ func (a *App) startAutomaticProject(parent context.Context, row projectRecord, t
 			return generic
 		}
 		credentials.Password = previous.Password
+		if len(selected) > 0 && credentials.RepairPassword == "" {
+			credentials.RepairPassword = previous.RepairPassword
+		}
 		sealed, err = a.vault.seal(row, credentials)
 		if err != nil {
 			return generic
 		}
+	}
+	fixture := a.ownedIndex.Matches(identity) || a.ownedRepair.Matches(identity) || a.ownedCron.Matches(identity)
+	if len(selected) > 0 && credentials.RepairPassword == "" && !fixture {
+		return errors.New("enter the project's database password to enable managed repairs")
 	}
 	tag, err := lock.Exec(ctx, `UPDATE pooltune_app.projects SET pending_setup=$4 WHERE id=$1 AND owner_id=$2 AND epoch=$3 AND epoch<=0`,
 		row.ID, row.Owner, row.Epoch, sealed)
@@ -141,15 +169,7 @@ func (a *App) startAutomaticProject(parent context.Context, row projectRecord, t
 
 func (a *App) installAutomaticMonitor(ctx context.Context, row projectRecord, identity supabaseproject.Project, token string, credentials projectSecrets, retry bool, sealed []byte) error {
 	ownedProbe := a.ownedIndex.Matches(identity) && a.ownedIndex.Discover
-	requireDiscoveredIndex := ownedProbe && slices.Contains(credentials.Capabilities, "index")
-	if retry {
-		check, cancel := context.WithTimeout(ctx, 3*time.Second)
-		installed := checkProject(check, row, credentials, a.policy, requireDiscoveredIndex) == nil
-		cancel()
-		if installed {
-			return a.activateAutomaticProject(ctx, row, sealed)
-		}
-	}
+	requireDiscoveredIndex := credentials.RepairPassword != "" || (ownedProbe && slices.Contains(credentials.Capabilities, "index"))
 	setup := identity.Bootstrap
 	if row.Epoch < 0 {
 		setup = identity.Reconnect
@@ -164,13 +184,57 @@ func (a *App) installAutomaticMonitor(ctx context.Context, row projectRecord, id
 			return identity.BootstrapOwnedRepairProbe(ctx, token, password, "cron")
 		}
 	}
-	if err := setup(ctx, token, credentials.Password); err != nil {
+	install := func(ctx context.Context) error {
+		return setup(ctx, token, credentials.Password)
+	}
+	verify := func(ctx context.Context, includeRepairEvidence bool) error {
+		return checkProject(ctx, row, credentials, a.policy, includeRepairEvidence && requireDiscoveredIndex)
+	}
+	fixture := a.ownedIndex.Matches(identity) || a.ownedRepair.Matches(identity) || a.ownedCron.Matches(identity)
+	configureRepairs := func(ctx context.Context) error {
+		goal := credentials.ObjectiveMS
+		if goal == 0 && !fixture {
+			goal = 1000
+		}
+		if goal > 0 {
+			if err := identity.ConfigureDiscoveryObjective(ctx, token, goal); err != nil {
+				return err
+			}
+		}
+		if credentials.RepairPassword == "" {
+			return nil
+		}
+		if err := identity.ValidateManagedRepair(ctx, credentials.RepairPassword, []byte(credentials.CA)); err != nil {
+			return err
+		}
+		return identity.InstallManagedIndexReader(ctx, token)
+	}
+	activate := func(ctx context.Context) error { return a.activateAutomaticProject(ctx, row, sealed) }
+	return completeAutomaticSetup(ctx, retry, install, verify, configureRepairs, activate)
+}
+
+// completeAutomaticSetup resumes after an installed monitor even if a later
+// repair credential check or evidence-reader installation failed.
+func completeAutomaticSetup(ctx context.Context, retry bool, install func(context.Context) error,
+	verify func(context.Context, bool) error, configureRepairs, activate func(context.Context) error) error {
+	installed := false
+	if retry {
+		check, cancel := context.WithTimeout(ctx, 3*time.Second)
+		installed = verify(check, false) == nil
+		cancel()
+	}
+	if !installed {
+		if err := install(ctx); err != nil {
+			return err
+		}
+	}
+	if err := configureRepairs(ctx); err != nil {
 		return err
 	}
-	if err := checkProject(ctx, row, credentials, a.policy, requireDiscoveredIndex); err != nil {
+	if err := verify(ctx, true); err != nil {
 		return err
 	}
-	return a.activateAutomaticProject(ctx, row, sealed)
+	return activate(ctx)
 }
 
 func (a *App) activateAutomaticProject(ctx context.Context, row projectRecord, sealed []byte) error {
@@ -229,4 +293,15 @@ func (a *App) changeRepairMode(w http.ResponseWriter, r *http.Request, user auth
 		}
 	}
 	http.Redirect(w, r, "/app/projects/"+row.ID, http.StatusSeeOther)
+}
+
+func setupObjective(value string) (int, error) {
+	if value == "" {
+		return 0, nil
+	}
+	goal, err := strconv.Atoi(value)
+	if err != nil || goal < 1 || goal > 1000 {
+		return 0, errors.New("choose a mean query latency goal in whole milliseconds from 1 to 1000")
+	}
+	return goal, nil
 }

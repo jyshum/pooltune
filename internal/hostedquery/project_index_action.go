@@ -18,11 +18,13 @@ const (
 )
 
 type ProjectIndexActionIntent struct {
-	Target        ProjectIndexTarget
-	RunID         string
-	IndexName     string
-	Keys          []ProjectIndexKey
-	RelationBytes int64
+	Target            ProjectIndexTarget
+	RunID             string
+	IndexName         string
+	Keys              []ProjectIndexKey
+	RelationBytes     int64
+	AppliedIndexOID   uint32 `json:",omitempty"`
+	RollbackRequested bool   `json:",omitempty"`
 }
 
 type ProjectIndexActionGuards struct {

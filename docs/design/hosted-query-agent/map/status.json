@@ -1,6 +1,6 @@
 {
   "sourceRevision": "bd2e1cc13eab2a3ecb6461c943b37c224b494a6f",
-  "summary": "Six prepared repair families passed through normal setup on Railway. The worker link and live permission reporting are implemented. Automatic repairs from ordinary traffic still need measured evidence and job delivery.",
+  "summary": "Managed Go setup is implemented with an encrypted database credential and optional latency goal. The new general repair path is undergoing local and Rookery qualification. Six repair families have earlier prepared-workload proofs; that does not yet prove all six on a newly connected project.",
   "next": [
     "connect-project",
     "repair-coverage",
@@ -108,8 +108,8 @@
     },
     "inspection": {
       "status": "partial",
-      "scope": "Railway used automatically discovered workload evidence for six bounded repairs, including actual job history and matched foreground traffic for the scheduler.",
-      "remaining": "Collect representative input and measured before-and-after evidence for ordinary workloads, including protected traffic.",
+      "scope": "The managed worker discovers eligible integer lookups from app traffic and measures an existing key under the application role. The same key is reused after a repair.",
+      "remaining": "Verify through Railway and extend supported shapes and causes beyond bounded integer lookups.",
       "evidence": [
         "internal/graphrunner/diagnostic.go",
         "docs/design/hosted-query-agent/diagnostic-loop.md",
@@ -131,9 +131,10 @@
         "docs/design/hosted-query-agent/evidence/mvp-simple-memory-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-simple-vacuum-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-simple-cron-handoff-railway.json",
-        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-railway.json"
+        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-railway.json",
+        "docs/design/hosted-query-agent/progress.md"
       ],
-      "statusLabel": "Scoped workload evidence verified",
+      "statusLabel": "Sampled evidence: testing",
       "remainingBuild": "Capture evidence the Go repair tools can use to test a candidate and verify its effect.",
       "remainingVerification": "Qualify additional query shapes on representative pooled and Data API paths."
     },
@@ -347,8 +348,8 @@
     },
     "repair-coverage": {
       "status": "partial",
-      "scope": "All six prepared Rookery repairs have verified results. The owner-side Go worker can report exact database permissions and respond to revocation.",
-      "remaining": "Deliver typed repair jobs using measured evidence from normal traffic and verify an actual action on Rookery through the owner worker.",
+      "scope": "New managed index, statistics-refresh and plain-cleanup routes use discovered queries, normal protected traffic and native Go tools. Earlier six-family results used prepared workers.",
+      "remaining": "Qualify new managed routes and finish statistics settings, function enrollment and scheduling enrollment for normally connected projects.",
       "evidence": [
         "docs/design/hosted-query-agent/roadmap.md",
         "internal/hostedapp/supervisor.go",
@@ -374,14 +375,15 @@
         "docs/design/hosted-query-agent/evidence/mvp-simple-cron-handoff-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-simple-cron-railway.json",
         "internal/hostedquery/project_repair_access.go",
-        "docs/design/hosted-query-agent/evidence/owner-worker-link-railway.json"
+        "docs/design/hosted-query-agent/evidence/owner-worker-link-railway.json",
+        "docs/design/hosted-query-agent/progress.md"
       ],
-      "statusLabel": "Six prepared repair families verified"
+      "statusLabel": "Managed repairs: testing"
     },
     "connect-project": {
       "status": "partial",
-      "scope": "A connected Rookery project received permission reports on Railway. The owner-controlled Go worker passed local PostgreSQL grant and revoke tests.",
-      "remaining": "Run the Go worker on a host with direct Rookery access, then deliver and verify a real authorized repair from normal setup.",
+      "scope": "Setup accepts the database credential once, encrypts it for Railway, and resumes safely after a failed password check. No separate customer worker or worker key is needed.",
+      "remaining": "Verify the new setup and automatic repair together on Rookery.",
       "evidence": [
         "docs/design/hosted-query-agent/supabase-monitoring.md",
         "cmd/pooltune-project/main.go",
@@ -402,21 +404,23 @@
         "docs/design/hosted-query-agent/evidence/mvp-simple-cron-railway.json",
         "docs/design/hosted-query-agent/repair-authority.md",
         "internal/hostedquery/project_repair_access.go",
-        "docs/design/hosted-query-agent/evidence/owner-worker-link-railway.json"
+        "docs/design/hosted-query-agent/evidence/owner-worker-link-railway.json",
+        "docs/design/hosted-query-agent/progress.md"
       ],
-      "statusLabel": "Worker link and hosted reports verified"
+      "statusLabel": "Managed connection: testing"
     },
     "credential-lifecycle": {
       "status": "partial",
-      "scope": "The hosted preview encrypts each project’s monitor credentials. Rookery passed disconnect and reconnect. The operator path also verified revocation and manual password rotation.",
-      "remaining": "Add managed credential and encryption-key rotation, then verify recovery and disconnect during failures or replica changes.",
+      "scope": "Account-and-project-bound encryption now includes the repair credential. Setup checks the native database identity. Disconnect removes the stored credential.",
+      "remaining": "Verify managed disconnect and restart on Railway. The existing database password is not revoked by disconnect.",
       "evidence": [
         "docs/design/hosted-query-agent/supabase-monitoring.md",
         "internal/hostedquery/project_monitor.go",
         "internal/hostedapp/projects.go",
-        "docs/design/hosted-query-agent/evidence/hosted-preview-railway.json"
+        "docs/design/hosted-query-agent/evidence/hosted-preview-railway.json",
+        "docs/design/hosted-query-agent/progress.md"
       ],
-      "statusLabel": "Preview storage and disconnect verified",
+      "statusLabel": "Managed credential: testing",
       "remainingBuild": "Add managed credential and encryption-key rotation.",
       "remainingVerification": "Exercise deployed worker and state-store failures. Verify credential handling and disconnect before scaling beyond one replica."
     },
@@ -432,8 +436,8 @@
     },
     "activity": {
       "status": "partial",
-      "scope": "The dashboard shows verified results for six Rookery repair families, both settings outcomes and the interrupted index action. The scheduler report displays measured foreground and protected traffic.",
-      "remaining": "Qualify protected traffic reporting across repair types and verify the developer viewer through hosted access.",
+      "scope": "The dashboard distinguishes sampled-input measurements from protected normal-traffic measurements and hides worker-key setup for managed connections.",
+      "remaining": "Verify the actual customer setup and managed repair report through Railway.",
       "evidence": [
         "docs/design/hosted-query-agent/roadmap.md",
         "docs/design/hosted-query-agent/hosted-preview.md",
@@ -450,9 +454,10 @@
         "docs/design/hosted-query-agent/evidence/mvp-simple-cleanup-trigger-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-simple-column-target-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-simple-cron-handoff-railway.json",
-        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-railway.json"
+        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-railway.json",
+        "docs/design/hosted-query-agent/progress.md"
       ],
-      "statusLabel": "Six hosted repair results and index restart"
+      "statusLabel": "Measured results: testing"
     },
     "landing": {
       "status": "verified",
@@ -484,7 +489,7 @@
     },
     "hosted-diagnostic-integration": {
       "status": "verified",
-      "scope": "Connected and verified for the owned index fixture: Railway queue → diagnostic Sonnet graph → Go index repair → measured improvement. Queued job survived an actual service restart.",
+      "scope": "Connected and verified for the owned index fixture: Railway queue \u2192 diagnostic Sonnet graph \u2192 Go index repair \u2192 measured improvement. Queued job survived an actual service restart.",
       "remaining": "The bounded single-column service-restart proof remains distinct from the newer per-repair runs. All six routes are implemented; see each connection for its verified scope. Hosted mid-model recovery remains.",
       "evidence": [
         "cmd/pooltune-consumer/main.go",
@@ -557,7 +562,7 @@
     },
     "cleanup-settings": {
       "status": "verified",
-      "scope": "Railway lowered the exact table’s trigger. PostgreSQL ran one automatic cleanup and no manual cleanup. Dead tuples dropped from 17,459 to 1,500 and the tested query from 42.93 to 23.68 ms.",
+      "scope": "Railway lowered the exact table\u2019s trigger. PostgreSQL ran one automatic cleanup and no manual cleanup. Dead tuples dropped from 17,459 to 1,500 and the tested query from 42.93 to 23.68 ms.",
       "remaining": "Qualify shared-autovacuum load and broader table eligibility.",
       "evidence": [
         "docs/product/query-performance-v1.md",
@@ -685,7 +690,7 @@
     "project-activity-history": {
       "status": "verified",
       "statusLabel": "Hosted history verified",
-      "scope": "Project-scoped polls, query windows and diagnosis timings are visible in the owning account’s Railway dashboard and history download. Reconnect preserved the diagnosis.",
+      "scope": "Project-scoped polls, query windows and diagnosis timings are visible in the owning account\u2019s Railway dashboard and history download. Reconnect preserved the diagnosis.",
       "remaining": "Qualify a full week of ordinary customer traffic and its dashboard history.",
       "evidence": [
         "internal/hostedquery/project_activity.go",
@@ -827,7 +832,18 @@
   "colorMeaning": "Green covers the verified scope on each card. Yellow means part of the card works and more remains. Dashed cards track pending work or qualification.",
   "recent": [
     {
-      "label": "Task 36 · Connect and enroll",
+      "label": "Managed setup built; live proof underway",
+      "summary": "Railway-managed Go access, encrypted credentials and setup retry are implemented. Generic repairs are being connected and verified.",
+      "nodes": [
+        "connect-project",
+        "inspection",
+        "credential-lifecycle",
+        "repair-coverage",
+        "activity"
+      ]
+    },
+    {
+      "label": "Task 36 \u00b7 Connect and enroll",
       "summary": "Verified TLS and enrolled app-role monitoring on Rookery.",
       "nodes": [
         "connect-project",
@@ -835,7 +851,7 @@
       ]
     },
     {
-      "label": "Task 37 · Read evidence and diagnose",
+      "label": "Task 37 \u00b7 Read evidence and diagnose",
       "summary": "Sonnet diagnosed one real enrolled lookup using actual traffic and catalog facts.",
       "nodes": [
         "enrolled-lookup-evidence",
@@ -843,22 +859,22 @@
       ]
     },
     {
-      "label": "Task 38 · Deploy and test",
+      "label": "Task 38 \u00b7 Deploy and test",
       "summary": "Ran detection through a saved Sonnet result in Railway staging with a healthy control.",
       "nodes": [
         "hosted-enrolled-flow"
       ]
     },
     {
-      "label": "Task 39 · Read a measured execution plan",
-      "summary": "Railway saved a Sonnet diagnosis with one exact Rookery lookup’s measured sequential scan.",
+      "label": "Task 39 \u00b7 Read a measured execution plan",
+      "summary": "Railway saved a Sonnet diagnosis with one exact Rookery lookup\u2019s measured sequential scan.",
       "nodes": [
         "enrolled-measured-plan",
         "enrolled-lookup-diagnosis"
       ]
     },
     {
-      "label": "Task 40 · Read plans from ordinary traffic",
+      "label": "Task 40 \u00b7 Read plans from ordinary traffic",
       "summary": "Railway saved Sonnet diagnoses for a two-filter lookup and an ordered range using PostgreSQL plans from normal Rookery calls.",
       "nodes": [
         "enrolled-traffic-plans",
@@ -866,14 +882,14 @@
       ]
     },
     {
-      "label": "Task 41 · Save pilot activity history",
+      "label": "Task 41 \u00b7 Save pilot activity history",
       "summary": "Local PostgreSQL verified scoped poll and query history, missing measurements, and diagnosis timing.",
       "nodes": [
         "project-activity-history"
       ]
     },
     {
-      "label": "Task 42 · Create accounts and sign in",
+      "label": "Task 42 \u00b7 Create accounts and sign in",
       "summary": "Local PostgreSQL verified invite signup, sign-in, sign-out and project ownership. The signup and sign-in screens rendered at desktop and mobile widths.",
       "nodes": [
         "preview-account-session",
@@ -881,7 +897,7 @@
       ]
     },
     {
-      "label": "Task 43 · Connect from the hosted dashboard",
+      "label": "Task 43 \u00b7 Connect from the hosted dashboard",
       "summary": "The account flow provisioned an exact Rookery monitoring role. Railway saved and displayed the enrolled diagnosis with a measured scan, kept it through reconnect and cleaned up the fixture.",
       "nodes": [
         "hosted-preview-project",
@@ -890,7 +906,7 @@
       ]
     },
     {
-      "label": "Task 44 · Verify the customer-trial flow",
+      "label": "Task 44 \u00b7 Verify the customer-trial flow",
       "summary": "Railway serves the original landing. The account flow was verified and the audit identifies what remains before full V1.",
       "nodes": [
         "landing",
@@ -899,7 +915,7 @@
       ]
     },
     {
-      "label": "Tasks 45–48 · Simplify setup and move repair work onto project identities",
+      "label": "Tasks 45\u201348 \u00b7 Simplify setup and move repair work onto project identities",
       "summary": "Railway now serves the capability screen. Rookery verified workload discovery and a separate real compound-index repair. The dashboard shows saved repair data.",
       "nodes": [
         "agent-permission-setup",
@@ -909,7 +925,7 @@
       ]
     },
     {
-      "label": "Task 49 · Run a compound repair from the dashboard",
+      "label": "Task 49 \u00b7 Run a compound repair from the dashboard",
       "summary": "Railway detected ordinary slow Rookery traffic, Sonnet picked the approved index and the dashboard displayed one measured input improve from 16.472 ms to 0.060 ms. The healthy lookup queued no job.",
       "nodes": [
         "hosted-owned-index-action",
@@ -919,7 +935,7 @@
       ]
     },
     {
-      "label": "Tasks 50–53 · Join simple setup to repairs",
+      "label": "Tasks 50\u201353 \u00b7 Join simple setup to repairs",
       "summary": "Railway served the simple setup form against the prepared Rookery fixture with zero configured query IDs. Local PostgreSQL advanced discovered evidence, statistics refresh and recovery. The live repair is pending token authorization.",
       "nodes": [
         "automatic-hosted-index",
@@ -929,7 +945,7 @@
       ]
     },
     {
-      "label": "Task 50 · Verify a repair from simple setup on Railway",
+      "label": "Task 50 \u00b7 Verify a repair from simple setup on Railway",
       "summary": "The owner form enabled indexes. Ordinary Rookery traffic triggered one compound repair. The dashboard sample improved from 16.605 ms to 0.070 ms, and the fixture and token were removed.",
       "nodes": [
         "automatic-hosted-index",
@@ -939,7 +955,7 @@
       ]
     },
     {
-      "label": "Task 54 · Restart during index verification",
+      "label": "Task 54 \u00b7 Restart during index verification",
       "summary": "Railway restarted after the index write. The original dashboard job reconciled the exact same PostgreSQL index on attempt two, with one completed build.",
       "nodes": [
         "owned-index-recovery",
@@ -949,7 +965,7 @@
       ]
     },
     {
-      "label": "Task 55 · Qualify the remaining owner repairs",
+      "label": "Task 55 \u00b7 Qualify the remaining owner repairs",
       "summary": "Railway saved four more verified owner repairs on Rookery. Scheduling can resume locally and still needs scoped provider authority for six live cycles.",
       "nodes": [
         "refresh",
@@ -961,7 +977,7 @@
       ]
     },
     {
-      "label": "Task 56 · Verify normal repair setup",
+      "label": "Task 56 \u00b7 Verify normal repair setup",
       "summary": "Five repair checkboxes now have verified Railway results from the normal form with zero manual query IDs.",
       "nodes": [
         "agent-permission-setup",
@@ -972,7 +988,7 @@
       ]
     },
     {
-      "label": "Tasks 57 and 58 · Scheduler and settings",
+      "label": "Tasks 57 and 58 \u00b7 Scheduler and settings",
       "summary": "Cleanup retained the new trigger and the column-statistics trial restored its original value after a regression. Railway collected three original Cron periods and PostgreSQL changed schedules. Follow-up verification remains open.",
       "nodes": [
         "cron",
@@ -981,7 +997,7 @@
       ]
     },
     {
-      "label": "Task 57 · Scheduling verified from simple setup",
+      "label": "Task 57 \u00b7 Scheduling verified from simple setup",
       "summary": "Railway saved six genuine Rookery scheduler periods and showed the busy-window query improve from 32.84 ms to 0.087 ms. Protected reads and writes passed. All six repair checkboxes now have a verified case with no manual query IDs.",
       "nodes": [
         "cron",
@@ -991,7 +1007,7 @@
       ]
     },
     {
-      "label": "Task 59 · Check repair permissions in Go",
+      "label": "Task 59 \u00b7 Check repair permissions in Go",
       "summary": "Local PostgreSQL verified exact database access for eight repair actions, permission revocation, and the normal monitor installer. The owner-side worker still needs the Railway queue connection.",
       "nodes": [
         "connect-project",
@@ -1000,7 +1016,7 @@
       ]
     },
     {
-      "label": "Task 60 · Link the Go worker",
+      "label": "Task 60 \u00b7 Link the Go worker",
       "summary": "Added project-specific keys and editable repair choices. Local Go tests verified PostgreSQL permissions. Railway displayed grants and revocation measured on Rookery. Action delivery still needs measured evidence.",
       "nodes": [
         "connect-project",

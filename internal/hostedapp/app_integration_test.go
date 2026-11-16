@@ -140,6 +140,10 @@ func TestAccountDashboardAndProjectOwnership(t *testing.T) {
 	if err != nil || row.Epoch <= 0 {
 		t.Fatalf("activation did not persist: %v", err)
 	}
+	monitorOnlyPage := request(http.MethodGet, projectPath, nil, owner, "")
+	if monitorOnlyPage.Code != 200 || !strings.Contains(monitorOnlyPage.Body.String(), "Connect repair access") || strings.Contains(monitorOnlyPage.Body.String(), "Create worker key") {
+		t.Fatal("automatic monitoring-only connection did not explain the managed credential route")
+	}
 	if err := app.projects.admitModel(ctx, projectID, row.Epoch+1); !errors.Is(err, hostedquery.ErrProjectModelBudget) {
 		t.Fatalf("stale epoch reserved a provider call: %v", err)
 	}

@@ -552,3 +552,14 @@ The owner creates a revocable key from the signed-in project. Store only its dig
 - [x] Implement the permission reporting connection. Verify the Go worker against local PostgreSQL, and verify report delivery and key revocation through Railway on a connected Rookery test project.
 - [ ] Qualify the Go worker on an owner host that can reach Rookery's native database endpoint. The Railway test used the API with actual Rookery catalog results because the test machine could not reach that endpoint directly.
 - [ ] Add a typed repair-job route using measured evidence that satisfies the existing native operation and verification gates. Treat generic plans and metadata as inspection evidence. Prove the full path before marking automatic repairs available.
+
+### Task 61: Run managed Go repairs from automatic setup
+
+Approved hosting change comes from Jared's request to use Railway and store the credential securely. Finish the customer entry before claiming general repairs ready.
+
+- [ ] Add an encrypted native repair credential to projectSecrets and the connection form. Validate native access and the installed project before activation. Preserve resumable setup, prior credentials on retry, account isolation and disconnect.
+- [ ] Install passive index discovery for managed connections and route automatically discovered supported lookups through measured Go experiments. Preserve actual application-role permissions and label sampled input.
+- [ ] Connect selected repairs to the managed dispatcher, durable action journal, catalog checks, protected traffic checks and recovery. Keep the existing fixture path compatible.
+- [ ] Show managed execution and evidence outcomes in the dashboard without requiring a worker key.
+- [ ] Exercise the complete normal form on disposable Rookery data through Railway. Verify an actual repair, refusal, pause/revocation and restart before marking corresponding map scope complete.
+- [ ] Update map and resume evidence, commit and push revamp after review.

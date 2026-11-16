@@ -15,6 +15,10 @@ func TestVacuumRequiresVisibilityCauseAndExactRecommendation(t *testing.T) {
 		want   bool
 	}{
 		{"eligible", func(*IndexEvidence, *IndexProposal) {}, true},
+		{"discovered column", func(e *IndexEvidence, p *IndexProposal) { e.Column = 7; p.Column = 7 }, true},
+		{"mismatched column", func(_ *IndexEvidence, p *IndexProposal) { p.Column = 7 }, false},
+		{"unexpected compound columns", func(_ *IndexEvidence, p *IndexProposal) { p.Columns = []int16{2, 7} }, false},
+		{"system column", func(e *IndexEvidence, p *IndexProposal) { e.Column = -1; p.Column = -1 }, false},
 		{"healthy", func(e *IndexEvidence, _ *IndexProposal) { e.Decision = NoChange }, false},
 		{"few heap fetches", func(e *IndexEvidence, _ *IndexProposal) { e.Vacuum.HeapFetches = 999 }, false},
 		{"low ratio", func(e *IndexEvidence, _ *IndexProposal) { e.Vacuum.ScanRows = 2001 }, false},

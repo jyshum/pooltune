@@ -213,6 +213,10 @@ func TestProjectActivityReportsOnlyRecordedRepairMeasurements(t *testing.T) {
 		pending                      bool
 		analysisMS                   float64
 	}{
+		{result: `{"outcome":"regressed","repair":{"measurement_scope":"managed_sampled_input","index_valid":false,"reverted":true,"before":{"read_calls":1,"read_mean_ms":12},"after":{"read_calls":1,"read_mean_ms":3}}}`, kind: "index", action: "removed", firstMetric: []float64{12, 3}},
+		{result: `{"outcome":"repair_interrupted","managed_maintenance":{"operation":"vacuum","measurement":"interrupted_maintenance_catalog_observation","recovery_status":"maintenance_observed","action":{}}}`, kind: "vacuum", action: "interrupted"},
+		{result: `{"outcome":"improved_tested_inputs","managed_maintenance":{"operation":"analyze","measurement":"managed_sampled_input_and_normal_traffic_windows","action":{"Confirmed":true},"before":{"sample":{"read_calls":1,"read_mean_ms":12}},"after":{"sample":{"read_calls":1,"read_mean_ms":3}}}}`, kind: "analyze", action: "recorded", firstMetric: []float64{12, 3}},
+		{result: `{"outcome":"inconclusive","managed_maintenance":{"operation":"vacuum","measurement":"managed_sampled_input_and_normal_traffic_windows","action":{"WriteAttempted":true,"Confirmed":false},"before":{"sample":{"read_calls":1,"read_mean_ms":12}}}}`, kind: "vacuum", action: "interrupted"},
 		{result: `{"outcome":"propose","proposal":{"repair":"index","reason":"Try an index"}}`, reason: "Try an index"},
 		{result: `{"outcome":"no_change","repair":{"index_valid":false,"reason":"Missing evidence","before":{"read_calls":10,"read_mean_ms":12}}}`, reason: "Missing evidence"},
 		{result: `{"outcome":"improved_tested_inputs","repair":{"index_valid":true,"reason":"Measured result","before":{"read_calls":10,"read_mean_ms":12},"after":{"read_calls":10,"read_mean_ms":0}}}`, kind: "index", action: "recorded", reason: "Measured result", firstMetric: []float64{12, 0}},

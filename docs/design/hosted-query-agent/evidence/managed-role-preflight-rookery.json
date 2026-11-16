@@ -1,0 +1,23 @@
+{
+  "project": "Rookery",
+  "project_ref": "osdjqwpzgyzwfaxyufze",
+  "connection": "existing owner postgres session through Supavisor",
+  "probe": "temporary NOLOGIN role and attempted inherited membership in postgres inside one rollback transaction",
+  "grant_sqlstate": "42501",
+  "temporary_role_count_after_probe": 0,
+  "application_objects_changed": false,
+  "postgres_role": {
+    "superuser": false,
+    "create_role": true,
+    "create_db": true,
+    "bypass_rls": true
+  },
+  "implication": "The normal owner SQL session cannot issue a separate login with inherited postgres ownership. Managed repairs need an owner-supplied native credential or a separately qualified provider authentication facility.",
+  "temporary_access_prerequisite": "Supabase temporary access requires SSL enforcement and PostgreSQL 17.6.1.081 or newer. No temporary-access setting was changed by this probe.",
+  "sources": [
+    "https://supabase.com/docs/guides/platform/temporary-access",
+    "https://supabase.com/docs/reference/api/v1-get-jit-access"
+  ],
+  "observed_on": "2026-11-15",
+  "timezone": "America/Vancouver"
+}

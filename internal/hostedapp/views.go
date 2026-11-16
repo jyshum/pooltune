@@ -29,6 +29,8 @@ type ProjectView struct {
 	Capabilities                          []CapabilityView
 	RepairsSelected, RepairsPaused        bool
 	RepairWorkerLinked                    bool
+	ManagedRepairs                        bool
+	ManagedCredentialNeeded               bool
 	RepairWorkerSummary                   string
 	FixtureIndex                          bool
 	FixtureRepair                         *CapabilityView
@@ -140,12 +142,14 @@ func (a *App) showProject(w http.ResponseWriter, r *http.Request, user auth.User
 		view.Capabilities = slices.Clone(projectCapabilities)
 		view.RepairsSelected = len(configured.Capabilities) > 0
 		view.RepairsPaused = configured.RepairsPaused
+		view.ManagedRepairs = configured.RepairPassword != ""
 		view.RepairWorkerLinked, view.RepairWorkerSummary = a.repairWorkerStatus(r.Context(), row)
+		view.ManagedCredentialNeeded = configured.Automatic && !view.ManagedRepairs && view.RepairsSelected && !view.RepairWorkerLinked
 		for i := range view.Capabilities {
 			option := &view.Capabilities[i]
 			option.Selected = slices.Contains(configured.Capabilities, option.Key)
 			if option.Selected {
-				option.Availability = "Waiting for repair support"
+				option.Availability = repairAvailability(option.Key, view.ManagedRepairs)
 				if fixtureMatches && a.ownedIndex.Discover == configured.Automatic && option.Key == "index" {
 					option.Availability = "Available for the owned Rookery fixture"
 				}
@@ -156,7 +160,7 @@ func (a *App) showProject(w http.ResponseWriter, r *http.Request, user auth.User
 					option.Availability = "Available for the owned Rookery fixture"
 				}
 				if configured.RepairsPaused {
-					option.Availability = "Paused"
+					option.Availability = "Paused. " + option.Availability
 				}
 			}
 		}
@@ -175,6 +179,32 @@ func (a *App) showProject(w http.ResponseWriter, r *http.Request, user auth.User
 		populateActivity(&view, activity, a.policy.Interval, time.Now())
 	}
 	a.render(w, status, "project", Page{Title: row.Name, User: user.Email, Project: view, Error: failure})
+}
+
+// Permission is a saved owner choice, not a promise that the project already
+// supplies the evidence and execution support for every repair family.
+func repairAvailability(key string, managed bool) string {
+	var readiness string
+	switch key {
+	case "index":
+		readiness = "Automatically checks eligible one- or two-column integer lookups. A repair still needs measured evidence."
+	case "analyze":
+		readiness = "Automatically checks eligible one-column integer lookups for stale statistics."
+	case "vacuum":
+		readiness = "Automatically checks eligible lookups for plain table cleanup. Cleanup-setting changes are not connected yet."
+	case "statistics":
+		return "General-project support is still being completed. Your permission is saved."
+	case "memory":
+		return "Not available for general projects yet. Needs an enrolled function, measured disk spill and an enforced limit on simultaneous calls."
+	case "cron":
+		return "Not available for general projects yet. Needs an enrolled job, an approved schedule window and measured job history."
+	default:
+		return "This repair is not available for this project."
+	}
+	if !managed {
+		return "Reconnect with your database password to enable managed repairs. Your permission is saved."
+	}
+	return readiness
 }
 
 func queryEnrollment(project supabaseproject.Project) string {
@@ -284,6 +314,9 @@ func populateActivity(view *ProjectView, activity hostedquery.ProjectActivity, i
 				item.RepairStatus = "Action recorded"
 			case "removed":
 				item.RepairStatus = "Statistics object removed"
+				if repair.Kind == "index" {
+					item.RepairStatus = "Pooltune-created index removed"
+				}
 			case "restored":
 				item.RepairStatus = "Original setting restored"
 			case "interrupted":
@@ -313,6 +346,9 @@ func populateActivity(view *ProjectView, activity hostedquery.ProjectActivity, i
 		}
 		if job.PlanNode != "" && job.PlanSource == "owned_sample" {
 			item.Plan += " · One test input"
+		}
+		if job.PlanNode != "" && job.PlanSource == "managed_sample" {
+			item.Plan += " · Sampled input experiment"
 		}
 		view.Runs = append(view.Runs, item)
 	}

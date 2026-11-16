@@ -10,6 +10,7 @@ import (
 
 	"pooltune/internal/hostedquery"
 	"pooltune/internal/labdb"
+	"pooltune/internal/supabaseproject"
 
 	"github.com/jackc/pgx/v5"
 )
@@ -165,6 +166,18 @@ func (a *App) runProject(ctx context.Context, row projectRecord) error {
 		}
 		cron = &fixture
 	}
+	var managed *hostedquery.ManagedProjectIndex
+	if credentials.RepairPassword != "" && a.investigateRepair != nil {
+		repairConfig, err := supabaseproject.DirectConfig(identity.Ref(), "postgres", credentials.RepairPassword, []byte(credentials.CA))
+		if err != nil {
+			return err
+		}
+		managed = &hostedquery.ManagedProjectIndex{
+			Config: repairConfig, Investigate: a.investigateRepair, Paused: credentials.RepairsPaused,
+			Capabilities: slices.Clone(credentials.Capabilities),
+			AdmitModel:   func(ctx context.Context) error { return a.projects.admitModel(ctx, row.ID, epoch) },
+		}
+	}
 	queue, err := a.projects.db.Acquire(setup)
 	if err != nil {
 		return err
@@ -177,7 +190,7 @@ func (a *App) runProject(ctx context.Context, row projectRecord) error {
 	go func() { finished <- monitor.Run(ctx, epoch, func(hostedquery.PollResult) error { return nil }) }()
 	go func() {
 		for ctx.Err() == nil {
-			result, err := hostedquery.DiagnoseHostedProjectWithRepair(ctx, queue.Conn(), config, identity, epoch, a.projectInvestigator(row.ID, epoch), logs, owned, repair, cron)
+			result, err := hostedquery.DiagnoseHostedProjectWithRepair(ctx, queue.Conn(), config, identity, epoch, a.projectInvestigator(row.ID, epoch), logs, owned, repair, cron, managed)
 			if err != nil && queue.Conn().IsClosed() {
 				finished <- err
 				return

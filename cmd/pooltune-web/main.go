@@ -82,11 +82,17 @@ func run(ctx context.Context) error {
 	}
 	defer pool.Close()
 	var investigate hostedquery.EnrolledLookupInvestigator
+	var investigateRepair hostedquery.IndexInvestigator
 	if os.Getenv("ANTHROPIC_API_KEY") != "" || os.Getenv("POOLTUNE_ANTHROPIC_MODEL") != "" {
 		investigate, err = graphrunner.ProjectLookupInvestigator(stateDSN)
 		if err != nil {
 			return err
 		}
+		diagnose, err := graphrunner.DiagnosticProcess(stateDSN)
+		if err != nil {
+			return err
+		}
+		investigateRepair = graphrunner.AdaptDiagnostic(diagnose, nil)
 	}
 	fixture, err := readOwnedIndexFixture(stateDSN)
 	if err != nil {
@@ -105,7 +111,7 @@ func run(ctx context.Context) error {
 	}
 	app, err := hostedapp.New(setup, pool, hostedapp.Config{Origin: origin, InviteCode: os.Getenv("POOLTUNE_SIGNUP_CODE"),
 		Key: key, Sampling: hostedquery.SamplingPolicy{Interval: *interval, Window: *window}, QueueInterval: *queue,
-		Investigate: investigate, OwnedIndex: fixture, OwnedRepair: repair, OwnedCron: cron})
+		Investigate: investigate, InvestigateRepair: investigateRepair, OwnedIndex: fixture, OwnedRepair: repair, OwnedCron: cron})
 	if err != nil {
 		return fmt.Errorf("dashboard initialization failed: %s", safeStartupError(err))
 	}

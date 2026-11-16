@@ -34,27 +34,29 @@ type Config struct {
 	Sampling           hostedquery.SamplingPolicy
 	QueueInterval      time.Duration
 	Investigate        hostedquery.EnrolledLookupInvestigator
+	InvestigateRepair  hostedquery.IndexInvestigator
 	OwnedIndex         *hostedquery.OwnedProjectIndex
 	OwnedRepair        *hostedquery.OwnedProjectRepair
 	OwnedCron          *hostedquery.OwnedProjectCron
 }
 
 type App struct {
-	projects      projectStore
-	accounts      *auth.Store
-	vault         vault
-	policy        hostedquery.SamplingPolicy
-	queueInterval time.Duration
-	investigate   hostedquery.EnrolledLookupInvestigator
-	ownedIndex    *hostedquery.OwnedProjectIndex
-	ownedRepair   *hostedquery.OwnedProjectRepair
-	ownedCron     *hostedquery.OwnedProjectCron
-	origin        *url.URL
-	invite        [32]byte
-	cookie        string
-	templates     *template.Template
-	handler       http.Handler
-	authQuota     requestQuota
+	projects          projectStore
+	accounts          *auth.Store
+	vault             vault
+	policy            hostedquery.SamplingPolicy
+	queueInterval     time.Duration
+	investigate       hostedquery.EnrolledLookupInvestigator
+	investigateRepair hostedquery.IndexInvestigator
+	ownedIndex        *hostedquery.OwnedProjectIndex
+	ownedRepair       *hostedquery.OwnedProjectRepair
+	ownedCron         *hostedquery.OwnedProjectCron
+	origin            *url.URL
+	invite            [32]byte
+	cookie            string
+	templates         *template.Template
+	handler           http.Handler
+	authQuota         requestQuota
 }
 
 type requestQuota struct {
@@ -120,7 +122,8 @@ func New(ctx context.Context, db *pgxpool.Pool, cfg Config) (*App, error) {
 	a := &App{
 		projects: projectStore{db}, accounts: accounts, vault: vault, policy: cfg.Sampling,
 		queueInterval: cfg.QueueInterval, investigate: cfg.Investigate,
-		ownedIndex: cfg.OwnedIndex, ownedRepair: cfg.OwnedRepair, ownedCron: cfg.OwnedCron,
+		investigateRepair: cfg.InvestigateRepair,
+		ownedIndex:        cfg.OwnedIndex, ownedRepair: cfg.OwnedRepair, ownedCron: cfg.OwnedCron,
 		origin: origin, invite: sha256.Sum256([]byte(cfg.InviteCode)), templates: templates, cookie: "__Host-pooltune",
 	}
 	if origin.Scheme == "http" {

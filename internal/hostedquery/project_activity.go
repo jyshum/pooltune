@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 	"unicode"
@@ -276,6 +277,7 @@ func readProjectJobs(ctx context.Context, tx pgx.Tx, projectID string, cutoff ti
 				WHEN result#>>'{lookup_plan,node}' IS NOT NULL THEN 'measured_lookup'
 				WHEN result#>>'{estimated_evidence,estimated,node}' IS NOT NULL THEN 'estimate'
 				WHEN result#>>'{repair,measurement_scope}' = 'owned_single_input' THEN 'owned_sample'
+                WHEN result#>>'{repair,measurement_scope}' = 'managed_sampled_input' THEN 'managed_sample'
 				ELSE ''
 			END,
 			CASE WHEN jsonb_typeof(result->'elapsed_ms')='number' THEN (result->>'elapsed_ms')::double precision END,
@@ -289,7 +291,8 @@ func readProjectJobs(ctx context.Context, tx pgx.Tx, projectID string, cutoff ti
 			WHEN finished_at IS NOT NULL THEN jsonb_strip_nulls(jsonb_build_object(
 				'index', COALESCE(result->'index_recovery',result->'repair'),
 				'analyze', result->'analyze', 'statistics', result->'statistics',
-				'vacuum', result->'vacuum', 'memory', result->'memory', 'cron', result->'cron'
+				'vacuum', result->'vacuum', 'memory', result->'memory', 'cron', result->'cron',
+                'managed', result->'managed_maintenance'
 			)) END
 		FROM pooltune_worker.investigations j
 		CROSS JOIN LATERAL (
@@ -331,6 +334,10 @@ func readProjectRepair(job *ProjectJob, encoded []byte) {
 		return
 	}
 	for kind, raw := range reports {
+		if kind == "managed" {
+			readManagedMaintenanceActivity(job, raw)
+			return
+		}
 		var report struct {
 			Reason      string          `json:"reason"`
 			Status      string          `json:"status"`
@@ -338,6 +345,7 @@ func readProjectRepair(job *ProjectJob, encoded []byte) {
 			Before      json.RawMessage `json:"before"`
 			After       json.RawMessage `json:"after"`
 			IndexOK     bool            `json:"index_valid"`
+			Reverted    bool            `json:"reverted"`
 			Analyze     float64         `json:"analyze_wall_ms"`
 			Vacuum      float64         `json:"vacuum_wall_ms"`
 			Memory      float64         `json:"memory_wall_ms"`
@@ -417,17 +425,38 @@ func readProjectRepair(job *ProjectJob, encoded []byte) {
 				}
 				break
 			}
-			if !(kind == "index" && report.IndexOK || kind == "analyze" && report.Analyze > 0 ||
+			if !(kind == "index" && (report.IndexOK || report.Reverted) || kind == "analyze" && report.Analyze > 0 ||
 				kind == "vacuum" && report.Vacuum > 0 || kind == "memory" && report.Memory > 0) {
 				return
 			}
 			if kind == "memory" && report.Restored {
 				summary.Action = "restored"
 			}
+			if kind == "index" && report.Reverted {
+				summary.Action = "removed"
+			}
 			var before, after projectRepairSample
 			if json.Unmarshal(report.Before, &before) == nil && json.Unmarshal(report.After, &after) == nil {
 				summary.Metrics = before.compare(after, "")
-				if kind == "index" && report.Measurement == "owned_single_input" {
+				if report.Measurement == "managed_sampled_input" {
+					// Normal-traffic window means need positive samples, not identical request counts.
+					summary.Metrics = slices.DeleteFunc(summary.Metrics, func(metric ProjectRepairMetric) bool {
+						return metric.Label == "Protected read mean latency" || metric.Label == "Protected write mean latency"
+					})
+					for _, pair := range []struct {
+						label    string
+						b, a     *float64
+						measured bool
+					}{
+						{"Protected normal read mean latency", before.HealthyMS, after.HealthyMS, before.HealthyReads > 0 && after.HealthyReads > 0},
+						{"Protected normal write mean latency", before.WriteMS, after.WriteMS, before.Writes > 0 && after.Writes > 0},
+					} {
+						if pair.measured && pair.b != nil && pair.a != nil && nonnegativeFinite(*pair.b) && nonnegativeFinite(*pair.a) {
+							summary.Metrics = append(summary.Metrics, ProjectRepairMetric{Label: pair.label, Unit: "ms", Before: *pair.b, After: *pair.a})
+						}
+					}
+				}
+				if kind == "index" && (report.Measurement == "owned_single_input" || report.Measurement == "managed_sampled_input") {
 					for i := range summary.Metrics {
 						switch summary.Metrics[i].Label {
 						case "Query mean latency":
@@ -524,4 +553,50 @@ func activityText(value string) string {
 		return r
 	}, value)
 	return strings.Join(strings.Fields(plain), " ")
+}
+
+// A sampled experiment and ordinary traffic windows have different meanings.
+// Preserve that distinction and never infer success from a proposal alone.
+func readManagedMaintenanceActivity(job *ProjectJob, raw []byte) {
+	var report ManagedMaintenanceReport
+	if json.Unmarshal(raw, &report) != nil || (report.Operation != ProjectAnalyze && report.Operation != ProjectVacuum) || (report.Measurement != "managed_sampled_input_and_normal_traffic_windows" && report.Measurement != "interrupted_maintenance_catalog_observation") || job.Outcome == "no_change" || job.Outcome == "propose" {
+		return
+	}
+	if job.Outcome == "repair_interrupted" && report.Measurement == "interrupted_maintenance_catalog_observation" {
+		job.Repair = &ProjectRepair{Kind: string(report.Operation), Action: "interrupted", RecoveryStatus: report.RecoveryStatus}
+		return
+	}
+	if !report.Action.Confirmed {
+		if report.Action.WriteAttempted {
+			job.Repair = &ProjectRepair{Kind: string(report.Operation), Action: "interrupted"}
+		}
+		return
+	}
+	summary := &ProjectRepair{Kind: string(report.Operation), Action: "recorded"}
+	job.PlanSource = "managed_sample"
+	job.PlanNode = report.Before.Sample.Plan
+	if report.After != nil {
+		job.PlanNode += " → " + report.After.Sample.Plan
+		if report.Before.Sample.Reads > 0 && report.After.Sample.Reads > 0 {
+			for _, metric := range []ProjectRepairMetric{
+				{Label: "Measured latency for one input", Unit: "ms", Before: report.Before.Sample.ReadMS, After: report.After.Sample.ReadMS},
+				{Label: "Block accesses for one input", Before: report.Before.Sample.Blocks, After: report.After.Sample.Blocks},
+			} {
+				if nonnegativeFinite(metric.Before) && nonnegativeFinite(metric.After) {
+					summary.Metrics = append(summary.Metrics, metric)
+				}
+			}
+		}
+	}
+	if b, a := report.BeforeTraffic, report.AfterTraffic; b != nil && a != nil && b.ReadCalls > 0 && b.WriteCalls > 0 && a.ReadCalls > 0 && a.WriteCalls > 0 {
+		for _, metric := range []ProjectRepairMetric{
+			{Label: "Protected normal read mean latency", Unit: "ms", Before: b.ReadMeanMS, After: a.ReadMeanMS},
+			{Label: "Protected normal write mean latency", Unit: "ms", Before: b.WriteMeanMS, After: a.WriteMeanMS},
+		} {
+			if nonnegativeFinite(metric.Before) && nonnegativeFinite(metric.After) {
+				summary.Metrics = append(summary.Metrics, metric)
+			}
+		}
+	}
+	job.Repair = summary
 }

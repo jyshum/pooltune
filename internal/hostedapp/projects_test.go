@@ -13,11 +13,11 @@ func TestProjectSecretIsBoundToOwnerAndInstallation(t *testing.T) {
 	}
 	project := projectRecord{ID: "0123456789abcdef", Ref: "abcdefghijklmnopqrst", Owner: 7}
 	secrets := projectSecrets{
-		Password: "an-example-monitor-password", CA: "a certificate", LogsToken: "a scoped token",
+		Password: "an-example-monitor-password", RepairPassword: "a-private-native-repair-password", CA: "a certificate", LogsToken: "a scoped token",
 		Automatic: true, Capabilities: []string{"index", "cron"},
 	}
 	sealed, err := vault.seal(project, secrets)
-	if err != nil || bytes.Contains(sealed, []byte(secrets.Password)) {
+	if err != nil || bytes.Contains(sealed, []byte(secrets.Password)) || bytes.Contains(sealed, []byte(secrets.RepairPassword)) {
 		t.Fatalf("could not protect project credentials: %v", err)
 	}
 	opened, err := vault.open(project, sealed)

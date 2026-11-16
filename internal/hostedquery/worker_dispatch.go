@@ -20,11 +20,12 @@ var errClaimLost = errors.New("investigation claim expired or was replaced")
 
 type investigationClaim struct {
 	InvestigationJob
-	ParentID      int64
-	Attempt       int
-	Project       string
-	RecoveryOnly  bool
-	queueEvidence []byte
+	ParentID             int64
+	Attempt              int
+	Project              string
+	RecoveryOnly         bool
+	MaintenanceOperation string
+	queueEvidence        []byte
 }
 
 // ownedIndexRecoveryScope comes from the active, explicitly enabled fixture.
@@ -32,35 +33,38 @@ type investigationClaim struct {
 type ownedIndexRecoveryScope struct {
 	Database, Role uint32
 	Query          int64
+	Managed        bool
 }
 
 type DispatchResult struct {
-	TrafficPlanStatus string                   `json:"traffic_plan_status,omitempty"`
-	TrafficPlan       *TrafficPlan             `json:"traffic_plan,omitempty"`
-	LookupPlan        *LookupMeasuredPlan      `json:"lookup_plan,omitempty"`
-	LookupDiagnosis   *LookupDiagnosis         `json:"lookup_diagnosis,omitempty"`
-	JobID             int64                    `json:"job_id"`
-	Attempt           int                      `json:"attempt"`
-	Outcome           string                   `json:"outcome"`
-	ThreadID          string                   `json:"thread_id,omitempty"`
-	Estimate          *EstimatedLookupEvidence `json:"estimated_evidence,omitempty"`
-	ObservedLatency   *ObservedLookupLatency   `json:"observed_latency,omitempty"`
-	DiagnosticReason  string                   `json:"diagnostic_reason,omitempty"`
-	Evidence          *IndexEvidence           `json:"evidence,omitempty"`
-	Proposal          *IndexProposal           `json:"proposal,omitempty"`
-	ElapsedMS         float64                  `json:"elapsed_ms"`
-	TargetPlanMS      float64                  `json:"target_plan_ms,omitempty"`
-	RecoveredIndex    string                   `json:"recovered_index,omitempty"`
-	Cron              *CronReport              `json:"cron,omitempty"`
-	Memory            *MemoryReport            `json:"memory,omitempty"`
-	Vacuum            *VacuumReport            `json:"vacuum,omitempty"`
-	Statistics        *StatisticsReport        `json:"statistics,omitempty"`
-	Analyze           *AnalyzeReport           `json:"analyze,omitempty"`
-	Repair            *IndexTrialReport        `json:"repair,omitempty"`
-	IndexRecovery     *ownedIndexRecovery      `json:"index_recovery,omitempty"`
-	ownedOperation    string
-	continuationAt    *time.Time
-	GraphMS           float64 `json:"graph_ms,omitempty"`
+	ManagedMaintenance    *ManagedMaintenanceReport `json:"managed_maintenance,omitempty"`
+	TrafficPlanStatus     string                    `json:"traffic_plan_status,omitempty"`
+	TrafficPlan           *TrafficPlan              `json:"traffic_plan,omitempty"`
+	LookupPlan            *LookupMeasuredPlan       `json:"lookup_plan,omitempty"`
+	LookupDiagnosis       *LookupDiagnosis          `json:"lookup_diagnosis,omitempty"`
+	JobID                 int64                     `json:"job_id"`
+	Attempt               int                       `json:"attempt"`
+	Outcome               string                    `json:"outcome"`
+	ThreadID              string                    `json:"thread_id,omitempty"`
+	Estimate              *EstimatedLookupEvidence  `json:"estimated_evidence,omitempty"`
+	ObservedLatency       *ObservedLookupLatency    `json:"observed_latency,omitempty"`
+	DiagnosticReason      string                    `json:"diagnostic_reason,omitempty"`
+	Evidence              *IndexEvidence            `json:"evidence,omitempty"`
+	Proposal              *IndexProposal            `json:"proposal,omitempty"`
+	ElapsedMS             float64                   `json:"elapsed_ms"`
+	TargetPlanMS          float64                   `json:"target_plan_ms,omitempty"`
+	RecoveredIndex        string                    `json:"recovered_index,omitempty"`
+	Cron                  *CronReport               `json:"cron,omitempty"`
+	Memory                *MemoryReport             `json:"memory,omitempty"`
+	Vacuum                *VacuumReport             `json:"vacuum,omitempty"`
+	Statistics            *StatisticsReport         `json:"statistics,omitempty"`
+	Analyze               *AnalyzeReport            `json:"analyze,omitempty"`
+	Repair                *IndexTrialReport         `json:"repair,omitempty"`
+	IndexRecovery         *ownedIndexRecovery       `json:"index_recovery,omitempty"`
+	ownedOperation        string
+	managedRecoveryIntent json.RawMessage
+	continuationAt        *time.Time
+	GraphMS               float64 `json:"graph_ms,omitempty"`
 }
 
 // InvestigationEvidence supplies fresh evidence for this exact enrolled job.
@@ -76,7 +80,7 @@ func claimProjectInvestigation(ctx context.Context, state *pgx.Conn, project str
 		return nil, nil
 	}
 	var scope ownedIndexRecoveryScope
-	if epoch != nil && len(recovery) == 1 && recovery[0].Database != 0 && recovery[0].Role != 0 {
+	if epoch != nil && len(recovery) == 1 && ((recovery[0].Database != 0 && recovery[0].Role != 0) || recovery[0].Managed) {
 		scope = recovery[0]
 	}
 	claim := investigationClaim{Project: project}
@@ -88,23 +92,27 @@ func claimProjectInvestigation(ctx context.Context, state *pgx.Conn, project str
 		// A new statement after the project lock sees a competing consumer's committed claim.
 		err := tx.QueryRow(ctx, `
 			WITH open_jobs AS MATERIALIZED (
-				SELECT j.id, j.attempts, j.not_before, j.lease_until, a.job_id IS NOT NULL AS has_pending_index,
-				       a.job_id IS NOT NULL AND $4::oid<>0 AND $5::oid<>0
+				SELECT j.id, j.attempts, j.not_before, j.lease_until, (a.job_id IS NOT NULL OR ($8::boolean AND b.job_id IS NOT NULL AND b.operation IN ('analyze','vacuum') AND b.intent->>'RunID' LIKE 'managed-maintenance-%')) AS has_pending_index,
+				       (a.job_id IS NOT NULL OR b.job_id IS NOT NULL) AS has_pending_action,
+				       CASE WHEN $8::boolean AND b.operation IN ('analyze','vacuum') AND b.intent->>'RunID' LIKE 'managed-maintenance-%' THEN b.operation ELSE '' END AS maintenance_operation,
+				       a.job_id IS NOT NULL AND ($8::boolean OR ($4::oid<>0 AND $5::oid<>0
 				         AND j.database_oid=$4::oid AND j.role_oid=$5::oid
-				         AND ($6::bigint=0 OR j.query_id=$6) AS recovery_allowed
+				         AND ($6::bigint=0 OR j.query_id=$6))) OR ($8::boolean AND b.job_id IS NOT NULL AND b.operation IN ('analyze','vacuum') AND b.intent->>'RunID' LIKE 'managed-maintenance-%') AS recovery_allowed
 				FROM pooltune_worker.investigations j
 				LEFT JOIN pooltune_worker.owned_index_actions a ON a.job_id=j.id AND a.project_id=j.project_id AND a.outcome='pending'
+				LEFT JOIN pooltune_worker.owned_project_actions b ON b.job_id=j.id AND b.project_id=j.project_id AND b.outcome='pending'
 				WHERE j.project_id=$1 AND j.finished_at IS NULL
 			), exhausted AS (
 				UPDATE pooltune_worker.investigations j
 				SET finished_at=statement_timestamp(), lease_until=NULL,
 				    result=jsonb_build_object('outcome','retry_exhausted')
 				FROM open_jobs o
-				WHERE j.id=o.id AND NOT o.has_pending_index AND o.attempts >= $2
+				WHERE j.id=o.id AND NOT o.has_pending_action AND o.attempts >= $2
 				  AND o.lease_until <= statement_timestamp()
 			), available AS (
-				SELECT id, has_pending_index FROM open_jobs
+				SELECT id, has_pending_index, maintenance_operation FROM open_jobs
 				WHERE ((NOT has_pending_index AND attempts < $2) OR (recovery_allowed AND attempts < $7))
+				  AND (NOT $8::boolean OR has_pending_index OR NOT EXISTS (SELECT FROM open_jobs WHERE has_pending_action))
 				  AND not_before <= statement_timestamp()
 				  AND (lease_until IS NULL OR lease_until <= statement_timestamp())
 				  AND NOT EXISTS (
@@ -117,10 +125,10 @@ func claimProjectInvestigation(ctx context.Context, state *pgx.Conn, project str
 			    claimed_at=COALESCE(jobs.claimed_at, CASE WHEN jobs.attempts=0 THEN clock_timestamp() END)
 			FROM available WHERE jobs.id=available.id
 			RETURNING jobs.id,jobs.database_oid,jobs.role_oid,jobs.query_id,jobs.attempts,
-			          jobs.evidence->'counter_generation',jobs.evidence,COALESCE(jobs.parent_id,0),available.has_pending_index
-		`, project, maxInvestigationAttempts, investigationLease.Seconds(), scope.Database, scope.Role, scope.Query, maxOwnedIndexRecoveryAttempts).
+			          jobs.evidence->'counter_generation',jobs.evidence,COALESCE(jobs.parent_id,0),available.has_pending_index,available.maintenance_operation
+		`, project, maxInvestigationAttempts, investigationLease.Seconds(), scope.Database, scope.Role, scope.Query, maxOwnedIndexRecoveryAttempts, scope.Managed).
 			Scan(&claim.ID, &claim.Database, &claim.Role, &claim.Query, &claim.Attempt, &claim.Generation, &claim.queueEvidence,
-				&claim.ParentID, &claim.RecoveryOnly)
+				&claim.ParentID, &claim.RecoveryOnly, &claim.MaintenanceOperation)
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil
 		}
@@ -133,7 +141,8 @@ func claimProjectInvestigation(ctx context.Context, state *pgx.Conn, project str
 }
 
 func finishInvestigation(ctx context.Context, state *pgx.Conn, claim investigationClaim, result DispatchResult, expectedEpoch ...int64) error {
-	if claim.RecoveryOnly && result.IndexRecovery == nil {
+	maintenanceRecovery := claim.RecoveryOnly && claim.MaintenanceOperation != "" && result.ownedOperation == claim.MaintenanceOperation && result.ManagedMaintenance != nil && result.Outcome == "repair_interrupted" && json.Valid(result.managedRecoveryIntent)
+	if claim.RecoveryOnly && result.IndexRecovery == nil && !maintenanceRecovery {
 		return errClaimLost
 	}
 	var epoch *int64
@@ -141,7 +150,7 @@ func finishInvestigation(ctx context.Context, state *pgx.Conn, claim investigati
 		epoch = &expectedEpoch[0]
 	}
 	if result.ownedOperation != "" && (epoch == nil ||
-		result.Outcome != "improved_tested_inputs" && result.Outcome != "inconclusive" && result.Outcome != "regressed") {
+		(!maintenanceRecovery && result.Outcome != "improved_tested_inputs" && result.Outcome != "inconclusive" && result.Outcome != "regressed")) {
 		return errClaimLost
 	}
 	terminalOwnedIndex := ""
@@ -157,9 +166,14 @@ func finishInvestigation(ctx context.Context, state *pgx.Conn, claim investigati
 		terminalOwnedIndex = recovery.Status
 		intent := string(recovery.intent)
 		recordedIntent = &intent
-	} else if result.Repair != nil && result.Repair.Measurement == "owned_single_input" &&
-		(result.Outcome == "improved_tested_inputs" || result.Outcome == "inconclusive") {
+	} else if result.Repair != nil && (result.Repair.Measurement == "owned_single_input" || result.Repair.Measurement == "managed_sampled_input") &&
+		(result.Outcome == "improved_tested_inputs" || result.Outcome == "inconclusive" || result.Outcome == "regressed") {
 		terminalOwnedIndex = result.Outcome
+	}
+	var maintenanceIntent *string
+	if maintenanceRecovery {
+		raw := string(result.managedRecoveryIntent)
+		maintenanceIntent = &raw
 	}
 	payload, err := json.Marshal(result)
 	if err != nil {
@@ -180,6 +194,7 @@ func finishInvestigation(ctx context.Context, state *pgx.Conn, claim investigati
 			SELECT a.job_id,a.project_id
 			FROM pooltune_worker.owned_project_actions a JOIN locked_project USING(project_id)
 			WHERE $8<>'' AND a.job_id=$1 AND a.operation=$8 AND a.outcome='pending'
+			  AND ($9::jsonb IS NULL OR a.intent=$9::jsonb)
 			FOR UPDATE OF a
 		), published AS (
 			UPDATE pooltune_worker.investigations SET finished_at=clock_timestamp(), lease_until=NULL, result=$3::jsonb
@@ -198,7 +213,7 @@ func finishInvestigation(ctx context.Context, state *pgx.Conn, claim investigati
 			WHERE a.job_id=b.job_id AND a.project_id=b.project_id
 		)
 		SELECT EXISTS (SELECT FROM published)
-	`, claim.ID, claim.Attempt, string(payload), claim.Project, epoch, terminalOwnedIndex, recordedIntent, result.ownedOperation).Scan(&published)
+	`, claim.ID, claim.Attempt, string(payload), claim.Project, epoch, terminalOwnedIndex, recordedIntent, result.ownedOperation, maintenanceIntent).Scan(&published)
 	if err == nil && !published {
 		return errClaimLost
 	}

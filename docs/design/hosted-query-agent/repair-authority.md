@@ -1,6 +1,6 @@
 # Repair authority for a connected Supabase project
 
-**Status** The owner-side Go worker can link to the hosted project, read the latest repair choices and report native database permissions. Automatic action delivery still requires measured evidence from an ordinary connected query and the repair queue. The six bounded Railway repair proofs remain the hosted action baseline.
+**Status** Managed Go execution on Railway is approved and being qualified. Setup now accepts and encrypts the existing database password. The earlier owner-hosted worker remains an advanced option. Six prepared repair proofs are retained; they do not establish that all six repairs work on an ordinary new connection.
 
 ## What the current flow does
 
@@ -67,3 +67,16 @@ Omit `-once` to check for permission changes every 15 seconds. The worker checks
 3. Wire compound index and the table-maintenance operations through the existing action journal and verification. Preserve matching protected traffic and test restart after an action at least once.
 4. Wire explicitly enrolled memory and Cron targets, retain the existing budgets and scheduling limits, and re-run all six checkboxes from the usual Railway form against eligible Rookery workloads.
 5. Mark the connection and repair coverage cards green only after the normal route produces saved evidence for the actual grants and refusals.
+
+
+## Approved managed execution, 2026-11-15
+
+Jared approved: “okay yes use Railway for the Go worker and store the credential securely. finish the automatic setup and repair flow, test on Rookery, update the map and push revamp. and give me those resume bullets with the verified numbers as well”. This supersedes the earlier requirement to keep repair credentials in the customer's environment. Go remains the database execution language. Ask for design conflicts and final-only review continue.
+
+Rookery's native postgres owner cannot grant its role to a new restricted login. A disposable transactional probe returned SQLSTATE42501 and rolled back. The implemented route therefore accepts the owner's existing database password once during setup. It does not claim to auto-issue a separate owner credential. The form explains the broader native owner authority; selected repairs remain Go-enforced application policy, not a reduction of that login's underlying PostgreSQL rights.
+
+The password is encrypted by the existing AES-GCM vault bound to account and installation. The worker uses verified TLS and a native PostgreSQL connection. The setup token is used only for installation and discarded. Disconnect invalidates the project epoch and removes the stored credential. It does not revoke the customer's underlying database password. Encryption-key rotation and a dedicated provider-issued owner credential remain separate work.
+
+An optional whole-millisecond latency goal defaults to1000ms and can be set from1 to1000ms. This does not expand the maximum750ms sampled experiment. Query shapes outside the bounded reader, request-dependent RLS and unsupported functions remain insufficient evidence. Measurements use an existing sampled key under the observed app role, not the original request's unknown bind values.
+
+The live acceptance test must use the ordinary setup with no POOLTUNE_OWNED fixture variables, no manually enrolled query IDs and no pre-authorized fixture executor. Disposable app data is allowed to generate representative traffic; PostgreSQL's native postgres user owns the table, matching an ordinary Supabase project. Record the provider and dashboard result, cleanup and any incomplete repair families explicitly.

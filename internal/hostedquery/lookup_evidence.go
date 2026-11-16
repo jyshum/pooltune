@@ -113,24 +113,30 @@ func DiagnoseHostedProjectLookup(ctx context.Context, state *pgx.Conn, target *p
 
 func DiagnoseHostedProjectWithRepair(ctx context.Context, state *pgx.Conn, target *pgx.ConnConfig, project supabaseproject.Project,
 	epoch int64, investigate EnrolledLookupInvestigator, logs *TrafficPlanReader, fixture *OwnedProjectIndex,
-	repair *OwnedProjectRepair, cron *OwnedProjectCron) (*DispatchResult, error) {
+	repair *OwnedProjectRepair, cron *OwnedProjectCron, managed ...*ManagedProjectIndex) (*DispatchResult, error) {
 	return diagnoseLookup(ctx, state, project, epoch, investigate, logs, fixture, repair, cron, func(ctx context.Context) (*pgx.Conn, func(), error) {
 		conn, err := pgx.ConnectConfig(ctx, target)
 		return conn, func() { labdb.Close(conn) }, err
-	})
+	}, managed...)
 }
 
 func diagnoseLookup(ctx context.Context, state *pgx.Conn, project supabaseproject.Project, epoch int64, investigate EnrolledLookupInvestigator,
 	logs *TrafficPlanReader, fixture *OwnedProjectIndex, repair *OwnedProjectRepair, cron *OwnedProjectCron,
-	targetSession func(context.Context) (*pgx.Conn, func(), error)) (*DispatchResult, error) {
+	targetSession func(context.Context) (*pgx.Conn, func(), error), managed ...*ManagedProjectIndex) (*DispatchResult, error) {
 	if epoch <= 0 || investigate == nil {
 		return nil, ErrProjectDisconnected
 	}
 	started := time.Now()
 	ctx, cancel := context.WithTimeout(ctx, investigationTimeout)
 	defer cancel()
+	var general *ManagedProjectIndex
+	if len(managed) == 1 && managed[0].matches(project) {
+		general = managed[0]
+	}
 	var scope []ownedIndexRecoveryScope
-	if fixture.Matches(project) {
+	if general != nil {
+		scope = append(scope, ownedIndexRecoveryScope{Managed: true})
+	} else if fixture.Matches(project) {
 		scope = append(scope, ownedIndexRecoveryScope{Database: fixture.Target.DatabaseOID, Role: fixture.OwnerRoleOID, Query: fixture.QueryID})
 	}
 	if err := cron.ensureClaim(ctx, state, project, epoch); err != nil {
@@ -145,6 +151,9 @@ func diagnoseLookup(ctx context.Context, state *pgx.Conn, project supabaseprojec
 	}
 	result := DispatchResult{JobID: claim.ID, Attempt: claim.Attempt, Outcome: "insufficient_evidence", DiagnosticReason: "lookup_grant_or_fresh_windows_unavailable"}
 	recovered, err := fixture.recover(ctx, state, project, *claim, &result)
+	if err == nil && !recovered && general != nil {
+		recovered, err = general.recover(ctx, state, project, *claim, &result)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -176,6 +185,12 @@ func diagnoseLookup(ctx context.Context, state *pgx.Conn, project supabaseprojec
 			err = bound.run(ctx, state, target, project, epoch, *claim, windows, &result)
 		} else if repair.matchesClaim(project, *claim) && repair.Cleanup == nil {
 			err = repair.run(ctx, state, target, project, epoch, *claim, windows, &result)
+		} else if general != nil {
+			var handled bool
+			handled, err = general.run(ctx, state, target, project, epoch, *claim, windows, &result)
+			if err == nil && !handled {
+				err = diagnoseProjectClaim(ctx, state, target, project, epoch, *claim, windows, investigate, logs, &result)
+			}
 		} else {
 			err = diagnoseProjectClaim(ctx, state, target, project, epoch, *claim, windows, investigate, logs, &result)
 		}

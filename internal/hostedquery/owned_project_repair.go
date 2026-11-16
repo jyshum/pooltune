@@ -298,7 +298,8 @@ func recordOwnedProjectAction(ctx context.Context, state *pgx.Conn, project stri
 		SELECT j.id,j.project_id,$4,$5::jsonb FROM pooltune_worker.investigations j WHERE j.project_id=$1 AND j.id=$2 AND j.attempts=$3
 		AND j.finished_at IS NULL AND j.lease_until>clock_timestamp() AND NOT EXISTS (
 			SELECT FROM pooltune_worker.owned_project_actions a WHERE a.project_id=j.project_id AND a.outcome='pending'
-		) ON CONFLICT (job_id) DO NOTHING`, locked, claim.ID, claim.Attempt, operation, string(payload))
+		) AND NOT EXISTS (SELECT FROM pooltune_worker.owned_index_actions a WHERE a.project_id=j.project_id AND a.outcome='pending')
+		ON CONFLICT (job_id) DO NOTHING`, locked, claim.ID, claim.Attempt, operation, string(payload))
 		if err == nil && tag.RowsAffected() != 1 {
 			return errClaimLost
 		}

@@ -234,7 +234,7 @@
     },
     {
       "id": "tools",
-      "label": "Database tools: six repairs verified",
+      "label": "Database tools: six prepared repairs tested",
       "type": "service",
       "purpose": "Railway verified all six repair families from the normal Rookery setup with zero manual query IDs. The same flow measured both settings, and the compound-index action recovered across a restart.",
       "decisionIds": [
@@ -412,7 +412,7 @@
       "id": "inspection",
       "label": "Inspect existing evidence",
       "type": "service",
-      "purpose": "Railway used automatically discovered workload evidence for six bounded repairs, including actual job history and matched foreground traffic for the scheduler.",
+      "purpose": "The managed worker discovers eligible integer lookups from app traffic and measures an existing key under the application role. The same key is reused after a repair.",
       "decisionIds": [
         "d-reuse",
         "d-identity"
@@ -500,12 +500,12 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Railway used automatically discovered workload evidence for six bounded repairs, including actual job history and matched foreground traffic for the scheduler.",
+      "changeSummary": "The managed worker discovers eligible integer lookups from app traffic and measures an existing key under the application role. The same key is reused after a repair.",
       "stack": [
         "Go"
       ],
       "parent": "tools",
-      "after": "Railway used automatically discovered workload evidence for six bounded repairs, including actual job history and matched foreground traffic for the scheduler.",
+      "after": "The managed worker discovers eligible integer lookups from app traffic and measures an existing key under the application role. The same key is reused after a repair.",
       "expandWhy": "Which discovered statements can Pooltune match to their app role and database objects?"
     },
     {
@@ -1055,7 +1055,7 @@
       "id": "repair-coverage",
       "label": "Qualify broader repairs",
       "type": "service",
-      "purpose": "All six prepared Rookery repairs have verified results. The owner-side Go worker can report exact database permissions and respond to revocation.",
+      "purpose": "New managed index, statistics-refresh and plain-cleanup routes use discovered queries, normal protected traffic and native Go tools. Earlier six-family results used prepared workers.",
       "decisionIds": [],
       "sources": [
         {
@@ -1155,8 +1155,8 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "All six prepared Rookery repairs have verified results. The owner-side Go worker can report exact database permissions and respond to revocation.",
-      "after": "All six prepared Rookery repairs have verified results. The owner-side Go worker can report exact database permissions and respond to revocation.",
+      "changeSummary": "New managed index, statistics-refresh and plain-cleanup routes use discovered queries, normal protected traffic and native Go tools. Earlier six-family results used prepared workers.",
+      "after": "New managed index, statistics-refresh and plain-cleanup routes use discovered queries, normal protected traffic and native Go tools. Earlier six-family results used prepared workers.",
       "parent": "tools",
       "stack": [
         "Go"
@@ -1166,7 +1166,7 @@
       "id": "connect-project",
       "label": "Connect and enroll a project",
       "type": "service",
-      "purpose": "A connected Rookery project received permission reports on Railway. The owner-controlled Go worker passed local PostgreSQL grant and revoke tests.",
+      "purpose": "Setup accepts the database credential once, encrypts it for Railway, and resumes safely after a failed password check. No separate customer worker or worker key is needed.",
       "decisionIds": [],
       "sources": [
         {
@@ -1231,8 +1231,8 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "A connected Rookery project received permission reports on Railway. The owner-controlled Go worker passed local PostgreSQL grant and revoke tests.",
-      "after": "A connected Rookery project received permission reports on Railway. The owner-controlled Go worker passed local PostgreSQL grant and revoke tests.",
+      "changeSummary": "Setup accepts the database credential once, encrypts it for Railway, and resumes safely after a failed password check. No separate customer worker or worker key is needed.",
+      "after": "Setup accepts the database credential once, encrypts it for Railway, and resumes safely after a failed password check. No separate customer worker or worker key is needed.",
       "parent": "backend",
       "stack": [
         "Go",
@@ -1243,7 +1243,7 @@
       "id": "credential-lifecycle",
       "label": "Credentials and disconnect",
       "type": "service",
-      "purpose": "The hosted preview encrypts each project’s monitor credentials. Rookery passed disconnect and reconnect. The operator path also verified revocation and manual password rotation.",
+      "purpose": "Account-and-project-bound encryption now includes the repair credential. Setup checks the native database identity. Disconnect removes the stored credential.",
       "decisionIds": [],
       "sources": [
         {
@@ -1263,8 +1263,8 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "The hosted preview encrypts each project’s monitor credentials. Rookery passed disconnect and reconnect. The operator path also verified revocation and manual password rotation.",
-      "after": "The hosted preview encrypts each project’s monitor credentials. Rookery passed disconnect and reconnect. The operator path also verified revocation and manual password rotation.",
+      "changeSummary": "Account-and-project-bound encryption now includes the repair credential. Setup checks the native database identity. Disconnect removes the stored credential.",
+      "after": "Account-and-project-bound encryption now includes the repair credential. Setup checks the native database identity. Disconnect removes the stored credential.",
       "parent": "backend",
       "stack": [
         "Go"
@@ -1292,7 +1292,7 @@
       "id": "activity",
       "label": "Project activity and controls",
       "type": "service",
-      "purpose": "The dashboard shows verified results for six Rookery repair families, both settings outcomes and the interrupted index action. The scheduler report displays measured foreground and protected traffic.",
+      "purpose": "The dashboard distinguishes sampled-input measurements from protected normal-traffic measurements and hides worker-key setup for managed connections.",
       "decisionIds": [],
       "sources": [
         {
@@ -1342,8 +1342,8 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "The dashboard shows verified results for six Rookery repair families, both settings outcomes and the interrupted index action. The scheduler report displays measured foreground and protected traffic.",
-      "after": "The dashboard shows verified results for six Rookery repair families, both settings outcomes and the interrupted index action. The scheduler report displays measured foreground and protected traffic.",
+      "changeSummary": "The dashboard distinguishes sampled-input measurements from protected normal-traffic measurements and hides worker-key setup for managed connections.",
+      "after": "The dashboard distinguishes sampled-input measurements from protected normal-traffic measurements and hides worker-key setup for managed connections.",
       "parent": "dashboard"
     },
     {
@@ -1401,7 +1401,7 @@
       "label": "Hosted investigator: index case",
       "type": "service",
       "parent": "investigator",
-      "purpose": "Connected and verified for the owned index fixture: Railway queue → diagnostic Sonnet graph → Go index repair → measured improvement. Queued job survived an actual service restart.",
+      "purpose": "Connected and verified for the owned index fixture: Railway queue \u2192 diagnostic Sonnet graph \u2192 Go index repair \u2192 measured improvement. Queued job survived an actual service restart.",
       "decisionIds": [],
       "sources": [
         {
@@ -1416,8 +1416,8 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Connected and verified for the owned index fixture: Railway queue → diagnostic Sonnet graph → Go index repair → measured improvement. Queued job survived an actual service restart.",
-      "after": "Connected and verified for the owned index fixture: Railway queue → diagnostic Sonnet graph → Go index repair → measured improvement. Queued job survived an actual service restart.",
+      "changeSummary": "Connected and verified for the owned index fixture: Railway queue \u2192 diagnostic Sonnet graph \u2192 Go index repair \u2192 measured improvement. Queued job survived an actual service restart.",
+      "after": "Connected and verified for the owned index fixture: Railway queue \u2192 diagnostic Sonnet graph \u2192 Go index repair \u2192 measured improvement. Queued job survived an actual service restart.",
       "stack": [
         "Go",
         "TypeScript",
@@ -1729,7 +1729,7 @@
       "label": "Cleanup settings: remaining",
       "type": "service",
       "parent": "cleanup",
-      "purpose": "Railway lowered the exact table’s trigger. PostgreSQL ran one automatic cleanup and no manual cleanup. Dead tuples dropped from 17,459 to 1,500 and the tested query from 42.93 to 23.68 ms.",
+      "purpose": "Railway lowered the exact table\u2019s trigger. PostgreSQL ran one automatic cleanup and no manual cleanup. Dead tuples dropped from 17,459 to 1,500 and the tested query from 42.93 to 23.68 ms.",
       "decisionIds": [],
       "sources": [
         {
@@ -1754,8 +1754,8 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Railway lowered the exact table’s trigger. PostgreSQL ran one automatic cleanup and no manual cleanup. Dead tuples dropped from 17,459 to 1,500 and the tested query from 42.93 to 23.68 ms.",
-      "after": "Railway lowered the exact table’s trigger. PostgreSQL ran one automatic cleanup and no manual cleanup. Dead tuples dropped from 17,459 to 1,500 and the tested query from 42.93 to 23.68 ms.",
+      "changeSummary": "Railway lowered the exact table\u2019s trigger. PostgreSQL ran one automatic cleanup and no manual cleanup. Dead tuples dropped from 17,459 to 1,500 and the tested query from 42.93 to 23.68 ms.",
+      "after": "Railway lowered the exact table\u2019s trigger. PostgreSQL ran one automatic cleanup and no manual cleanup. Dead tuples dropped from 17,459 to 1,500 and the tested query from 42.93 to 23.68 ms.",
       "stack": [
         "Go"
       ]
@@ -2337,7 +2337,7 @@
       "id": "project-activity-history",
       "label": "Project activity history",
       "type": "service",
-      "purpose": "Project-scoped polls, query windows and diagnosis timings are visible in the owning account’s Railway dashboard and history download. Reconnect preserved the diagnosis.",
+      "purpose": "Project-scoped polls, query windows and diagnosis timings are visible in the owning account\u2019s Railway dashboard and history download. Reconnect preserved the diagnosis.",
       "decisionIds": [],
       "sources": [
         {
@@ -2352,8 +2352,8 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Project-scoped polls, query windows and diagnosis timings are visible in the owning account’s Railway dashboard and history download. Reconnect preserved the diagnosis.",
-      "after": "Project-scoped polls, query windows and diagnosis timings are visible in the owning account’s Railway dashboard and history download. Reconnect preserved the diagnosis.",
+      "changeSummary": "Project-scoped polls, query windows and diagnosis timings are visible in the owning account\u2019s Railway dashboard and history download. Reconnect preserved the diagnosis.",
+      "after": "Project-scoped polls, query windows and diagnosis timings are visible in the owning account\u2019s Railway dashboard and history download. Reconnect preserved the diagnosis.",
       "parent": "state",
       "stack": [
         "Go",

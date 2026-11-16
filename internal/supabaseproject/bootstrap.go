@@ -222,3 +222,28 @@ func passwordVerifier(password string) (string, error) {
 	b64 := base64.StdEncoding.EncodeToString
 	return "SCRAM-SHA-256$4096:" + b64(salt) + "$" + b64(client[:]) + ":" + b64(mac("Server Key")), nil
 }
+
+// ConfigureDiscoveryObjective applies the owner's mean-latency goal to the
+// normal automatic workload reader, including an existing installation.
+func (p Project) ConfigureDiscoveryObjective(ctx context.Context, token string, objectiveMS int) error {
+	if p.ref == "" || p.key == "" || token == "" || len(token) > 512 || strings.ContainsAny(token, " \t\r\n") {
+		return ErrSetupPermission
+	}
+	script, err := p.automaticObjectiveSQL(objectiveMS)
+	if err != nil {
+		return err
+	}
+	return p.postSetup(ctx, setupHTTP, token, script)
+}
+
+func (p Project) automaticObjectiveSQL(objectiveMS int) (string, error) {
+	if objectiveMS < 1 || objectiveMS > 1000 {
+		return "", errors.New("choose a mean query latency goal between 1 and 1000 milliseconds")
+	}
+	script := strings.Replace(p.AutomaticDiscoverySQL(), "BEGIN;", p.managedInstallationGuardSQL(), 1)
+	const marker = "/* POOLTUNE_DISCOVERY_OBJECTIVE */ 1000"
+	if strings.Count(script, marker) != 1 {
+		return "", ErrSetupUnavailable
+	}
+	return strings.Replace(script, marker, "/* POOLTUNE_DISCOVERY_OBJECTIVE */ "+fmt.Sprint(objectiveMS), 1), nil
+}

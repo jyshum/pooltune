@@ -188,6 +188,16 @@
           <p class="help" id="setup-token-help">Use a Supabase Management API token limited to this project with <strong>Database Write</strong>. Pooltune uses it to install the monitor and discards it after setup.</p>
         </div>
         <div class="field">
+          <label for="repair-password">Database password for repairs</label>
+          <input type="password" id="repair-password" name="repair_password" autocomplete="off" maxlength="512" aria-describedby="repair-password-help">
+          <p class="help" id="repair-password-help">Required when you select repairs. Use this project's existing postgres database password. Pooltune encrypts it for its background Go worker on Railway and removes its stored copy when you disconnect. PostgreSQL gives this login owner access. Pooltune checks your selected repairs before each action.</p>
+        </div>
+        <div class="field">
+          <label for="mean-latency-ms">Mean query latency goal (optional)</label>
+          <input type="number" id="mean-latency-ms" name="mean_latency_ms" min="1" max="1000" step="1" placeholder="1000" aria-describedby="mean-latency-help">
+          <p class="help" id="mean-latency-help">Investigate queries that repeatedly exceed this average duration in milliseconds. The default is 1000 ms. A repair still needs evidence of its cause and benefit.</p>
+        </div>
+        <div class="field">
           <label for="setup-ca">Supabase root certificate (PEM)</label>
           <textarea id="setup-ca" name="ca" rows="4" spellcheck="false" autocomplete="off" autocapitalize="off" maxlength="32768" aria-describedby="setup-ca-help" placeholder="-----BEGIN CERTIFICATE-----" required></textarea>
           <p class="help" id="setup-ca-help">Paste the certificate from your project’s database connection settings so Pooltune can verify the database’s identity over an encrypted connection.</p>
@@ -260,7 +270,18 @@
   </div>
   {{end}}
 </section>
-{{if or .RepairsSelected .RepairWorkerLinked}}
+{{if .ManagedRepairs}}
+<section class="panel" aria-labelledby="repair-worker-title">
+  <div class="panel-heading"><h2 id="repair-worker-title">Managed repairs</h2></div>
+  <p>Pooltune runs the repair worker for this project. Each action checks your current selections, database permissions and measured evidence. Results appear in activity.</p>
+</section>
+{{else if .ManagedCredentialNeeded}}
+<section class="panel" aria-labelledby="repair-worker-title">
+  <div class="panel-heading"><h2 id="repair-worker-title">Connect repair access</h2></div>
+  <p>Your repair choices are saved, but this connection only has monitoring access. Disconnect this project, then reconnect here with your project setup token, Supabase root certificate and database password. Choose the repairs you want during setup. Pooltune will run the worker on Railway.</p>
+  <p class="help">Disconnecting stops monitoring until you reconnect. You do not need to create a worker key or deploy a worker yourself.</p>
+</section>
+{{else if or .RepairsSelected .RepairWorkerLinked}}
 <section class="panel" aria-labelledby="repair-worker-title">
   <div class="panel-heading"><h2 id="repair-worker-title">Repair worker</h2></div>
   <p>{{.RepairWorkerSummary}}</p>
