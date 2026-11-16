@@ -35,7 +35,7 @@ func (m *ManagedProjectIndex) recoverMaintenance(ctx context.Context, state *pgx
 	if claim.MaintenanceOperation != "statistics" && string(intent.Operation) != claim.MaintenanceOperation {
 		return true, ErrProjectMaintenanceTarget
 	}
-	owner, err := pgx.ConnectConfig(ctx, m.Config.Copy())
+	owner, err := supabaseproject.ConnectRepair(ctx, m.Config)
 	if err != nil {
 		return true, err
 	}

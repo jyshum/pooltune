@@ -3,6 +3,7 @@ package hostedquery
 import (
 	"context"
 	"errors"
+	"pooltune/internal/supabaseproject"
 	"strconv"
 	"time"
 
@@ -77,7 +78,7 @@ func applyProjectStatisticsTarget(ctx context.Context, config *pgx.ConnConfig, r
 	}
 	ctx, cancel := context.WithTimeout(ctx, 8*time.Second)
 	defer cancel()
-	db, err := pgx.ConnectConfig(ctx, config.Copy())
+	db, err := supabaseproject.ConnectRepair(ctx, config)
 	if err != nil {
 		return result, err
 	}
@@ -230,7 +231,7 @@ type projectStatisticsState struct {
 func readProjectStatisticsState(ctx context.Context, tx pgx.Tx, target ProjectIndexTarget, key ProjectIndexKey, locked bool) (projectStatisticsState, error) {
 	var state projectStatisticsState
 	var configured *int32
-	err := tx.QueryRow(ctx, projectStatisticsStateSQL, target.DatabaseOID, target.TableOID, target.Schema, target.Relation,
+	err := tx.QueryRow(ctx, supabaseproject.RepairQuery(ctx, tx, projectStatisticsStateSQL), target.DatabaseOID, target.TableOID, target.Schema, target.Relation,
 		key.Number, key.Name, locked).Scan(&configured, &state.effective, &state.relationBytes)
 	if errors.Is(err, pgx.ErrNoRows) || (err == nil && (state.relationBytes <= 0 || state.relationBytes > projectIndexMaxRelationBytes)) {
 		return state, ErrProjectStatisticsTarget

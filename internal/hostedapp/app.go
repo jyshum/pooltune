@@ -29,22 +29,24 @@ import (
 var frontend embed.FS
 
 type Config struct {
-	Origin, InviteCode                 string
-	GoogleClientID, GoogleClientSecret string
-	Key                                []byte
-	Sampling                           hostedquery.SamplingPolicy
-	QueueInterval                      time.Duration
-	Investigate                        hostedquery.EnrolledLookupInvestigator
-	InvestigateRepair                  hostedquery.IndexInvestigator
-	OwnedIndex                         *hostedquery.OwnedProjectIndex
-	OwnedRepair                        *hostedquery.OwnedProjectRepair
-	OwnedCron                          *hostedquery.OwnedProjectCron
+	Origin, InviteCode                     string
+	GoogleClientID, GoogleClientSecret     string
+	SupabaseClientID, SupabaseClientSecret string
+	Key                                    []byte
+	Sampling                               hostedquery.SamplingPolicy
+	QueueInterval                          time.Duration
+	Investigate                            hostedquery.EnrolledLookupInvestigator
+	InvestigateRepair                      hostedquery.IndexInvestigator
+	OwnedIndex                             *hostedquery.OwnedProjectIndex
+	OwnedRepair                            *hostedquery.OwnedProjectRepair
+	OwnedCron                              *hostedquery.OwnedProjectCron
 }
 
 type App struct {
 	projects          projectStore
 	accounts          *auth.Store
 	google            *googleOIDC
+	supabase          *supabaseOAuth
 	vault             vault
 	policy            hostedquery.SamplingPolicy
 	queueInterval     time.Duration
@@ -126,12 +128,16 @@ func New(ctx context.Context, db *pgxpool.Pool, cfg Config) (*App, error) {
 	if err != nil {
 		return nil, err
 	}
+	supabase, err := newSupabaseOAuth(cfg.SupabaseClientID, cfg.SupabaseClientSecret, cfg.Origin)
+	if err != nil {
+		return nil, err
+	}
 	accounts, err := auth.New(ctx, db)
 	if err != nil {
 		return nil, err
 	}
 	a := &App{
-		projects: projectStore{db}, accounts: accounts, google: google, vault: vault, policy: cfg.Sampling,
+		projects: projectStore{db}, accounts: accounts, google: google, supabase: supabase, vault: vault, policy: cfg.Sampling,
 		queueInterval: cfg.QueueInterval, investigate: cfg.Investigate,
 		investigateRepair: cfg.InvestigateRepair,
 		ownedIndex:        cfg.OwnedIndex, ownedRepair: cfg.OwnedRepair, ownedCron: cfg.OwnedCron,
@@ -141,6 +147,9 @@ func New(ctx context.Context, db *pgxpool.Pool, cfg Config) (*App, error) {
 		a.cookie = "pooltune_preview"
 	}
 	if err := a.projects.prepare(ctx); err != nil {
+		return nil, err
+	}
+	if err := a.prepareSupabase(ctx); err != nil {
 		return nil, err
 	}
 	a.handler = http.NewCrossOriginProtection().Handler(a.routes())
@@ -165,6 +174,9 @@ func (a *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Security-Policy", "default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'")
 	if a.google != nil {
 		w.Header().Set("Content-Security-Policy", strings.Replace(w.Header().Get("Content-Security-Policy"), "form-action 'self'", "form-action 'self' https://accounts.google.com", 1))
+	}
+	if a.supabase != nil {
+		w.Header().Set("Content-Security-Policy", strings.Replace(w.Header().Get("Content-Security-Policy"), "form-action 'self'", "form-action 'self' https://api.supabase.com", 1))
 	}
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.Header().Set("Referrer-Policy", "same-origin")
@@ -201,6 +213,13 @@ func (a *App) routes() *http.ServeMux {
 	mux.HandleFunc("POST /signout", a.signOut)
 	mux.HandleFunc("POST /auth/google/start", a.googleStart)
 	mux.HandleFunc("GET /auth/google/callback", a.googleCallback)
+	mux.HandleFunc("POST /auth/supabase/start", a.requireAccount(a.supabaseStart))
+	mux.HandleFunc("GET /auth/supabase/callback", a.requireAccount(a.supabaseCallback))
+	mux.HandleFunc("GET /app/supabase/projects", a.requireAccount(a.supabasePicker))
+	mux.HandleFunc("POST /app/supabase/projects", a.requireAccount(a.selectSupabaseProject))
+	mux.HandleFunc("GET /app/projects/manual", a.requireAccount(func(w http.ResponseWriter, r *http.Request, u auth.User) {
+		a.render(w, 200, "new-project", Page{Title: "Manual connection", User: u.Email})
+	}))
 	mux.HandleFunc("GET /app/account", a.requireAccount(a.accountSettings))
 	mux.HandleFunc("GET /app", a.requireAccount(a.dashboard))
 	mux.HandleFunc("GET /app/projects/new", a.requireAccount(a.newProject))
@@ -326,7 +345,16 @@ func (a *App) signOut(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/signin", http.StatusSeeOther)
 }
 
-func (a *App) newProject(w http.ResponseWriter, _ *http.Request, user auth.User) {
+func (a *App) newProject(w http.ResponseWriter, r *http.Request, user auth.User) {
+	if a.supabase != nil {
+		var connection string
+		if a.projects.db.QueryRow(r.Context(), `SELECT id FROM pooltune_app.supabase_connections WHERE owner_id=$1 AND NOT revoked ORDER BY created_at DESC LIMIT 1`, user.ID).Scan(&connection) == nil {
+			http.Redirect(w, r, "/app/supabase/projects?connection="+url.QueryEscape(connection), 303)
+			return
+		}
+		a.render(w, 200, "supabase-connect", Page{Title: "Connect Supabase", User: user.Email})
+		return
+	}
 	a.render(w, http.StatusOK, "new-project", Page{Title: "Connect a project", User: user.Email})
 }
 

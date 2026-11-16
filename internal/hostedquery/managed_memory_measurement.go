@@ -48,7 +48,7 @@ func measureManagedMemory(ctx context.Context, db *pgx.Conn, fn ManagedMemoryFun
 	}
 	// Keep the native catalog tuple fenced on a separate owner transaction;
 	// the measured invocation itself remains a read-only app-role transaction.
-	lockDB, err := pgx.ConnectConfig(ctx, db.Config())
+	lockDB, err := supabaseproject.ConnectRepair(ctx, db.Config())
 	if err != nil {
 		return sample, err
 	}

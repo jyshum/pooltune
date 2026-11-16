@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"pooltune/internal/supabaseproject"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -120,7 +121,7 @@ func readProjectCronJob(ctx context.Context, db trialReader, t ProjectCronTarget
 	if !validProjectCronTarget(t) {
 		return ProjectCronSnapshot{}, errors.New("missing enrolled Cron target identity")
 	}
-	return scanProjectCronJob(db.QueryRow(ctx, projectCronJobSQL, t.DatabaseOID, t.OwnerOID, t.JobID, t.Name, t.CommandDigest))
+	return scanProjectCronJob(db.QueryRow(ctx, supabaseproject.RepairQuery(ctx, db, projectCronJobSQL), t.DatabaseOID, t.OwnerOID, t.JobID, t.Name, t.CommandDigest))
 }
 
 func scanProjectCronJob(row pgx.Row) (ProjectCronSnapshot, error) {
@@ -140,8 +141,8 @@ const projectCronWitnessSQL = `
 		  AND w.command='SELECT 1' AND w.schedule='2 seconds'
 	`
 
-func queueProjectCronPair(batch *pgx.Batch, target ProjectCronTarget) {
-	batch.Queue(projectCronJobSQL, target.DatabaseOID, target.OwnerOID, target.JobID, target.Name, target.CommandDigest)
+func queueProjectCronPair(ctx context.Context, db any, batch *pgx.Batch, target ProjectCronTarget) {
+	batch.Queue(supabaseproject.RepairQuery(ctx, db, projectCronJobSQL), target.DatabaseOID, target.OwnerOID, target.JobID, target.Name, target.CommandDigest)
 	batch.Queue(projectCronWitnessSQL, target.JobID, target.WitnessJobID)
 }
 
@@ -150,7 +151,7 @@ func readProjectCronPair(ctx context.Context, db cronCatalogReader, target Proje
 		return ProjectCronSnapshot{}, "", errors.New("missing enrolled Cron target identity")
 	}
 	batch := &pgx.Batch{}
-	queueProjectCronPair(batch, target)
+	queueProjectCronPair(ctx, db, batch, target)
 	return scanProjectCronPair(db.SendBatch(ctx, batch))
 }
 
@@ -170,7 +171,7 @@ func changeProjectCronPair(ctx context.Context, tx pgx.Tx, target ProjectCronTar
 	// transaction. A row conflict aborts the transaction, including both writes.
 	batch.Queue(`SELECT cron.alter_job($1::bigint,active := true)`, target.WitnessJobID)
 	batch.Queue(`SELECT cron.alter_job($1::bigint,schedule := $2::text)`, target.JobID, proposed)
-	queueProjectCronPair(batch, target)
+	queueProjectCronPair(ctx, tx, batch, target)
 	results := tx.SendBatch(ctx, batch)
 	for range 2 {
 		if _, err := results.Exec(); err != nil {
@@ -193,7 +194,7 @@ func checkProjectCronProvider(ctx context.Context, db trialReader) error {
 		AND pg_catalog.current_setting('cron.log_run',true)='on' AND pg_catalog.current_setting('cron.use_background_workers',true)='off'
 		AND pg_catalog.current_setting('cron.database_name',true)=pg_catalog.current_database()`
 	var valid bool
-	err := db.QueryRow(ctx, "SELECT "+projectCronProviderCatalogSQL+directSettings).Scan(&valid)
+	err := db.QueryRow(ctx, supabaseproject.RepairQuery(ctx, db, "SELECT "+projectCronProviderCatalogSQL+directSettings)).Scan(&valid)
 	if err != nil || !valid {
 		return errors.New("registered pg_cron schedule-only provider or runtime prerequisites unavailable")
 	}
@@ -245,7 +246,7 @@ func applyProjectCronOn(ctx context.Context, cfg *pgx.ConnConfig, db *pgx.Conn, 
 		slog.Info("owned Cron native action stopped", fields...)
 	}()
 	if db == nil {
-		db, err = pgx.ConnectConfig(ctx, cfg.Copy())
+		db, err = supabaseproject.ConnectRepair(ctx, cfg)
 		if err != nil {
 			return out, err
 		}

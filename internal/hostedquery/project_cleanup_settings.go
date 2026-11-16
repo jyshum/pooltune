@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"pooltune/internal/supabaseproject"
 	"strconv"
 	"time"
 
@@ -119,7 +120,7 @@ func updateProjectCleanupSettings(ctx context.Context, config *pgx.ConnConfig, t
 	}
 	ctx, cancel := context.WithTimeout(ctx, 8*time.Second)
 	defer cancel()
-	db, err := pgx.ConnectConfig(ctx, config.Copy())
+	db, err := supabaseproject.ConnectRepair(ctx, config)
 	if err != nil {
 		return result, err
 	}
@@ -257,7 +258,7 @@ func cleanupThreshold(o ProjectCleanupSettingsObservation, factor float64) float
 
 func readProjectCleanupSettings(ctx context.Context, session projectMaintenanceSession, target ProjectIndexTarget) (ProjectCleanupSettingsObservation, error) {
 	o := ProjectCleanupSettingsObservation{Target: target}
-	err := session.QueryRow(ctx, `SELECT pg_catalog.statement_timestamp(), pg_catalog.pg_postmaster_start_time(), COALESCE(sd.stats_reset, 'epoch'::timestamptz),
+	err := session.QueryRow(ctx, supabaseproject.RepairQuery(ctx, session, `SELECT pg_catalog.statement_timestamp(), pg_catalog.pg_postmaster_start_time(), COALESCE(sd.stats_reset, 'epoch'::timestamptz),
 		COALESCE(opt->>'autovacuum_vacuum_scale_factor',''),
 		COALESCE(NULLIF((opt->>'autovacuum_vacuum_scale_factor')::double precision,-1), pg_catalog.current_setting('autovacuum_vacuum_scale_factor')::double precision),
 		COALESCE(NULLIF((opt->>'autovacuum_vacuum_threshold')::bigint,-1), pg_catalog.current_setting('autovacuum_vacuum_threshold')::bigint),
@@ -283,7 +284,7 @@ func readProjectCleanupSettings(ctx context.Context, session projectMaintenanceS
 		AND pg_catalog.has_schema_privilege(n.oid,'USAGE')
 		AND NOT EXISTS (SELECT FROM pg_catalog.pg_inherits i WHERE i.inhrelid=c.oid OR i.inhparent=c.oid)
 		AND NOT EXISTS (SELECT FROM pg_catalog.pg_depend x WHERE x.classid='pg_catalog.pg_class'::regclass AND x.objid=c.oid AND x.deptype='e')
-	`, target.DatabaseOID, target.TableOID, target.Schema, target.Relation).Scan(&o.At, &o.Boot, &o.StatsReset, &o.ScaleOption, &o.ScaleFactor,
+	`), target.DatabaseOID, target.TableOID, target.Schema, target.Relation).Scan(&o.At, &o.Boot, &o.StatsReset, &o.ScaleOption, &o.ScaleFactor,
 		&o.BaseThreshold, &o.MaximumThreshold, &o.EstimatedRows, &o.DeadTuples, &o.Cleanups, &o.RelationBytes,
 		&o.AutomaticCleanups, &o.LastAutovacuum, &o.Updated, &o.Deleted, &o.AutovacuumNaptimeSeconds, &o.AutovacuumEnabled, &o.OnlyDeadTupleTrigger)
 	if errors.Is(err, pgx.ErrNoRows) || err == nil && (o.RelationBytes < 0 || o.RelationBytes > projectMaintenanceMaxRelationBytes) {

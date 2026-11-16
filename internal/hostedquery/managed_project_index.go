@@ -54,7 +54,7 @@ func (m *ManagedProjectIndex) run(ctx context.Context, state, monitor *pgx.Conn,
 	if !matches(observed) {
 		return true, errLookupScope
 	}
-	owner, err := pgx.ConnectConfig(ctx, m.Config.Copy())
+	owner, err := supabaseproject.ConnectRepair(ctx, m.Config)
 	if err != nil {
 		return true, err
 	}
@@ -251,7 +251,7 @@ func (m *ManagedProjectIndex) recover(ctx context.Context, state *pgx.Conn, proj
 	if err := json.Unmarshal(raw, &intent); err != nil {
 		return true, err
 	}
-	owner, err := pgx.ConnectConfig(ctx, m.Config.Copy())
+	owner, err := supabaseproject.ConnectRepair(ctx, m.Config)
 	if err != nil {
 		return true, err
 	}

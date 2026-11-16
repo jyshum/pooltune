@@ -79,8 +79,8 @@ func ReadProjectRepairAccess(ctx context.Context, db *pgx.Conn, project supabase
 	defer cancel()
 	var pid int32
 	var native bool
-	err := db.QueryRow(ctx, `SELECT pg_catalog.pg_backend_pid(), current_user=session_user
-		AND NOT pg_catalog.pg_is_in_recovery() AND pg_catalog.current_setting('transaction_read_only')='off'`).Scan(&pid, &native)
+	err := db.QueryRow(ctx, supabaseproject.RepairQuery(ctx, db, `SELECT pg_catalog.pg_backend_pid(), current_user=session_user
+		AND NOT pg_catalog.pg_is_in_recovery() AND pg_catalog.current_setting('transaction_read_only')='off'`)).Scan(&pid, &native)
 	if err != nil || !native || pid != int32(db.PgConn().PID()) {
 		return ProjectRepairAccessReport{}, errors.New("repair access requires a native, writable PostgreSQL session using its login role")
 	}

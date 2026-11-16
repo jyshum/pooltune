@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"pooltune/internal/supabaseproject"
 	"strings"
 	"time"
 
@@ -66,7 +67,7 @@ func readProjectFunctionMemory(ctx context.Context, db trialReader, t ProjectFun
 	}
 	var args []string
 	var definition []byte
-	err := db.QueryRow(ctx, `
+	err := db.QueryRow(ctx, supabaseproject.RepairQuery(ctx, db, `
 		SELECT ARRAY(SELECT pg_catalog.format('%I.%I',tn.nspname,typ.typname)
 		       FROM pg_catalog.unnest(p.proargtypes) WITH ORDINALITY a(oid,pos)
 		       JOIN pg_catalog.pg_type typ ON typ.oid=a.oid JOIN pg_catalog.pg_namespace tn ON tn.oid=typ.typnamespace ORDER BY a.pos),
@@ -80,7 +81,7 @@ func readProjectFunctionMemory(ctx context.Context, db trialReader, t ProjectFun
 		  AND 'max_parallel_workers_per_gather=0'=ANY(p.proconfig)
 		  AND pg_catalog.left(n.nspname::text,3)<>'pg_' AND n.nspname<>'information_schema' AND NOT pg_catalog.pg_is_in_recovery()
 		  AND current_user=session_user AND p.proowner=(SELECT oid FROM pg_catalog.pg_roles WHERE rolname=current_user)
-	`, t.FunctionOID, t.DatabaseOID, t.Schema, t.Function).Scan(&args, &definition, &s.Generation, &s.WorkMem, &s.WorkMemBytes)
+	`), t.FunctionOID, t.DatabaseOID, t.Schema, t.Function).Scan(&args, &definition, &s.Generation, &s.WorkMem, &s.WorkMemBytes)
 	if err != nil {
 		return s, fmt.Errorf("read exact enrolled function as its owner: %w", err)
 	}
@@ -140,7 +141,7 @@ func changeProjectFunctionMemory(ctx context.Context, cfg *pgx.ConnConfig, inten
 	}
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
-	db, err := pgx.ConnectConfig(ctx, cfg.Copy())
+	db, err := supabaseproject.ConnectRepair(ctx, cfg)
 	if err != nil {
 		return out, err
 	}

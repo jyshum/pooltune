@@ -20,20 +20,20 @@ type repairEnrollmentCatalog struct {
 
 func (a *App) loadRepairEnrollmentCatalog(ctx context.Context, row projectRecord, secrets projectSecrets) (repairEnrollmentCatalog, error) {
 	var empty repairEnrollmentCatalog
-	if !row.Configured || row.Epoch <= 0 || secrets.RepairPassword == "" {
+	if !row.Configured || row.Epoch <= 0 || secrets.RepairPassword == "" && row.SupabaseConnection == "" {
 		return empty, errors.New("connect managed repair access before enrolling a target")
 	}
 	project, err := row.identity()
 	if err != nil {
 		return empty, err
 	}
-	cfg, err := supabaseproject.DirectConfig(project.Ref(), "postgres", secrets.RepairPassword, []byte(secrets.CA))
+	ctx, cfg, err := a.repairContext(ctx, row, secrets)
 	if err != nil {
 		return empty, err
 	}
 	ctx, cancel := context.WithTimeout(ctx, 7*time.Second)
 	defer cancel()
-	db, err := pgx.ConnectConfig(ctx, cfg)
+	db, err := supabaseproject.ConnectRepair(ctx, cfg)
 	if err != nil {
 		return empty, err
 	}

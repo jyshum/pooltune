@@ -64,7 +64,7 @@ func (m *ManagedProjectIndex) RefreshMemoryAllowances(ctx context.Context, state
 	if h.ProjectRef != project.Ref() || h.MemoryAllowanceSlots(time.Now()) < 1 {
 		return supabaseproject.ErrMemoryHeadroomUnavailable
 	}
-	owner, err := pgx.ConnectConfig(ctx, m.Config.Copy())
+	owner, err := supabaseproject.ConnectRepair(ctx, m.Config)
 	if err != nil {
 		return err
 	}

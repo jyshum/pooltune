@@ -24,6 +24,7 @@ type MemoryHeadroom struct {
 type MemoryMetricsReader struct {
 	client             *http.Client
 	endpoint, key, ref string
+	resolveToken       func(context.Context) (string, error)
 }
 
 func NewMemoryMetricsReader(ref, secret string) (*MemoryMetricsReader, error) {
@@ -31,6 +32,11 @@ func NewMemoryMetricsReader(ref, secret string) (*MemoryMetricsReader, error) {
 		return nil, ErrMemoryHeadroomUnavailable
 	}
 	return &MemoryMetricsReader{client: &http.Client{Timeout: 5 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}, endpoint: "https://api.supabase.com/v1/projects/" + ref + "/analytics/endpoints/metrics", key: secret, ref: ref}, nil
+}
+
+// NewOAuthMemoryMetricsReader resolves current project-bound Management access.
+func NewOAuthMemoryMetricsReader(ref string, resolve func(context.Context) (string, error)) *MemoryMetricsReader {
+	return &MemoryMetricsReader{client: &http.Client{Timeout: 5 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}, endpoint: "https://api.supabase.com/v1/projects/" + ref + "/analytics/endpoints/metrics", ref: ref, resolveToken: resolve}
 }
 
 // Read uses the project's documented Metrics API, not database configuration as
@@ -43,7 +49,14 @@ func (r *MemoryMetricsReader) Read(ctx context.Context, ref string) (MemoryHeadr
 	if err != nil {
 		return MemoryHeadroom{}, ErrMemoryHeadroomUnavailable
 	}
-	req.Header.Set("Authorization", "Bearer "+r.key)
+	key := r.key
+	if r.resolveToken != nil {
+		key, err = r.resolveToken(ctx)
+		if err != nil || len(key) == 0 || len(key) > 16384 || strings.ContainsAny(key, " \t\r\n") {
+			return MemoryHeadroom{}, ErrMemoryHeadroomUnavailable
+		}
+	}
+	req.Header.Set("Authorization", "Bearer "+key)
 	req.Header.Set("Cache-Control", "no-cache")
 	resp, err := r.client.Do(req)
 	if err != nil {

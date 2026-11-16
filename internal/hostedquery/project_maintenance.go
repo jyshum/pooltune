@@ -3,6 +3,7 @@ package hostedquery
 import (
 	"context"
 	"errors"
+	"pooltune/internal/supabaseproject"
 	"slices"
 	"strings"
 	"time"
@@ -85,7 +86,7 @@ func ApplyProjectMaintenance(ctx context.Context, config *pgx.ConnConfig, reques
 			previousNoticeHandler(conn, notice)
 		}
 	}
-	db, err := pgx.ConnectConfig(ctx, actionConfig)
+	db, err := supabaseproject.ConnectRepair(ctx, actionConfig)
 	if err != nil {
 		return result, err
 	}
@@ -120,7 +121,7 @@ func ApplyProjectMaintenance(ctx context.Context, config *pgx.ConnConfig, reques
 	if request.Operation == ProjectVacuum {
 		// VACUUM starts its own transactions. This pin protects the heap's OID
 		// while allowing both its maintenance lock and ordinary app writes.
-		lockDB, err = pgx.ConnectConfig(ctx, config.Copy())
+		lockDB, err = supabaseproject.ConnectRepair(ctx, config)
 		if err != nil {
 			return result, err
 		}
@@ -275,7 +276,7 @@ func configureProjectMaintenance(ctx context.Context, db *pgx.Conn) error {
 func readProjectMaintenanceTarget(ctx context.Context, session projectMaintenanceSession, r ProjectMaintenanceRequest) (int64, []string, error) {
 	var bytes int64
 	var columns []string
-	err := session.QueryRow(ctx, projectMaintenanceTargetSQL, r.Target.DatabaseOID, r.Target.TableOID, r.Target.Schema, r.Target.Relation,
+	err := session.QueryRow(ctx, supabaseproject.RepairQuery(ctx, session, projectMaintenanceTargetSQL), r.Target.DatabaseOID, r.Target.TableOID, r.Target.Schema, r.Target.Relation,
 		string(r.Operation), r.Columns).Scan(&bytes, &columns)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return 0, nil, ErrProjectMaintenanceTarget

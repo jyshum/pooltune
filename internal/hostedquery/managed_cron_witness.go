@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"pooltune/internal/supabaseproject"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -37,9 +38,9 @@ func CreateManagedCronWitness(ctx context.Context, db *pgx.Conn, project, nonce 
 		}
 		var pid uint32
 		var absent, allowed bool
-		if err := tx.QueryRow(ctx, `SELECT pg_backend_pid(),d.oid,current_user::regrole::oid,NOT EXISTS(SELECT FROM cron.job WHERE jobname=$1 AND username=current_user),
+		if err := tx.QueryRow(ctx, supabaseproject.RepairQuery(ctx, tx, `SELECT pg_backend_pid(),d.oid,current_user::regrole::oid,NOT EXISTS(SELECT FROM cron.job WHERE jobname=$1 AND username=current_user),
  current_user=session_user AND has_function_privilege(current_user,'cron.schedule(text,text,text)','EXECUTE') AND has_function_privilege(current_user,'cron.unschedule(bigint)','EXECUTE')
- FROM pg_database d WHERE d.datname=current_database()`, out.Name).Scan(&pid, &out.DatabaseOID, &out.OwnerOID, &absent, &allowed); err != nil {
+ FROM pg_database d WHERE d.datname=current_database()`), out.Name).Scan(&pid, &out.DatabaseOID, &out.OwnerOID, &absent, &allowed); err != nil {
 			return err
 		}
 		if pid != db.PgConn().PID() || !absent || !allowed {
@@ -76,7 +77,7 @@ func RemoveManagedCronWitness(ctx context.Context, db *pgx.Conn, w ManagedCronWi
 		}
 		var pid uint32
 		var owned bool
-		if err := tx.QueryRow(ctx, `SELECT pg_backend_pid(),current_user=session_user AND current_user::regrole::oid=$1 AND (SELECT oid FROM pg_database WHERE datname=current_database())=$2`, w.OwnerOID, w.DatabaseOID).Scan(&pid, &owned); err != nil {
+		if err := tx.QueryRow(ctx, supabaseproject.RepairQuery(ctx, tx, `SELECT pg_backend_pid(),current_user=session_user AND current_user::regrole::oid=$1 AND (SELECT oid FROM pg_database WHERE datname=current_database())=$2`), w.OwnerOID, w.DatabaseOID).Scan(&pid, &owned); err != nil {
 			return err
 		}
 		if pid != db.PgConn().PID() || !owned {

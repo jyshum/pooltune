@@ -19,7 +19,7 @@ func (m *ManagedProjectIndex) recoverCommittedStatistics(ctx context.Context, st
 	if !validManagedStatisticsIntent(intent, false) || len(parts) != 2 || parts[1] != fmt.Sprint(claim.ID) || intent.Target.DatabaseOID != claim.Database {
 		return true, errors.New("committed statistics recovery identity does not match its job")
 	}
-	owner, err := pgx.ConnectConfig(ctx, m.Config.Copy())
+	owner, err := supabaseproject.ConnectRepair(ctx, m.Config)
 	if err != nil {
 		return true, err
 	}

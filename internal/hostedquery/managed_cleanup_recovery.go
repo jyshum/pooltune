@@ -14,7 +14,7 @@ func (m *ManagedProjectIndex) dispatchCleanupSettings(ctx context.Context, state
 	if err != nil || a == nil {
 		return nil, err
 	}
-	owner, err := pgx.ConnectConfig(ctx, m.Config.Copy())
+	owner, err := supabaseproject.ConnectRepair(ctx, m.Config)
 	if err != nil {
 		return nil, err
 	}

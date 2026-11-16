@@ -163,12 +163,13 @@
     {{end}}
   </div>
   {{template "error" .}}
-  {{if ne $project.Status "Monitoring"}}
+  {{if $project.SupabaseBlocked}}<section class="form-panel"><h2>Reconnect Supabase</h2><p>Monitoring and new repairs are stopped. Your choices and unfinished recovery records are saved. Reconnect the same organization and project to continue.</p><form action="/auth/supabase/start" method="post"><button class="button button-primary" type="submit">Reconnect Supabase</button></form></section>
+ {{else if ne $project.Status "Monitoring"}}
     {{if $project.QuickStart}}{{template "agent-setup" $project}}{{end}}
-    <details class="panel advanced-setup"{{if not $project.QuickStart}} open{{end}}>
+    {{if not $project.SupabaseConnected}}<details class="panel advanced-setup"{{if not $project.QuickStart}} open{{end}}>
       <summary>{{if or $project.FixtureIndex $project.FixtureRepair}}Owned Rookery repair setup{{else}}Advanced read-only setup{{end}}</summary>
       {{template "project-setup" $project}}
-    </details>
+    </details>{{end}}
   {{else if $project.Capabilities}}
     {{template "repair-permissions" $project}}
   {{end}}
@@ -176,7 +177,7 @@
     {{template "project-activity" $project}}
   {{end}}
   {{if eq $project.Status "Monitoring"}}
-  <details class="panel optional">
+  {{if not $project.SupabaseConnected}}<details class="panel optional">
     <summary>Update monitoring access</summary>
     <p>Use this when your monitoring token expires or you revoke it. Pooltune stores the replacement encrypted on Railway. It must be limited to this project with Logs Read (Analytics Read).</p>
     <form class="fields" action="/app/projects/{{$project.ID}}/monitoring-token" method="post">
@@ -184,7 +185,7 @@
       <button class="button button-secondary" type="submit">Save monitoring access</button>
     </form>
   </details>
-  <section class="panel disconnect" aria-labelledby="connection-title">
+  {{end}}<section class="panel disconnect" aria-labelledby="connection-title">
     <div><h2 id="connection-title">Connection</h2><p>Disconnecting stops monitoring and keeps your saved activity.</p></div>
     <form action="/app/projects/{{$project.ID}}/disconnect" method="post"><button class="button button-secondary" type="submit">Disconnect</button></form>
   </section>
@@ -200,7 +201,7 @@
     <p>Pooltune installs a dedicated database login to read workload statistics and discover queries from ordinary traffic. Choose which repairs the agent may consider.</p>
   </div>
   <form class="enrollment-form" action="/app/projects/{{.ID}}/start" method="post" autocomplete="off">
-    <fieldset class="enrollment-fields">
+    {{if not .SupabaseConnected}}<fieldset class="enrollment-fields">
       <legend>Supabase setup access</legend>
       <div class="fields">
         <div class="field">
@@ -225,9 +226,9 @@
         </div>
       </div>
     </fieldset>
-    <fieldset class="enrollment-fields" aria-describedby="repair-help">
+    {{end}}<fieldset class="enrollment-fields" aria-describedby="repair-help">
       <legend>Repair permissions</legend>
-      <p class="help" id="repair-help">Your selections tell Pooltune what you allow. Each repair needs the database access below before it can run.</p>
+      <p class="help" id="repair-help">Your selections tell Pooltune what you allow. Pooltune verifies database access before each repair. Function memory and job scheduling also require choosing specific targets after setup.</p>
       <label class="select-all" hidden>
         <input type="checkbox" id="select-all-capabilities" aria-controls="capability-options">
         <span>Select all</span>
@@ -242,7 +243,7 @@
       </div>
     </fieldset>
     <div class="enrollment-footer">
-      <button class="button button-primary" type="submit">Start agent</button>
+      <button class="button button-primary" type="submit">{{if .SupabaseConnected}}Start monitoring{{else}}Start agent{{end}}</button>
       <noscript><button class="button button-secondary" type="submit" name="all_capabilities" value="1">Start agent with all six permissions</button></noscript>
     </div>
   </form>
@@ -484,3 +485,6 @@ ALTER ROLE {{.Role}} LOGIN;</textarea>
 {{if .GoogleEnabled}}<p>Link Google to sign in to this account. Choose the Google account with the same email address.</p>
 <form action="/auth/google/start" method="post"><input type="hidden" name="mode" value="link"><button class="button button-primary" type="submit">Link Google account</button></form>{{end}}
 <p><a href="/app">Back to projects</a></p></section></main>{{template "footer" .}}{{end}}
+
+{{define "supabase-connect"}}{{template "header" .}}<main class="shell workspace narrow" id="main"><h1>Connect Supabase</h1>{{template "error" .}}<p>Choose your organization in Supabase, then choose the project Pooltune will monitor.</p><p>Supabase authorizes access to the organization. Pooltune works only on the projects you select and the repairs you allow.</p><form action="/auth/supabase/start" method="post"><button class="button button-primary" type="submit">Connect Supabase</button></form><p><a href="/app/projects/manual">Advanced manual connection</a></p></main>{{template "footer" .}}{{end}}
+{{define "supabase-picker"}}{{template "header" .}}<main class="shell workspace narrow" id="main"><h1>Choose your project</h1>{{template "error" .}}<p>Confirm the project Pooltune may monitor. You will choose repair permissions next.</p>{{range .SupabaseProjects}}<section class="form-panel"><h2>{{.Name}}</h2><p>{{.OrganizationName}} · {{if eq .Status "ACTIVE_HEALTHY"}}Ready{{else}}Unavailable{{end}}</p>{{if eq .Status "ACTIVE_HEALTHY"}}<form action="/app/supabase/projects" method="post"><input type="hidden" name="connection" value="{{$.SupabaseConnection}}"><input type="hidden" name="ref" value="{{.Ref}}"><button class="button button-primary" type="submit">Use {{.Name}}</button></form>{{else}}<p>This project is not ready. Activate it in Supabase and refresh this page.</p>{{end}}</section>{{else}}<p>No accessible projects were returned. Check your organization access in Supabase.</p>{{end}}<form action="/auth/supabase/start" method="post"><button class="button button-secondary" type="submit">Reconnect Supabase</button></form></main>{{template "footer" .}}{{end}}

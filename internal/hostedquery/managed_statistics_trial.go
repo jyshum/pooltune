@@ -338,7 +338,7 @@ func managedStatisticsSecondInput(ctx context.Context, outer pgx.Tx, observed su
 func applyManagedJointStatistics(ctx context.Context, config *pgx.ConnConfig, observed supabaseproject.DiscoveredIndexEvidence, catalog ProjectIndexCatalog, at time.Time, runID string, recheck func(context.Context, pgx.Tx) error, verify func(context.Context, pgx.Tx) (bool, error), permission, capacity func(context.Context) error, record func(context.Context, any) error) (applied, retained bool, err error) {
 	ctx, cancel := context.WithTimeout(ctx, 12*time.Second)
 	defer cancel()
-	db, err := pgx.ConnectConfig(ctx, config.Copy())
+	db, err := supabaseproject.ConnectRepair(ctx, config)
 	if err != nil {
 		return false, false, err
 	}

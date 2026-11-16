@@ -36,9 +36,11 @@ type TrafficPlan struct {
 }
 
 type TrafficPlanReader struct {
-	client   *http.Client
-	endpoint string
-	token    string
+	client       *http.Client
+	endpoint     string
+	token        string
+	ref          string
+	resolveToken func(context.Context) (string, error)
 }
 
 // NewTrafficPlanReader configures optional read-only log access. A fine-grained
@@ -52,6 +54,11 @@ func NewTrafficPlanReader(token string) (*TrafficPlanReader, error) {
 	}
 	client := &http.Client{Timeout: 4 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
 	return &TrafficPlanReader{client: client, endpoint: "https://api.supabase.com", token: token}, nil
+}
+
+// NewOAuthTrafficPlanReader binds dynamic Management OAuth access to one project.
+func NewOAuthTrafficPlanReader(ref string, resolve func(context.Context) (string, error)) *TrafficPlanReader {
+	return &TrafficPlanReader{client: &http.Client{Timeout: 4 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}, endpoint: "https://api.supabase.com", ref: ref, resolveToken: resolve}
 }
 
 type trafficLogRow struct {
@@ -80,7 +87,17 @@ func (r *TrafficPlanReader) read(ctx context.Context, ref, login string, query i
 	if err != nil {
 		return nil, "invalid_request"
 	}
-	request.Header.Set("Authorization", "Bearer "+r.token)
+	token := r.token
+	if r.resolveToken != nil {
+		if ref != r.ref {
+			return nil, "invalid_request"
+		}
+		token, err = r.resolveToken(ctx)
+		if err != nil || len(token) == 0 || len(token) > 16384 || strings.ContainsAny(token, " \t\r\n") {
+			return nil, "authorization_unavailable"
+		}
+	}
+	request.Header.Set("Authorization", "Bearer "+token)
 	response, err := r.client.Do(request)
 	if err != nil {
 		return nil, "transport_error"

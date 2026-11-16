@@ -3,6 +3,7 @@ package hostedquery
 import (
 	"context"
 	"errors"
+	"pooltune/internal/supabaseproject"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -49,10 +50,10 @@ func ReadManagedCronHistory(ctx context.Context, db *pgx.Conn, enrolled ManagedC
 		}
 		var pid uint32
 		var exact bool
-		err := tx.QueryRow(ctx, `SELECT pg_backend_pid(),clock_timestamp(),EXISTS(SELECT FROM cron.job j JOIN pg_database d ON d.datname=current_database()
+		err := tx.QueryRow(ctx, supabaseproject.RepairQuery(ctx, tx, `SELECT pg_backend_pid(),clock_timestamp(),EXISTS(SELECT FROM cron.job j JOIN pg_database d ON d.datname=current_database()
  WHERE d.oid=$1 AND current_user=session_user AND current_user::regrole::oid=$2 AND j.username::text=current_user AND j.database::text=current_database()
  AND j.jobid=$3 AND j.jobname=$4 AND j.active AND j.schedule=$5 AND j.xmin::text=$6
- AND encode(sha256(convert_to(j.command,'UTF8')),'hex')=$7 AND encode(sha256(convert_to(to_jsonb(j)::text,'UTF8')),'hex')=$8)`, t.DatabaseOID, t.OwnerOID, t.JobID, t.Name, enrolled.Schedule, enrolled.Generation, t.CommandDigest, enrolled.Fingerprint).Scan(&pid, &out.ObservedAt, &exact)
+ AND encode(sha256(convert_to(j.command,'UTF8')),'hex')=$7 AND encode(sha256(convert_to(to_jsonb(j)::text,'UTF8')),'hex')=$8)`), t.DatabaseOID, t.OwnerOID, t.JobID, t.Name, enrolled.Schedule, enrolled.Generation, t.CommandDigest, enrolled.Fingerprint).Scan(&pid, &out.ObservedAt, &exact)
 		if err != nil {
 			return err
 		}

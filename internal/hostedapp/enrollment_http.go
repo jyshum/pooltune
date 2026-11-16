@@ -27,7 +27,7 @@ func (a *App) repairEnrollmentPage(w http.ResponseWriter, r *http.Request, user 
 		return
 	}
 	secrets, err := a.vault.open(row, row.Secret)
-	if err != nil || !row.Configured || secrets.RepairPassword == "" {
+	if err != nil || !row.Configured || (secrets.RepairPassword == "" && row.SupabaseConnection == "") {
 		http.Error(w, "Connect managed repair access before enrolling a function or job.", http.StatusBadRequest)
 		return
 	}
@@ -148,7 +148,7 @@ func (a *App) changeRepairEnrollmentWith(w http.ResponseWriter, r *http.Request,
 			return
 		}
 	case "enroll":
-		if secrets.RepairPassword == "" || (target.Kind != "memory" && target.Kind != "cron") || !slices.Contains(secrets.Capabilities, target.Kind) {
+		if (secrets.RepairPassword == "" && row.SupabaseConnection == "") || (target.Kind != "memory" && target.Kind != "cron") || !slices.Contains(secrets.Capabilities, target.Kind) {
 			http.Error(w, "Select this repair permission and connect managed repair access first.", http.StatusForbidden)
 			return
 		}

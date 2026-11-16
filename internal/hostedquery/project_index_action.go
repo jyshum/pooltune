@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"pooltune/internal/supabaseproject"
 	"slices"
 	"strings"
 	"time"
@@ -57,7 +58,7 @@ func ApplyProjectIndex(ctx context.Context, config *pgx.ConnConfig, target Proje
 	}
 	ctx, cancel := context.WithTimeout(ctx, 12*time.Second)
 	defer cancel()
-	db, err := pgx.ConnectConfig(ctx, config.Copy())
+	db, err := supabaseproject.ConnectRepair(ctx, config)
 	if err != nil {
 		return result, err
 	}
@@ -107,7 +108,7 @@ func ApplyProjectIndex(ctx context.Context, config *pgx.ConnConfig, target Proje
 	}
 	// Hold ACCESS SHARE on a companion session. CIC cannot run in a transaction
 	// block and the lock is compatible with both the build and ordinary DML.
-	pin, err := pgx.ConnectConfig(ctx, config.Copy())
+	pin, err := supabaseproject.ConnectRepair(ctx, config)
 	if err != nil {
 		return result, err
 	}
@@ -182,7 +183,7 @@ func ApplyProjectIndex(ctx context.Context, config *pgx.ConnConfig, target Proje
 func projectIndexPreflight(ctx context.Context, db *pgx.Conn, intent ProjectIndexActionIntent, keys []int16, pinPID int32) (int64, error) {
 	var relationBytes int64
 	var occupied bool
-	err := db.QueryRow(ctx, `
+	err := db.QueryRow(ctx, supabaseproject.RepairQuery(ctx, db, `
 		SELECT pg_catalog.pg_total_relation_size(c.oid), EXISTS (SELECT FROM pg_catalog.pg_class x WHERE x.relnamespace=n.oid AND x.relname::text=$4)
 		FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
 		WHERE c.oid=$1 AND n.nspname::text=$2 AND c.relname::text=$3
@@ -193,7 +194,7 @@ func projectIndexPreflight(ctx context.Context, db *pgx.Conn, intent ProjectInde
 		  AND (SELECT count(*) FROM pg_catalog.pg_attribute a WHERE a.attrelid=c.oid AND a.attnum=ANY($5::smallint[]) AND NOT a.attisdropped
 		       AND a.atttypid IN ('int2'::regtype,'int4'::regtype,'int8'::regtype,'text'::regtype,'varchar'::regtype,'date'::regtype,
 			                  'timestamp'::regtype,'timestamptz'::regtype,'uuid'::regtype,'bool'::regtype))=pg_catalog.cardinality($5::smallint[])
-	`, intent.Target.TableOID, intent.Target.Schema, intent.Target.Relation, intent.IndexName, keys, pinPID, intent.Target.DatabaseOID).Scan(&relationBytes, &occupied)
+	`), intent.Target.TableOID, intent.Target.Schema, intent.Target.Relation, intent.IndexName, keys, pinPID, intent.Target.DatabaseOID).Scan(&relationBytes, &occupied)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return 0, errors.New("project index requires the exact table owner and lock on a writable target with supported keys")
 	}

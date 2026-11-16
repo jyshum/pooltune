@@ -61,10 +61,31 @@ func (a *App) startProject(w http.ResponseWriter, r *http.Request, user auth.Use
 		a.showProject(w, r, user, row, err.Error())
 		return
 	}
-	token, ca := strings.TrimSpace(r.PostForm.Get("setup_token")), strings.TrimSpace(r.PostForm.Get("ca"))
-	if len(token) == 0 || len(token) > 512 || len(ca) == 0 || len(ca) > 32768 || strings.ContainsAny(token, " \t\r\n") {
-		a.showProject(w, r, user, row, "Enter your project-scoped setup token and Supabase root certificate.", selected)
-		return
+	var token, ca string
+	if row.SupabaseConnection != "" {
+		tag, err := a.projects.db.Exec(r.Context(), `UPDATE pooltune_app.projects SET setup_capabilities=$3 WHERE id=$1 AND owner_id=$2 AND epoch=$4 AND epoch<=0`, row.ID, row.Owner, append([]string{}, selected...), row.Epoch)
+		if err != nil || tag.RowsAffected() != 1 {
+			a.showProject(w, r, user, row, "Could not save repair choices. Refresh and retry.", selected)
+			return
+		}
+	}
+	if row.SupabaseConnection != "" {
+		token, err = a.projectSupabaseToken(r.Context(), row)
+		if err == nil {
+			var pem []byte
+			pem, err = supabaseproject.OfficialCA(r.Context())
+			ca = string(pem)
+		}
+		if err != nil {
+			a.showProject(w, r, user, row, err.Error(), selected)
+			return
+		}
+	} else {
+		token, ca = strings.TrimSpace(r.PostForm.Get("setup_token")), strings.TrimSpace(r.PostForm.Get("ca"))
+		if len(token) == 0 || len(token) > 512 || len(ca) == 0 || len(ca) > 32768 || strings.ContainsAny(token, " \t\r\n") {
+			a.showProject(w, r, user, row, "Enter your project-scoped setup token and Supabase root certificate.", selected)
+			return
+		}
 	}
 	objectiveMS, err := setupObjective(r.PostForm.Get("mean_latency_ms"))
 	if err != nil {
@@ -72,12 +93,24 @@ func (a *App) startProject(w http.ResponseWriter, r *http.Request, user auth.Use
 		return
 	}
 	repairPassword := r.PostForm.Get("repair_password")
+	if row.SupabaseConnection != "" {
+		repairPassword = ""
+	}
 	if len(repairPassword) > 512 || strings.ContainsRune(repairPassword, 0) {
 		a.showProject(w, r, user, row, "Enter a valid database credential.", selected)
 		return
 	}
 	if err := a.startAutomaticProject(r.Context(), row, token, ca, selected, repairPassword, objectiveMS); err != nil {
-		a.showProject(w, r, user, row, err.Error(), selected)
+		message := err.Error()
+		if row.SupabaseConnection != "" {
+			if errors.Is(err, supabaseproject.ErrSetupPermission) {
+				message = "Supabase did not grant database setup access. Reconnect Supabase and check the permissions."
+			}
+			if errors.Is(err, supabaseproject.ErrSetupUnavailable) {
+				message = "Supabase could not finish setup. Retry here; your repair choices are saved."
+			}
+		}
+		a.showProject(w, r, user, row, message, selected)
 		return
 	}
 	http.Redirect(w, r, "/app/projects/"+row.ID, http.StatusSeeOther)
@@ -98,11 +131,14 @@ func (a *App) startAutomaticProject(parent context.Context, row projectRecord, t
 	credentials := projectSecrets{
 		Password: base64.RawURLEncoding.EncodeToString(random), CA: ca, LogsToken: token, Automatic: true, Capabilities: selected,
 	}
+	if row.SupabaseConnection != "" {
+		credentials.LogsToken = ""
+	}
 	credentials.ObjectiveMS = objectiveMS
 	if objectiveMS < 0 || objectiveMS > 1000 {
 		return errors.New("choose a mean query latency goal between 1 and 1000 milliseconds")
 	}
-	if len(selected) > 0 {
+	if len(selected) > 0 && row.SupabaseConnection == "" {
 		credentials.RepairPassword = repairPassword
 	}
 	if len(credentials.RepairPassword) > 512 || strings.ContainsRune(credentials.RepairPassword, 0) {
@@ -147,7 +183,7 @@ func (a *App) startAutomaticProject(parent context.Context, row projectRecord, t
 			return generic
 		}
 		credentials.Password = previous.Password
-		if len(selected) > 0 && credentials.RepairPassword == "" {
+		if len(selected) > 0 && credentials.RepairPassword == "" && row.SupabaseConnection == "" {
 			credentials.RepairPassword = previous.RepairPassword
 		}
 		sealed, err = a.vault.seal(row, credentials)
@@ -156,7 +192,7 @@ func (a *App) startAutomaticProject(parent context.Context, row projectRecord, t
 		}
 	}
 	fixture := a.ownedIndex.Matches(identity) || a.ownedRepair.Matches(identity) || a.ownedCron.Matches(identity)
-	if len(selected) > 0 && credentials.RepairPassword == "" && !fixture {
+	if len(selected) > 0 && credentials.RepairPassword == "" && row.SupabaseConnection == "" && !fixture {
 		return errors.New("enter the project's database password to enable managed repairs")
 	}
 	tag, err := lock.Exec(ctx, `UPDATE pooltune_app.projects SET pending_setup=$4 WHERE id=$1 AND owner_id=$2 AND epoch=$3 AND epoch<=0`,
@@ -169,7 +205,7 @@ func (a *App) startAutomaticProject(parent context.Context, row projectRecord, t
 
 func (a *App) installAutomaticMonitor(ctx context.Context, row projectRecord, identity supabaseproject.Project, token string, credentials projectSecrets, retry bool, sealed []byte) error {
 	ownedProbe := a.ownedIndex.Matches(identity) && a.ownedIndex.Discover
-	requireDiscoveredIndex := credentials.RepairPassword != "" || (ownedProbe && slices.Contains(credentials.Capabilities, "index"))
+	requireDiscoveredIndex := row.SupabaseConnection != "" || credentials.RepairPassword != "" || (ownedProbe && slices.Contains(credentials.Capabilities, "index"))
 	setup := identity.Bootstrap
 	if row.Epoch < 0 {
 		setup = identity.Reconnect
@@ -194,6 +230,10 @@ func (a *App) installAutomaticMonitor(ctx context.Context, row projectRecord, id
 	configureRepairs := func(ctx context.Context) error {
 		if !fixture && slices.Contains(credentials.Capabilities, "memory") {
 			metrics, err := supabaseproject.NewMemoryMetricsReader(identity.Ref(), credentials.LogsToken)
+			if row.SupabaseConnection != "" {
+				metrics = supabaseproject.NewOAuthMemoryMetricsReader(row.Ref, func(ctx context.Context) (string, error) { return a.projectSupabaseToken(ctx, row) })
+				err = nil
+			}
 			if err != nil {
 				return errors.New("use one project-scoped token with Database Write and Analytics Read for function memory")
 			}
@@ -210,10 +250,20 @@ func (a *App) installAutomaticMonitor(ctx context.Context, row projectRecord, id
 				return err
 			}
 		}
-		if credentials.RepairPassword == "" {
+		if credentials.RepairPassword == "" && row.SupabaseConnection == "" {
 			return nil
 		}
-		if err := identity.ValidateManagedRepair(ctx, credentials.RepairPassword, []byte(credentials.CA)); err != nil {
+		if row.SupabaseConnection != "" {
+			bound, cfg, err := a.repairContext(ctx, row, credentials)
+			if err != nil {
+				return err
+			}
+			db, err := supabaseproject.ConnectRepair(bound, cfg)
+			if err != nil {
+				return err
+			}
+			labdb.Close(db)
+		} else if err := identity.ValidateManagedRepair(ctx, credentials.RepairPassword, []byte(credentials.CA)); err != nil {
 			return err
 		}
 		return identity.InstallManagedIndexReader(ctx, token)

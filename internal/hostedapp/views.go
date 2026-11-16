@@ -18,6 +18,8 @@ type Page struct {
 	Title, User, Error string
 	Notice             string
 	GoogleEnabled      bool
+	SupabaseProjects   []SupabaseProject
+	SupabaseConnection string
 	RepairWorkerKey    string
 	Invite             bool
 	Projects           []ProjectView
@@ -29,6 +31,8 @@ type ProjectView struct {
 	ID, Name, Ref, Status, Role, LastPoll string
 	SetupSQL, QuerySQL                    string
 	QuickStart                            bool
+	SupabaseConnected                     bool
+	SupabaseBlocked                       bool
 	Capabilities                          []CapabilityView
 	RepairsSelected, RepairsPaused        bool
 	RepairWorkerLinked                    bool
@@ -61,7 +65,10 @@ func baseProjectView(row projectRecord) ProjectView {
 	if row.Configured {
 		status = "Monitoring"
 	}
-	return ProjectView{ID: row.ID, Name: row.Name, Ref: row.Ref, Status: status}
+	if row.SupabaseBlocked {
+		status = "Reconnect Supabase"
+	}
+	return ProjectView{SupabaseBlocked: row.SupabaseBlocked, ID: row.ID, Name: row.Name, Ref: row.Ref, Status: status}
 }
 
 func (a *App) dashboard(w http.ResponseWriter, r *http.Request, user auth.User) {
@@ -115,6 +122,7 @@ func (a *App) showProject(w http.ResponseWriter, r *http.Request, user auth.User
 	}
 	view := baseProjectView(row)
 	view.Role = identity.Role()
+	view.SupabaseConnected = row.SupabaseConnection != ""
 	fixtureMatches := a.ownedIndex.Matches(identity)
 	view.FixtureIndex = fixtureMatches && !a.ownedIndex.Discover
 	repairMatches := a.ownedRepair.Matches(identity)
@@ -133,6 +141,12 @@ func (a *App) showProject(w http.ResponseWriter, r *http.Request, user auth.User
 	}
 	if !row.Configured {
 		view.QuickStart = true
+		if len(requested) == 0 && row.SupabaseConnection != "" {
+			var saved []string
+			if a.projects.db.QueryRow(r.Context(), `SELECT setup_capabilities FROM pooltune_app.projects WHERE id=$1 AND owner_id=$2`, row.ID, row.Owner).Scan(&saved) == nil {
+				requested = [][]string{saved}
+			}
+		}
 		view.Capabilities = slices.Clone(projectCapabilities)
 		if len(requested) > 0 {
 			for i := range view.Capabilities {
@@ -148,7 +162,7 @@ func (a *App) showProject(w http.ResponseWriter, r *http.Request, user auth.User
 		if configured.DisconnectPending && failure == "" {
 			failure = "Repairs are stopped. Temporary scheduler cleanup is pending. Retry disconnect to finish; the encrypted credential is retained only for cleanup."
 		}
-		view.ManagedRepairs = configured.RepairPassword != ""
+		view.ManagedRepairs = configured.RepairPassword != "" || row.SupabaseConnection != ""
 		view.RepairWorkerLinked, view.RepairWorkerSummary = a.repairWorkerStatus(r.Context(), row)
 		view.ManagedCredentialNeeded = configured.Automatic && !view.ManagedRepairs && view.RepairsSelected && !view.RepairWorkerLinked
 		for i := range view.Capabilities {

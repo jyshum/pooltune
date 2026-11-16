@@ -3,6 +3,7 @@ package hostedquery
 import (
 	"context"
 	"errors"
+	"pooltune/internal/supabaseproject"
 	"slices"
 	"strconv"
 	"time"
@@ -94,7 +95,7 @@ func applyManagedStatisticsCommitted(ctx context.Context, config *pgx.ConnConfig
 	if !validManagedStatisticsIntent(initial, false) || guards.Permission == nil || guards.Capacity == nil || guards.Recheck == nil || guards.Record == nil || guards.Save == nil || verify == nil || config == nil {
 		return result, errors.New("committed statistics requires an exact bounded intent and every guard")
 	}
-	db, err := pgx.ConnectConfig(ctx, config.Copy())
+	db, err := supabaseproject.ConnectRepair(ctx, config)
 	if err != nil {
 		return result, err
 	}
@@ -236,7 +237,7 @@ func applyManagedStatisticsCommitted(ctx context.Context, config *pgx.ConnConfig
 	if err != nil || result.Reason == "" {
 		result.Reason = "post-commit verification was incomplete"
 	}
-	cleanup, finish := context.WithTimeout(context.Background(), 6*time.Second)
+	cleanup, finish := context.WithTimeout(context.WithoutCancel(ctx), 6*time.Second)
 	defer finish()
 	restored, restoreErr := restoreManagedStatisticsCommitted(cleanup, db, result.Intent, guards.Permission, guards.Save)
 	result.Intent = restored.Intent

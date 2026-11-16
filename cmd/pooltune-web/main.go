@@ -110,6 +110,7 @@ func run(ctx context.Context) error {
 		return errors.New("enable only one owned Rookery repair fixture")
 	}
 	app, err := hostedapp.New(setup, pool, hostedapp.Config{Origin: origin, InviteCode: os.Getenv("POOLTUNE_SIGNUP_CODE"),
+		SupabaseClientID: os.Getenv("POOLTUNE_SUPABASE_CLIENT_ID"), SupabaseClientSecret: os.Getenv("POOLTUNE_SUPABASE_CLIENT_SECRET"),
 		GoogleClientID: os.Getenv("POOLTUNE_GOOGLE_CLIENT_ID"), GoogleClientSecret: os.Getenv("POOLTUNE_GOOGLE_CLIENT_SECRET"),
 		Key: key, Sampling: hostedquery.SamplingPolicy{Interval: *interval, Window: *window}, QueueInterval: *queue,
 		Investigate: investigate, InvestigateRepair: investigateRepair, OwnedIndex: fixture, OwnedRepair: repair, OwnedCron: cron})
@@ -177,7 +178,7 @@ func readOwnedIndexFixture(stateDSN string) (*hostedquery.OwnedProjectIndex, err
 func safeStartupError(err error) string {
 	switch err.Error() {
 	case "POOLTUNE_APP_ORIGIN must be the dashboard origin without a path", "the dashboard requires HTTPS outside loopback",
-		"set both POOLTUNE_GOOGLE_CLIENT_ID and POOLTUNE_GOOGLE_CLIENT_SECRET", "set POOLTUNE_SIGNUP_CODE to a private code of 16 to 256 bytes", "invalid preview monitoring intervals":
+		"set both POOLTUNE_SUPABASE_CLIENT_ID and POOLTUNE_SUPABASE_CLIENT_SECRET", "set both POOLTUNE_GOOGLE_CLIENT_ID and POOLTUNE_GOOGLE_CLIENT_SECRET", "set POOLTUNE_SIGNUP_CODE to a private code of 16 to 256 bytes", "invalid preview monitoring intervals":
 		return err.Error()
 	default:
 		return "check the Pooltune state database and application configuration"

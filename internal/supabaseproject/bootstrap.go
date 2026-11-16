@@ -78,7 +78,7 @@ func (p Project) BootstrapOwnedRepairProbe(ctx context.Context, token, password,
 }
 
 func (p Project) bootstrap(ctx context.Context, token, password, discoveryRole string, installIndexReader bool) error {
-	if p.ref == "" || p.key == "" || len(token) == 0 || len(token) > 512 ||
+	if p.ref == "" || p.key == "" || len(token) == 0 || len(token) > 16384 ||
 		strings.ContainsAny(token, " \t\r\n") || password == "" {
 		return ErrSetupPermission
 	}
@@ -91,7 +91,7 @@ func (p Project) bootstrap(ctx context.Context, token, password, discoveryRole s
 
 // Reconnect renews the managed monitor only when both ownership markers match.
 func (p Project) Reconnect(ctx context.Context, token, password string) error {
-	if p.ref == "" || p.key == "" || len(token) == 0 || len(token) > 512 ||
+	if p.ref == "" || p.key == "" || len(token) == 0 || len(token) > 16384 ||
 		strings.ContainsAny(token, " \t\r\n") || password == "" {
 		return ErrSetupPermission
 	}
@@ -226,7 +226,7 @@ func passwordVerifier(password string) (string, error) {
 // ConfigureDiscoveryObjective applies the owner's mean-latency goal to the
 // normal automatic workload reader, including an existing installation.
 func (p Project) ConfigureDiscoveryObjective(ctx context.Context, token string, objectiveMS int) error {
-	if p.ref == "" || p.key == "" || token == "" || len(token) > 512 || strings.ContainsAny(token, " \t\r\n") {
+	if p.ref == "" || p.key == "" || token == "" || len(token) > 16384 || strings.ContainsAny(token, " \t\r\n") {
 		return ErrSetupPermission
 	}
 	script, err := p.automaticObjectiveSQL(objectiveMS)

@@ -29,10 +29,12 @@ var (
 )
 
 type projectRecord struct {
-	ID, Ref, Name string
-	Owner, Epoch  int64
-	Configured    bool
-	Secret        []byte
+	ID, Ref, Name                   string
+	SupabaseConnection, SupabaseOrg string
+	Owner, Epoch                    int64
+	Configured                      bool
+	SupabaseBlocked                 bool
+	Secret                          []byte
 }
 
 func (p projectRecord) identity() (supabaseproject.Project, error) {
@@ -149,12 +151,12 @@ func (s projectStore) create(ctx context.Context, owner int64, name, ref string)
 	return id, err
 }
 
-const publicProjectColumns = `id, ref, name, owner_id, epoch, secret IS NOT NULL`
+const publicProjectColumns = `id, ref, name, owner_id, epoch, secret IS NOT NULL, coalesce(supabase_connection,''), supabase_org, supabase_blocked`
 
 func (s projectStore) find(ctx context.Context, owner int64, id string) (projectRecord, error) {
 	var project projectRecord
 	err := s.db.QueryRow(ctx, `SELECT `+publicProjectColumns+`, secret FROM pooltune_app.projects WHERE owner_id=$1 AND id=$2`, owner, id).
-		Scan(&project.ID, &project.Ref, &project.Name, &project.Owner, &project.Epoch, &project.Configured, &project.Secret)
+		Scan(&project.ID, &project.Ref, &project.Name, &project.Owner, &project.Epoch, &project.Configured, &project.SupabaseConnection, &project.SupabaseOrg, &project.SupabaseBlocked, &project.Secret)
 	return project, err
 }
 
@@ -167,7 +169,7 @@ func (s projectStore) list(ctx context.Context, owner int64) ([]projectRecord, e
 	var projects []projectRecord
 	for rows.Next() {
 		var p projectRecord
-		if err := rows.Scan(&p.ID, &p.Ref, &p.Name, &p.Owner, &p.Epoch, &p.Configured); err != nil {
+		if err := rows.Scan(&p.ID, &p.Ref, &p.Name, &p.Owner, &p.Epoch, &p.Configured, &p.SupabaseConnection, &p.SupabaseOrg, &p.SupabaseBlocked); err != nil {
 			return nil, err
 		}
 		projects = append(projects, p)
@@ -176,7 +178,7 @@ func (s projectStore) list(ctx context.Context, owner int64) ([]projectRecord, e
 }
 
 func (s projectStore) active(ctx context.Context) ([]projectRecord, error) {
-	rows, err := s.db.Query(ctx, `SELECT id, ref, name, owner_id, epoch, secret FROM pooltune_app.projects WHERE epoch>0 ORDER BY created_at,id LIMIT $1`, maxActiveProjects)
+	rows, err := s.db.Query(ctx, `SELECT id, ref, name, owner_id, epoch, secret, coalesce(supabase_connection,''), supabase_org, supabase_blocked FROM pooltune_app.projects WHERE epoch>0 AND NOT supabase_blocked ORDER BY created_at,id LIMIT $1`, maxActiveProjects)
 	if err != nil {
 		return nil, err
 	}
@@ -184,7 +186,7 @@ func (s projectStore) active(ctx context.Context) ([]projectRecord, error) {
 	var projects []projectRecord
 	for rows.Next() {
 		var p projectRecord
-		if err := rows.Scan(&p.ID, &p.Ref, &p.Name, &p.Owner, &p.Epoch, &p.Secret); err != nil {
+		if err := rows.Scan(&p.ID, &p.Ref, &p.Name, &p.Owner, &p.Epoch, &p.Secret, &p.SupabaseConnection, &p.SupabaseOrg, &p.SupabaseBlocked); err != nil {
 			return nil, err
 		}
 		projects = append(projects, p)
@@ -210,6 +212,15 @@ func (s projectStore) activate(ctx context.Context, project projectRecord, seale
 		}
 		if epoch != project.Epoch {
 			return errors.New("project changed during connection check")
+		}
+		if project.SupabaseConnection != "" {
+			var matches bool
+			if err := tx.QueryRow(ctx, `SELECT supabase_connection=$3 AND supabase_org=$4 AND NOT supabase_blocked FROM pooltune_app.projects WHERE id=$1 AND owner_id=$2`, project.ID, project.Owner, project.SupabaseConnection, project.SupabaseOrg).Scan(&matches); err != nil {
+				return err
+			}
+			if !matches {
+				return errors.New("Supabase connection changed during setup. Retry")
+			}
 		}
 		var count int
 		if err := tx.QueryRow(ctx, `SELECT count(*) FROM pooltune_app.projects WHERE epoch>0`).Scan(&count); err != nil {
@@ -238,7 +249,8 @@ func (s projectStore) disconnect(ctx context.Context, project projectRecord) err
 			return err
 		}
 		if epoch <= 0 {
-			return nil
+			_, err := tx.Exec(ctx, `UPDATE pooltune_app.projects SET pending_setup=NULL WHERE owner_id=$1 AND id=$2`, project.Owner, project.ID)
+			return err
 		}
 		if err := hostedquery.DisconnectProjectMonitorTx(ctx, tx, identity); err != nil {
 			return err
@@ -246,7 +258,11 @@ func (s projectStore) disconnect(ctx context.Context, project projectRecord) err
 		if _, err := tx.Exec(ctx, `DELETE FROM pooltune_app.repair_worker_links WHERE project_id=$1`, project.ID); err != nil {
 			return err
 		}
-		_, err := tx.Exec(ctx, `UPDATE pooltune_app.projects SET epoch=-$3::bigint,secret=NULL WHERE owner_id=$1 AND id=$2`, project.Owner, project.ID, epoch)
+		_, err := tx.Exec(ctx, `UPDATE pooltune_app.projects SET epoch=-$3::bigint,secret=NULL,pending_setup=NULL WHERE owner_id=$1 AND id=$2`, project.Owner, project.ID, epoch)
+		if err != nil {
+			return err
+		}
+		_, err = tx.Exec(ctx, `DELETE FROM pooltune_app.supabase_cli_credentials WHERE ref=$1 AND NOT EXISTS(SELECT FROM pooltune_app.projects WHERE ref=$1 AND (epoch>0 OR pending_setup IS NOT NULL))`, project.Ref)
 		return err
 	})
 }
@@ -275,7 +291,7 @@ func (s projectStore) replaceActivePermissions(ctx context.Context, project proj
 }
 
 func checkProject(ctx context.Context, project projectRecord, credentials projectSecrets, policy hostedquery.SamplingPolicy, requireDiscoveredIndex bool) error {
-	if credentials.Password == "" || len(credentials.Password) > 1024 || len(credentials.CA) > 32768 || len(credentials.LogsToken) > 512 {
+	if credentials.Password == "" || len(credentials.Password) > 1024 || len(credentials.CA) > 32768 || len(credentials.LogsToken) > 16384 {
 		return errors.New("enter the dedicated monitor password and Supabase root certificate")
 	}
 	identity, err := project.identity()
@@ -286,7 +302,7 @@ func checkProject(ctx context.Context, project projectRecord, credentials projec
 	if err != nil {
 		return err
 	}
-	if _, err := hostedquery.NewTrafficPlanReader(credentials.LogsToken); err != nil {
+	if _, err := hostedquery.NewTrafficPlanReader(credentials.LogsToken); err != nil && project.SupabaseConnection == "" {
 		return err
 	}
 	ctx, cancel := context.WithTimeout(ctx, 8*time.Second)

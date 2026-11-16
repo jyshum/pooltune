@@ -91,7 +91,7 @@ func (m *ManagedProjectCron) dispatch(ctx context.Context, state *pgx.Conn, proj
 	if enrolled.Target.Project != project.ID() || enrolled.Target.DatabaseOID != claim.Database || m.Config == nil || (action == nil && (m.Investigate == nil || m.AdmitModel == nil)) {
 		return nil, errors.New("managed scheduling claim does not match active enrollment")
 	}
-	owner, err := pgx.ConnectConfig(ctx, m.Config.Copy())
+	owner, err := supabaseproject.ConnectRepair(ctx, m.Config)
 	if err != nil {
 		return nil, err
 	}
@@ -182,7 +182,7 @@ func (m *ManagedProjectCron) dispatch(ctx context.Context, state *pgx.Conn, proj
 		return nil, err
 	}
 	defer func() {
-		cleanup, cancel := context.WithTimeout(context.Background(), 4*time.Second)
+		cleanup, cancel := context.WithTimeout(context.WithoutCancel(ctx), 4*time.Second)
 		defer cancel()
 		_ = cleanupManagedCronWitnesses(cleanup, state, owner, project.ID())
 	}()

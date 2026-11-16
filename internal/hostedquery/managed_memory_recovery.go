@@ -26,7 +26,7 @@ func (m *ManagedProjectIndex) recoverMemory(ctx context.Context, state *pgx.Conn
 	if len(parts) != 2 || parts[1] != fmt.Sprint(claim.ID) || journal.Function.Target.Project != project.ID() || journal.Function.Target.DatabaseOID != claim.Database || journal.PolicySchema != managedMemorySchema(project.ID()) {
 		return true, errors.New("invalid managed memory recovery identity")
 	}
-	owner, err := pgx.ConnectConfig(ctx, m.Config.Copy())
+	owner, err := supabaseproject.ConnectRepair(ctx, m.Config)
 	if err != nil {
 		return true, err
 	}
@@ -57,7 +57,7 @@ func (m *ManagedProjectIndex) recoverMemory(ctx context.Context, state *pgx.Conn
 func reconcileManagedMemory(ctx context.Context, owner *pgx.Conn, j managedMemoryJournal, guard func(context.Context) error) (ManagedMemoryReport, error) {
 	report := ManagedMemoryReport{FunctionOID: j.Function.Target.FunctionOID, Measurement: "interrupted_function_catalog_observation", Outcome: "repair_interrupted"}
 	var definition string
-	if err := owner.QueryRow(ctx, `SELECT pg_get_functiondef(p.oid) FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE p.oid=$1 AND n.nspname=$2 AND p.proname=$3 AND p.proowner=current_user::regrole::oid AND current_user=session_user`, j.Function.Target.FunctionOID, j.Function.Target.Schema, j.Function.Target.Function).Scan(&definition); errors.Is(err, pgx.ErrNoRows) {
+	if err := owner.QueryRow(ctx, supabaseproject.RepairQuery(ctx, owner, `SELECT pg_get_functiondef(p.oid) FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE p.oid=$1 AND n.nspname=$2 AND p.proname=$3 AND p.proowner=current_user::regrole::oid AND current_user=session_user`), j.Function.Target.FunctionOID, j.Function.Target.Schema, j.Function.Target.Function).Scan(&definition); errors.Is(err, pgx.ErrNoRows) {
 		report.RecoveryStatus, report.Reason = "target_changed", "The selected function or owner changed. No definition was overwritten."
 		return report, nil
 	} else if err != nil {

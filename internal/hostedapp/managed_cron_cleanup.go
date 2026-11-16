@@ -5,7 +5,6 @@ import (
 	"errors"
 	"time"
 
-	"github.com/jackc/pgx/v5"
 	"pooltune/internal/hostedquery"
 	"pooltune/internal/labdb"
 	"pooltune/internal/supabaseproject"
@@ -82,14 +81,14 @@ func (a *App) cleanupProjectWitnesses(ctx context.Context, row projectRecord, se
 	if err != nil || len(witnesses) == 0 {
 		return err
 	}
-	if secret.RepairPassword == "" {
+	if secret.RepairPassword == "" && row.SupabaseConnection == "" {
 		return errors.New("cleanup requires the retained repair connection")
 	}
-	cfg, err := supabaseproject.DirectConfig(project.Ref(), "postgres", secret.RepairPassword, []byte(secret.CA))
+	ctx, cfg, err := a.repairContext(ctx, row, secret)
 	if err != nil {
 		return err
 	}
-	db, err := pgx.ConnectConfig(ctx, cfg)
+	db, err := supabaseproject.ConnectRepair(ctx, cfg)
 	if err != nil {
 		return err
 	}

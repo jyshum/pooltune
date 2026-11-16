@@ -175,7 +175,7 @@ func RestoreManagedMemory(ctx context.Context, db *pgx.Conn, change ManagedMemor
 			return err
 		}
 		var owned bool
-		if err := tx.QueryRow(ctx, `SELECT EXISTS(SELECT FROM pg_proc p WHERE p.oid=$1 AND p.xmin::text=$2 AND md5(to_jsonb(p)::text)=$3 AND p.proowner=current_user::regrole::oid AND current_user=session_user)`, change.Intent.Function.Target.FunctionOID, lockedGeneration, change.AppliedDigest).Scan(&owned); err != nil {
+		if err := tx.QueryRow(ctx, supabaseproject.RepairQuery(ctx, tx, `SELECT EXISTS(SELECT FROM pg_proc p WHERE p.oid=$1 AND p.xmin::text=$2 AND md5(to_jsonb(p)::text)=$3 AND p.proowner=current_user::regrole::oid AND current_user=session_user)`), change.Intent.Function.Target.FunctionOID, lockedGeneration, change.AppliedDigest).Scan(&owned); err != nil {
 			return err
 		}
 		if !owned {
@@ -201,7 +201,7 @@ var errManagedMemoryOwnerChanged = errors.New("the selected function changed ind
 func lockManagedMemoryFunction(ctx context.Context, tx pgx.Tx, target ProjectFunctionMemoryTarget, expectedGeneration string) (string, error) {
 	const catalog = `SELECT to_jsonb(p)::text,p.xmin::text FROM pg_catalog.pg_proc p JOIN pg_catalog.pg_namespace n ON n.oid=p.pronamespace WHERE p.oid=$1 AND n.nspname=$2 AND p.proname=$3 AND p.pronargs=0 AND p.proowner=current_user::regrole::oid AND current_user=session_user AND (SELECT oid FROM pg_database WHERE datname=current_database())=$4`
 	var before, generation string
-	if err := tx.QueryRow(ctx, catalog, target.FunctionOID, target.Schema, target.Function, target.DatabaseOID).Scan(&before, &generation); err != nil {
+	if err := tx.QueryRow(ctx, supabaseproject.RepairQuery(ctx, tx, catalog), target.FunctionOID, target.Schema, target.Function, target.DatabaseOID).Scan(&before, &generation); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return "", errors.Join(errManagedMemoryOwnerChanged, err)
 		}

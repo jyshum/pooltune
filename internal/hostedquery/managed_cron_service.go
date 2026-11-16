@@ -21,7 +21,7 @@ func (m *ManagedProjectCron) Run(ctx context.Context, stateConfig *pgx.ConnConfi
 		return err
 	}
 	defer closeVacuumConnection(state)
-	owner, err := pgx.ConnectConfig(ctx, m.Config.Copy())
+	owner, err := supabaseproject.ConnectRepair(ctx, m.Config)
 	if err != nil {
 		return err
 	}

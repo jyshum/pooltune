@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"pooltune/internal/supabaseproject"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -75,7 +76,7 @@ func rollbackManagedIndex(ctx context.Context, db *pgx.Conn, claim investigation
 			return err
 		}
 		var owned bool
-		if err := tx.QueryRow(ctx, `SELECT EXISTS(SELECT FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE c.oid=$1 AND c.relname=$2 AND n.nspname=$3 AND c.relowner=current_user::regrole::oid AND current_user=session_user AND pg_relation_size(c.oid)<=$4)`, intent.Target.TableOID, intent.Target.Relation, intent.Target.Schema, projectIndexMaxRelationBytes).Scan(&owned); err != nil {
+		if err := tx.QueryRow(ctx, supabaseproject.RepairQuery(ctx, tx, `SELECT EXISTS(SELECT FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE c.oid=$1 AND c.relname=$2 AND n.nspname=$3 AND c.relowner=current_user::regrole::oid AND current_user=session_user AND pg_relation_size(c.oid)<=$4)`), intent.Target.TableOID, intent.Target.Relation, intent.Target.Schema, projectIndexMaxRelationBytes).Scan(&owned); err != nil {
 			return err
 		}
 		if !owned {

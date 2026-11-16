@@ -24,7 +24,7 @@ func (m *ManagedProjectIndex) runMemory(ctx context.Context, state, monitor *pgx
 	if !slices.Contains(m.Capabilities, "memory") || len(m.MemoryEnrollments) == 0 || m.MemoryHeadroom == nil || windows == nil {
 		return false, nil
 	}
-	owner, err := pgx.ConnectConfig(ctx, m.Config.Copy())
+	owner, err := supabaseproject.ConnectRepair(ctx, m.Config)
 	if err != nil {
 		return true, err
 	}

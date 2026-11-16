@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"pooltune/internal/supabaseproject"
 	"regexp"
 	"slices"
 	"time"
@@ -39,7 +40,7 @@ func inspectManagedIndexIntent(ctx context.Context, db *pgx.Conn, claim investig
 	defer cancel()
 	var pid uint32
 	var owned bool
-	if err := db.QueryRow(ctx, `SELECT pg_backend_pid(),EXISTS(SELECT FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE c.oid=$1 AND c.relname=$2 AND n.nspname=$3 AND c.relowner=current_user::regrole::oid AND current_user=session_user)`, intent.Target.TableOID, intent.Target.Relation, intent.Target.Schema).Scan(&pid, &owned); err != nil {
+	if err := db.QueryRow(ctx, supabaseproject.RepairQuery(ctx, db, `SELECT pg_backend_pid(),EXISTS(SELECT FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE c.oid=$1 AND c.relname=$2 AND n.nspname=$3 AND c.relowner=current_user::regrole::oid AND current_user=session_user)`), intent.Target.TableOID, intent.Target.Relation, intent.Target.Schema).Scan(&pid, &owned); err != nil {
 		return result, err
 	}
 	if pid != db.PgConn().PID() {

@@ -98,11 +98,48 @@ func (a *App) runProject(ctx context.Context, row projectRecord) error {
 	if credentials.DisconnectPending {
 		return hostedquery.ErrProjectDisconnected
 	}
+	if row.SupabaseConnection != "" {
+		if _, err := a.projectSupabaseToken(ctx, row); err != nil {
+			if errors.Is(err, errSupabaseReconnect) || errors.Is(err, errSupabaseProjectAccess) {
+				_ = a.blockSupabaseProject(ctx, row)
+			}
+			return err
+		}
+		var stop context.CancelFunc
+		ctx, stop = context.WithCancel(ctx)
+		defer stop()
+		go func(ctx context.Context) {
+			ticker := time.NewTicker(30 * time.Second)
+			defer ticker.Stop()
+			for {
+				select {
+				case <-ctx.Done():
+					return
+				case <-ticker.C:
+					check, cancel := context.WithTimeout(ctx, 12*time.Second)
+					_, err := a.projectSupabaseToken(check, row)
+					if err != nil {
+						if errors.Is(err, errSupabaseReconnect) || errors.Is(err, errSupabaseProjectAccess) {
+							_ = a.blockSupabaseProject(check, row)
+						}
+						cancel()
+						stop()
+						return
+					}
+					cancel()
+				}
+			}
+		}(ctx)
+	}
 	config, err := identity.Config(credentials.Password, []byte(credentials.CA))
 	if err != nil {
 		return err
 	}
 	logs, err := hostedquery.NewTrafficPlanReader(credentials.LogsToken)
+	if row.SupabaseConnection != "" {
+		logs = hostedquery.NewOAuthTrafficPlanReader(row.Ref, func(ctx context.Context) (string, error) { return a.projectSupabaseToken(ctx, row) })
+		err = nil
+	}
 	if err != nil {
 		return err
 	}
@@ -176,8 +213,9 @@ func (a *App) runProject(ctx context.Context, row projectRecord) error {
 		cron = &fixture
 	}
 	var managed *hostedquery.ManagedProjectIndex
-	if credentials.RepairPassword != "" && a.investigateRepair != nil {
-		repairConfig, err := supabaseproject.DirectConfig(identity.Ref(), "postgres", credentials.RepairPassword, []byte(credentials.CA))
+	if (credentials.RepairPassword != "" || row.SupabaseConnection != "") && a.investigateRepair != nil {
+		var repairConfig *pgx.ConnConfig
+		ctx, repairConfig, err = a.repairContext(ctx, row, credentials)
 		if err != nil {
 			return err
 		}
@@ -199,8 +237,12 @@ func (a *App) runProject(ctx context.Context, row projectRecord) error {
 				Target: hostedquery.ProjectFunctionMemoryTarget{Project: identity.ID(), DatabaseOID: target.DatabaseOID, FunctionOID: target.ObjectOID, Schema: target.Schema, Function: target.Name}, Fingerprint: target.Fingerprint, Generation: target.Generation,
 			})
 		}
-		if credentials.LogsToken != "" {
+		if credentials.LogsToken != "" || row.SupabaseConnection != "" {
 			reader, err := supabaseproject.NewMemoryMetricsReader(identity.Ref(), credentials.LogsToken)
+			if row.SupabaseConnection != "" {
+				reader = supabaseproject.NewOAuthMemoryMetricsReader(row.Ref, func(ctx context.Context) (string, error) { return a.projectSupabaseToken(ctx, row) })
+				err = nil
+			}
 			if err != nil {
 				return err
 			}
@@ -248,6 +290,12 @@ func (a *App) runProject(ctx context.Context, row projectRecord) error {
 		for ctx.Err() == nil {
 			// A failed refresh leaves every installed function at its original
 			// memory allowance once its short lease expires.
+			if row.SupabaseConnection != "" {
+				if _, err := a.projectSupabaseToken(ctx, row); err != nil {
+					finished <- err
+					return
+				}
+			}
 			if managed != nil {
 				_ = managed.RefreshMemoryAllowances(ctx, queue.Conn(), identity, epoch)
 			}

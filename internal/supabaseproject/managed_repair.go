@@ -40,12 +40,21 @@ func (p Project) VerifyManagedRepair(ctx context.Context, db *pgx.Conn) error {
 	if p.ref == "" || p.key == "" || db == nil {
 		return errors.New("managed repair access requires the connected project's database login")
 	}
+	if db.Config().User == "cli_login_postgres" {
+		provider, ok := ctx.Value(delegatedContextKey{}).(*delegatedConnector)
+		if !ok || provider.project != p {
+			return errors.New("temporary repair authority does not match this installation")
+		}
+		if _, err := provider.credentials(ctx, ""); err != nil {
+			return err
+		}
+	}
 	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 	var pid int32
 	var valid bool
 	err := db.QueryRow(ctx, `SELECT pg_catalog.pg_backend_pid(),
-        current_user='postgres' AND session_user=current_user
+        current_user='postgres' AND `+RepairIdentitySQL(ctx, db)+`
         AND pg_catalog.current_database()='postgres'
         AND NOT pg_catalog.pg_is_in_recovery()
         AND pg_catalog.current_setting('transaction_read_only')='off'
@@ -61,7 +70,7 @@ func (p Project) VerifyManagedRepair(ctx context.Context, db *pgx.Conn) error {
 // InstallManagedIndexReader adds the read-only discovered-index reader to an
 // existing, authenticated monitor installation. Repeating setup is safe.
 func (p Project) InstallManagedIndexReader(ctx context.Context, token string) error {
-	if p.ref == "" || p.key == "" || token == "" || len(token) > 512 || strings.ContainsAny(token, " \t\r\n") {
+	if p.ref == "" || p.key == "" || token == "" || len(token) > 16384 || strings.ContainsAny(token, " \t\r\n") {
 		return ErrSetupPermission
 	}
 	return p.postSetup(ctx, setupHTTP, token, p.managedIndexReaderSQL())
