@@ -1,0 +1,126 @@
+{
+  "deployment": "34478525-8a89-4bb6-9781-269da098dec1",
+  "setup_path": "normal_start_form",
+  "manually_enrolled_query_ids": 0,
+  "worker_config_query_id": 0,
+  "scheduler_witness_preflight": {
+    "succeeded": 2
+  },
+  "first_cycle": "2026-11-16T01:00:00Z",
+  "phase": "verified",
+  "railway_lifecycle": {
+    "archived_periods": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "job_id": 312,
+    "verification_job_id": 313
+  },
+  "query_id": "3688710417584264053",
+  "model_ms": 7104.541691,
+  "metrics": [
+    {
+      "label": "Query mean latency during the busy window",
+      "unit": "ms",
+      "before": 32.84126286666667,
+      "after": 0.08662568333332957
+    },
+    {
+      "label": "Protected read mean latency during the busy window",
+      "unit": "ms",
+      "before": 0.021334770833333332,
+      "after": 0.02174702916666667
+    },
+    {
+      "label": "Protected write mean latency during the busy window",
+      "unit": "ms",
+      "before": 0.04527060833333336,
+      "after": 0.04350655833333335
+    }
+  ],
+  "dashboard_result_visible": true,
+  "verified": true,
+  "provider_schedule": "1-59/2 * * * *",
+  "scheduler_runs": [
+    {
+      "id": 5203,
+      "end": "2026-11-16T01:00:16.474996+00:00",
+      "start": "2026-11-16T01:00:00.021992+00:00",
+      "status": "succeeded"
+    },
+    {
+      "id": 5263,
+      "end": "2026-11-16T01:02:16.496931+00:00",
+      "start": "2026-11-16T01:02:00.018776+00:00",
+      "status": "succeeded"
+    },
+    {
+      "id": 5324,
+      "end": "2026-11-16T01:04:16.469138+00:00",
+      "start": "2026-11-16T01:04:00.015391+00:00",
+      "status": "succeeded"
+    },
+    {
+      "id": 5414,
+      "end": "2026-11-16T01:07:16.4817+00:00",
+      "start": "2026-11-16T01:07:00.014818+00:00",
+      "status": "succeeded"
+    },
+    {
+      "id": 5474,
+      "end": "2026-11-16T01:09:16.465233+00:00",
+      "start": "2026-11-16T01:09:00.014022+00:00",
+      "status": "succeeded"
+    },
+    {
+      "id": 5535,
+      "end": "2026-11-16T01:11:16.423465+00:00",
+      "start": "2026-11-16T01:11:00.013671+00:00",
+      "status": "succeeded"
+    }
+  ],
+  "scheduler_run_count": 6,
+  "public_index_fingerprint_unchanged": true,
+  "unrelated_scheduler_jobs_unchanged": true,
+  "dashboard_disconnected": true,
+  "owned_scheduler_jobs_removed": true,
+  "owned_database_objects_removed": true,
+  "owned_scheduler_jobs_remaining": 0,
+  "revision": "9065dd4d200945c211482ecf3eaa8aedee7617a7",
+  "native_acknowledgement": {
+    "commit_margin_ms": 6345,
+    "completed_post_commit_witnesses": 2,
+    "publication_ms": 14.97176
+  },
+  "setup_token_revoked": true,
+  "railway_preview_restored": {
+    "deployment": "f904de57-9c18-4ec3-a7d1-36dbf724f3d3",
+    "status": "SUCCESS",
+    "healthz_http_status": 200,
+    "landing_http_status": 200,
+    "prior_monitor_cadence_restored": true,
+    "temporary_repair_variables_removed": true,
+    "other_staging_deployments_preserved": {
+      "Consumer": {
+        "id": "c61a85fa-34ab-4876-ae61-fd3473d5da5d",
+        "status": "SUCCESS"
+      },
+      "Detector": {
+        "id": "08dc4edd-6be5-4e96-a472-e3389b3d2d8f",
+        "status": "SUCCESS"
+      },
+      "Enrolled Queries": {
+        "id": "37144a01-65bf-458c-b02e-97ffcb52fdf0",
+        "status": "SUCCESS"
+      },
+      "Postgres": {
+        "id": "5e66d902-c6f6-44ed-80dc-a43ec6cff816",
+        "status": "SUCCESS"
+      }
+    }
+  }
+}

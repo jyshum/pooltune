@@ -1,8 +1,8 @@
 {
-  "sourceRevision": "7be68c9b0855355dcd23e7a81050ee1e6d8474a8",
-  "summary": "Railway verified five repair families from the normal Rookery setup and both settings. The scheduler moved the test job and saved an inconclusive result. General project repair permissions remain open.",
+  "sourceRevision": "9065dd4d200945c211482ecf3eaa8aedee7617a7",
+  "summary": "Railway verified all six repair families from normal setup on Rookery with zero manual query IDs. Both settings and index restart recovery were verified. General project repair permissions remain open.",
   "next": [
-    "cron",
+    "connect-project",
     "repair-coverage",
     "inspection",
     "experiments",
@@ -89,8 +89,8 @@
     },
     "tools": {
       "status": "partial",
-      "scope": "Railway verified five repair families from simple Rookery setup. Both settings ran through the same flow. The scheduler changed the test job but could not confirm the follow-up.",
-      "remaining": "Connect repairs to scoped grants on a normally connected project. Verify scheduler follow-up, eligible query shapes, write impact and memory headroom.",
+      "scope": "Railway verified all six repair families from the normal Rookery setup with zero manual query IDs. The same flow measured both settings, and the compound-index action recovered across a restart.",
+      "remaining": "Connect repairs to scoped grants on a normally connected project. Verify eligible workload shapes, write impact and memory headroom beyond the tested cases.",
       "evidence": [
         "docs/design/hosted-query-agent/roadmap.md",
         "docs/design/hosted-query-agent/cron-staging.md",
@@ -99,15 +99,16 @@
         "docs/design/hosted-query-agent/evidence/mvp-simple-vacuum-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-simple-cleanup-trigger-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-simple-column-target-railway.json",
-        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-handoff-railway.json"
+        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-handoff-railway.json",
+        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-railway.json"
       ],
       "remainingBuild": "Bind repairs to customer grants and exact targets.",
-      "remainingVerification": "Verify scheduler follow-up, eligible query shapes, write impact and memory headroom.",
-      "statusLabel": "Five simple repair families verified"
+      "remainingVerification": "Verify eligible workload shapes, write impact, memory headroom and owner schedules beyond the tested cases.",
+      "statusLabel": "Six simple repair families verified"
     },
     "inspection": {
       "status": "partial",
-      "scope": "Railway used automatically discovered, scoped workload evidence for compound indexing, targeted statistics, cleanup and function memory. Scheduling used three original periods of actual Rookery job history and foreground counters.",
+      "scope": "Railway used automatically discovered workload evidence for six bounded repairs, including actual job history and matched foreground traffic for the scheduler.",
       "remaining": "Verify broader query shapes and evidence on representative connections, including ordinary pooled access and the Data API.",
       "evidence": [
         "internal/graphrunner/diagnostic.go",
@@ -129,7 +130,8 @@
         "docs/design/hosted-query-agent/evidence/mvp-simple-statistics-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-simple-memory-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-simple-vacuum-railway.json",
-        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-handoff-railway.json"
+        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-handoff-railway.json",
+        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-railway.json"
       ],
       "statusLabel": "Scoped workload evidence verified",
       "remainingBuild": "Extend the existing evidence checks to broader project and workload shapes.",
@@ -234,9 +236,9 @@
       "statusLabel": "Railway memory repair verified"
     },
     "cron": {
-      "status": "partial",
-      "scope": "Railway recorded three original Rookery periods from simple setup with zero manual query IDs. PostgreSQL confirmed the schedule change with 1.9 seconds left. One of the two required scheduler checks completed before the cutoff, and the dashboard saved an inconclusive result.",
-      "remaining": "Confirm the native schedule change and verify all three follow-up periods through the Railway dashboard.",
+      "status": "verified",
+      "scope": "Railway verified scheduling from the normal form with zero manual query IDs. Rookery completed three runs on each schedule. The busy-window query fell from 32.84 ms to 0.087 ms and protected reads and writes passed.",
+      "remaining": "Qualify owner-approved schedules on a normally connected project with job-specific repair authority.",
       "evidence": [
         "docs/design/hosted-query-agent/cron-staging.md",
         "internal/hostedquery/project_cron.go",
@@ -252,9 +254,10 @@
         "docs/design/hosted-query-agent/evidence/mvp-simple-cron-handoff-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-simple-cron-activation-timeout-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-simple-cron-witness-timeout-railway.json",
-        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-model-output-railway.json"
+        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-model-output-railway.json",
+        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-railway.json"
       ],
-      "statusLabel": "Live target run verified"
+      "statusLabel": "Six live periods verified"
     },
     "recovery": {
       "status": "verified",
@@ -344,8 +347,8 @@
     },
     "repair-coverage": {
       "status": "partial",
-      "scope": "Railway verified five repair families selected through simple setup. The cleanup-trigger change stayed in place. The column-statistics trial restored its previous setting when the query slowed. The Cron trial changed the schedule and saved an inconclusive result.",
-      "remaining": "Complete the live scheduler verification. Qualify operation-specific targets and grants on a normally connected project.",
+      "scope": "All six repair families verified one real example each through the Railway setup and dashboard. The cleanup trigger stayed in place after measured benefit. The column-statistics trial restored the original setting when the query slowed.",
+      "remaining": "Qualify the repair permissions and target selection for a normally connected project.",
       "evidence": [
         "docs/design/hosted-query-agent/roadmap.md",
         "internal/hostedapp/supervisor.go",
@@ -368,14 +371,15 @@
         "docs/design/hosted-query-agent/evidence/mvp-simple-vacuum-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-simple-cleanup-trigger-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-simple-column-target-railway.json",
-        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-handoff-railway.json"
+        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-handoff-railway.json",
+        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-railway.json"
       ],
-      "statusLabel": "Five simple repair families verified"
+      "statusLabel": "Six simple repair families verified"
     },
     "connect-project": {
       "status": "partial",
-      "scope": "Railway verified five repair checkboxes from simple setup. The scheduling checkbox discovered and moved the Rookery job without a manual query ID. Follow-up verification is still open.",
-      "remaining": "Verify the scheduling result and qualify repair authorization for a normally connected project.",
+      "scope": "Railway verified all six repair checkboxes from the normal owner form with zero manual query IDs on prepared Rookery workloads.",
+      "remaining": "Bind the selected operations to exact authorized targets on a normally connected project.",
       "evidence": [
         "docs/design/hosted-query-agent/supabase-monitoring.md",
         "cmd/pooltune-project/main.go",
@@ -392,9 +396,10 @@
         "docs/design/hosted-query-agent/evidence/mvp-simple-statistics-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-simple-vacuum-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-simple-memory-railway.json",
-        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-handoff-railway.json"
+        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-handoff-railway.json",
+        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-railway.json"
       ],
-      "statusLabel": "Five simple routes verified"
+      "statusLabel": "Six checkboxes verified"
     },
     "credential-lifecycle": {
       "status": "partial",
@@ -422,8 +427,8 @@
     },
     "activity": {
       "status": "partial",
-      "scope": "The dashboard shows verified results for five repair families from simple setup, a recovered index action, both settings outcomes and the inconclusive scheduling attempt.",
-      "remaining": "Verify a final scheduler result through the dashboard and expose the protected read and write measurements.",
+      "scope": "The dashboard shows verified results for six Rookery repair families, both settings outcomes and the interrupted index action. The scheduler report displays measured foreground and protected traffic.",
+      "remaining": "Qualify protected traffic reporting across repair types and verify the developer viewer through hosted access.",
       "evidence": [
         "docs/design/hosted-query-agent/roadmap.md",
         "docs/design/hosted-query-agent/hosted-preview.md",
@@ -439,9 +444,10 @@
         "docs/design/hosted-query-agent/evidence/mvp-simple-vacuum-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-simple-cleanup-trigger-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-simple-column-target-railway.json",
-        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-handoff-railway.json"
+        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-handoff-railway.json",
+        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-railway.json"
       ],
-      "statusLabel": "Hosted results, restore and restart"
+      "statusLabel": "Six hosted repair results and index restart"
     },
     "landing": {
       "status": "verified",
@@ -717,8 +723,8 @@
     },
     "agent-permission-setup": {
       "status": "verified",
-      "scope": "Railway verified five repair checkboxes from simple setup. The scheduling checkbox discovered and moved the Rookery job without a manual query ID. Follow-up verification is still open.",
-      "remaining": "Verify the scheduling result and qualify repair authorization for a normally connected project.",
+      "scope": "Railway verified all six repair checkboxes from the normal owner form with zero manual query IDs on prepared Rookery workloads.",
+      "remaining": "Bind the selected operations to exact authorized targets on a normally connected project.",
       "evidence": [
         "internal/hostedapp/ui/pages.html",
         "docs/design/hosted-query-agent/evidence/mvp-agent-setup.json",
@@ -728,9 +734,10 @@
         "docs/design/hosted-query-agent/evidence/mvp-simple-memory-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-simple-vacuum-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-simple-cleanup-trigger-railway.json",
-        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-handoff-railway.json"
+        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-handoff-railway.json",
+        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-railway.json"
       ],
-      "statusLabel": "Five checkboxes verified"
+      "statusLabel": "Six checkboxes verified"
     },
     "automatic-workload-discovery": {
       "status": "verified",
@@ -964,6 +971,16 @@
         "cron",
         "statistics-target",
         "cleanup-settings"
+      ]
+    },
+    {
+      "label": "Task 57 · Scheduling verified from simple setup",
+      "summary": "Railway saved six genuine Rookery scheduler periods and showed the busy-window query improve from 32.84 ms to 0.087 ms. Protected reads and writes passed. All six repair checkboxes now have a verified case with no manual query IDs.",
+      "nodes": [
+        "cron",
+        "agent-permission-setup",
+        "repair-coverage",
+        "activity"
       ]
     }
   ],
