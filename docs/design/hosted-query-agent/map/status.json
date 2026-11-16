@@ -1,5 +1,5 @@
 {
-  "sourceRevision": "9065dd4d200945c211482ecf3eaa8aedee7617a7",
+  "sourceRevision": "cd1b2371ed01a300357c1c137963ccaecacd9dfa",
   "summary": "Railway verified all six repair families from normal setup on Rookery with zero manual query IDs. Both settings and index restart recovery were verified. General project repair permissions remain open.",
   "next": [
     "connect-project",
@@ -347,8 +347,8 @@
     },
     "repair-coverage": {
       "status": "partial",
-      "scope": "All six repair families verified one real example each through the Railway setup and dashboard. The cleanup trigger stayed in place after measured benefit. The column-statistics trial restored the original setting when the query slowed.",
-      "remaining": "Qualify the repair permissions and target selection for a normally connected project.",
+      "scope": "All six prepared Rookery repairs have verified results. The local native permission check also admitted a real ANALYZE and refused it after grant revocation.",
+      "remaining": "Connect normal project provisioning to the owner-side Go worker and qualify the full grant, repair and revocation flow on Railway.",
       "evidence": [
         "docs/design/hosted-query-agent/roadmap.md",
         "internal/hostedapp/supervisor.go",
@@ -372,14 +372,15 @@
         "docs/design/hosted-query-agent/evidence/mvp-simple-cleanup-trigger-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-simple-column-target-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-simple-cron-handoff-railway.json",
-        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-railway.json"
+        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-railway.json",
+        "internal/hostedquery/project_repair_access.go"
       ],
       "statusLabel": "Six simple repair families verified"
     },
     "connect-project": {
       "status": "partial",
-      "scope": "Railway verified all six repair checkboxes from the normal owner form with zero manual query IDs on prepared Rookery workloads.",
-      "remaining": "Choose where the project-side repair executor runs. Then verify that the selected operations bind to exact authorized database targets.",
+      "scope": "Normal setup worked with six prepared Rookery cases. Go now checks native authority for the eight actions behind those choices, verified on local PostgreSQL.",
+      "remaining": "Connect the owner-side Go worker to the normal Railway queue. Verify provisioning and a repair on a normally connected Rookery installation.",
       "evidence": [
         "docs/design/hosted-query-agent/supabase-monitoring.md",
         "cmd/pooltune-project/main.go",
@@ -398,9 +399,10 @@
         "docs/design/hosted-query-agent/evidence/mvp-simple-memory-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-simple-cron-handoff-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-simple-cron-railway.json",
-        "docs/design/hosted-query-agent/repair-authority.md"
+        "docs/design/hosted-query-agent/repair-authority.md",
+        "internal/hostedquery/project_repair_access.go"
       ],
-      "statusLabel": "Six checkboxes verified"
+      "statusLabel": "Native permission check verified locally"
     },
     "credential-lifecycle": {
       "status": "partial",
@@ -724,8 +726,8 @@
     },
     "agent-permission-setup": {
       "status": "verified",
-      "scope": "Railway verified all six repair checkboxes from the normal owner form with zero manual query IDs on prepared Rookery workloads.",
-      "remaining": "Bind the selected operations to exact authorized targets on a normally connected project.",
+      "scope": "Railway verified all six checkboxes from the normal owner form on prepared Rookery workloads. The form now discloses each database permission in local tests.",
+      "remaining": "Apply the selected operations to exact authorized targets through the connected owner-side Go worker.",
       "evidence": [
         "internal/hostedapp/ui/pages.html",
         "docs/design/hosted-query-agent/evidence/mvp-agent-setup.json",
@@ -736,7 +738,8 @@
         "docs/design/hosted-query-agent/evidence/mvp-simple-vacuum-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-simple-cleanup-trigger-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-simple-cron-handoff-railway.json",
-        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-railway.json"
+        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-railway.json",
+        "internal/hostedquery/project_repair_access.go"
       ],
       "statusLabel": "Six checkboxes verified"
     },
@@ -982,6 +985,15 @@
         "agent-permission-setup",
         "repair-coverage",
         "activity"
+      ]
+    },
+    {
+      "label": "Task 59 · Check repair permissions in Go",
+      "summary": "Local PostgreSQL verified exact database access for eight repair actions, permission revocation, and the normal monitor installer. The owner-side worker still needs the Railway queue connection.",
+      "nodes": [
+        "connect-project",
+        "agent-permission-setup",
+        "repair-coverage"
       ]
     }
   ],

@@ -5,7 +5,7 @@
   "workType": "Build progress and remaining work",
   "summary": "Railway verified all six repair families from normal setup on Rookery with zero manual query IDs. Both settings and index restart recovery were verified. General project repair permissions remain open.",
   "sourceRevision": {
-    "commit": "9065dd4d200945c211482ecf3eaa8aedee7617a7",
+    "commit": "cd1b2371ed01a300357c1c137963ccaecacd9dfa",
     "dirty": false
   },
   "components": [
@@ -1055,7 +1055,7 @@
       "id": "repair-coverage",
       "label": "Qualify broader repairs",
       "type": "service",
-      "purpose": "All six repair families verified one real example each through the Railway setup and dashboard. The cleanup trigger stayed in place after measured benefit. The column-statistics trial restored the original setting when the query slowed.",
+      "purpose": "All six prepared Rookery repairs have verified results. The local native permission check also admitted a real ANALYZE and refused it after grant revocation.",
       "decisionIds": [],
       "sources": [
         {
@@ -1142,11 +1142,16 @@
           "path": "docs/design/hosted-query-agent/evidence/mvp-simple-cron-railway.json",
           "revision": "9065dd4d200945c211482ecf3eaa8aedee7617a7",
           "kind": "verified"
+        },
+        {
+          "path": "internal/hostedquery/project_repair_access.go",
+          "revision": "cd1b2371ed01a300357c1c137963ccaecacd9dfa",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "All six repair families verified one real example each through the Railway setup and dashboard. The cleanup trigger stayed in place after measured benefit. The column-statistics trial restored the original setting when the query slowed.",
-      "after": "All six repair families verified one real example each through the Railway setup and dashboard. The cleanup trigger stayed in place after measured benefit. The column-statistics trial restored the original setting when the query slowed.",
+      "changeSummary": "All six prepared Rookery repairs have verified results. The local native permission check also admitted a real ANALYZE and refused it after grant revocation.",
+      "after": "All six prepared Rookery repairs have verified results. The local native permission check also admitted a real ANALYZE and refused it after grant revocation.",
       "parent": "tools",
       "stack": [
         "Go"
@@ -1156,7 +1161,7 @@
       "id": "connect-project",
       "label": "Connect and enroll a project",
       "type": "service",
-      "purpose": "Railway verified all six repair checkboxes from the normal owner form with zero manual query IDs on prepared Rookery workloads.",
+      "purpose": "Normal setup worked with six prepared Rookery cases. Go now checks native authority for the eight actions behind those choices, verified on local PostgreSQL.",
       "decisionIds": [],
       "sources": [
         {
@@ -1208,11 +1213,16 @@
           "path": "docs/design/hosted-query-agent/repair-authority.md",
           "revision": "2026-11-15 pending repair authority proposal",
           "kind": "intended"
+        },
+        {
+          "path": "internal/hostedquery/project_repair_access.go",
+          "revision": "cd1b2371ed01a300357c1c137963ccaecacd9dfa",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Railway verified all six repair checkboxes from the normal owner form with zero manual query IDs on prepared Rookery workloads.",
-      "after": "Railway verified all six repair checkboxes from the normal owner form with zero manual query IDs on prepared Rookery workloads.",
+      "changeSummary": "Normal setup worked with six prepared Rookery cases. Go now checks native authority for the eight actions behind those choices, verified on local PostgreSQL.",
+      "after": "Normal setup worked with six prepared Rookery cases. Go now checks native authority for the eight actions behind those choices, verified on local PostgreSQL.",
       "parent": "backend",
       "stack": [
         "Go",
@@ -2410,7 +2420,7 @@
       "id": "agent-permission-setup",
       "label": "Agent setup and repair choices",
       "type": "service",
-      "purpose": "Railway verified all six repair checkboxes from the normal owner form with zero manual query IDs on prepared Rookery workloads.",
+      "purpose": "Railway verified all six checkboxes from the normal owner form on prepared Rookery workloads. The form now discloses each database permission in local tests.",
       "decisionIds": [],
       "sources": [
         {
@@ -2452,11 +2462,16 @@
           "path": "docs/design/hosted-query-agent/evidence/mvp-simple-cron-railway.json",
           "revision": "9065dd4d200945c211482ecf3eaa8aedee7617a7",
           "kind": "verified"
+        },
+        {
+          "path": "internal/hostedquery/project_repair_access.go",
+          "revision": "cd1b2371ed01a300357c1c137963ccaecacd9dfa",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Railway verified all six repair checkboxes from the normal owner form with zero manual query IDs on prepared Rookery workloads.",
-      "after": "Railway verified all six repair checkboxes from the normal owner form with zero manual query IDs on prepared Rookery workloads.",
+      "changeSummary": "Railway verified all six checkboxes from the normal owner form on prepared Rookery workloads. The form now discloses each database permission in local tests.",
+      "after": "Railway verified all six checkboxes from the normal owner form on prepared Rookery workloads. The form now discloses each database permission in local tests.",
       "parent": "connect-project",
       "stack": [
         "Go",

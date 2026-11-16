@@ -10,7 +10,7 @@
 
 The MVP is the joined flow. An owner connects an existing Supabase project and grants specific repair powers. Pooltune watches the chosen workload in the background, investigates a problem, carries out an eligible repair, checks its effect, and shows what happened. A healthy query, insufficient evidence or denied permission produces an explained no-change outcome.
 
-Railway has verified all six repair families from the normal Rookery setup with zero manual query IDs, plus index restart recovery and both settings. The tested column-statistics trial restored its original value after latency regressed. Operation-specific repair authority for a normally connected project remains open. [Repair executor proposal](repair-authority.md) · [Latest build progress](progress.md#tasks-5658-simple-repair-setup-scheduling-and-the-remaining-settings)
+Railway has verified all six repair families from the normal Rookery setup with zero manual query IDs, plus index restart recovery and both settings. The tested column-statistics trial restored its original value after latency regressed. Local PostgreSQL verified the Go permission checks. The owner-side worker still needs the normal Railway queue connection and connected-project qualification. [Repair authority design](repair-authority.md) · [Latest build progress](progress.md#tasks-5658-simple-repair-setup-scheduling-and-the-remaining-settings)
 
 ## Build in this order
 
