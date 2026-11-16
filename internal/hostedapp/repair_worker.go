@@ -141,13 +141,16 @@ func (a *App) receiveRepairWorkerReport(w http.ResponseWriter, r *http.Request, 
 	dec := json.NewDecoder(r.Body)
 	dec.DisallowUnknownFields()
 	var report repairWorkerReport
-	if err := dec.Decode(&report); err != nil || !errors.Is(dec.Decode(new(any)), io.EOF) ||
-		!validRepairWorkerReport(report, secrets.Capabilities) {
+	if err := dec.Decode(&report); err != nil || !errors.Is(dec.Decode(new(any)), io.EOF) || report.Epoch <= 0 {
 		http.Error(w, "Invalid repair access report.", http.StatusBadRequest)
 		return
 	}
 	if secrets.RepairsPaused || report.Epoch != row.Epoch {
 		http.Error(w, "The repair policy changed. Refresh it before reporting.", http.StatusConflict)
+		return
+	}
+	if !validRepairWorkerReport(report, secrets.Capabilities) {
+		http.Error(w, "Invalid repair access report.", http.StatusBadRequest)
 		return
 	}
 	encoded, err := json.Marshal(report.Operations)
@@ -171,7 +174,7 @@ func (a *App) receiveRepairWorkerReport(w http.ResponseWriter, r *http.Request, 
 }
 
 func validRepairWorkerReport(report repairWorkerReport, selected []string) bool {
-	if report.Epoch <= 0 || len(report.Operations) > 8 {
+	if len(report.Operations) > 8 {
 		return false
 	}
 	seen := make(map[string]bool, len(report.Operations))

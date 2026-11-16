@@ -1,6 +1,6 @@
 # Repair authority for a connected Supabase project
 
-**Status** Go permission checks and setup disclosures are implemented and tested locally. The owner-side worker still needs to receive and authorize repair work from the normal Railway queue. The existing connected monitor and the six bounded Railway repair proofs remain the hosted baseline.
+**Status** The owner-side Go worker can link to the hosted project, read the latest repair choices and report native database permissions. Automatic action delivery still requires measured evidence from an ordinary connected query and the repair queue. The six bounded Railway repair proofs remain the hosted action baseline.
 
 ## What the current flow does
 
@@ -46,6 +46,19 @@ pooltune-project repair-access -ref PROJECT_REF -key INSTALLATION_KEY -scope aut
 ```
 
 The operator scope contains the exact installation ID in `project`, its six checkbox keys in `capabilities`, and the applicable `table`, `function`, `cron`, and `cron_window` objects. Callers can supply a specific table as `{"DatabaseOID": 5, "TableOID": 16400, "Schema": "app", "Relation": "orders"}`. These object IDs identify what the native check may inspect. They are not query IDs. The regular project setup continues to discover workload without asking the owner for them. A `granted` result is a live database privilege check. The repair still requires an authenticated action request, a current owner grant, admitted workload evidence, a durable intent and independent verification.
+
+## Link a worker to the dashboard
+
+On a connected project, choose **Edit repair choices** to update the selected operations. Choose **Create worker key** and save the displayed value as `POOLTUNE_REPAIR_WORKER_TOKEN` in the owner-side Go worker's environment. The server retains a digest of that key. Replacing it, revoking it, or disconnecting the project invalidates the old key.
+
+Run a single permission check using the same scope and database environment as `repair-access`.
+
+```sh
+pooltune-project repair-worker -ref PROJECT_REF -key INSTALLATION_KEY \
+  -scope authorized-targets.json -origin https://pooltune-web-preview-staging.up.railway.app -once
+```
+
+Omit `-once` to check for permission changes every 15 seconds. The worker checks the overlap between its local scope and the current dashboard selection. It sends only the operation names and access statuses. A permission report shows which operations the database login could perform on the checked objects. Workload evidence, authorization at action time and result verification still gate a repair.
 
 ## Verification sequence after the design decision
 

@@ -247,6 +247,9 @@ func TestAccountDashboardAndProjectOwnership(t *testing.T) {
 		policy.Epoch <= resumed.Epoch || strings.Join(policy.Capabilities, ",") != "analyze" {
 		t.Fatalf("the connected worker did not receive the updated choices: %d %+v", w.Code, policy)
 	}
+	if w := workerRequest(http.MethodPost, apiPath, rotated, report(resumed.Epoch, "index")); w.Code != 409 {
+		t.Fatalf("a report from before the checkbox was cleared should refresh policy: %d", w.Code)
+	}
 	if w := request(http.MethodPost, keyPath, url.Values{"mode": {"revoke"}}, owner, origin); w.Code != 303 ||
 		workerRequest(http.MethodGet, apiPath, rotated, "").Code != 401 {
 		t.Fatal("owner revocation did not stop the worker")
