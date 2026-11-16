@@ -6,9 +6,10 @@ import (
 )
 
 type VacuumEvidence struct {
-	HeapFetches     float64 `json:"heap_fetches"`
-	ScanRows        int64   `json:"scan_rows"`
-	ConditionsClear bool    `json:"conditions_clear"`
+	CleanupTrigger  *ManagedCleanupEvidence `json:"cleanup_trigger,omitempty"`
+	HeapFetches     float64                 `json:"heap_fetches"`
+	ScanRows        int64                   `json:"scan_rows"`
+	ConditionsClear bool                    `json:"conditions_clear"`
 }
 type VacuumSample struct {
 	AnalyzeSample
@@ -38,7 +39,7 @@ func vacuumCause(e IndexEvidence) bool {
 		nonnegativeFinite(v.HeapFetches) && v.HeapFetches >= 1000 && v.ScanRows > 0 && v.HeapFetches/float64(v.ScanRows) >= .5
 }
 func qualifyVacuum(e IndexEvidence, p IndexProposal, table uint32, now time.Time) bool {
-	return vacuumCause(e) && len(e.Columns) == 0 && len(p.Columns) == 0 && e.Analyze == nil && e.Statistics == nil && table != 0 && e.TableOID == table && e.Column > 0 && e.RunID != "" &&
+	return vacuumCause(e) && (e.Vacuum.CleanupTrigger == nil || e.Vacuum.CleanupTrigger.Valid(table, e.RunID, now)) && e.Memory == nil && e.ManagedMemory == nil && e.Cron == nil && e.ManagedCron == nil && len(e.Columns) == 0 && len(p.Columns) == 0 && e.Analyze == nil && e.Statistics == nil && table != 0 && e.TableOID == table && e.Column > 0 && e.RunID != "" &&
 		p.Outcome == "propose" && p.Repair == "vacuum" && p.RunID == e.RunID && p.TableOID == table && p.Column == e.Column && len(p.Reason) > 0 && len(p.Reason) <= 1000 &&
 		!e.At.IsZero() && !e.At.After(now) && now.Sub(e.At) <= 30*time.Second
 }

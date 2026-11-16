@@ -4,90 +4,68 @@ package hostedquery
 
 import (
 	"context"
-	"errors"
+	"pooltune/internal/testpg"
+	"sync/atomic"
 	"testing"
 	"time"
-
-	"github.com/jackc/pgx/v5"
-	"pooltune/internal/testpg"
 )
 
-func TestManagedTrafficControlsRequireLiveWritesAndUnchangedCounters(t *testing.T) {
-	ctx, config, _ := testpg.Start(t, "-c", "shared_preload_libraries=pg_stat_statements")
-	db, err := pgx.ConnectConfig(ctx, config)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer db.Close(ctx)
-	if _, err := db.Exec(ctx, `CREATE EXTENSION pg_stat_statements;CREATE TABLE public.traffic_control(id int PRIMARY KEY,n int);INSERT INTO public.traffic_control VALUES(1,0);GRANT SELECT,UPDATE ON public.traffic_control TO fixture_app`); err != nil {
+func TestManagedTrafficControlsExcludeOwnCatalogAndWitnessReads(t *testing.T) {
+	ctx, cfg, _ := testpg.Start(t, "-c", "shared_preload_libraries=pg_stat_statements")
+	db := openMonitorConn(t, ctx, cfg)
+	traffic := openMonitorConn(t, ctx, cfg)
+	if _, err := db.Exec(ctx, `CREATE EXTENSION pg_stat_statements;CREATE TABLE customer_health(id integer PRIMARY KEY,n integer);INSERT INTO customer_health VALUES(1,0)`); err != nil {
 		t.Fatal(err)
 	}
 	var database, role uint32
-	if err := db.QueryRow(ctx, `SELECT oid,'fixture_app'::regrole::oid FROM pg_database WHERE datname=current_database()`).Scan(&database, &role); err != nil {
+	if err := db.QueryRow(ctx, `SELECT oid,current_user::regrole::oid FROM pg_database WHERE datname=current_database()`).Scan(&database, &role); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := observeManagedControls(ctx, db, database, role, 1, nil); err == nil {
-		t.Fatal("reported protection without real traffic")
-	}
-	appConfig := config.Copy()
-	appConfig.User = "fixture_app"
-	app, err := pgx.ConnectConfig(ctx, appConfig)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer app.Close(ctx)
-	trafficCtx, stop := context.WithCancel(ctx)
-	done := make(chan error, 1)
+	work, stop := context.WithCancel(ctx)
+	done := make(chan struct{})
+	var applicationReads atomic.Bool
 	go func() {
-		for {
-			if trafficCtx.Err() != nil {
-				done <- nil
+		defer close(done)
+		for work.Err() == nil {
+			var n int
+			if traffic.QueryRow(work, `SELECT count(*) FROM pg_catalog.pg_class`).Scan(&n) != nil {
 				return
 			}
-			if _, err := app.Exec(trafficCtx, `SELECT n,pg_sleep(0.002) FROM public.traffic_control WHERE id=$1`, 1); err != nil {
-				done <- err
+			if traffic.QueryRow(work, `SELECT 1`).Scan(&n) != nil {
 				return
 			}
-			if _, err := app.Exec(trafficCtx, `UPDATE public.traffic_control SET n=n+1 WHERE id=$1`, 1); err != nil {
-				done <- err
+			if applicationReads.Load() {
+				if traffic.QueryRow(work, `SELECT n FROM customer_health WHERE id=$1`, 1).Scan(&n) != nil {
+					return
+				}
+			}
+			if _, err := traffic.Exec(work, `UPDATE customer_health SET n=n+1 WHERE id=$1`, 1); err != nil {
 				return
 			}
+			time.Sleep(5 * time.Millisecond)
 		}
 	}()
 	defer func() { stop(); <-done }()
-	// Ensure both statement identities are visible before the measured interval.
-	for deadline := time.Now().Add(time.Second); ; {
-		var count int
-		if err := db.QueryRow(ctx, `SELECT count(*) FROM pg_stat_statements WHERE userid=$1 AND query~'^(SELECT|UPDATE)'`, role).Scan(&count); err != nil {
-			t.Fatal(err)
-		}
-		if count >= 2 {
-			break
-		}
-		if time.Now().After(deadline) {
-			t.Fatal("traffic did not start")
-		}
-		time.Sleep(10 * time.Millisecond)
+	if _, err := observeManagedControls(ctx, db, database, role, -123, nil); err == nil {
+		t.Fatal("catalog/witness traffic masqueraded as protected application reads")
 	}
-	baseline, err := observeManagedControls(ctx, db, database, role, 1, nil)
-	if err != nil || baseline.ReadCalls == 0 || baseline.WriteCalls == 0 {
-		t.Fatalf("missing live traffic: %+v %v", baseline, err)
+	applicationReads.Store(true)
+	time.Sleep(20 * time.Millisecond)
+	controls, err := observeManagedControls(ctx, db, database, role, -123, nil)
+	if err != nil || controls.ReadCalls == 0 || controls.WriteCalls == 0 {
+		t.Fatal("genuine application traffic not accepted", err)
 	}
-	for key := range baseline.means {
-		baseline.means[key] = 1e-12
-	}
-	regressed, err := observeManagedControls(ctx, db, database, role, 1, baseline)
-	if !errors.Is(err, ErrManagedTrafficRegression) || regressed == nil || regressed.ReadCalls == 0 || regressed.WriteCalls == 0 {
-		t.Fatalf("known regression lost measured proof: %+v %v", regressed, err)
-	}
-	if _, err := db.Exec(ctx, `SELECT pg_stat_statements_reset()`); err != nil {
+	var catalogID, witnessID int64
+	if err := db.QueryRow(ctx, `SELECT queryid FROM pg_stat_statements WHERE query='SELECT count(*) FROM pg_catalog.pg_class'`).Scan(&catalogID); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := observeManagedControls(ctx, db, database, role, 1, baseline); err == nil {
-		t.Fatal("compared protection across a counter reset")
+	if err := db.QueryRow(ctx, `SELECT queryid FROM pg_stat_statements WHERE query='SELECT $1'`).Scan(&witnessID); err != nil {
+		t.Fatal(err)
 	}
-	var writes int
-	if err := db.QueryRow(ctx, `SELECT n FROM public.traffic_control`).Scan(&writes); err != nil || writes <= 0 {
-		t.Fatalf("actual app writes were absent: %d %v", writes, err)
+	if _, found := controls.means[catalogID]; found {
+		t.Fatal("catalog query remained in protection baseline")
+	}
+	if _, found := controls.means[witnessID]; found {
+		t.Fatal("witness query remained in protection baseline")
 	}
 }

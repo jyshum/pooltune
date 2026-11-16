@@ -96,7 +96,7 @@ func (a *App) startAutomaticProject(parent context.Context, row projectRecord, t
 		return generic
 	}
 	credentials := projectSecrets{
-		Password: base64.RawURLEncoding.EncodeToString(random), CA: ca, Automatic: true, Capabilities: selected,
+		Password: base64.RawURLEncoding.EncodeToString(random), CA: ca, LogsToken: token, Automatic: true, Capabilities: selected,
 	}
 	credentials.ObjectiveMS = objectiveMS
 	if objectiveMS < 0 || objectiveMS > 1000 {
@@ -192,6 +192,15 @@ func (a *App) installAutomaticMonitor(ctx context.Context, row projectRecord, id
 	}
 	fixture := a.ownedIndex.Matches(identity) || a.ownedRepair.Matches(identity) || a.ownedCron.Matches(identity)
 	configureRepairs := func(ctx context.Context) error {
+		if !fixture && slices.Contains(credentials.Capabilities, "memory") {
+			metrics, err := supabaseproject.NewMemoryMetricsReader(identity.Ref(), credentials.LogsToken)
+			if err != nil {
+				return errors.New("use one project-scoped token with Database Write and Analytics Read for function memory")
+			}
+			if _, err := metrics.Read(ctx, identity.Ref()); err != nil {
+				return errors.New("could not read database memory metrics. Check Analytics Read permission and retry")
+			}
+		}
 		goal := credentials.ObjectiveMS
 		if goal == 0 && !fixture {
 			goal = 1000
@@ -258,6 +267,10 @@ func (a *App) changeRepairMode(w http.ResponseWriter, r *http.Request, user auth
 	credentials, err := a.vault.open(row, row.Secret)
 	if err != nil {
 		http.Error(w, "Could not load the project's repair permissions.", http.StatusBadRequest)
+		return
+	}
+	if credentials.DisconnectPending {
+		http.Error(w, "Finish disconnecting before changing repair permissions.", http.StatusConflict)
 		return
 	}
 	var changed bool

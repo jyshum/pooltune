@@ -3,6 +3,7 @@ package hostedquery
 import (
 	"context"
 	"errors"
+	"fmt"
 	"math"
 	"strconv"
 	"time"
@@ -41,6 +42,7 @@ type ProjectCleanupSettingsGuards struct {
 	// RecordIntent persists the exact one-option change before it reaches PostgreSQL.
 	RecordIntent         func(context.Context, ProjectCleanupSettingsIntent) error
 	recordObservedIntent func(context.Context, ProjectCleanupSettingsIntent, ProjectCleanupSettingsObservation) error
+	recordLockedIntent   func(context.Context, ProjectCleanupSettingsIntent, ProjectCleanupSettingsObservation, pgx.Tx) error
 }
 
 type ProjectCleanupSettingsResult struct {
@@ -75,11 +77,16 @@ var errCleanupSettingsThreshold = errors.New("measured backlog does not justify 
 func planProjectCleanupSettings(request ProjectCleanupSettingsRequest, now ProjectCleanupSettingsObservation) (ProjectCleanupSettingsIntent, error) {
 	later, earlier := request.Later, request.Earlier
 	span := later.At.Sub(earlier.At)
-	if span < time.Second || span > 30*time.Second || now.At.Before(later.At) || now.At.Sub(later.At) > 30*time.Second ||
-		!matchingCleanupSettings(earlier, later) || !matchingCleanupSettings(later, now) || !now.AutovacuumEnabled ||
-		earlier.DeadTuples >= later.DeadTuples || later.DeadTuples > now.DeadTuples {
-		return ProjectCleanupSettingsIntent{}, errCleanupSettingsEvidence
+	if span < time.Second || span > 30*time.Second || now.At.Before(later.At) || now.At.Sub(later.At) > 30*time.Second {
+		return ProjectCleanupSettingsIntent{}, fmt.Errorf("%w: observation interval", errCleanupSettingsEvidence)
 	}
+	if !matchingCleanupSettings(earlier, later) || !matchingCleanupSettings(later, now) || !now.AutovacuumEnabled {
+		return ProjectCleanupSettingsIntent{}, fmt.Errorf("%w: settings or generation changed", errCleanupSettingsEvidence)
+	}
+	if earlier.DeadTuples >= later.DeadTuples || later.DeadTuples > now.DeadTuples {
+		return ProjectCleanupSettingsIntent{}, fmt.Errorf("%w: backlog stopped increasing", errCleanupSettingsEvidence)
+	}
+
 	next := math.Round(math.Max(.05, now.ScaleFactor-math.Min(.05, now.ScaleFactor/4))*1e6) / 1e6
 	if now.EstimatedRows <= 0 || next >= now.ScaleFactor || !nonnegativeFinite(now.EstimatedRows) || !validCleanupOption(now.ScaleOption, true) ||
 		cleanupThreshold(now, next) >= float64(earlier.DeadTuples) || float64(now.DeadTuples) >= cleanupThreshold(now, now.ScaleFactor) {
@@ -107,7 +114,7 @@ func RestoreProjectCleanupSettings(ctx context.Context, config *pgx.ConnConfig, 
 
 func updateProjectCleanupSettings(ctx context.Context, config *pgx.ConnConfig, target ProjectIndexTarget, runID string, guards ProjectCleanupSettingsGuards,
 	plan func(ProjectCleanupSettingsObservation) (ProjectCleanupSettingsIntent, error)) (result ProjectCleanupSettingsResult, err error) {
-	if config == nil || runID == "" || len(runID) > 128 || guards.CheckPermission == nil || guards.CheckCapacity == nil || (guards.RecordIntent == nil && guards.recordObservedIntent == nil) {
+	if config == nil || runID == "" || len(runID) > 128 || guards.CheckPermission == nil || guards.CheckCapacity == nil || (guards.RecordIntent == nil && guards.recordObservedIntent == nil && guards.recordLockedIntent == nil) {
 		return result, errors.New("cleanup setting needs an exact request, permission, capacity and durable intent")
 	}
 	ctx, cancel := context.WithTimeout(ctx, 8*time.Second)
@@ -182,7 +189,11 @@ func updateProjectCleanupSettings(ctx context.Context, config *pgx.ConnConfig, t
 		return result, err
 	}
 	result.Intent = intent
-	if guards.recordObservedIntent != nil {
+	if guards.recordLockedIntent != nil {
+		if err := guards.recordLockedIntent(ctx, intent, result.Before, tx); err != nil {
+			return result, err
+		}
+	} else if guards.recordObservedIntent != nil {
 		if err := guards.recordObservedIntent(ctx, intent, result.Before); err != nil {
 			return result, err
 		}

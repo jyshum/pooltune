@@ -29,14 +29,15 @@ type ProjectCronSnapshot struct {
 }
 
 type ProjectCronRequest struct {
-	Target       ProjectCronTarget
-	Window       ProjectCronWindowPlan
-	Baseline     ProjectCronSnapshot
-	Generation   CronGeneration
-	RunID        string
-	ObservedAt   time.Time
-	Periods      []CronPeriod
-	ownedHandoff bool
+	Target         ProjectCronTarget
+	Window         ProjectCronWindowPlan
+	Baseline       ProjectCronSnapshot
+	Generation     CronGeneration
+	RunID          string
+	ObservedAt     time.Time
+	Periods        []CronPeriod
+	ManagedPeriods []ManagedCronPeriod
+	ownedHandoff   bool
 }
 
 type ProjectCronIntent struct {
@@ -54,6 +55,8 @@ type ProjectCronGuards struct {
 	CheckCapacity   func(context.Context, ProjectCronIntent) error
 	// RecordIntent must commit the exact action in independent durable state.
 	RecordIntent func(context.Context, ProjectCronIntent) error
+	// Managed temporary probes must retain both pre-fence and proposed generations before customer commit.
+	RecordWitnessFence func(context.Context, string) error
 }
 
 type ProjectCronResult struct {
@@ -212,6 +215,9 @@ func applyProjectCronOn(ctx context.Context, cfg *pgx.ConnConfig, db *pgx.Conn, 
 	if (cfg == nil && db == nil) || guards.CheckPermission == nil || guards.CheckCapacity == nil || guards.RecordIntent == nil || req.RunID == "" || len(req.RunID) > 64 {
 		return out, errors.New("Cron change requires native route, permissions, capacity and durable intent")
 	}
+	if len(req.ManagedPeriods) > 0 && guards.RecordWitnessFence == nil {
+		return out, errors.New("managed Cron requires durable witness fence identity")
+	}
 	original, proposed, err := req.Window.schedules()
 	if err != nil || original != req.Baseline.Schedule {
 		return out, errors.New("Cron job does not match the approved schedule pair")
@@ -322,6 +328,15 @@ func applyProjectCronOn(ctx context.Context, cfg *pgx.ConnConfig, db *pgx.Conn, 
 		}
 		if witness != witnessBefore {
 			return errors.New("Cron provider changed the owned scheduler witness")
+		}
+		if guards.RecordWitnessFence != nil {
+			var witnessGeneration string
+			if err := tx.QueryRow(ctx, `SELECT xmin::text FROM cron.job WHERE jobid=$1`, req.Target.WitnessJobID).Scan(&witnessGeneration); err != nil {
+				return err
+			}
+			if err := guards.RecordWitnessFence(ctx, witnessGeneration); err != nil {
+				return err
+			}
 		}
 		out.FirstFutureCycle = firstFuture
 		phase = "commit"

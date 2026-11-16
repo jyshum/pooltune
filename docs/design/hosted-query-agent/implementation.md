@@ -563,3 +563,50 @@ Approved hosting change comes from Jared's request to use Railway and store the 
 - [ ] Show managed execution and evidence outcomes in the dashboard without requiring a worker key.
 - [ ] Exercise the complete normal form on disposable Rookery data through Railway. Verify an actual repair, refusal, pause/revocation and restart before marking corresponding map scope complete.
 - [ ] Update map and resume evidence, commit and push revamp after review.
+
+
+### Task 62: Complete committed statistics trials
+
+Jared approved the real-traffic option after the plain-English benefits and tradeoffs explanation, November15. Keep the old uncommitted prepared path separate.
+
+- [ ] Persist exact old settings, newly created object identity, trial deadline and action state before committing a bounded change.
+- [ ] Measure the same candidate inputs and matched normal traffic after commit. Keep existing benefit and regression limits; missing evidence never passes.
+- [ ] Retain only verified benefit. Otherwise restore the exact prior configuration/remove only the exact created object, regenerate statistics, and describe the changed recovery guarantee accurately.
+- [ ] Recover interrupted trials without repeating uncertain writes or overwriting owner changes. Permission changes stop new actions while recovery remains explicit.
+- [ ] Test real PostgreSQL benefit, regression, missing traffic, replaced objects and restart boundaries; qualify on Rookery through Railway.
+- [ ] Update dashboard, map and evidence; review, commit and push revamp.
+
+### Task 63: Automatic function-memory allowance with fallback
+
+Jared approved automatic extra memory with original-memory fallback, not new busy errors. Broader owner authority is already approved; arbitrary customer-code replay and unbounded memory are not.
+
+- [ ] Prove per-call settings and allowance release can preserve original behavior and original definition on supported functions.
+- [ ] Preserve exact identity and restore only Pooltune's changes. Reject unsupported bodies before execution.
+- [ ] Bind matched inner-plan spill evidence, measured benefit, enforced concurrent extra-memory allowance and actual provider headroom.
+- [ ] Connect explicit function enrollment to the managed Go worker without query IDs or external worker setup.
+- [ ] Verify overload fallback, errors, restart, owner changes and ordinary app traffic; qualify on Rookery through Railway.
+- [ ] Update dashboard/map and evidence; review, commit and push revamp.
+
+
+### Task 64: Connect enrolled scheduling to the managed worker
+
+Continue the already-approved V1 scheduling capability and explicit job enrollment. Managed Go native authority is approved. Preserve existing schedule frequency, owner-approved move/deadline/runtime limits and scheduler evidence checks.
+
+- [ ] Trace enrolled job identity and allowed move through the existing managed supervisor to native Go scheduling checks.
+- [ ] Collect genuine job history and matched application traffic without manual query IDs or preconfigured fixture worker variables.
+- [ ] Reuse typed proposals, durable action state, exact owner/command checks, real scheduler acknowledgement and before/after-period verification. Never execute an arbitrary job command directly.
+- [ ] Preserve pause/revocation/recovery and unrelated jobs. Reject missing authority or incomplete evidence honestly.
+- [ ] Test native PostgreSQL contracts and real Rookery scheduling through Railway; update map/dashboard/evidence and push revamp after review.
+
+A new persistent scheduler helper, new synthetic customer writes, changed schedule limits or weakened scheduler acknowledgement would be a further design conflict and must be raised before implementation. Read-only investigation and within-design wiring continue independently.
+
+
+### Task 65: Connect automatic-cleanup settings to ordinary tables
+
+The approved V1 cleanup checkbox covers plain VACUUM and bounded per-table cleanup-trigger settings. Preserve the native Go action limits and real automatic-cleanup verification from the existing prepared proof; do not substitute manual cleanup or fictitious counters.
+
+- [ ] Discover eligible table/lookup evidence and recent native cleanup history using the managed owner credential.
+- [ ] Reuse exact ownership, prior settings, capacity, permission epoch and durable intent before changing supported cleanup thresholds.
+- [ ] Observe a real automatic cleanup with matched candidate and normal protected traffic, keeping incomplete evidence pending or restoring the prior settings as designed.
+- [ ] Recover interrupted trials conditionally without overwriting owner changes or performing unapproved manual cleanup.
+- [ ] Test real PostgreSQL and qualify Rookery through Railway, then update dashboard/map/evidence and commit/push after review.

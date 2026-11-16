@@ -163,6 +163,14 @@
     {{template "project-activity" $project}}
   {{end}}
   {{if eq $project.Status "Monitoring"}}
+  <details class="panel optional">
+    <summary>Update monitoring access</summary>
+    <p>Use this when your monitoring token expires or you revoke it. Pooltune stores the replacement encrypted on Railway. It must be limited to this project with Logs Read (Analytics Read).</p>
+    <form class="fields" action="/app/projects/{{$project.ID}}/monitoring-token" method="post">
+      <div class="field"><label for="monitoring-token">Project monitoring token</label><input type="password" id="monitoring-token" name="monitoring_token" autocomplete="off" maxlength="512" required></div>
+      <button class="button button-secondary" type="submit">Save monitoring access</button>
+    </form>
+  </details>
   <section class="panel disconnect" aria-labelledby="connection-title">
     <div><h2 id="connection-title">Connection</h2><p>Disconnecting stops monitoring and keeps your saved activity.</p></div>
     <form action="/app/projects/{{$project.ID}}/disconnect" method="post"><button class="button button-secondary" type="submit">Disconnect</button></form>
@@ -185,7 +193,7 @@
         <div class="field">
           <label for="setup-token">Supabase setup token</label>
           <input type="password" id="setup-token" name="setup_token" autocomplete="off" maxlength="512" aria-describedby="setup-token-help" required>
-          <p class="help" id="setup-token-help">Use a Supabase Management API token limited to this project with <strong>Database Write</strong>. Pooltune uses it to install the monitor and discards it after setup.</p>
+          <p class="help" id="setup-token-help">Use one Supabase Management API token limited to this project with <strong>Database Write</strong> and <strong>Logs Read (Analytics Read)</strong>. Pooltune uses it for setup, then keeps it encrypted on Railway for monitoring. The stored token still holds its Database Write permission; ongoing monitoring only reads data. Disconnecting removes the stored token.</p>
         </div>
         <div class="field">
           <label for="repair-password">Database password for repairs</label>
@@ -274,6 +282,7 @@
 <section class="panel" aria-labelledby="repair-worker-title">
   <div class="panel-heading"><h2 id="repair-worker-title">Managed repairs</h2></div>
   <p>Pooltune runs the repair worker for this project. Each action checks your current selections, database permissions and measured evidence. Results appear in activity.</p>
+  <p><a href="/app/projects/{{.ID}}/repair-enrollment">Choose functions and scheduled jobs</a>. These need explicit enrollment and additional evidence before a repair can run.</p>
 </section>
 {{else if .ManagedCredentialNeeded}}
 <section class="panel" aria-labelledby="repair-worker-title">
@@ -367,7 +376,7 @@ ALTER ROLE {{.Role}} LOGIN;</textarea>
         <div class="field">
           <label for="logs-token">Supabase Logs Read token</label>
           <input type="password" id="logs-token" name="logs_token" autocomplete="off" aria-describedby="logs-help">
-          <p class="help" id="logs-help">Use a token scoped to this project with Logs Read permissions. The database owner also needs to grant plan access for each enrolled query.</p>
+          <p class="help" id="logs-help">Use a token scoped to this project with Logs Read (Analytics Read) permission. Query-plan access still depends on database permissions.</p>
         </div>
       </details>
       {{if .FixtureIndex}}

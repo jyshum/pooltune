@@ -37,7 +37,9 @@ RETURN QUERY
                   -- Classify representative text inside PostgreSQL. It never leaves this reader.
                   AND octet_length(s.query) BETWEEN 1 AND 65536
                   AND s.query ~* $pattern$^[[:space:]]*(select|with|insert|update|delete|merge)\M$pattern$
-                  AND s.query ~* $pattern$\m(from|insert|update|merge)\M$pattern$
+                  AND (s.query ~* $pattern$\m(from|insert|update|merge)\M$pattern$
+                       OR s.query ~* $pattern$^[[:space:]]*select[[:space:]]+("([^"]|"")+"|[a-z_][a-z0-9_$]*)[[:space:]]*\.[[:space:]]*("([^"]|"")+"|[a-z_][a-z0-9_$]*)[[:space:]]*\([[:space:]]*\)[[:space:]]*;?[[:space:]]*$pattern$)
+                  AND s.query !~* $pattern$^[[:space:]]*select[[:space:]]+"?(pg_[[:alnum:]_]+|information_schema|pt_monitor_[[:alnum:]_]+|pt_memory_[[:alnum:]_]+)"?[[:space:]]*\.$pattern$
                   AND s.query !~* $pattern$\m(from|join)\M[[:space:](]+(only[[:space:](]+)?"?(pg_[[:alnum:]_]+|information_schema|pt_monitor_[[:alnum:]_]+)\M$pattern$
                   AND s.query !~* $pattern$\m(pg_stat[[:alnum:]_]*|pg_locks|pg_is_in_recovery|pg_last_[[:alnum:]_]*|set_config)\M$pattern$
                   -- Every INTO must belong to an INSERT or MERGE. SELECT INTO is a utility command.

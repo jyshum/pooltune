@@ -145,11 +145,36 @@ func diagnoseLookup(ctx context.Context, state *pgx.Conn, project supabaseprojec
 	if err := repair.ensureCleanupClaim(ctx, state, project, epoch); err != nil {
 		return nil, err
 	}
+	if general != nil {
+		if general.Cron != nil {
+			if err := ensureManagedCronContinuation(ctx, state, project.ID(), epoch); err != nil {
+				return nil, err
+			}
+			if err := general.Cron.wakeInactive(ctx, state, project.ID(), epoch); err != nil {
+				return nil, err
+			}
+		}
+		if err := ensureManagedCleanupContinuation(ctx, state, project.ID(), epoch); err != nil {
+			return nil, err
+		}
+	}
 	claim, err := claimProjectInvestigation(ctx, state, project.ID(), &epoch, scope...)
 	if err != nil || claim == nil {
 		return nil, err
 	}
 	result := DispatchResult{JobID: claim.ID, Attempt: claim.Attempt, Outcome: "insufficient_evidence", DiagnosticReason: "lookup_grant_or_fresh_windows_unavailable"}
+	if general != nil && general.Cron != nil {
+		report, err := general.Cron.dispatch(ctx, state, project, epoch, *claim)
+		if err != nil || report != nil {
+			return report, err
+		}
+	}
+	if general != nil {
+		report, err := general.dispatchCleanupSettings(ctx, state, project, epoch, *claim, targetSession)
+		if err != nil || report != nil {
+			return report, err
+		}
+	}
 	recovered, err := fixture.recover(ctx, state, project, *claim, &result)
 	if err == nil && !recovered && general != nil {
 		recovered, err = general.recover(ctx, state, project, *claim, &result)
@@ -199,6 +224,9 @@ func diagnoseLookup(ctx context.Context, state *pgx.Conn, project supabaseprojec
 		}
 	}
 	result.ElapsedMS = elapsedMS(started)
+	if result.managedCleanupPublication != nil {
+		return &result, publishManagedCleanup(ctx, state, epoch, *claim, result, *result.managedCleanupPublication)
+	}
 	if result.continuationAt != nil {
 		if _, err := continueInvestigation(ctx, state, *claim, result, *result.continuationAt); err != nil {
 			return nil, err

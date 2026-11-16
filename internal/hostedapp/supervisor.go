@@ -54,6 +54,12 @@ func (a *App) RunWorkers(ctx context.Context) {
 				}
 				worker, cancel := context.WithCancel(ctx)
 				processes[row.ID] = projectProcess{epoch: row.Epoch, cancel: cancel}
+				a.workerMu.Lock()
+				if a.workerStops == nil {
+					a.workerStops = make(map[string]context.CancelFunc)
+				}
+				a.workerStops[row.ID] = cancel
+				a.workerMu.Unlock()
 				workers.Go(func() { a.superviseProject(worker, row) })
 			}
 		}
@@ -88,6 +94,9 @@ func (a *App) runProject(ctx context.Context, row projectRecord) error {
 	credentials, err := a.vault.open(row, row.Secret)
 	if err != nil {
 		return err
+	}
+	if credentials.DisconnectPending {
+		return hostedquery.ErrProjectDisconnected
 	}
 	config, err := identity.Config(credentials.Password, []byte(credentials.CA))
 	if err != nil {
@@ -177,19 +186,71 @@ func (a *App) runProject(ctx context.Context, row projectRecord) error {
 			Capabilities: slices.Clone(credentials.Capabilities),
 			AdmitModel:   func(ctx context.Context) error { return a.projects.admitModel(ctx, row.ID, epoch) },
 		}
+		managed.Cron = &hostedquery.ManagedProjectCron{Config: repairConfig, Investigate: a.investigateRepair, AdmitModel: managed.AdmitModel, Paused: credentials.RepairsPaused || !slices.Contains(credentials.Capabilities, "cron")}
+		for _, enrollment := range credentials.Enrollments {
+			target := enrollment.Target
+			if target.Kind == "cron" && enrollment.Window != nil {
+				managed.Cron.Enrollments = append(managed.Cron.Enrollments, hostedquery.ManagedCronEnrollment{Target: hostedquery.ProjectCronTarget{Project: identity.ID(), DatabaseOID: target.DatabaseOID, OwnerOID: target.OwnerOID, JobID: target.JobID, Name: target.Name, CommandDigest: target.CommandDigest}, Fingerprint: target.Fingerprint, Generation: target.Generation, Schedule: target.Schedule, Window: *enrollment.Window})
+			}
+			if target.Kind != "memory" {
+				continue
+			}
+			managed.MemoryEnrollments = append(managed.MemoryEnrollments, hostedquery.ManagedMemoryEnrollment{
+				Target: hostedquery.ProjectFunctionMemoryTarget{Project: identity.ID(), DatabaseOID: target.DatabaseOID, FunctionOID: target.ObjectOID, Schema: target.Schema, Function: target.Name}, Fingerprint: target.Fingerprint, Generation: target.Generation,
+			})
+		}
+		if credentials.LogsToken != "" {
+			reader, err := supabaseproject.NewMemoryMetricsReader(identity.Ref(), credentials.LogsToken)
+			if err != nil {
+				return err
+			}
+			managed.MemoryHeadroom = func(ctx context.Context) (supabaseproject.MemoryHeadroom, error) {
+				return reader.Read(ctx, identity.Ref())
+			}
+		}
+
 	}
 	queue, err := a.projects.db.Acquire(setup)
 	if err != nil {
 		return err
 	}
 	defer queue.Release()
+	// Reconcile old diagnostic witnesses before any new dispatcher can create
+	// one. The supervisor lock keeps a previous process from overlapping.
+	if err := a.cleanupProjectWitnesses(setup, row, credentials); err != nil {
+		return err
+	}
 	cancel()
 	ctx, stop := context.WithCancel(ctx)
 	defer stop()
-	finished := make(chan error, 2)
+	workerCount := 2
+	if managed != nil && managed.Cron != nil && len(managed.Cron.Enrollments) > 0 {
+		workerCount++
+	}
+	finished := make(chan error, workerCount)
+	if workerCount == 3 {
+		go func() {
+			for ctx.Err() == nil {
+				// A failed scheduling observation cannot invent a completed
+				// period, and must not stop the independent query monitor.
+				if err := managed.Cron.Run(ctx, queue.Conn().Config(), identity, epoch); errors.Is(err, hostedquery.ErrProjectDisconnected) {
+					break
+				}
+				if !wait(ctx, 3*time.Second) {
+					break
+				}
+			}
+			finished <- ctx.Err()
+		}()
+	}
 	go func() { finished <- monitor.Run(ctx, epoch, func(hostedquery.PollResult) error { return nil }) }()
 	go func() {
 		for ctx.Err() == nil {
+			// A failed refresh leaves every installed function at its original
+			// memory allowance once its short lease expires.
+			if managed != nil {
+				_ = managed.RefreshMemoryAllowances(ctx, queue.Conn(), identity, epoch)
+			}
 			result, err := hostedquery.DiagnoseHostedProjectWithRepair(ctx, queue.Conn(), config, identity, epoch, a.projectInvestigator(row.ID, epoch), logs, owned, repair, cron, managed)
 			if err != nil && queue.Conn().IsClosed() {
 				finished <- err
@@ -206,7 +267,9 @@ func (a *App) runProject(ctx context.Context, row projectRecord) error {
 	}()
 	err = <-finished
 	stop()
-	<-finished
+	for range workerCount - 1 {
+		<-finished
+	}
 	return err
 }
 

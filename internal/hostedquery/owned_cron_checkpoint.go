@@ -47,6 +47,18 @@ func ensureOwnedCronCheckpointClaim(ctx context.Context, state *pgx.Conn, epoch 
 		if err := lockOwnedCronCheckpointEpoch(ctx, tx, target.Project, epoch); err != nil {
 			return err
 		}
+		// Generic claiming preserves unresolved mutations. Retire only the exact
+		// expired prepared-Cron attempt here so its read-only child can reconcile it.
+		if _, err := tx.Exec(ctx, `UPDATE pooltune_worker.investigations j
+            SET finished_at=clock_timestamp(),lease_until=NULL,result=jsonb_build_object('outcome','retry_exhausted')
+            FROM pooltune_worker.owned_project_actions a
+            WHERE a.job_id=j.id AND a.project_id=j.project_id AND a.project_id=$1
+              AND a.operation='cron' AND a.outcome='pending' AND a.intent#>'{Intent,Target}'=$5::jsonb
+              AND j.database_oid=$2 AND j.role_oid=$3 AND ($4::bigint=0 OR j.query_id=$4)
+              AND j.finished_at IS NULL AND j.attempts >= $6 AND j.lease_until <= statement_timestamp()`,
+			target.Project, target.DatabaseOID, target.OwnerOID, query, string(trusted), maxInvestigationAttempts); err != nil {
+			return err
+		}
 		err := tx.QueryRow(ctx, `WITH RECURSIVE chain AS (
 			SELECT j.id,j.query_id,j.finished_at,j.result,j.evidence,0 AS depth,k.evidence AS acknowledgement
 			FROM pooltune_worker.owned_project_actions a

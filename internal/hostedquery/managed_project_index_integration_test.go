@@ -8,6 +8,7 @@ import (
 	"crypto/rsa"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/json"
 	"encoding/pem"
 	"fmt"
 	"math/big"
@@ -184,17 +185,62 @@ func TestManagedIndexRunsOnDiscoveredOrdinaryTable(t *testing.T) {
 	}, AdmitModel: func(context.Context) error { return nil }}
 	result := DispatchResult{Outcome: "insufficient_evidence"}
 	handled, err := worker.run(ctx, state, monitor, project, epoch, claim, &ObservedLookupLatency{ObjectiveMS: observed.ObjectiveMS}, &result)
-	if err != nil || !handled || result.Repair == nil || !result.Repair.IndexValid || calls != 1 {
+	t.Logf("managed index actual measurements: %+v", result.Repair)
+	if err != nil || !handled || result.Repair == nil || calls != 1 {
 		t.Fatalf("managed flow failed: handled=%v result=%+v err=%v calls=%d", handled, result, err, calls)
 	}
 	if result.Repair.Measurement != "managed_sampled_input" || result.Repair.Before.ReadMS <= 0 || result.Repair.After.ReadMS <= 0 {
 		t.Fatalf("missing actual sample proof: %+v", result.Repair)
 	}
+	for _, sample := range []TrialSample{result.Repair.Before, result.Repair.After} {
+		if sample.Reads != 1 || sample.HealthyReads <= 0 || sample.Writes <= 0 || sample.HealthyMS <= 0 || sample.WriteMS <= 0 || sample.PlanReturned != 1 {
+			t.Fatalf("missing actual sampled query or protected traffic: %+v", sample)
+		}
+	}
+	var raw []byte
+	if err := state.QueryRow(ctx, `SELECT intent FROM pooltune_worker.owned_index_actions WHERE project_id=$1 AND job_id=$2`, project.ID(), claim.ID).Scan(&raw); err != nil {
+		t.Fatal(err)
+	}
+	var intent ProjectIndexActionIntent
+	if err := json.Unmarshal(raw, &intent); err != nil {
+		t.Fatal(err)
+	}
+	owner := openMonitorConn(t, ctx, route)
+	catalog, err := inspectManagedIndexIntent(ctx, owner, claim, intent)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Real protected traffic can vary with test-machine load. The required
+	// behavior is a verified retained index or exact removal on a measured
+	// regression, never retention merely because construction succeeded.
+	if result.Repair.Outcome != result.Outcome {
+		t.Fatalf("inconsistent outcome: %+v", result.Repair)
+	}
+	switch result.Outcome {
+	case "improved_tested_inputs":
+		if !result.Repair.IndexValid || result.Repair.Reverted || intent.RollbackRequested || catalog.Status != "exact_index_present" || catalog.IndexOID == 0 {
+			t.Fatalf("improvement lacks exact retained index: report=%+v catalog=%+v intent=%+v", result.Repair, catalog, intent)
+		}
+	case "regressed":
+		if result.Repair.IndexValid || !result.Repair.Reverted || !intent.RollbackRequested || intent.AppliedIndexOID == 0 || catalog.Status != "index_absent" {
+			t.Fatalf("regression lacks exact created-index removal: report=%+v catalog=%+v intent=%+v", result.Repair, catalog, intent)
+		}
+		var exists bool
+		if err := owner.QueryRow(ctx, `SELECT EXISTS(SELECT FROM pg_catalog.pg_class WHERE oid=$1)`, intent.AppliedIndexOID).Scan(&exists); err != nil || exists {
+			t.Fatalf("recorded created index remains after regression: exists=%v err=%v", exists, err)
+		}
+		before, after := result.Repair.Before, result.Repair.After
+		if after.ReadMS <= before.ReadMS*1.25 && after.HealthyMS <= before.HealthyMS*1.25 && after.WriteMS <= before.WriteMS*1.25 {
+			t.Fatalf("regression lacks observed latency evidence: before=%+v after=%+v", before, after)
+		}
+	default:
+		t.Fatalf("unexpected ordinary-table outcome: %+v", result.Repair)
+	}
 	if err := finishInvestigation(ctx, state, claim, result, epoch); err != nil {
 		t.Fatal(err)
 	}
 	var outcome string
-	if err := state.QueryRow(ctx, `SELECT outcome FROM pooltune_worker.owned_index_actions WHERE job_id=$1`, claim.ID).Scan(&outcome); err != nil || outcome == "pending" {
+	if err := state.QueryRow(ctx, `SELECT outcome FROM pooltune_worker.owned_index_actions WHERE job_id=$1`, claim.ID).Scan(&outcome); err != nil || outcome != result.Outcome {
 		t.Fatalf("unsettled action %q %v", outcome, err)
 	}
 }

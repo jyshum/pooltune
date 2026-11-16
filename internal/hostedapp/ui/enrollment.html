@@ -1,0 +1,60 @@
+{{define "repair-enrollment"}}{{template "header" .}}
+<main class="shell workspace" id="main">
+  <a class="back-link" href="/app/projects/{{.Project.ID}}">← Back to {{.Project.Name}}</a>
+  <div class="page-heading"><h1>Functions and scheduled jobs</h1></div>
+  <section class="panel">
+    <p>Choose specific functions and jobs Pooltune may consider. Choosing a target allows the background agent to check it under your selected repair permissions and limits.</p>
+    <p>Function repairs require a supported function, measured disk spill, a safe limit on calls receiving extra memory and available capacity. Scheduling repairs require repeated job interference, comparable completed database work, on-time jobs and scheduler acknowledgement. Application-wide request and error rates remain unobserved.</p>
+    <p>Check project activity for repair progress and outcomes. Enrollment alone does not mean a repair has been verified.</p>
+    {{if .Enrollment.Notice}}<p class="help">{{.Enrollment.Notice}}</p>{{end}}
+  </section>
+  {{$project := .Project}}
+  <section class="panel" aria-labelledby="enrolled-title">
+    <h2 id="enrolled-title">Saved enrollments</h2>
+    {{range .Enrollment.Saved}}
+    <article class="record">
+      <h3>{{.Label}}</h3><p>{{.Status}}</p>
+      {{if .Schedule}}<p>Schedule when enrolled: <code>{{.Schedule}}</code>. Approved move: minute {{.ProposedMinute}} of each {{.EveryMinutes}}-minute UTC cycle. Finish within {{.DeadlineSeconds}} seconds of the cycle starting, with a maximum runtime of {{.RuntimeSeconds}} seconds.</p>{{end}}
+      <form action="/app/projects/{{$project.ID}}/repair-enrollment" method="post">
+        <input type="hidden" name="target" value="{{.Token}}">
+        <button class="button button-quiet" type="submit" name="mode" value="remove">Remove enrollment</button>
+      </form>
+    </article>
+    {{else}}<p>No functions or scheduled jobs are enrolled.</p>{{end}}
+  </section>
+  <section class="panel" aria-labelledby="functions-title">
+    <h2 id="functions-title">Database functions</h2>
+    <p class="help">Only functions owned by the connected database login are listed. Functions with elevated execution permissions and extension-managed functions are excluded. For eligible functions, Pooltune limits how many calls receive extra memory. Other calls keep their original memory settings. Unsupported functions remain unchanged.</p>
+    {{if not .Enrollment.MemorySelected}}<p>Select “Tune function memory” in your project's repair choices before enrolling a function.</p>{{end}}
+    {{range .Enrollment.Functions}}
+    <article class="record">
+      <h3>{{.Label}}</h3>
+      {{if .Selectable}}<form action="/app/projects/{{$project.ID}}/repair-enrollment" method="post">
+        <input type="hidden" name="target" value="{{.Token}}">
+        <button class="button button-secondary" type="submit" name="mode" value="enroll">Enroll function</button>
+      </form>{{end}}
+    </article>
+    {{else}}<p>No supported function identities were found.</p>{{end}}
+  </section>
+  <section class="panel" aria-labelledby="jobs-title">
+    <h2 id="jobs-title">Scheduled jobs</h2>
+    <p class="help">Only active jobs owned by the connected database login are listed. A move must keep the same frequency. Set a permitted minute within the existing UTC cycle and a deadline. Pooltune does not call the customer job directly. Qualification may briefly create a separate read-only scheduler check, which Pooltune removes afterward.</p>
+    {{if not .Enrollment.CronSelected}}<p>Select “Reschedule jobs” in your project's repair choices before enrolling a job.</p>{{end}}
+    {{range .Enrollment.Jobs}}
+    <article class="record">
+      <h3>{{.Label}}</h3><p>Current schedule: <code>{{.Schedule}}</code></p>
+      {{if .Status}}<p class="help">{{.Status}}</p>{{end}}
+      {{if .Selectable}}
+      <p>The current job starts at minute {{.CurrentMinute}} of every {{.EveryMinutes}}-minute cycle.</p>
+      <form class="fields" action="/app/projects/{{$project.ID}}/repair-enrollment" method="post">
+        <input type="hidden" name="target" value="{{.Token}}">
+        <label class="field">Permitted start minute within that cycle<input type="number" name="proposed_minute" min="0" max="59" value="{{.ProposedMinute}}" required></label>
+        <label class="field">Finish within this many seconds of the cycle starting<input type="number" name="deadline_seconds" min="1" max="3600" value="{{.DeadlineSeconds}}" required></label>
+        <label class="field">Maximum job runtime in seconds<input type="number" name="max_runtime_seconds" min="1" max="20" value="20" required></label>
+        <button class="button button-secondary" type="submit" name="mode" value="enroll">Save job and allowed schedule</button>
+      </form>{{end}}
+    </article>
+    {{else}}<p>No active named jobs were found in the supported catalog.</p>{{end}}
+  </section>
+</main>
+{{template "footer" .}}{{end}}

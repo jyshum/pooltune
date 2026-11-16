@@ -25,14 +25,18 @@ type managedTrafficControls struct {
 }
 
 // observeManagedControls measures the actual application's existing read/write
-// counters. It never generates writes against customer tables.
+// counters. It never generates writes against customer tables. Catalog reads,
+// Pooltune metadata and constant scheduler witnesses cannot supply protection.
 func observeManagedControls(ctx context.Context, db *pgx.Conn, database, role uint32, candidate int64, baseline *managedTrafficControls) (*managedTrafficControls, error) {
 	var schema string
 	if err := db.QueryRow(ctx, `SELECT n.nspname FROM pg_extension e JOIN pg_namespace n ON n.oid=e.extnamespace WHERE e.extname='pg_stat_statements'`).Scan(&schema); err != nil {
 		return nil, err
 	}
 	read := func() (map[int64]managedControlCounter, error) {
-		rows, err := db.Query(ctx, `SELECT queryid,CASE WHEN ltrim(query)~*'^SELECT[[:space:]]' THEN 'read' ELSE 'write' END,calls,total_exec_time,stats_since FROM `+qualified(schema, "pg_stat_statements")+` WHERE dbid=$1 AND userid=$2 AND queryid<>$3 AND toplevel AND calls>0 AND ltrim(query)~*'^(SELECT|INSERT|UPDATE|DELETE)[[:space:]]' ORDER BY calls DESC,queryid LIMIT 32`, database, role, candidate)
+		rows, err := db.Query(ctx, `SELECT queryid,CASE WHEN ltrim(query)~*'^SELECT[[:space:]]' THEN 'read' ELSE 'write' END,calls,total_exec_time,stats_since FROM `+qualified(schema, "pg_stat_statements")+` WHERE dbid=$1 AND userid=$2 AND queryid<>$3 AND toplevel AND calls>0 AND ltrim(query)~*'^(SELECT|INSERT|UPDATE|DELETE)[[:space:]]'
+ AND query !~* '\m(pg_[a-z0-9_]+|pooltune_[a-z0-9_]+|pt_monitor_[a-z0-9_]+|information_schema|cron)\M'
+ AND (ltrim(query)!~*'^SELECT[[:space:]]' OR query~*'\mFROM\M')
+ ORDER BY calls DESC,queryid LIMIT 32`, database, role, candidate)
 		if err != nil {
 			return nil, err
 		}

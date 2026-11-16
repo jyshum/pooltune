@@ -19,11 +19,20 @@ func (m *ManagedProjectIndex) recoverMaintenance(ctx context.Context, state *pgx
 	if err := state.QueryRow(ctx, `SELECT intent FROM pooltune_worker.owned_project_actions WHERE project_id=$1 AND job_id=$2 AND operation=$3 AND outcome='pending'`, project.ID(), claim.ID, claim.MaintenanceOperation).Scan(&raw); err != nil {
 		return true, err
 	}
+	if claim.MaintenanceOperation == "statistics" {
+		var version struct{ Version int }
+		if err := json.Unmarshal(raw, &version); err != nil {
+			return true, err
+		}
+		if version.Version == 1 {
+			return m.recoverCommittedStatistics(ctx, state, project, claim, raw, result)
+		}
+	}
 	var intent ProjectMaintenanceIntent
 	if err := json.Unmarshal(raw, &intent); err != nil {
 		return true, err
 	}
-	if string(intent.Operation) != claim.MaintenanceOperation {
+	if claim.MaintenanceOperation != "statistics" && string(intent.Operation) != claim.MaintenanceOperation {
 		return true, ErrProjectMaintenanceTarget
 	}
 	owner, err := pgx.ConnectConfig(ctx, m.Config.Copy())
@@ -34,7 +43,12 @@ func (m *ManagedProjectIndex) recoverMaintenance(ctx context.Context, state *pgx
 	if err := project.VerifyManagedRepair(ctx, owner); err != nil {
 		return true, err
 	}
-	report, err := inspectManagedMaintenanceIntent(ctx, owner, claim, intent)
+	var report ManagedMaintenanceReport
+	if claim.MaintenanceOperation == "statistics" {
+		report, err = inspectManagedStatisticsIntent(ctx, owner, claim, raw)
+	} else {
+		report, err = inspectManagedMaintenanceIntent(ctx, owner, claim, intent)
+	}
 	if err != nil {
 		return true, err
 	}

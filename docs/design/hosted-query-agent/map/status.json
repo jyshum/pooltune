@@ -1,6 +1,6 @@
 {
-  "sourceRevision": "bd2e1cc13eab2a3ecb6461c943b37c224b494a6f",
-  "summary": "Managed Go setup is implemented with an encrypted database credential and optional latency goal. The new general repair path is undergoing local and Rookery qualification. Six repair families have earlier prepared-workload proofs; that does not yet prove all six on a newly connected project.",
+  "sourceRevision": "b9f964b5c7e7d05bae6d7e449d8dca18bf7d77c0",
+  "summary": "A fresh customer connection runs Go repairs on Railway without a separate worker or query IDs. Rookery verified a statistics refresh, an index rollback and plain cleanup with a protected-traffic regression. Ordinary-project statistics retention and function-memory recovery now pass local database tests; scheduling integration and automatic-cleanup settings still need completion and live qualification.",
   "next": [
     "connect-project",
     "repair-coverage",
@@ -89,8 +89,8 @@
     },
     "tools": {
       "status": "partial",
-      "scope": "Railway verified all six repair families from the normal Rookery setup with zero manual query IDs. The same flow measured both settings, and the compound-index action recovered across a restart.",
-      "remaining": "Connect repairs to scoped grants on a normally connected project. Verify eligible workload shapes, write impact and memory headroom beyond the tested cases.",
+      "scope": "All six repair families have prepared Rookery proofs. The managed customer route additionally verified statistics refresh, an exact index rollback, and plain cleanup with a reported protected-traffic regression.",
+      "remaining": "Complete and qualify the remaining ordinary-project routes, including safe statistics retention, function memory, Cron and cleanup settings.",
       "evidence": [
         "docs/design/hosted-query-agent/roadmap.md",
         "docs/design/hosted-query-agent/cron-staging.md",
@@ -100,16 +100,17 @@
         "docs/design/hosted-query-agent/evidence/mvp-simple-cleanup-trigger-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-simple-column-target-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-simple-cron-handoff-railway.json",
-        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-railway.json"
+        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-railway.json",
+        "docs/design/hosted-query-agent/evidence/managed-setup-index-rollback-railway.json"
       ],
-      "remainingBuild": "Bind repairs to customer grants and exact targets.",
-      "remainingVerification": "Verify eligible workload shapes, write impact, memory headroom and owner schedules beyond the tested cases.",
-      "statusLabel": "Six simple repair families verified"
+      "remainingBuild": "Connect the remaining repair families to general evidence and recovery.",
+      "remainingVerification": "Prove each family from a fresh managed customer connection without fixture worker configuration.",
+      "statusLabel": "Managed refresh and recovery tested"
     },
     "inspection": {
       "status": "partial",
-      "scope": "The managed worker discovers eligible integer lookups from app traffic and measures an existing key under the application role. The same key is reused after a repair.",
-      "remaining": "Verify through Railway and extend supported shapes and causes beyond bounded integer lookups.",
+      "scope": "Managed lookup measurements work on Rookery. New local readers attribute exact function spill and real provider memory capacity, and collect actual scheduler blocking with explicit application-visibility limits.",
+      "remaining": "Verify the new memory and scheduling readers through the ordinary Railway customer connection; broaden supported query shapes later.",
       "evidence": [
         "internal/graphrunner/diagnostic.go",
         "docs/design/hosted-query-agent/diagnostic-loop.md",
@@ -132,30 +133,32 @@
         "docs/design/hosted-query-agent/evidence/mvp-simple-vacuum-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-simple-cron-handoff-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-simple-cron-railway.json",
-        "docs/design/hosted-query-agent/progress.md"
+        "docs/design/hosted-query-agent/progress.md",
+        "docs/design/hosted-query-agent/evidence/managed-setup-index-rollback-railway.json"
       ],
-      "statusLabel": "Sampled evidence: testing",
-      "remainingBuild": "Capture evidence the Go repair tools can use to test a candidate and verify its effect.",
-      "remainingVerification": "Qualify additional query shapes on representative pooled and Data API paths."
+      "statusLabel": "Managed causes: live tests next",
+      "remainingBuild": "Finish function spill attribution and scheduling evidence; broaden representative query samples.",
+      "remainingVerification": "Qualify additional query shapes and normal project repair families through Railway."
     },
     "experiments": {
       "status": "partial",
-      "scope": "Controlled trials passed on fixtures. The hosted index action measured one scoped input before and after while normal app traffic continued.",
-      "remaining": "Choose representative inputs and safely admit more experiments for ordinary enrolled queries. Prove useful, unnecessary and denied experiments on a connected project.",
+      "scope": "A discovered managed lookup reached a real before/after experiment. Normal read/write counters rejected the index despite a faster sample; the exact created index was removed.",
+      "remaining": "Statistics now has approval for committed trials with real traffic; implementation and recovery qualification are in progress. Memory needs supported per-call allowance and fallback.",
       "evidence": [
         "docs/design/hosted-query-agent/mixed-traffic.md",
         "docs/design/hosted-query-agent/function-memory.md",
         "docs/design/hosted-query-agent/enrolled-railway.md",
-        "docs/design/hosted-query-agent/evidence/mvp-hosted-owned-index.json"
+        "docs/design/hosted-query-agent/evidence/mvp-hosted-owned-index.json",
+        "docs/design/hosted-query-agent/evidence/managed-setup-index-rollback-railway.json"
       ],
-      "remainingBuild": "Choose representative inputs and limit project workload impact for eligible experiments.",
-      "remainingVerification": "Verify a completed requested measurement and a rejected one through Railway.",
-      "statusLabel": "One hosted measurement verified"
+      "remainingBuild": "Complete committed statistics trials and safe function-memory experiments.",
+      "remainingVerification": "Qualify additional repair causes on normally connected projects.",
+      "statusLabel": "Managed trial and rollback verified"
     },
     "index": {
       "status": "partial",
-      "scope": "Both advanced enrollment and simple setup ran a compound repair through Railway. The simple form selected indexes and PostgreSQL verified the exact discovered key pair.",
-      "remaining": "Complete general repair authority, single-column and wider shapes, and hosted interruption recovery.",
+      "scope": "The fresh managed customer connection built a native compound index. One sampled lookup fell from16.335ms to0.053ms, but protected traffic regressed, so Pooltune removed only its created index. Earlier prepared tests retained a beneficial compound index.",
+      "remaining": "Qualify retained benefit and interruption on the new managed route, plus wider supported query shapes.",
       "evidence": [
         "docs/design/hosted-query-agent/mixed-traffic.md",
         "internal/hostedquery/index_policy.go",
@@ -167,16 +170,17 @@
         "internal/hostedquery/owned_project_index.go",
         "internal/hostedquery/owned_project_index_test.go",
         "docs/design/hosted-query-agent/evidence/mvp-simple-index-preflight.json",
-        "docs/design/hosted-query-agent/evidence/mvp-simple-index-railway.json"
+        "docs/design/hosted-query-agent/evidence/mvp-simple-index-railway.json",
+        "docs/design/hosted-query-agent/evidence/managed-setup-index-rollback-railway.json"
       ],
-      "statusLabel": "Simple compound repair verified",
-      "remainingBuild": "Expand verified project authority for single-column and compound operations.",
-      "remainingVerification": "Qualify more filters and ordering, paused builds, and interruption before or during the PostgreSQL write. The post-write restart passed for the exact owned case."
+      "statusLabel": "Managed rollback verified",
+      "remainingBuild": "Keep exact target and owner checks while expanding eligible shapes.",
+      "remainingVerification": "Verify retained benefit on a new managed connection and interruption during its repair."
     },
     "refresh": {
       "status": "verified",
-      "scope": "Railway saved a verified targeted statistics refresh on an owned Rookery lookup. PostgreSQL confirmed one refresh. The measured query went from 16.89 ms to 0.05 ms and protected traffic checks passed.",
-      "remaining": "Qualify broader customer evidence and repair authority. This proof used advanced owner enrollment.",
+      "scope": "A normally connected Rookery project selected refresh statistics without query IDs or fixture worker variables. Railway job318 verified a sampled lookup from14.503ms to0.252ms and protected completed-query means within the limits.",
+      "remaining": "Broader production workloads remain unqualified.",
       "evidence": [
         "docs/design/hosted-query-agent/targeted-analyze.md",
         "internal/hostedquery/project_maintenance.go",
@@ -185,14 +189,15 @@
         "internal/hostedquery/owned_statistics_repairs_integration_test.go",
         "docs/design/hosted-query-agent/evidence/mvp-owned-analyze-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-owned-analyze-first-railway.json",
-        "docs/design/hosted-query-agent/evidence/mvp-simple-analyze-railway.json"
+        "docs/design/hosted-query-agent/evidence/mvp-simple-analyze-railway.json",
+        "docs/design/hosted-query-agent/evidence/managed-analyze-railway.json"
       ],
-      "statusLabel": "Railway refresh verified"
+      "statusLabel": "Managed refresh verified"
     },
     "richer": {
-      "status": "verified",
-      "scope": "Simple setup verified retained joint statistics and a measured individual-column trial that restored the prior setting when the query regressed.",
-      "remaining": "Qualify wider column patterns, permissions and the retained-benefit case for an individual column.",
+      "status": "partial",
+      "scope": "Both prepared statistics variants passed Rookery. Ordinary managed committed trials now pass local PostgreSQL action, protected-traffic, deadline and restart-recovery checks.",
+      "remaining": "Qualify committed managed trials on Rookery. Restoration regenerates statistics and cannot restore the identical old random sample.",
       "evidence": [
         "docs/design/hosted-query-agent/richer-statistics.md",
         "internal/hostedquery/statistics_samples.go",
@@ -203,12 +208,12 @@
         "docs/design/hosted-query-agent/evidence/mvp-owned-statistics-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-simple-column-target-railway.json"
       ],
-      "statusLabel": "Both statistics routes verified"
+      "statusLabel": "Managed trials tested locally"
     },
     "cleanup": {
-      "status": "verified",
-      "scope": "Both plain cleanup and the cleanup-trigger setting passed on Railway from simple setup. PostgreSQL independently recorded which action ran.",
-      "remaining": "Qualify general project privileges and more table shapes.",
+      "status": "partial",
+      "scope": "Prepared plain and automatic-cleanup settings passed Rookery. Managed plain VACUUM executed on Rookery, but the protected write workload regressed and the outcome was reported honestly. The new ordinary-table trigger route passed a native restart test: automatic cleanup ran, protected traffic regressed, and the prior threshold was restored.",
+      "remaining": "Qualify the ordinary managed trigger route on Rookery through Railway. Plain VACUUM cannot undo completed cleanup.",
       "evidence": [
         "docs/design/hosted-query-agent/bounded-vacuum.md",
         "docs/product/query-performance-v1.md",
@@ -219,27 +224,31 @@
         "docs/design/hosted-query-agent/evidence/mvp-owned-vacuum-first-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-owned-vacuum-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-simple-vacuum-railway.json",
-        "docs/design/hosted-query-agent/evidence/mvp-simple-cleanup-trigger-railway.json"
+        "docs/design/hosted-query-agent/evidence/mvp-simple-cleanup-trigger-railway.json",
+        "docs/design/hosted-query-agent/evidence/managed-vacuum-railway.json"
       ],
-      "statusLabel": "Both cleanup paths verified"
+      "statusLabel": "Managed cleanup measured"
     },
     "memory": {
-      "status": "verified",
-      "scope": "Railway verified a private function-memory repair on Rookery from 4 MB to 32 MB. The same query dropped from 270.37 ms to 190.11 ms and its attributed temporary writes fell to zero. Protected traffic passed.",
-      "remaining": "Qualify wider project capacity, concurrency and simple setup for function memory.",
+      "status": "partial",
+      "scope": "The ordinary function route passes local PostgreSQL tests for real spill, provider capacity, bounded extra memory and original-memory fallback. Native owner-edit locking now works without catalog UPDATE permission.",
+      "remaining": "Finish independent review and qualify on Rookery using the retained monitoring token.",
       "evidence": [
         "docs/design/hosted-query-agent/function-memory.md",
         "internal/hostedquery/project_function_memory.go",
         "internal/hostedquery/owned_memory_repair_integration_test.go",
         "docs/design/hosted-query-agent/evidence/mvp-owned-memory-first-railway.json",
-        "docs/design/hosted-query-agent/evidence/mvp-owned-memory-railway.json"
+        "docs/design/hosted-query-agent/evidence/mvp-owned-memory-railway.json",
+        "docs/design/hosted-query-agent/evidence/managed-setup-index-rollback-railway.json",
+        "docs/design/hosted-query-agent/function-memory-managed-proposal.md",
+        "docs/design/hosted-query-agent/managed-memory-native-fence-proposal.md"
       ],
-      "statusLabel": "Railway memory repair verified"
+      "statusLabel": "Managed memory tested locally"
     },
     "cron": {
-      "status": "verified",
-      "scope": "Railway verified scheduling from the normal form with zero manual query IDs. Rookery completed three runs on each schedule. The busy-window query fell from 32.84 ms to 0.087 ms and protected reads and writes passed.",
-      "remaining": "Qualify owner-approved schedules on a normally connected project with job-specific repair authority.",
+      "status": "partial",
+      "scope": "Managed collection and durable follow-up pass local PostgreSQL tests. Pending recovery survives removal of the last selected job, and blocking witnesses bind the waiting database role.",
+      "remaining": "Qualify three real before/after periods through Railway, including restart and exact cleanup. Application-wide requests and errors remain unobserved.",
       "evidence": [
         "docs/design/hosted-query-agent/cron-staging.md",
         "internal/hostedquery/project_cron.go",
@@ -256,9 +265,10 @@
         "docs/design/hosted-query-agent/evidence/mvp-simple-cron-activation-timeout-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-simple-cron-witness-timeout-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-simple-cron-model-output-railway.json",
-        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-railway.json"
+        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-railway.json",
+        "docs/design/hosted-query-agent/evidence/managed-setup-index-rollback-railway.json"
       ],
-      "statusLabel": "Six live periods verified"
+      "statusLabel": "Managed scheduling tested locally"
     },
     "recovery": {
       "status": "verified",
@@ -348,8 +358,8 @@
     },
     "repair-coverage": {
       "status": "partial",
-      "scope": "New managed index, statistics-refresh and plain-cleanup routes use discovered queries, normal protected traffic and native Go tools. Earlier six-family results used prepared workers.",
-      "remaining": "Qualify new managed routes and finish statistics settings, function enrollment and scheduling enrollment for normally connected projects.",
+      "scope": "Managed setup and index trial/rollback passed through Railway. General ANALYZE and plain VACUUM are implemented and undergoing live qualification. Statistics and function-memory completion now have explicit design approval.",
+      "remaining": "Finish statistics retention, memory fallback/headroom/evidence, and scheduling request evidence and dispatcher. Cleanup-trigger settings remain on the prepared route.",
       "evidence": [
         "docs/design/hosted-query-agent/roadmap.md",
         "internal/hostedapp/supervisor.go",
@@ -376,14 +386,15 @@
         "docs/design/hosted-query-agent/evidence/mvp-simple-cron-railway.json",
         "internal/hostedquery/project_repair_access.go",
         "docs/design/hosted-query-agent/evidence/owner-worker-link-railway.json",
-        "docs/design/hosted-query-agent/progress.md"
+        "docs/design/hosted-query-agent/progress.md",
+        "docs/design/hosted-query-agent/evidence/managed-setup-index-rollback-railway.json"
       ],
-      "statusLabel": "Managed repairs: testing"
+      "statusLabel": "Managed flow partly verified"
     },
     "connect-project": {
-      "status": "partial",
-      "scope": "Setup accepts the database credential once, encrypts it for Railway, and resumes safely after a failed password check. No separate customer worker or worker key is needed.",
-      "remaining": "Verify the new setup and automatic repair together on Rookery.",
+      "status": "verified",
+      "scope": "The Railway customer form accepted one native database credential, encrypted it and automatically started the Go worker. A discovered Rookery lookup reached index creation and exact rollback without query IDs or a separate worker key.",
+      "remaining": "Provider-issued credentials and certificate simplification remain future setup improvements. Each repair family has its own unfinished evidence and execution work.",
       "evidence": [
         "docs/design/hosted-query-agent/supabase-monitoring.md",
         "cmd/pooltune-project/main.go",
@@ -405,22 +416,24 @@
         "docs/design/hosted-query-agent/repair-authority.md",
         "internal/hostedquery/project_repair_access.go",
         "docs/design/hosted-query-agent/evidence/owner-worker-link-railway.json",
-        "docs/design/hosted-query-agent/progress.md"
+        "docs/design/hosted-query-agent/progress.md",
+        "docs/design/hosted-query-agent/evidence/managed-setup-index-rollback-railway.json"
       ],
-      "statusLabel": "Managed connection: testing"
+      "statusLabel": "Managed connection verified"
     },
     "credential-lifecycle": {
       "status": "partial",
-      "scope": "Account-and-project-bound encryption now includes the repair credential. Setup checks the native database identity. Disconnect removes the stored credential.",
-      "remaining": "Verify managed disconnect and restart on Railway. The existing database password is not revoked by disconnect.",
+      "scope": "Managed database credentials are encrypted on Railway. Jared approved retaining one project-scoped Database Write and Logs Read token, with a non-expiring Rookery token for repeated qualification. Local tests verify encrypted owner-bound token replacement.",
+      "remaining": "Verify the retained token and disconnect cleanup through the deployed customer flow. Disconnect removes Pooltune copies but does not revoke the provider token or underlying database password.",
       "evidence": [
         "docs/design/hosted-query-agent/supabase-monitoring.md",
         "internal/hostedquery/project_monitor.go",
         "internal/hostedapp/projects.go",
         "docs/design/hosted-query-agent/evidence/hosted-preview-railway.json",
-        "docs/design/hosted-query-agent/progress.md"
+        "docs/design/hosted-query-agent/progress.md",
+        "docs/design/hosted-query-agent/managed-memory-metrics-access.md"
       ],
-      "statusLabel": "Managed credential: testing",
+      "statusLabel": "Single-token setup: live test next",
       "remainingBuild": "Add managed credential and encryption-key rotation.",
       "remainingVerification": "Exercise deployed worker and state-store failures. Verify credential handling and disconnect before scaling beyond one replica."
     },
@@ -436,8 +449,8 @@
     },
     "activity": {
       "status": "partial",
-      "scope": "The dashboard distinguishes sampled-input measurements from protected normal-traffic measurements and hides worker-key setup for managed connections.",
-      "remaining": "Verify the actual customer setup and managed repair report through Railway.",
+      "scope": "Railway displays the managed refresh benefit, exact index rollback and cleanup regression. New statistics reports distinguish retained improvements from restored settings with regenerated statistics.",
+      "remaining": "Qualify new memory and scheduling reports through Railway.",
       "evidence": [
         "docs/design/hosted-query-agent/roadmap.md",
         "docs/design/hosted-query-agent/hosted-preview.md",
@@ -455,9 +468,12 @@
         "docs/design/hosted-query-agent/evidence/mvp-simple-column-target-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-simple-cron-handoff-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-simple-cron-railway.json",
-        "docs/design/hosted-query-agent/progress.md"
+        "docs/design/hosted-query-agent/progress.md",
+        "docs/design/hosted-query-agent/evidence/managed-setup-index-rollback-railway.json",
+        "docs/design/hosted-query-agent/evidence/managed-analyze-railway.json",
+        "docs/design/hosted-query-agent/evidence/managed-vacuum-railway.json"
       ],
-      "statusLabel": "Measured results: testing"
+      "statusLabel": "Managed outcomes reported"
     },
     "landing": {
       "status": "verified",
@@ -733,8 +749,8 @@
     },
     "agent-permission-setup": {
       "status": "verified",
-      "scope": "All six checkboxes were verified on prepared Rookery workloads. Owners can now edit selections and revoke the project worker key. Railway showed permission changes backed by real Rookery grants.",
-      "remaining": "Use the selected permissions to deliver and verify a repair from the normal project queue.",
+      "scope": "Customers select repair permissions during automatic setup. Managed Go execution removes the separate worker-key step; enrolled functions and job windows are chosen from the live catalog.",
+      "remaining": "Complete and qualify all managed repair choices through the same customer connection.",
       "evidence": [
         "internal/hostedapp/ui/pages.html",
         "docs/design/hosted-query-agent/evidence/mvp-agent-setup.json",
@@ -749,7 +765,7 @@
         "internal/hostedquery/project_repair_access.go",
         "docs/design/hosted-query-agent/evidence/owner-worker-link-railway.json"
       ],
-      "statusLabel": "Repair choices and worker key verified"
+      "statusLabel": "Managed choices connected"
     },
     "automatic-workload-discovery": {
       "status": "verified",
@@ -832,14 +848,14 @@
   "colorMeaning": "Green covers the verified scope on each card. Yellow means part of the card works and more remains. Dashed cards track pending work or qualification.",
   "recent": [
     {
-      "label": "Managed setup built; live proof underway",
-      "summary": "Railway-managed Go access, encrypted credentials and setup retry are implemented. Generic repairs are being connected and verified.",
+      "label": "Task61: Managed setup and rollback verified",
+      "summary": "A fresh Railway customer connection discovered normal Rookery test traffic, built a compound index, detected protected-traffic regression and removed only its own index. No manual query IDs or fixture worker configuration.",
       "nodes": [
         "connect-project",
         "inspection",
-        "credential-lifecycle",
-        "repair-coverage",
-        "activity"
+        "index",
+        "activity",
+        "repair-coverage"
       ]
     },
     {

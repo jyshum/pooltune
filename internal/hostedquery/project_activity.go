@@ -95,11 +95,14 @@ type ProjectJob struct {
 }
 
 type ProjectRepair struct {
-	Kind           string                `json:"kind"`
-	Action         string                `json:"action"`
-	RecoveryStatus string                `json:"recovery_status,omitempty"`
-	Metrics        []ProjectRepairMetric `json:"metrics,omitempty"`
-	AnalysisMS     float64               `json:"analysis_wall_ms,omitempty"`
+	AutomaticCleaned      bool                  `json:"automatic_cleaned,omitempty"`
+	StatisticsRegenerated bool                  `json:"statistics_regenerated,omitempty"`
+	Restored              bool                  `json:"restored,omitempty"`
+	Kind                  string                `json:"kind"`
+	Action                string                `json:"action"`
+	RecoveryStatus        string                `json:"recovery_status,omitempty"`
+	Metrics               []ProjectRepairMetric `json:"metrics,omitempty"`
+	AnalysisMS            float64               `json:"analysis_wall_ms,omitempty"`
 }
 
 type ProjectRepairMetric struct {
@@ -292,7 +295,7 @@ func readProjectJobs(ctx context.Context, tx pgx.Tx, projectID string, cutoff ti
 				'index', COALESCE(result->'index_recovery',result->'repair'),
 				'analyze', result->'analyze', 'statistics', result->'statistics',
 				'vacuum', result->'vacuum', 'memory', result->'memory', 'cron', result->'cron',
-                'managed', result->'managed_maintenance'
+                'managed', result->'managed_maintenance', 'managed_statistics', result->'managed_statistics', 'managed_cron', result->'managed_cron', 'managed_memory', result->'managed_memory', 'managed_cleanup', result->'managed_cleanup'
 			)) END
 		FROM pooltune_worker.investigations j
 		CROSS JOIN LATERAL (
@@ -334,6 +337,22 @@ func readProjectRepair(job *ProjectJob, encoded []byte) {
 		return
 	}
 	for kind, raw := range reports {
+		if kind == "managed_statistics" {
+			readManagedStatisticsActivity(job, raw)
+			return
+		}
+		if kind == "managed_cron" {
+			readManagedCronActivity(job, raw)
+			return
+		}
+		if kind == "managed_memory" {
+			readManagedMemoryActivity(job, raw)
+			return
+		}
+		if kind == "managed_cleanup" {
+			readManagedCleanupActivity(job, raw)
+			return
+		}
 		if kind == "managed" {
 			readManagedMaintenanceActivity(job, raw)
 			return
@@ -559,11 +578,30 @@ func activityText(value string) string {
 // Preserve that distinction and never infer success from a proposal alone.
 func readManagedMaintenanceActivity(job *ProjectJob, raw []byte) {
 	var report ManagedMaintenanceReport
-	if json.Unmarshal(raw, &report) != nil || (report.Operation != ProjectAnalyze && report.Operation != ProjectVacuum) || (report.Measurement != "managed_sampled_input_and_normal_traffic_windows" && report.Measurement != "interrupted_maintenance_catalog_observation") || job.Outcome == "no_change" || job.Outcome == "propose" {
+	if json.Unmarshal(raw, &report) != nil || job.Outcome == "no_change" || job.Outcome == "propose" {
 		return
 	}
-	if job.Outcome == "repair_interrupted" && report.Measurement == "interrupted_maintenance_catalog_observation" {
-		job.Repair = &ProjectRepair{Kind: string(report.Operation), Action: "interrupted", RecoveryStatus: report.RecoveryStatus}
+	maintenance := report.Operation == ProjectAnalyze || report.Operation == ProjectVacuum
+	committedStatisticsRecovery := report.Operation == "statistics" && report.Measurement == "interrupted_committed_statistics_recovery"
+	interrupted := maintenance && report.Measurement == "interrupted_maintenance_catalog_observation" || report.Operation == "statistics" && report.Measurement == "interrupted_statistics_catalog_observation" || committedStatisticsRecovery
+	if job.Outcome == "repair_interrupted" && interrupted {
+		job.Repair = &ProjectRepair{Kind: string(report.Operation), Action: "interrupted", RecoveryStatus: activityText(report.RecoveryStatus)}
+		if committedStatisticsRecovery && (report.RecoveryStatus == "statistics_configuration_restored" || report.RecoveryStatus == "statistics_object_removed") {
+			job.Repair.Action = "restored"
+			if report.RecoveryStatus == "statistics_object_removed" {
+				job.Repair.Action = "removed"
+			}
+			job.Repair.Restored, job.Repair.StatisticsRegenerated = true, true
+		}
+		if reason := []rune(report.Reason); len(reason) > 0 {
+			job.Reason = string(reason[:min(500, len(reason))])
+		}
+		// Catalog recovery cannot establish which input, plan or performance
+		// result survived the interruption.
+		job.PlanNode, job.PlanSource = "", ""
+		return
+	}
+	if !maintenance || report.Measurement != "managed_sampled_input_and_normal_traffic_windows" {
 		return
 	}
 	if !report.Action.Confirmed {
@@ -599,4 +637,305 @@ func readManagedMaintenanceActivity(job *ProjectJob, raw []byte) {
 		}
 	}
 	job.Repair = summary
+}
+
+// Keep committed and historical uncommitted trials distinct. Only a retained,
+// committed trial can carry a verified benefit outcome.
+func readManagedStatisticsActivity(job *ProjectJob, raw []byte) {
+	type sample struct {
+		EstimatedRows *int64 `json:"estimated_rows"`
+		Sample        struct {
+			projectRepairSample
+			Plan         string `json:"plan"`
+			ReturnedRows *int64 `json:"returned_rows"`
+		} `json:"sample"`
+	}
+	type traffic struct {
+		ReadMeanMS  *float64 `json:"read_mean_ms"`
+		WriteMeanMS *float64 `json:"write_mean_ms"`
+		ReadCalls   int64    `json:"read_calls"`
+		WriteCalls  int64    `json:"write_calls"`
+	}
+	var report struct {
+		VerificationScope     string                   `json:"verification_scope"`
+		Measurement           string                   `json:"measurement"`
+		Variant               string                   `json:"variant"`
+		Applied               bool                     `json:"applied"`
+		Restored              bool                     `json:"restored"`
+		Retained              bool                     `json:"retained"`
+		StatisticsRegenerated bool                     `json:"statistics_regenerated"`
+		OwnerChanged          bool                     `json:"owner_changed"`
+		Reason                string                   `json:"reason"`
+		Before                []sample                 `json:"before"`
+		After                 []sample                 `json:"after"`
+		BeforeTraffic         *traffic                 `json:"before_traffic"`
+		AfterTraffic          *traffic                 `json:"after_traffic"`
+		ColumnTarget          *ProjectStatisticsResult `json:"column_target"`
+	}
+	if json.Unmarshal(raw, &report) != nil || (report.Variant != "column_target" && report.Variant != "joint") || job.Outcome == "no_change" || job.Outcome == "propose" {
+		return
+	}
+	committed := report.Measurement == "managed_committed_statistics_trial" && report.VerificationScope == "committed_candidate_inputs_and_normal_traffic"
+	uncommitted := report.Measurement == "managed_sampled_inputs_and_normal_traffic_windows" && report.VerificationScope == "uncommitted_candidate_inputs_and_concurrent_load"
+	if !committed && !uncommitted {
+		return
+	}
+	retained := committed && report.Applied && report.Retained && !report.Restored && !report.OwnerChanged && job.Outcome == "improved_tested_inputs"
+	// Even an inconsistent stored payload must not turn a temporary trial into
+	// a successful deployed repair in the customer activity feed.
+	if !retained && job.Outcome != "regressed" && job.Outcome != "repair_interrupted" {
+		job.Outcome = "inconclusive"
+	}
+	if !report.Applied {
+		return
+	}
+	summary := &ProjectRepair{Kind: "statistics", Action: "interrupted"}
+	job.Repair = summary
+	if reason := []rune(report.Reason); len(reason) > 0 {
+		job.Reason = string(reason[:min(500, len(reason))])
+	}
+	restored := report.Restored && !report.Retained
+	if committed {
+		restored = restored && report.StatisticsRegenerated
+	}
+	if report.Variant == "column_target" {
+		restored = restored && report.ColumnTarget != nil && report.ColumnTarget.Confirmed && report.ColumnTarget.Restored
+	}
+	if (!restored && !retained) || report.OwnerChanged || job.Outcome == "repair_interrupted" {
+		job.Reason = "The temporary statistics trial has no confirmed restoration or verified repair result."
+		if report.OwnerChanged {
+			job.Reason = "The owner changed the statistics configuration during this trial. That change was preserved; no verified repair is claimed."
+		}
+		job.PlanNode, job.PlanSource = "", ""
+		return
+	}
+	summary.Restored = restored
+	summary.StatisticsRegenerated = committed && restored && report.StatisticsRegenerated
+	summary.Action = "removed"
+	if report.Variant == "column_target" {
+		summary.Action = "restored"
+		if report.ColumnTarget.AnalyzeDuration > 0 {
+			summary.AnalysisMS = float64(report.ColumnTarget.AnalyzeDuration) / float64(time.Millisecond)
+		}
+	}
+	if retained {
+		summary.Action = "recorded"
+	}
+	notice := "Measurements describe the temporary trial. Original statistics were restored; no repair was retained."
+	if committed {
+		notice = "Measurements describe sampled inputs and observed normal traffic after the change was committed."
+		if restored {
+			notice = "Prior configuration was restored and statistics regenerated; the exact previous sample was not restored. No repair was retained."
+		}
+	}
+	if job.Reason == "" {
+		job.Reason = notice
+	} else {
+		job.Reason = notice + " " + job.Reason
+	}
+	reason := []rune(job.Reason)
+	job.Reason = string(reason[:min(500, len(reason))])
+	job.PlanNode, job.PlanSource = "", "managed_sample"
+	cases := 1
+	if report.Variant == "joint" {
+		cases = 2
+	}
+	if len(report.Before) == cases && len(report.After) == cases {
+		for i, b := range report.Before {
+			a := report.After[i]
+			if b.Sample.Errors != 0 || a.Sample.Errors != 0 || b.Sample.Reads <= 0 || a.Sample.Reads <= 0 || b.Sample.Reads != a.Sample.Reads || b.Sample.ReturnedRows == nil || a.Sample.ReturnedRows == nil || *b.Sample.ReturnedRows <= 0 || *b.Sample.ReturnedRows != *a.Sample.ReturnedRows {
+				continue
+			}
+			prefix := fmt.Sprintf("Trial input %d · ", i+1)
+			if committed {
+				prefix = fmt.Sprintf("Committed trial input %d · ", i+1)
+			}
+			for _, metric := range []struct {
+				label, unit string
+				b, a        *float64
+			}{
+				{"Measured latency", "ms", b.Sample.ReadMS, a.Sample.ReadMS},
+				{"Block accesses", "", b.Sample.Blocks, a.Sample.Blocks},
+			} {
+				if metric.b != nil && metric.a != nil && nonnegativeFinite(*metric.b) && nonnegativeFinite(*metric.a) {
+					summary.Metrics = append(summary.Metrics, ProjectRepairMetric{Label: prefix + metric.label, Unit: metric.unit, Before: *metric.b, After: *metric.a})
+				}
+			}
+			if b.EstimatedRows != nil && a.EstimatedRows != nil && *b.EstimatedRows > 0 && *a.EstimatedRows > 0 {
+				summary.Metrics = append(summary.Metrics, ProjectRepairMetric{Label: prefix + "Row estimate error ratio", Unit: "×", Before: rowEstimateError(*b.EstimatedRows, *b.Sample.ReturnedRows), After: rowEstimateError(*a.EstimatedRows, *a.Sample.ReturnedRows)})
+			}
+			if i == 0 && slices.Contains([]string{"Seq Scan", "Index Scan", "Index Only Scan"}, b.Sample.Plan) && slices.Contains([]string{"Seq Scan", "Index Scan", "Index Only Scan"}, a.Sample.Plan) {
+				job.PlanNode = "Trial: " + b.Sample.Plan + " → " + a.Sample.Plan
+			}
+		}
+	}
+	if b, a := report.BeforeTraffic, report.AfterTraffic; b != nil && a != nil {
+		readLabel, writeLabel := "Concurrent normal read mean latency during trial", "Concurrent normal write mean latency during trial"
+		if committed {
+			readLabel, writeLabel = "Protected normal read mean latency after commit", "Protected normal write mean latency after commit"
+		}
+		for _, metric := range []struct {
+			label    string
+			b, a     *float64
+			measured bool
+		}{
+			{readLabel, b.ReadMeanMS, a.ReadMeanMS, b.ReadCalls > 0 && a.ReadCalls > 0},
+			{writeLabel, b.WriteMeanMS, a.WriteMeanMS, b.WriteCalls > 0 && a.WriteCalls > 0},
+		} {
+			if metric.measured && metric.b != nil && metric.a != nil && nonnegativeFinite(*metric.b) && nonnegativeFinite(*metric.a) {
+				summary.Metrics = append(summary.Metrics, ProjectRepairMetric{Label: metric.label, Unit: "ms", Before: *metric.b, After: *metric.a})
+			}
+		}
+	}
+}
+
+func readManagedCronActivity(job *ProjectJob, raw []byte) {
+	var report ManagedCronReport
+	if json.Unmarshal(raw, &report) != nil || report.JobID <= 0 || report.ApplicationRequestVisibility != "unobserved" {
+		return
+	}
+	job.PlanNode, job.PlanSource = "", ""
+	job.Reason = "Scheduling verification covers completed database work. Application-wide request counts and errors remain unobserved. " + activityText(report.Reason)
+	reason := []rune(job.Reason)
+	job.Reason = string(reason[:min(500, len(reason))])
+	verified, _ := VerifyManagedCronPeriods(report.Before, report.After, report.Window)
+	if job.Outcome == "improved_database_observed" && (!report.Applied || report.CommitAt.IsZero() || verified != "improved_database_observed") {
+		job.Outcome = "inconclusive"
+	}
+	if !report.Applied || report.CommitAt.IsZero() {
+		return
+	}
+	job.Repair = &ProjectRepair{Kind: "cron", Action: "recorded"}
+	if len(report.Before) != 3 || len(report.After) != 3 || verified == "inconclusive" {
+		return
+	}
+	for i, label := range []string{"Affected completed database work mean latency", "Protected completed database reads mean latency", "Protected completed database writes mean latency"} {
+		var sums [2]float64
+		var calls [2]int64
+		for side, periods := range [][]ManagedCronPeriod{report.Before, report.After} {
+			for _, p := range periods {
+				measure := []ManagedCronMeasure{p.Busy.Target, p.Busy.Read, p.Busy.Write}[i]
+				mean, count, err := managedCronMean(measure)
+				if err != nil || count <= 0 {
+					return
+				}
+				sums[side] += mean * float64(count)
+				calls[side] += count
+			}
+		}
+		job.Repair.Metrics = append(job.Repair.Metrics, ProjectRepairMetric{Label: label, Unit: "ms", Before: sums[0] / float64(calls[0]), After: sums[1] / float64(calls[1])})
+	}
+}
+
+func readManagedMemoryActivity(job *ProjectJob, raw []byte) {
+	var report ManagedMemoryReport
+	if json.Unmarshal(raw, &report) != nil || report.FunctionOID == 0 {
+		return
+	}
+	recovery := report.Measurement == "interrupted_function_catalog_observation"
+	if !recovery && report.Measurement != "matched_read_only_function_experiment" {
+		return
+	}
+	job.PlanNode, job.PlanSource = "", ""
+	job.Reason = activityText(report.Reason)
+	if recovery {
+		job.Outcome = "repair_interrupted"
+		job.Repair = &ProjectRepair{Kind: "memory", Action: "interrupted", Restored: report.Restored, RecoveryStatus: activityText(report.RecoveryStatus)}
+		if report.Restored {
+			job.Repair.Action = "restored"
+		}
+		return
+	}
+	job.Repair = &ProjectRepair{Kind: "memory", Action: "recorded", Restored: report.Restored}
+	if report.Restored {
+		job.Repair.Action = "restored"
+	}
+	a := report.After
+	b := report.Before
+	measured := a != nil && b.Calls == 10 && a.Calls == 10 && b.SortRows > 0 && a.SortRows == b.SortRows
+	if job.Outcome == "improved_tested_inputs" && (!measured || report.Restored || report.Outcome != "improved_tested_inputs") {
+		job.Outcome = "inconclusive"
+	}
+	notice := "Extra memory is limited by a short allowance; other calls use the function's original memory. "
+	if report.Restored {
+		notice = "The original function definition was restored. "
+	}
+	job.Reason = notice + job.Reason
+	reason := []rune(job.Reason)
+	job.Reason = string(reason[:min(500, len(reason))])
+	if measured {
+		for _, metric := range []ProjectRepairMetric{
+			{Label: "Measured function mean latency", Unit: "ms", Before: b.MeanMS, After: a.MeanMS},
+			{Label: "Function temporary writes per call", Unit: "bytes", Before: b.OuterTempBytes, After: a.OuterTempBytes},
+			{Label: "Matched sort temporary writes", Unit: "bytes", Before: b.InnerTempBytes, After: a.InnerTempBytes},
+		} {
+			if nonnegativeFinite(metric.Before) && nonnegativeFinite(metric.After) {
+				job.Repair.Metrics = append(job.Repair.Metrics, metric)
+			}
+		}
+	}
+	if b, a := report.BeforeTraffic, report.AfterTraffic; b != nil && a != nil && b.ReadCalls > 0 && b.WriteCalls > 0 && a.ReadCalls > 0 && a.WriteCalls > 0 {
+		for _, metric := range []ProjectRepairMetric{
+			{Label: "Protected normal read mean latency", Unit: "ms", Before: b.ReadMeanMS, After: a.ReadMeanMS},
+			{Label: "Protected normal write mean latency", Unit: "ms", Before: b.WriteMeanMS, After: a.WriteMeanMS},
+		} {
+			if nonnegativeFinite(metric.Before) && nonnegativeFinite(metric.After) {
+				job.Repair.Metrics = append(job.Repair.Metrics, metric)
+			}
+		}
+	}
+}
+
+func readManagedCleanupActivity(job *ProjectJob, raw []byte) {
+	var report ManagedCleanupReport
+	if json.Unmarshal(raw, &report) != nil || report.Measurement != "same_sampled_input_and_normal_database_traffic" {
+		return
+	}
+	job.PlanNode, job.PlanSource = "", ""
+	job.Reason = activityText(report.Reason)
+	t := report.Trigger
+	if job.Outcome == "repair_interrupted" {
+		job.Repair = &ProjectRepair{Kind: "vacuum", Action: "interrupted", Restored: t.Restored}
+		return
+	}
+	matched := report.After != nil && report.Before.Sample.Reads > 0 && report.After.Sample.Reads == report.Before.Sample.Reads && report.Before.Sample.PlanReturned > 0 && report.Before.Sample.PlanReturned == report.After.Sample.PlanReturned
+	if job.Outcome == "improved_tested_inputs" && (!t.SettingChanged || !t.AutomaticCleaned || t.Restored || !matched || report.Outcome != "improved_tested_inputs") {
+		job.Outcome = "inconclusive"
+	}
+	if !t.SettingChanged && !t.Restored {
+		return
+	}
+	summary := &ProjectRepair{Kind: "vacuum", Action: "recorded", Restored: t.Restored, AutomaticCleaned: t.AutomaticCleaned}
+	if t.Restored {
+		summary.Action = "restored"
+	}
+	job.Repair = summary
+	if t.AutomaticCleaned {
+		job.Reason = "PostgreSQL automatically cleaned the measured backlog after the setting change. " + job.Reason
+		if !t.Before.At.IsZero() && !t.After.At.IsZero() && sameOwnedCleanupGeneration(t.Before, t.After) && t.Before.DeadTuples >= 0 && t.After.DeadTuples >= 0 {
+			summary.Metrics = append(summary.Metrics, ProjectRepairMetric{Label: "Estimated dead rows", Unit: "rows", Before: float64(t.Before.DeadTuples), After: float64(t.After.DeadTuples)})
+		}
+	}
+	reason := []rune(job.Reason)
+	job.Reason = string(reason[:min(500, len(reason))])
+	if matched {
+		for _, metric := range []ProjectRepairMetric{
+			{Label: "Measured latency for the same sampled input", Unit: "ms", Before: report.Before.Sample.ReadMS, After: report.After.Sample.ReadMS},
+			{Label: "Block accesses for the same sampled input", Before: report.Before.Sample.Blocks, After: report.After.Sample.Blocks},
+		} {
+			if nonnegativeFinite(metric.Before) && nonnegativeFinite(metric.After) {
+				summary.Metrics = append(summary.Metrics, metric)
+			}
+		}
+	}
+	if b, a := report.BeforeTraffic, report.AfterTraffic; b != nil && a != nil && b.ReadCalls > 0 && b.WriteCalls > 0 && a.ReadCalls > 0 && a.WriteCalls > 0 {
+		for _, metric := range []ProjectRepairMetric{
+			{Label: "Protected normal read mean latency", Unit: "ms", Before: b.ReadMeanMS, After: a.ReadMeanMS},
+			{Label: "Protected normal write mean latency", Unit: "ms", Before: b.WriteMeanMS, After: a.WriteMeanMS},
+		} {
+			if nonnegativeFinite(metric.Before) && nonnegativeFinite(metric.After) {
+				summary.Metrics = append(summary.Metrics, metric)
+			}
+		}
+	}
 }

@@ -8,21 +8,24 @@ import (
 
 // IndexEvidence is a bounded snapshot of an enrolled lookup.
 type IndexEvidence struct {
-	RunID       string              `json:"run_id"`
-	At          time.Time           `json:"observed_at"`
-	Decision    Decision            `json:"decision"`
-	TableOID    uint32              `json:"table_oid"`
-	Columns     []int16             `json:"column_numbers,omitempty"`
-	Column      int16               `json:"column_number"`
-	Existing    bool                `json:"covering_index"`
-	Cron        *CronEvidence       `json:"cron,omitempty"`
-	Memory      *MemoryEvidence     `json:"memory,omitempty"`
-	Vacuum      *VacuumEvidence     `json:"vacuum,omitempty"`
-	Statistics  *StatisticsEvidence `json:"statistics,omitempty"`
-	Analyze     *AnalyzeEvidence    `json:"analyze,omitempty"`
-	Plan        PlanEvidence        `json:"plan"`
-	ExecutionMS float64             `json:"-"`
-	Label       string              `json:"lookup_column"`
+	JobID         int64                  `json:"job_id,omitempty"`
+	RunID         string                 `json:"run_id"`
+	At            time.Time              `json:"observed_at"`
+	Decision      Decision               `json:"decision"`
+	TableOID      uint32                 `json:"table_oid"`
+	Columns       []int16                `json:"column_numbers,omitempty"`
+	Column        int16                  `json:"column_number"`
+	Existing      bool                   `json:"covering_index"`
+	Cron          *CronEvidence          `json:"cron,omitempty"`
+	ManagedCron   *ManagedCronEvidence   `json:"managed_cron,omitempty"`
+	ManagedMemory *ManagedMemoryEvidence `json:"managed_memory,omitempty"`
+	Memory        *MemoryEvidence        `json:"memory,omitempty"`
+	Vacuum        *VacuumEvidence        `json:"vacuum,omitempty"`
+	Statistics    *StatisticsEvidence    `json:"statistics,omitempty"`
+	Analyze       *AnalyzeEvidence       `json:"analyze,omitempty"`
+	Plan          PlanEvidence           `json:"plan"`
+	ExecutionMS   float64                `json:"-"`
+	Label         string                 `json:"lookup_column"`
 }
 
 // IndexProposal refers to evidence by identity. Only Go resolves identifiers.
@@ -39,6 +42,7 @@ type IndexProposal struct {
 	ModelCall  *ModelCall       `json:"model_call,omitempty"`
 	Repair     string           `json:"repair,omitempty"`
 	Outcome    string           `json:"outcome"`
+	JobID      int64            `json:"job_id,omitempty"`
 	RunID      string           `json:"run_id"`
 	TableOID   uint32           `json:"table_oid"`
 	Columns    []int16          `json:"column_numbers,omitempty"`
@@ -52,7 +56,7 @@ func qualifyIndex(e IndexEvidence, p IndexProposal, now time.Time) error {
 		return errors.New("lookup did not trigger investigation")
 	case e.At.IsZero() || e.At.After(now) || now.Sub(e.At) > 30*time.Second:
 		return errors.New("index evidence expired")
-	case p.Repair != "" || p.Outcome != "propose" || e.RunID == "" || p.RunID != e.RunID ||
+	case e.JobID != 0 || p.JobID != 0 || p.Repair != "" || p.Outcome != "propose" || e.RunID == "" || p.RunID != e.RunID ||
 		e.TableOID == 0 || p.TableOID != e.TableOID || e.Column <= 0 || p.Column != e.Column ||
 		len(p.Reason) == 0 || len(p.Reason) > 1000:
 		return errors.New("proposal does not match the enrolled lookup and evidence")

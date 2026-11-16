@@ -17,6 +17,7 @@ import (
 )
 
 type DiagnosticIdentity struct {
+	JobID    int64   `json:"job_id,omitempty"`
 	RunID    string  `json:"run_id"`
 	TableOID uint32  `json:"table_oid"`
 	Column   int16   `json:"column_number"`
@@ -144,7 +145,7 @@ func runDiagnostic(parent context.Context, input DiagnosticInput, read Diagnosti
 	}()
 	ctx, cancel := context.WithTimeout(parent, 22*time.Second)
 	defer cancel()
-	if input.RunID == "" || len(input.RunID) > 64 || input.TableOID == 0 || !hostedquery.ValidIndexColumns(input.Column, input.Columns) || len(input.Initial) > 7 {
+	if input.RunID == "" || len(input.RunID) > 64 || !hostedquery.ValidDiagnosticTarget(input.TableOID, input.Column, input.Columns, input.JobID) || len(input.Initial) > 7 {
 		return result, errors.New("invalid diagnostic input")
 	}
 	lookup := input.Mode == "enrolled_lookup"
@@ -291,7 +292,7 @@ func runDiagnostic(parent context.Context, input DiagnosticInput, read Diagnosti
 }
 func validateDiagnosticResult(input DiagnosticInput, observations map[string]DiagnosticObservation, result DiagnosticResult) error {
 	p := result.Proposal
-	if p.RunID != input.RunID || p.TableOID != input.TableOID || p.Column != input.Column || !slices.Equal(p.Columns, input.Columns) || len(p.Reason) == 0 || len(p.Reason) > 1000 || (p.Outcome != "no_change" && p.Outcome != "propose") {
+	if p.JobID != input.JobID || p.RunID != input.RunID || p.TableOID != input.TableOID || p.Column != input.Column || !slices.Equal(p.Columns, input.Columns) || len(p.Reason) == 0 || len(p.Reason) > 1000 || (p.Outcome != "no_change" && p.Outcome != "propose") {
 		return errors.New("identity")
 	}
 	if input.Mode == "enrolled_lookup" && p.Outcome != "no_change" {
@@ -379,7 +380,7 @@ func validateDiagnosticResult(input DiagnosticInput, observations map[string]Dia
 	if p.Repair != "" {
 		required = append(required, p.Repair)
 	}
-	e := hostedquery.IndexEvidence{RunID: input.RunID, TableOID: input.TableOID, Column: input.Column, Columns: input.Columns, Decision: input.Decision, Label: "lookup", At: time.Now()}
+	e := hostedquery.IndexEvidence{JobID: input.JobID, RunID: input.RunID, TableOID: input.TableOID, Column: input.Column, Columns: input.Columns, Decision: input.Decision, Label: "lookup", At: time.Now()}
 	for _, tool := range required {
 		o, ok := observations[tool]
 		if !ok || !validObservation(o, input, tool) || o.Status != "available" {
@@ -411,11 +412,29 @@ func validateDiagnosticResult(input DiagnosticInput, observations map[string]Dia
 			e.Vacuum = &hostedquery.VacuumEvidence{}
 			target = e.Vacuum
 		case "memory":
-			e.Memory = &hostedquery.MemoryEvidence{}
-			target = e.Memory
+			var shape map[string]json.RawMessage
+			if json.Unmarshal(o.Data, &shape) != nil {
+				return errors.New("malformed memory evidence")
+			}
+			if _, managed := shape["fallback_preserves_baseline"]; managed {
+				e.ManagedMemory = &hostedquery.ManagedMemoryEvidence{}
+				target = e.ManagedMemory
+			} else {
+				e.Memory = &hostedquery.MemoryEvidence{}
+				target = e.Memory
+			}
 		case "cron":
-			e.Cron = &hostedquery.CronEvidence{}
-			target = e.Cron
+			var shape map[string]json.RawMessage
+			if json.Unmarshal(o.Data, &shape) != nil {
+				return errors.New("malformed scheduling evidence")
+			}
+			if _, managed := shape["application_request_visibility"]; managed {
+				e.ManagedCron = &hostedquery.ManagedCronEvidence{}
+				target = e.ManagedCron
+			} else {
+				e.Cron = &hostedquery.CronEvidence{}
+				target = e.Cron
+			}
 		default:
 			return errors.New("repair")
 		}
@@ -429,7 +448,7 @@ func validateDiagnosticResult(input DiagnosticInput, observations map[string]Dia
 // SnapshotObservations preserves measurement time; callers may expose several
 // independently collected cause fields. Missing fields are never fabricated.
 func SnapshotObservations(e hostedquery.IndexEvidence) []DiagnosticObservation {
-	id := DiagnosticIdentity{RunID: e.RunID, TableOID: e.TableOID, Column: e.Column, Columns: e.Columns}
+	id := DiagnosticIdentity{JobID: e.JobID, RunID: e.RunID, TableOID: e.TableOID, Column: e.Column, Columns: e.Columns}
 	out := []DiagnosticObservation{}
 	add := func(tool string, value any) {
 		data, _ := json.Marshal(value)
@@ -448,16 +467,22 @@ func SnapshotObservations(e hostedquery.IndexEvidence) []DiagnosticObservation {
 	if e.Vacuum != nil {
 		add("vacuum", e.Vacuum)
 	}
+	if e.ManagedMemory != nil {
+		add("memory", e.ManagedMemory)
+	}
 	if e.Memory != nil {
 		add("memory", e.Memory)
 	}
 	if e.Cron != nil {
 		add("cron", e.Cron)
 	}
+	if e.ManagedCron != nil {
+		add("cron", e.ManagedCron)
+	}
 	return out
 }
 
 // SameDiagnosticIdentity includes ordered index keys in evidence and replay binding.
 func SameDiagnosticIdentity(a, b DiagnosticIdentity) bool {
-	return a.RunID == b.RunID && a.TableOID == b.TableOID && a.Column == b.Column && slices.Equal(a.Columns, b.Columns)
+	return a.JobID == b.JobID && a.RunID == b.RunID && a.TableOID == b.TableOID && a.Column == b.Column && slices.Equal(a.Columns, b.Columns)
 }

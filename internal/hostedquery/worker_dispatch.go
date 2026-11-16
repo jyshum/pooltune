@@ -37,34 +37,39 @@ type ownedIndexRecoveryScope struct {
 }
 
 type DispatchResult struct {
-	ManagedMaintenance    *ManagedMaintenanceReport `json:"managed_maintenance,omitempty"`
-	TrafficPlanStatus     string                    `json:"traffic_plan_status,omitempty"`
-	TrafficPlan           *TrafficPlan              `json:"traffic_plan,omitempty"`
-	LookupPlan            *LookupMeasuredPlan       `json:"lookup_plan,omitempty"`
-	LookupDiagnosis       *LookupDiagnosis          `json:"lookup_diagnosis,omitempty"`
-	JobID                 int64                     `json:"job_id"`
-	Attempt               int                       `json:"attempt"`
-	Outcome               string                    `json:"outcome"`
-	ThreadID              string                    `json:"thread_id,omitempty"`
-	Estimate              *EstimatedLookupEvidence  `json:"estimated_evidence,omitempty"`
-	ObservedLatency       *ObservedLookupLatency    `json:"observed_latency,omitempty"`
-	DiagnosticReason      string                    `json:"diagnostic_reason,omitempty"`
-	Evidence              *IndexEvidence            `json:"evidence,omitempty"`
-	Proposal              *IndexProposal            `json:"proposal,omitempty"`
-	ElapsedMS             float64                   `json:"elapsed_ms"`
-	TargetPlanMS          float64                   `json:"target_plan_ms,omitempty"`
-	RecoveredIndex        string                    `json:"recovered_index,omitempty"`
-	Cron                  *CronReport               `json:"cron,omitempty"`
-	Memory                *MemoryReport             `json:"memory,omitempty"`
-	Vacuum                *VacuumReport             `json:"vacuum,omitempty"`
-	Statistics            *StatisticsReport         `json:"statistics,omitempty"`
-	Analyze               *AnalyzeReport            `json:"analyze,omitempty"`
-	Repair                *IndexTrialReport         `json:"repair,omitempty"`
-	IndexRecovery         *ownedIndexRecovery       `json:"index_recovery,omitempty"`
-	ownedOperation        string
-	managedRecoveryIntent json.RawMessage
-	continuationAt        *time.Time
-	GraphMS               float64 `json:"graph_ms,omitempty"`
+	ManagedCron               *ManagedCronReport       `json:"managed_cron,omitempty"`
+	ManagedMemory             *ManagedMemoryReport     `json:"managed_memory,omitempty"`
+	ManagedStatistics         *ManagedStatisticsReport `json:"managed_statistics,omitempty"`
+	ManagedCleanup            *ManagedCleanupReport    `json:"managed_cleanup,omitempty"`
+	managedCleanupPublication *managedCleanupPublication
+	ManagedMaintenance        *ManagedMaintenanceReport `json:"managed_maintenance,omitempty"`
+	TrafficPlanStatus         string                    `json:"traffic_plan_status,omitempty"`
+	TrafficPlan               *TrafficPlan              `json:"traffic_plan,omitempty"`
+	LookupPlan                *LookupMeasuredPlan       `json:"lookup_plan,omitempty"`
+	LookupDiagnosis           *LookupDiagnosis          `json:"lookup_diagnosis,omitempty"`
+	JobID                     int64                     `json:"job_id"`
+	Attempt                   int                       `json:"attempt"`
+	Outcome                   string                    `json:"outcome"`
+	ThreadID                  string                    `json:"thread_id,omitempty"`
+	Estimate                  *EstimatedLookupEvidence  `json:"estimated_evidence,omitempty"`
+	ObservedLatency           *ObservedLookupLatency    `json:"observed_latency,omitempty"`
+	DiagnosticReason          string                    `json:"diagnostic_reason,omitempty"`
+	Evidence                  *IndexEvidence            `json:"evidence,omitempty"`
+	Proposal                  *IndexProposal            `json:"proposal,omitempty"`
+	ElapsedMS                 float64                   `json:"elapsed_ms"`
+	TargetPlanMS              float64                   `json:"target_plan_ms,omitempty"`
+	RecoveredIndex            string                    `json:"recovered_index,omitempty"`
+	Cron                      *CronReport               `json:"cron,omitempty"`
+	Memory                    *MemoryReport             `json:"memory,omitempty"`
+	Vacuum                    *VacuumReport             `json:"vacuum,omitempty"`
+	Statistics                *StatisticsReport         `json:"statistics,omitempty"`
+	Analyze                   *AnalyzeReport            `json:"analyze,omitempty"`
+	Repair                    *IndexTrialReport         `json:"repair,omitempty"`
+	IndexRecovery             *ownedIndexRecovery       `json:"index_recovery,omitempty"`
+	ownedOperation            string
+	managedRecoveryIntent     json.RawMessage
+	continuationAt            *time.Time
+	GraphMS                   float64 `json:"graph_ms,omitempty"`
 }
 
 // InvestigationEvidence supplies fresh evidence for this exact enrolled job.
@@ -92,12 +97,12 @@ func claimProjectInvestigation(ctx context.Context, state *pgx.Conn, project str
 		// A new statement after the project lock sees a competing consumer's committed claim.
 		err := tx.QueryRow(ctx, `
 			WITH open_jobs AS MATERIALIZED (
-				SELECT j.id, j.attempts, j.not_before, j.lease_until, (a.job_id IS NOT NULL OR ($8::boolean AND b.job_id IS NOT NULL AND b.operation IN ('analyze','vacuum') AND b.intent->>'RunID' LIKE 'managed-maintenance-%')) AS has_pending_index,
+				SELECT j.id, j.attempts, j.not_before, j.lease_until, (a.job_id IS NOT NULL OR ($8::boolean AND b.job_id IS NOT NULL AND ((b.operation IN ('analyze','vacuum') AND b.intent->>'RunID' LIKE 'managed-maintenance-%') OR (b.operation='statistics' AND b.intent->>'RunID' LIKE 'managed-statistics-%') OR (b.operation='memory' AND b.intent->>'run_id' LIKE 'managed-memory-%') OR (b.operation='cron' AND b.intent->>'RunID' LIKE 'managed-cron-%')))) AS has_pending_index,
 				       (a.job_id IS NOT NULL OR b.job_id IS NOT NULL) AS has_pending_action,
-				       CASE WHEN $8::boolean AND b.operation IN ('analyze','vacuum') AND b.intent->>'RunID' LIKE 'managed-maintenance-%' THEN b.operation ELSE '' END AS maintenance_operation,
+				       CASE WHEN $8::boolean AND ((b.operation IN ('analyze','vacuum') AND b.intent->>'RunID' LIKE 'managed-maintenance-%') OR (b.operation='statistics' AND b.intent->>'RunID' LIKE 'managed-statistics-%') OR (b.operation='memory' AND b.intent->>'run_id' LIKE 'managed-memory-%') OR (b.operation='cron' AND b.intent->>'RunID' LIKE 'managed-cron-%')) THEN b.operation ELSE '' END AS maintenance_operation,
 				       a.job_id IS NOT NULL AND ($8::boolean OR ($4::oid<>0 AND $5::oid<>0
 				         AND j.database_oid=$4::oid AND j.role_oid=$5::oid
-				         AND ($6::bigint=0 OR j.query_id=$6))) OR ($8::boolean AND b.job_id IS NOT NULL AND b.operation IN ('analyze','vacuum') AND b.intent->>'RunID' LIKE 'managed-maintenance-%') AS recovery_allowed
+				         AND ($6::bigint=0 OR j.query_id=$6))) OR ($8::boolean AND b.job_id IS NOT NULL AND ((b.operation IN ('analyze','vacuum') AND b.intent->>'RunID' LIKE 'managed-maintenance-%') OR (b.operation='statistics' AND b.intent->>'RunID' LIKE 'managed-statistics-%') OR (b.operation='memory' AND b.intent->>'run_id' LIKE 'managed-memory-%') OR (b.operation='cron' AND b.intent->>'RunID' LIKE 'managed-cron-%'))) AS recovery_allowed
 				FROM pooltune_worker.investigations j
 				LEFT JOIN pooltune_worker.owned_index_actions a ON a.job_id=j.id AND a.project_id=j.project_id AND a.outcome='pending'
 				LEFT JOIN pooltune_worker.owned_project_actions b ON b.job_id=j.id AND b.project_id=j.project_id AND b.outcome='pending'
@@ -141,7 +146,7 @@ func claimProjectInvestigation(ctx context.Context, state *pgx.Conn, project str
 }
 
 func finishInvestigation(ctx context.Context, state *pgx.Conn, claim investigationClaim, result DispatchResult, expectedEpoch ...int64) error {
-	maintenanceRecovery := claim.RecoveryOnly && claim.MaintenanceOperation != "" && result.ownedOperation == claim.MaintenanceOperation && result.ManagedMaintenance != nil && result.Outcome == "repair_interrupted" && json.Valid(result.managedRecoveryIntent)
+	maintenanceRecovery := claim.RecoveryOnly && claim.MaintenanceOperation != "" && result.ownedOperation == claim.MaintenanceOperation && (result.ManagedMaintenance != nil || (claim.MaintenanceOperation == "memory" && result.ManagedMemory != nil)) && result.Outcome == "repair_interrupted" && json.Valid(result.managedRecoveryIntent)
 	if claim.RecoveryOnly && result.IndexRecovery == nil && !maintenanceRecovery {
 		return errClaimLost
 	}

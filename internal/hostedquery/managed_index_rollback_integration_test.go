@@ -86,3 +86,47 @@ func TestManagedIndexRollbackBindsExactCreatedObject(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestManagedIndexRollbackIntentSurvivesFailure(t *testing.T) {
+	ctx, config, _ := testpg.Start(t)
+	state, err := pgx.ConnectConfig(ctx, config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer state.Close(ctx)
+	if err := PrepareWorkerState(ctx, state); err != nil {
+		t.Fatal(err)
+	}
+	const project = "managed-rollback-intent"
+	if _, err := state.Exec(ctx, `INSERT INTO pooltune_worker.projects(project_id,monitor_epoch)VALUES($1,4)`, project); err != nil {
+		t.Fatal(err)
+	}
+	claim := investigationClaim{Project: project, Attempt: 1, InvestigationJob: InvestigationJob{queryKey: queryKey{Database: 1}}}
+	if err := state.QueryRow(ctx, `INSERT INTO pooltune_worker.investigations(project_id,database_oid,role_oid,query_id,evidence,attempts,lease_until)VALUES($1,1,2,3,'{}',1,clock_timestamp()+interval '30 seconds')RETURNING id`, project).Scan(&claim.ID); err != nil {
+		t.Fatal(err)
+	}
+	original := ProjectIndexActionIntent{RunID: fmt.Sprintf("managed-index-%d-1", claim.ID), Target: ProjectIndexTarget{DatabaseOID: 1, TableOID: 9}, IndexName: "pooltune_ix_9_1", Keys: []ProjectIndexKey{{Number: 1, Name: "account"}}, RelationBytes: 100000}
+	if err := recordOwnedIndexIntent(ctx, state, project, 4, claim, original); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := requestManagedIndexRollback(ctx, state, project, 3, claim, 24); err == nil {
+		t.Fatal("stale epoch recorded rollback")
+	}
+	got, err := requestManagedIndexRollback(ctx, state, project, 4, claim, 24)
+	if err != nil || !got.RollbackRequested || got.AppliedIndexOID != 24 {
+		t.Fatalf("rollback intent: %+v %v", got, err)
+	}
+	restarted, err := pgx.ConnectConfig(ctx, config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer restarted.Close(ctx)
+	var pending bool
+	var oid uint32
+	if err := restarted.QueryRow(ctx, `SELECT outcome='pending', (intent->>'AppliedIndexOID')::oid FROM pooltune_worker.owned_index_actions WHERE job_id=$1`, claim.ID).Scan(&pending, &oid); err != nil || !pending || oid != 24 {
+		t.Fatalf("uncertain rollback lost intent: %v %d %v", pending, oid, err)
+	}
+	if _, err := requestManagedIndexRollback(ctx, restarted, project, 4, claim, 25); err == nil {
+		t.Fatal("repeated rollback changed exact created OID")
+	}
+}

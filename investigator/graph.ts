@@ -2,17 +2,24 @@ import { END, START, StateGraph, StateSchema } from "@langchain/langgraph";
 import type { BaseCheckpointSaver } from "@langchain/langgraph";
 import { z } from "zod";
 import {cronSchema,cronCause} from "./cron-schema.ts";
+import {managedCronSchema,managedCronCause} from "./managed-cron-schema.ts";
+
+import {managedCleanupSchema,managedCleanupCause} from "./managed-cleanup-schema.ts";
+import {managedMemorySchema,managedMemoryCause} from "./managed-memory-schema.ts";
 
 const columnNumberSchema = z.number().int().positive().max(32767);
 const orderedColumnsSchema = z.tuple([columnNumberSchema, columnNumberSchema]);
 export const indexIdentityShape = {
   run_id: z.string().min(1).max(64),
-  table_oid: z.number().int().positive().max(4294967295),
-  column_number: columnNumberSchema,
+  job_id: z.number().int().positive().max(Number.MAX_SAFE_INTEGER).optional(),
+  table_oid: z.number().int().nonnegative().max(4294967295),
+  column_number: z.number().int().nonnegative().max(32767),
   column_numbers: orderedColumnsSchema.optional(),
 };
 
-export function indexKeysMatchAnchor(value: {column_number: number; column_numbers?: [number, number]}) {
+export function indexKeysMatchAnchor(value: {table_oid: number; job_id?: number; column_number: number; column_numbers?: [number, number]}) {
+  if(value.job_id !== undefined) return value.job_id > 0 && value.table_oid === 0 && value.column_number === 0 && !value.column_numbers;
+  if(value.table_oid <= 0 || value.column_number <= 0) return false;
   const keys = value.column_numbers;
   return !keys || (keys[0] === value.column_number && keys[0] !== keys[1]);
 }
@@ -34,8 +41,10 @@ export const evidenceFields = z.strictObject({
   covering_index: z.boolean(),
   plan: planSchema,
   cron: cronSchema.optional(),
+  managed_cron: managedCronSchema.optional(),
+  managed_memory: managedMemorySchema.optional(),
   memory: z.strictObject({function_oid:z.number().int().positive(),temp_bytes:z.number().nonnegative(),internal_temp_bytes:z.number().nonnegative(),sort_nodes:z.number().int().positive(),max_concurrent_calls:z.number().int().positive(),candidate_bytes:z.number().int().positive(),aggregate_bytes:z.number().int().positive(),current_work_mem:z.string(),candidate_work_mem:z.string(),identity_verified:z.boolean()}).optional(),
-  vacuum: z.strictObject({ heap_fetches: z.number().nonnegative(), scan_rows: z.number().int().positive(), conditions_clear: z.boolean() }).optional(),
+  vacuum: z.strictObject({ cleanup_trigger: managedCleanupSchema.optional(), heap_fetches: z.number().nonnegative(), scan_rows: z.number().int().positive(), conditions_clear: z.boolean() }).optional(),
   statistics: z.strictObject({
     correlated_columns: z.boolean(),
     cases: z.array(z.strictObject({ estimated_rows: z.number().int().positive(), actual_rows: z.number().int().positive() })).min(1).max(2),
@@ -49,7 +58,7 @@ export const evidenceFields = z.strictObject({
 
 export const evidenceSchema = evidenceFields
   .refine(indexKeysMatchAnchor, indexKeysIssue)
-  .refine(e => [e.analyze,e.statistics,e.vacuum,e.memory,e.cron].filter(Boolean).length <= 1, "Evidence must contain at most one repair cause.");
+  .refine(e => [e.analyze,e.statistics,e.vacuum,e.memory,e.managed_memory,e.cron,e.managed_cron].filter(Boolean).length <= 1, "Evidence must contain at most one repair cause.");
 
 const proposalFields = z.strictObject({
   ...indexIdentityShape,
@@ -77,11 +86,11 @@ const state = new StateSchema({
 });
 
 function identity(evidence: Evidence) {
-  return { run_id: evidence.run_id, table_oid: evidence.table_oid, column_number: evidence.column_number, ...(evidence.column_numbers?{column_numbers:evidence.column_numbers}:{}) };
+  return { ...(evidence.job_id?{job_id:evidence.job_id}:{}), run_id: evidence.run_id, table_oid: evidence.table_oid, column_number: evidence.column_number, ...(evidence.column_numbers?{column_numbers:evidence.column_numbers}:{}) };
 }
 
 export function sameIndexIdentity(a: IndexIdentity, b: IndexIdentity) {
-  return a.run_id === b.run_id && a.table_oid === b.table_oid && a.column_number === b.column_number &&
+  return a.job_id === b.job_id && a.run_id === b.run_id && a.table_oid === b.table_oid && a.column_number === b.column_number &&
     a.column_numbers?.[0] === b.column_numbers?.[0] && a.column_numbers?.[1] === b.column_numbers?.[1];
 }
 
@@ -98,10 +107,20 @@ export function statisticsCause(statistics: NonNullable<Evidence["statistics"]>,
 }
 
 export function screenEvidence(evidence: Evidence) {
- if(evidence.column_numbers && [evidence.analyze,evidence.statistics,evidence.vacuum,evidence.memory,evidence.cron].some(Boolean)) return {proposal:{...identity(evidence),outcome:"no_change" as const,reason:"Unsupported compound enrollment."}};
+ if(!indexKeysMatchAnchor(evidence) || (evidence.job_id !== undefined && !evidence.managed_cron)) return {proposal:{...identity(evidence),outcome:"no_change" as const,reason:"The enrolled identity does not match this repair."}};
+ if(evidence.column_numbers && [evidence.analyze,evidence.statistics,evidence.vacuum,evidence.memory,evidence.managed_memory,evidence.cron,evidence.managed_cron].some(Boolean)) return {proposal:{...identity(evidence),outcome:"no_change" as const,reason:"Unsupported compound enrollment."}};
+      if (evidence.managed_cron) {
+        if(evidence.decision === "investigate" && evidence.job_id === evidence.managed_cron.job_id && managedCronCause(evidence.managed_cron)) return {};
+        return {proposal:{...identity(evidence),outcome:"no_change" as const,reason:"Comparable completed database work, attributed blocking or scheduling limits are insufficient."}};
+      }
       if (evidence.cron) {
         if(evidence.decision === "investigate" && cronCause(evidence.cron)) return {};
         return {proposal:{...identity(evidence),outcome:"no_change" as const,reason:"Repeated attributed contention or enrolled schedule constraints are insufficient."}};
+      }
+      if (evidence.managed_memory) {
+        const m=evidence.managed_memory;
+        if(evidence.decision === "investigate" && evidence.plan.node === "Sort" && evidence.plan.examined_rows === m.sort_rows && evidence.plan.returned_rows === m.sort_rows && managedMemoryCause(m)) return {};
+        return {proposal:{...identity(evidence),outcome:"no_change" as const,reason:"Attributed spill, fresh memory capacity or original-memory fallback is insufficient."}};
       }
       if (evidence.memory) {
         const m=evidence.memory;
@@ -111,7 +130,7 @@ export function screenEvidence(evidence: Evidence) {
       if (evidence.vacuum) {
         const v = evidence.vacuum;
         if (evidence.decision === "investigate" && evidence.covering_index && evidence.plan.node === "Index Only Scan" &&
-            v.conditions_clear && v.heap_fetches >= 1000 && v.heap_fetches / v.scan_rows >= .5) return {};
+            (!v.cleanup_trigger || managedCleanupCause(v.cleanup_trigger,evidence.table_oid)) && v.conditions_clear && v.heap_fetches >= 1000 && v.heap_fetches / v.scan_rows >= .5) return {};
         return { proposal: { ...identity(evidence), outcome: "no_change" as const, reason: "Measured visibility work does not justify VACUUM." } };
       }
       if (evidence.statistics) {

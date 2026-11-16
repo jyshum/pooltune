@@ -30,6 +30,7 @@ type CronBlock struct {
 	PID          int32     `json:"pid"`
 	BackendStart time.Time `json:"backend_start"`
 	WaitingPID   int32     `json:"waiting_pid"`
+	WaitingRole  uint32    `json:"waiting_role,omitempty"`
 	WaitingStart time.Time `json:"waiting_start"`
 	Query        int64     `json:"query_id,string"`
 }

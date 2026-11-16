@@ -9,8 +9,12 @@ import (
 )
 
 func verifyProjectCronHandoff(ctx context.Context, tx pgx.Tx, req ProjectCronRequest, now time.Time, generation CronGeneration) (time.Time, error) {
+	managed := len(req.ManagedPeriods) > 0
+	if managed && (len(req.Periods) != 0 || validateManagedCronPeriods(req.ManagedPeriods, req.Window, req.Target.JobID, generation, false, true) != nil) {
+		return time.Time{}, errors.New("managed scheduling evidence is mixed or incomplete")
+	}
 	if req.ObservedAt.IsZero() || req.ObservedAt.After(now) || now.Sub(req.ObservedAt) > 30*time.Second ||
-		!req.Generation.same(generation) || generation.PID <= 0 || generation.Started.IsZero() || generation.Postmaster.IsZero() || len(req.Periods) != 3 {
+		!req.Generation.same(generation) || generation.PID <= 0 || generation.Started.IsZero() || generation.Postmaster.IsZero() || (!managed && len(req.Periods) != 3) {
 		return time.Time{}, errors.New("fresh attributed Cron periods and a matching live scheduler are required")
 	}
 	cycleDuration := time.Duration(req.Window.EveryMinutes) * time.Minute
@@ -64,6 +68,16 @@ func verifyProjectCronHandoff(ctx context.Context, tx pgx.Tx, req ProjectCronReq
 	}
 	if err := results.Close(); err != nil {
 		return time.Time{}, err
+	}
+	if managed {
+		for i, p := range req.ManagedPeriods {
+			start := first.Add(time.Duration(i) * cycleDuration)
+			run := history[i]
+			if !p.Cycle.Equal(start) || p.Run.ID != run.ID || p.Run.JobID != run.JobID || p.Run.PID != run.PID || p.Run.Status != run.Status || !p.Run.Start.Equal(run.Start) || !p.Run.End.Equal(run.End) || p.Busy.Target.Before.Database != req.Target.DatabaseOID {
+				return time.Time{}, errors.New("managed scheduling history changed before handoff")
+			}
+		}
+		return next, nil
 	}
 	for i, p := range req.Periods {
 		start := first.Add(time.Duration(i) * cycleDuration)

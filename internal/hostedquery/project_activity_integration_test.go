@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -292,4 +293,323 @@ func projectActivityTestState(t *testing.T) (context.Context, *pgx.Conn, *pgx.Co
 		t.Fatal(err)
 	}
 	return ctx, state, config
+}
+
+func TestProjectActivityKeepsManagedStatisticsTrialsSeparateFromRetainedRepairs(t *testing.T) {
+	ctx, state, _ := projectActivityTestState(t)
+	const project = "managed-statistics-activity"
+	if _, err := state.Exec(ctx, `INSERT INTO pooltune_worker.projects(project_id,monitor_epoch) VALUES($1,1)`, project); err != nil {
+		t.Fatal(err)
+	}
+	cases := []struct {
+		result, outcome, action string
+		restored                bool
+		metrics                 int
+		firstLabel              string
+		firstBefore, firstAfter float64
+		recovery                string
+	}{
+		{result: `{"outcome":"inconclusive","managed_statistics":{"verification_scope":"uncommitted_candidate_inputs_and_concurrent_load","measurement":"managed_sampled_inputs_and_normal_traffic_windows","variant":"column_target","applied":true,"retained":false,"restored":true,"outcome":"inconclusive","sampled_outcome":"improved_tested_inputs","reason":"The temporary trial was rolled back.","column_target":{"Confirmed":true,"Restored":true,"AnalyzeDuration":20000000},"before":[{"inputs":[987654321],"raw_sql":"PRIVATE_QUERY_TEXT","estimated_rows":20000,"sample":{"read_calls":1,"read_mean_ms":20,"blocks_per_read":500,"returned_rows":100,"plan":"Seq Scan"}}],"after":[{"estimated_rows":100,"sample":{"read_calls":1,"read_mean_ms":1,"blocks_per_read":20,"returned_rows":100,"plan":"Index Only Scan"}}],"before_traffic":{"read_calls":20,"write_calls":20,"read_mean_ms":2,"write_mean_ms":4},"after_traffic":{"read_calls":25,"write_calls":30,"read_mean_ms":1.8,"write_mean_ms":3.5}}}`, outcome: "inconclusive", action: "restored", restored: true, metrics: 5, firstLabel: "Trial input 1 · Measured latency", firstBefore: 20, firstAfter: 1},
+		{result: `{"outcome":"regressed","managed_statistics":{"verification_scope":"uncommitted_candidate_inputs_and_concurrent_load","measurement":"managed_sampled_inputs_and_normal_traffic_windows","variant":"joint","applied":true,"restored":true,"outcome":"regressed","before":[{"sample":{"read_calls":1,"read_mean_ms":20,"returned_rows":100}},{"sample":{"read_calls":1,"read_mean_ms":25,"returned_rows":300}}],"after":[{"sample":{"read_calls":1,"read_mean_ms":30,"returned_rows":100}},{"sample":{"read_calls":1,"read_mean_ms":2,"returned_rows":300}}]}}`, outcome: "regressed", action: "removed", restored: true, metrics: 2, firstLabel: "Trial input 1 · Measured latency", firstBefore: 20, firstAfter: 30},
+		{result: `{"outcome":"repair_interrupted","managed_maintenance":{"operation":"statistics","measurement":"interrupted_statistics_catalog_observation","recovery_status":"trial_statistics_setting","reason":"Catalog observed. Performance remains unverified.","action":{"Confirmed":true},"before":{"sample":{"read_calls":1,"read_mean_ms":20}},"after":{"sample":{"read_calls":1,"read_mean_ms":1}}}}`, outcome: "repair_interrupted", action: "interrupted", recovery: "trial_statistics_setting"},
+		{result: `{"outcome":"improved_tested_inputs","managed_statistics":{"verification_scope":"uncommitted_candidate_inputs_and_concurrent_load","measurement":"managed_sampled_inputs_and_normal_traffic_windows","variant":"joint","applied":true,"restored":true,"outcome":"improved_tested_inputs"}}`, outcome: "inconclusive", action: "removed", restored: true},
+		{result: `{"outcome":"inconclusive","managed_statistics":{"verification_scope":"uncommitted_candidate_inputs_and_concurrent_load","measurement":"managed_sampled_inputs_and_normal_traffic_windows","variant":"column_target","applied":true,"restored":true,"column_target":{"Confirmed":true,"Restored":true},"before":[{"sample":{"read_calls":1,"read_mean_ms":20,"returned_rows":100}}],"after":[{"sample":{"read_calls":1,"returned_rows":100}}]}}`, outcome: "inconclusive", action: "restored", restored: true},
+		{result: `{"outcome":"improved_tested_inputs","managed_statistics":{"verification_scope":"uncommitted_candidate_inputs_and_concurrent_load","measurement":"managed_sampled_inputs_and_normal_traffic_windows","variant":"joint","applied":true,"retained":true,"restored":false}}`, outcome: "inconclusive", action: "interrupted"},
+	}
+	for i, c := range cases {
+		if _, err := state.Exec(ctx, `INSERT INTO pooltune_worker.investigations(project_id,database_oid,role_oid,query_id,evidence,finished_at,result) VALUES($1,1,2,$2,'{}',statement_timestamp(),$3::jsonb)`, project, i+1, c.result); err != nil {
+			t.Fatal(err)
+		}
+	}
+	activity, err := ReadProjectActivity(ctx, state, project, time.Now().Add(-time.Hour))
+	if err != nil || len(activity.Jobs) != len(cases) {
+		t.Fatalf("read trials: %+v %v", activity, err)
+	}
+	for _, job := range activity.Jobs {
+		c := cases[job.Query-1]
+		if job.Outcome != c.outcome || job.Repair == nil || job.Repair.Kind != "statistics" || job.Repair.Action != c.action {
+			t.Errorf("query %d lost scoped outcome: %+v", job.Query, job)
+			continue
+		}
+		raw, err := json.Marshal(job)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var summary struct {
+			Repair struct {
+				Restored bool `json:"restored"`
+			}
+		}
+		if err := json.Unmarshal(raw, &summary); err != nil {
+			t.Fatal(err)
+		}
+		if summary.Repair.Restored != c.restored || job.Repair.RecoveryStatus != c.recovery || len(job.Repair.Metrics) != c.metrics {
+			t.Errorf("query %d wrong recovery/metrics: %s", job.Query, raw)
+		}
+		if c.metrics > 0 {
+			metric := job.Repair.Metrics[0]
+			if metric.Label != c.firstLabel || metric.Before != c.firstBefore || metric.After != c.firstAfter {
+				t.Errorf("query %d misleading sample: %+v", job.Query, metric)
+			}
+		}
+		if strings.Contains(string(raw), "987654321") || strings.Contains(string(raw), "PRIVATE_QUERY_TEXT") || strings.Contains(string(raw), "\"inputs\"") {
+			t.Errorf("query %d leaked raw inputs: %s", job.Query, raw)
+		}
+		for _, metric := range job.Repair.Metrics {
+			if strings.Contains(metric.Label, "Protected") {
+				t.Errorf("uncommitted trial mislabeled protected-plan verification: %+v", metric)
+			}
+		}
+		if c.recovery != "" && job.Reason != "Catalog observed. Performance remains unverified." {
+			t.Errorf("catalog-only reason omitted: %+v", job)
+		}
+	}
+}
+
+func TestProjectActivityDistinguishesCommittedStatisticsBenefitAndConfigurationRecovery(t *testing.T) {
+	ctx, state, _ := projectActivityTestState(t)
+	const project = "committed-statistics-activity"
+	if _, err := state.Exec(ctx, `INSERT INTO pooltune_worker.projects(project_id,monitor_epoch) VALUES($1,1)`, project); err != nil {
+		t.Fatal(err)
+	}
+	sample := func(ms float64, estimate int64) ManagedIndexMeasurement {
+		return ManagedIndexMeasurement{EstimatedRows: estimate, Inputs: []int32{987654321}, Sample: TrialSample{Reads: 1, ReadMS: ms, PlanReturned: 100, Blocks: 100, Plan: "Index Only Scan"}}
+	}
+	report := ManagedStatisticsReport{ManagedStatisticsTrialReport: ManagedStatisticsTrialReport{Measurement: "managed_committed_statistics_trial", VerificationScope: "committed_candidate_inputs_and_normal_traffic", Variant: "column_target", Applied: true, Retained: true, Deadline: time.Now(), Before: []ManagedIndexMeasurement{sample(20, 20000)}, After: []ManagedIndexMeasurement{sample(1, 100)}, BeforeTraffic: &ManagedMaintenanceTraffic{ReadCalls: 10, WriteCalls: 10, ReadMeanMS: 1, WriteMeanMS: 1}, AfterTraffic: &ManagedMaintenanceTraffic{ReadCalls: 20, WriteCalls: 20, ReadMeanMS: 1, WriteMeanMS: 1}, ColumnTarget: &ProjectStatisticsResult{Confirmed: true}, Outcome: "improved_tested_inputs"}}
+	cases := []struct {
+		result                DispatchResult
+		outcome, action       string
+		restored, regenerated bool
+		metrics               int
+	}{
+		{result: DispatchResult{Outcome: "improved_tested_inputs", ManagedStatistics: &report}, outcome: "improved_tested_inputs", action: "recorded", metrics: 5},
+	}
+	restored := report
+	restored.Retained = false
+	restored.Restored = true
+	restored.StatisticsRegenerated = true
+	restored.Outcome = "regressed"
+	restored.ColumnTarget = &ProjectStatisticsResult{Confirmed: true, Restored: true}
+	cases = append(cases, struct {
+		result                DispatchResult
+		outcome, action       string
+		restored, regenerated bool
+		metrics               int
+	}{DispatchResult{Outcome: "regressed", ManagedStatistics: &restored}, "regressed", "restored", true, true, 5})
+	changed := report
+	changed.Retained = false
+	changed.OwnerChanged = true
+	changed.Outcome = "inconclusive"
+	cases = append(cases, struct {
+		result                DispatchResult
+		outcome, action       string
+		restored, regenerated bool
+		metrics               int
+	}{DispatchResult{Outcome: "inconclusive", ManagedStatistics: &changed}, "inconclusive", "interrupted", false, false, 0})
+	for _, status := range []string{"statistics_configuration_restored", "statistics_object_removed"} {
+		action := "restored"
+		if status == "statistics_object_removed" {
+			action = "removed"
+		}
+		cases = append(cases, struct {
+			result                DispatchResult
+			outcome, action       string
+			restored, regenerated bool
+			metrics               int
+		}{DispatchResult{Outcome: "repair_interrupted", ManagedMaintenance: &ManagedMaintenanceReport{Operation: "statistics", Measurement: "interrupted_committed_statistics_recovery", RecoveryStatus: status, Reason: "Configuration restored and statistics regenerated. Performance remains unverified."}}, "repair_interrupted", action, true, true, 0})
+	}
+	for i, c := range cases {
+		raw, err := json.Marshal(c.result)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err := state.Exec(ctx, `INSERT INTO pooltune_worker.investigations(project_id,database_oid,role_oid,query_id,evidence,finished_at,result) VALUES($1,1,2,$2,'{}',statement_timestamp(),$3::jsonb)`, project, i+1, string(raw)); err != nil {
+			t.Fatal(err)
+		}
+	}
+	activity, err := ReadProjectActivity(ctx, state, project, time.Now().Add(-time.Hour))
+	if err != nil || len(activity.Jobs) != len(cases) {
+		t.Fatalf("read committed statistics: %+v %v", activity, err)
+	}
+	for _, job := range activity.Jobs {
+		c := cases[job.Query-1]
+		if job.Outcome != c.outcome || job.Repair == nil || job.Repair.Kind != "statistics" || job.Repair.Action != c.action || job.Repair.Restored != c.restored || len(job.Repair.Metrics) != c.metrics {
+			t.Errorf("wrong committed/restored action: %+v", job)
+			continue
+		}
+		raw, _ := json.Marshal(job)
+		var fields struct {
+			Repair struct {
+				Regenerated bool `json:"statistics_regenerated"`
+			}
+		}
+		_ = json.Unmarshal(raw, &fields)
+		if fields.Repair.Regenerated != c.regenerated {
+			t.Errorf("missing regenerated-sample boundary: %s", raw)
+		}
+		if strings.Contains(string(raw), "987654321") {
+			t.Errorf("inputs leaked: %s", raw)
+		}
+		if c.metrics > 0 && job.Repair.Metrics[0].Label != "Committed trial input 1 · Measured latency" {
+			t.Errorf("missing committed scope: %+v", job.Repair.Metrics[0])
+		}
+		if c.regenerated && !strings.Contains(job.Reason, "regenerated") {
+			t.Errorf("restoration guarantee hidden: %+v", job)
+		}
+	}
+}
+
+func TestProjectActivityShowsManagedCronDatabaseScopeWithoutApplicationClaims(t *testing.T) {
+	ctx, state, _ := projectActivityTestState(t)
+	const project = "managed-cron-activity"
+	if _, err := state.Exec(ctx, `INSERT INTO pooltune_worker.projects(project_id,monitor_epoch) VALUES($1,1)`, project); err != nil {
+		t.Fatal(err)
+	}
+	before, after := managedCronPolicyExample(false), managedCronPolicyExample(true)
+	report := ManagedCronReport{Window: before.Window, JobID: before.JobID, Before: before.Periods, After: after.Periods, Original: before.Original, Alternate: before.Alternate, Outcome: "improved_database_observed", Applied: true, CommitAt: time.Now(), ApplicationRequestVisibility: "unobserved", Reason: "Comparable completed database work improved."}
+	raw, _ := json.Marshal(DispatchResult{Outcome: report.Outcome, ManagedCron: &report})
+	if _, err := state.Exec(ctx, `INSERT INTO pooltune_worker.investigations(project_id,database_oid,role_oid,query_id,evidence,finished_at,result) VALUES($1,1,2,3,'{}',clock_timestamp(),$2::jsonb)`, project, string(raw)); err != nil {
+		t.Fatal(err)
+	}
+	activity, err := ReadProjectActivity(ctx, state, project, time.Now().Add(-time.Hour))
+	if err != nil || len(activity.Jobs) != 1 {
+		t.Fatalf("read: %+v %v", activity, err)
+	}
+	job := activity.Jobs[0]
+	if job.Outcome != "improved_database_observed" || job.Repair == nil || job.Repair.Kind != "cron" || len(job.Repair.Metrics) != 3 || !strings.Contains(job.Reason, "errors remain unobserved") || job.PlanNode != "" {
+		t.Fatalf("scope overstated: %+v", job)
+	}
+}
+
+func TestProjectActivityShowsManagedMemoryAndRestorationWithoutInventedMeasurements(t *testing.T) {
+	ctx, state, _ := projectActivityTestState(t)
+	const project = "managed-memory-activity"
+	if _, err := state.Exec(ctx, `INSERT INTO pooltune_worker.projects(project_id,monitor_epoch) VALUES($1,1)`, project); err != nil {
+		t.Fatal(err)
+	}
+	report := ManagedMemoryReport{FunctionOID: 77, Measurement: "matched_read_only_function_experiment", Before: ManagedMemorySample{Calls: 10, SortRows: 100000, MeanMS: 40, OuterTempBytes: 16 << 20, InnerTempBytes: 16 << 20, Result: 987654321}, After: &ManagedMemorySample{Calls: 10, SortRows: 100000, MeanMS: 10, Result: 987654321}, BeforeTraffic: &ManagedMaintenanceTraffic{ReadCalls: 10, WriteCalls: 10, ReadMeanMS: 1, WriteMeanMS: 1}, AfterTraffic: &ManagedMaintenanceTraffic{ReadCalls: 10, WriteCalls: 10, ReadMeanMS: 1, WriteMeanMS: 1}, Outcome: "improved_tested_inputs", Reason: "Matched result improved."}
+	cases := []struct {
+		report          ManagedMemoryReport
+		outcome, action string
+		metrics         int
+	}{
+		{report: report, outcome: "improved_tested_inputs", action: "recorded", metrics: 5},
+	}
+	restored := report
+	restored.Restored = true
+	restored.Outcome = "regressed"
+	cases = append(cases, struct {
+		report          ManagedMemoryReport
+		outcome, action string
+		metrics         int
+	}{restored, "regressed", "restored", 5})
+	missing := report
+	missing.After = nil
+	missing.BeforeTraffic = nil
+	missing.AfterTraffic = nil
+	cases = append(cases, struct {
+		report          ManagedMemoryReport
+		outcome, action string
+		metrics         int
+	}{missing, "inconclusive", "recorded", 0})
+	for _, restore := range []bool{false, true} {
+		action := "interrupted"
+		if restore {
+			action = "restored"
+		}
+		r := ManagedMemoryReport{FunctionOID: 77, Measurement: "interrupted_function_catalog_observation", Outcome: "repair_interrupted", Reason: "No benefit is claimed.", Restored: restore, RecoveryStatus: "catalog_checked"}
+		cases = append(cases, struct {
+			report          ManagedMemoryReport
+			outcome, action string
+			metrics         int
+		}{r, "repair_interrupted", action, 0})
+	}
+	for i, c := range cases {
+		raw, _ := json.Marshal(DispatchResult{Outcome: c.report.Outcome, ManagedMemory: &c.report})
+		if _, err := state.Exec(ctx, `INSERT INTO pooltune_worker.investigations(project_id,database_oid,role_oid,query_id,evidence,finished_at,result) VALUES($1,1,2,$2,'{}',clock_timestamp(),$3::jsonb)`, project, i+1, string(raw)); err != nil {
+			t.Fatal(err)
+		}
+	}
+	activity, err := ReadProjectActivity(ctx, state, project, time.Now().Add(-time.Hour))
+	if err != nil || len(activity.Jobs) != len(cases) {
+		t.Fatalf("read: %+v %v", activity, err)
+	}
+	for _, job := range activity.Jobs {
+		c := cases[job.Query-1]
+		if job.Outcome != c.outcome || job.Repair == nil || job.Repair.Kind != "memory" || job.Repair.Action != c.action || len(job.Repair.Metrics) != c.metrics || job.Repair.Restored != c.report.Restored {
+			t.Errorf("wrong memory result: %+v", job)
+		}
+		raw, _ := json.Marshal(job)
+		if strings.Contains(string(raw), "987654321") {
+			t.Errorf("result value leaked: %s", raw)
+		}
+	}
+}
+
+func TestProjectActivitySeparatesCleanupSettingFromActualAutomaticCleanup(t *testing.T) {
+	ctx, state, _ := projectActivityTestState(t)
+	const project = "managed-cleanup-activity"
+	if _, err := state.Exec(ctx, `INSERT INTO pooltune_worker.projects(project_id,monitor_epoch) VALUES($1,1)`, project); err != nil {
+		t.Fatal(err)
+	}
+	before := ManagedIndexMeasurement{Inputs: []int32{987654321}, Sample: TrialSample{Reads: 1, PlanReturned: 1, ReadMS: 20, Blocks: 100}}
+	after := before
+	after.Sample.ReadMS = 1
+	after.Sample.Blocks = 2
+	now := time.Now().UTC()
+	target := ProjectIndexTarget{DatabaseOID: 1, TableOID: 777, Schema: "customer", Relation: "orders"}
+	report := ManagedCleanupReport{Measurement: "same_sampled_input_and_normal_database_traffic", Before: before, After: &after, Outcome: "improved_tested_inputs", Trigger: CleanupTriggerReport{SettingChanged: true, AutomaticCleaned: true, Before: ProjectCleanupSettingsObservation{Target: target, At: now, Boot: now, DeadTuples: 100}, After: ProjectCleanupSettingsObservation{Target: target, At: now.Add(time.Minute), Boot: now, DeadTuples: 20}}, BeforeTraffic: &ManagedMaintenanceTraffic{ReadCalls: 10, WriteCalls: 10, ReadMeanMS: 1, WriteMeanMS: 1}, AfterTraffic: &ManagedMaintenanceTraffic{ReadCalls: 10, WriteCalls: 10, ReadMeanMS: 1, WriteMeanMS: 1}}
+	cases := []struct {
+		report          ManagedCleanupReport
+		outcome, action string
+		metrics         int
+	}{
+		{report, "improved_tested_inputs", "recorded", 5},
+	}
+	waiting := report
+	waiting.Outcome = "awaiting_verification"
+	waiting.Trigger.AutomaticCleaned = false
+	waiting.After = nil
+	waiting.AfterTraffic = nil
+	cases = append(cases, struct {
+		report          ManagedCleanupReport
+		outcome, action string
+		metrics         int
+	}{waiting, "awaiting_verification", "recorded", 0})
+	interrupted := report
+	interrupted.Outcome = "repair_interrupted"
+	interrupted.Trigger.Restored = true
+	cases = append(cases, struct {
+		report          ManagedCleanupReport
+		outcome, action string
+		metrics         int
+	}{interrupted, "repair_interrupted", "interrupted", 0})
+	restored := report
+	restored.Outcome = "regressed"
+	restored.Trigger.Restored = true
+	cases = append(cases, struct {
+		report          ManagedCleanupReport
+		outcome, action string
+		metrics         int
+	}{restored, "regressed", "restored", 5})
+	for i, c := range cases {
+		raw, _ := json.Marshal(map[string]any{"outcome": c.report.Outcome, "managed_cleanup": c.report})
+		if _, err := state.Exec(ctx, `INSERT INTO pooltune_worker.investigations(project_id,database_oid,role_oid,query_id,evidence,finished_at,result) VALUES($1,1,2,$2,'{}',clock_timestamp(),$3::jsonb)`, project, i+1, string(raw)); err != nil {
+			t.Fatal(err)
+		}
+	}
+	activity, err := ReadProjectActivity(ctx, state, project, time.Now().Add(-time.Hour))
+	if err != nil || len(activity.Jobs) != len(cases) {
+		t.Fatalf("read: %+v %v", activity, err)
+	}
+	for _, job := range activity.Jobs {
+		c := cases[job.Query-1]
+		if job.Outcome != c.outcome || job.Repair == nil || job.Repair.Kind != "vacuum" || job.Repair.Action != c.action || len(job.Repair.Metrics) != c.metrics {
+			t.Errorf("wrong cleanup result: %+v", job)
+		}
+		raw, _ := json.Marshal(job)
+		if strings.Contains(string(raw), "987654321") {
+			t.Errorf("sample value leaked: %s", raw)
+		}
+	}
 }

@@ -57,6 +57,8 @@ type App struct {
 	templates         *template.Template
 	handler           http.Handler
 	authQuota         requestQuota
+	workerMu          sync.Mutex
+	workerStops       map[string]context.CancelFunc
 }
 
 type requestQuota struct {
@@ -108,6 +110,9 @@ func New(ctx context.Context, db *pgxpool.Pool, cfg Config) (*App, error) {
 		return nil, err
 	}
 	err = hostedquery.PrepareWorkerState(ctx, conn.Conn())
+	if err == nil {
+		err = hostedquery.PrepareManagedCronState(ctx, conn.Conn())
+	}
 	if err == nil && cfg.OwnedCron != nil {
 		err = hostedquery.PrepareOwnedCronCheckpoints(ctx, conn.Conn())
 	}
@@ -192,7 +197,10 @@ func (a *App) routes() *http.ServeMux {
 	mux.HandleFunc("GET /app/projects/{id}/activity", a.requireAccount(a.downloadActivity))
 	mux.HandleFunc("POST /app/projects/{id}/connect", a.requireAccount(a.connectProject))
 	mux.HandleFunc("POST /app/projects/{id}/start", a.requireAccount(a.startProject))
+	mux.HandleFunc("POST /app/projects/{id}/monitoring-token", a.requireAccount(a.replaceMonitoringToken))
 	mux.HandleFunc("POST /app/projects/{id}/repair-mode", a.requireAccount(a.changeRepairMode))
+	mux.HandleFunc("GET /app/projects/{id}/repair-enrollment", a.requireAccount(a.repairEnrollmentPage))
+	mux.HandleFunc("POST /app/projects/{id}/repair-enrollment", a.requireAccount(a.changeRepairEnrollment))
 	mux.HandleFunc("POST /app/projects/{id}/repair-worker-key", a.requireAccount(a.changeRepairWorkerKey))
 	mux.HandleFunc("GET /api/projects/{id}/repair-worker", a.repairWorker)
 	mux.HandleFunc("POST /api/projects/{id}/repair-worker", a.repairWorker)
@@ -405,8 +413,12 @@ func (a *App) disconnectProject(w http.ResponseWriter, r *http.Request, user aut
 	if !ok {
 		return
 	}
-	if err := a.projects.disconnect(r.Context(), row); err != nil {
-		a.showProject(w, r, user, row, "Could not disconnect this project. Try again.")
+	if err := a.disconnectAfterCleanup(r.Context(), row, a.cleanupProjectWitnesses); err != nil {
+		fresh, lookupErr := a.projects.find(r.Context(), user.ID, row.ID)
+		if lookupErr == nil {
+			row = fresh
+		}
+		a.showProject(w, r, user, row, "Repairs are stopped. Temporary scheduler cleanup is still pending. Retry disconnect to finish removing it; the encrypted credential is retained only for cleanup.")
 		return
 	}
 	http.Redirect(w, r, "/app/projects/"+row.ID, http.StatusSeeOther)

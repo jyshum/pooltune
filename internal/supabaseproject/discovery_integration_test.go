@@ -62,6 +62,7 @@ func TestSupabaseAutomaticDiscoveryReturnsOnlyApplicationCounters(t *testing.T) 
 	for _, query := range []string{
 		appQuery, appQuery,
 		"SELECT 1",
+		"SELECT pg_catalog.version()",
 		"SELECT pid FROM pg_catalog.pg_stat_activity",
 		"SELECT role_name FROM information_schema.applicable_roles",
 		"SELECT id INTO TEMP local_items FROM app_data.items",
@@ -88,6 +89,7 @@ func TestSupabaseAutomaticDiscoveryReturnsOnlyApplicationCounters(t *testing.T) 
 	mustMonitorExec(t, ctx, other, "SELECT id FROM private_to_other_db")
 
 	want := map[queryKey]int64{
+		fixtureDiscoveryKey(t, ctx, admin, "fixture_app", "SELECT app_data.nested_read()"):                                          1,
 		fixtureDiscoveryKey(t, ctx, admin, "fixture_app", "SELECT token FROM app_data.items WHERE id=$1 /* private-sql-comment */"): 2,
 		fixtureDiscoveryKey(t, ctx, admin, "anon", apiQuery):                                                                        1,
 		fixtureDiscoveryKey(t, ctx, admin, "authenticated", apiQuery):                                                               1,

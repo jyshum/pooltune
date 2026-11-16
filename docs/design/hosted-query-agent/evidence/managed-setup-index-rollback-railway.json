@@ -1,0 +1,166 @@
+{
+  "deployment": "9623582a-f6a6-49be-8bc6-ac82846de186",
+  "installation": "6116eae51a5a3fc5",
+  "configured_query_ids": 0,
+  "fixture_worker_variables": false,
+  "setup_path": "Railway customer form in Chrome",
+  "selected_capabilities": [
+    "index"
+  ],
+  "latency_goal_ms": 2,
+  "initial_indexes": [
+    {
+      "name": "workload_pkey",
+      "definition": "CREATE UNIQUE INDEX workload_pkey ON managed_probe_6116eae51a5a3fc5.workload USING btree (row_id)"
+    }
+  ],
+  "phase": "repair_not_verified",
+  "polls_seen": 26,
+  "jobs": [
+    {
+      "id": 314,
+      "database_oid": 5,
+      "role_oid": 30277,
+      "query_id": "3841220259175209294",
+      "created_at": "2026-11-16T03:18:15.398232Z",
+      "claimed_at": "2026-11-16T03:18:15.789693Z",
+      "finished_at": "2026-11-16T03:18:38.275243Z",
+      "attempts": 1,
+      "outcome": "regressed",
+      "reason": "a protected normal-traffic query regressed after the index; the exact index created by this repair was removed",
+      "plan_node": "Seq Scan \u2192 Index Only Scan",
+      "plan_source": "managed_sample",
+      "elapsed_ms": 22486.095968,
+      "target_plan_ms": null,
+      "graph_ms": null,
+      "model_ms": 3691.6437220000003,
+      "repair": {
+        "kind": "index",
+        "action": "removed",
+        "metrics": [
+          {
+            "label": "Measured latency for one input",
+            "unit": "ms",
+            "before": 16.335,
+            "after": 0.053
+          },
+          {
+            "label": "Block accesses for one input",
+            "unit": "",
+            "before": 866,
+            "after": 4
+          },
+          {
+            "label": "Protected normal read mean latency",
+            "unit": "ms",
+            "before": 0.33467919999999934,
+            "after": 0.4853334000000018
+          },
+          {
+            "label": "Protected normal write mean latency",
+            "unit": "ms",
+            "before": 0.18206759999999989,
+            "after": 0.3429996000000003
+          }
+        ]
+      }
+    }
+  ],
+  "terminal_job": {
+    "id": 314,
+    "database_oid": 5,
+    "role_oid": 30277,
+    "query_id": "3841220259175209294",
+    "created_at": "2026-11-16T03:18:15.398232Z",
+    "claimed_at": "2026-11-16T03:18:15.789693Z",
+    "finished_at": "2026-11-16T03:18:38.275243Z",
+    "attempts": 1,
+    "outcome": "regressed",
+    "reason": "a protected normal-traffic query regressed after the index; the exact index created by this repair was removed",
+    "plan_node": "Seq Scan \u2192 Index Only Scan",
+    "plan_source": "managed_sample",
+    "elapsed_ms": 22486.095968,
+    "target_plan_ms": null,
+    "graph_ms": null,
+    "model_ms": 3691.6437220000003,
+    "repair": {
+      "kind": "index",
+      "action": "removed",
+      "metrics": [
+        {
+          "label": "Measured latency for one input",
+          "unit": "ms",
+          "before": 16.335,
+          "after": 0.053
+        },
+        {
+          "label": "Block accesses for one input",
+          "unit": "",
+          "before": 866,
+          "after": 4
+        },
+        {
+          "label": "Protected normal read mean latency",
+          "unit": "ms",
+          "before": 0.33467919999999934,
+          "after": 0.4853334000000018
+        },
+        {
+          "label": "Protected normal write mean latency",
+          "unit": "ms",
+          "before": 0.18206759999999989,
+          "after": 0.3429996000000003
+        }
+      ]
+    }
+  },
+  "traffic": {
+    "candidate": {
+      "before": {
+        "calls": 170,
+        "client_mean_ms": 151.28516571199083
+      },
+      "after": {
+        "calls": 0,
+        "client_mean_ms": null
+      }
+    },
+    "healthy": {
+      "before": {
+        "calls": 172,
+        "client_mean_ms": 140.42334078518718
+      },
+      "after": {
+        "calls": 0,
+        "client_mean_ms": null
+      }
+    },
+    "write": {
+      "before": {
+        "calls": 171,
+        "client_mean_ms": 140.35242154026045
+      },
+      "after": {
+        "calls": 0,
+        "client_mean_ms": null
+      }
+    }
+  },
+  "traffic_errors": {
+    "candidate": null,
+    "healthy": null,
+    "write": null
+  },
+  "final_indexes": [
+    {
+      "name": "workload_pkey",
+      "definition": "CREATE UNIQUE INDEX workload_pkey ON managed_probe_6116eae51a5a3fc5.workload USING btree (row_id)"
+    }
+  ],
+  "manual_query_enrollments": 0,
+  "public_index_fingerprint_unchanged": true,
+  "source_revision": "b9f964b5c7e7d05bae6d7e449d8dca18bf7d77c0",
+  "scope": "Fresh customer setup, native managed owner credential, discovered compound integer lookup and bounded existing input. Controlled Rookery workload, not customer production qualification.",
+  "interpretation": "Candidate sample improved but protected traffic exceeded the 25% regression limit. Exact created index removed. No retained benefit claimed.",
+  "repairs_paused_after_test": true
+}

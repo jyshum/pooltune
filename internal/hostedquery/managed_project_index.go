@@ -16,11 +16,15 @@ import (
 // ManagedProjectIndex uses the owner-authorized credential of one connected
 // project. Discovery determines the query and target for each investigation.
 type ManagedProjectIndex struct {
-	Capabilities []string
-	Config       *pgx.ConnConfig
-	Investigate  IndexInvestigator
-	AdmitModel   func(context.Context) error
-	Paused       bool
+	memoryRefreshedAt time.Time
+	Cron              *ManagedProjectCron
+	MemoryEnrollments []ManagedMemoryEnrollment
+	MemoryHeadroom    func(context.Context) (supabaseproject.MemoryHeadroom, error)
+	Capabilities      []string
+	Config            *pgx.ConnConfig
+	Investigate       IndexInvestigator
+	AdmitModel        func(context.Context) error
+	Paused            bool
 }
 
 func (m *ManagedProjectIndex) matches(project supabaseproject.Project) bool {
@@ -33,6 +37,9 @@ func (m *ManagedProjectIndex) matches(project supabaseproject.Project) bool {
 func (m *ManagedProjectIndex) run(ctx context.Context, state, monitor *pgx.Conn, project supabaseproject.Project, epoch int64, claim investigationClaim, windows *ObservedLookupLatency, result *DispatchResult) (bool, error) {
 	if !m.matches(project) || m.Paused {
 		return false, nil
+	}
+	if handled, err := m.runMemory(ctx, state, monitor, project, epoch, claim, windows, result); handled || err != nil {
+		return handled, err
 	}
 	observed, err := project.ReadDiscoveredIndexEvidence(ctx, monitor, claim.Role, claim.Query)
 	if errors.Is(err, supabaseproject.ErrDiscoveredIndexEvidenceUnavailable) {
@@ -60,7 +67,13 @@ func (m *ManagedProjectIndex) run(ctx context.Context, state, monitor *pgx.Conn,
 		result.DiagnosticReason = "managed_lookup_measurement_unavailable"
 		return true, nil
 	}
+	if handled, err := m.runCleanupSettings(ctx, state, monitor, project, epoch, claim, windows, result, observed, owner, before); handled || err != nil {
+		return handled, err
+	}
 	if handled, err := m.runMaintenance(ctx, state, monitor, project, epoch, claim, windows, result, observed, owner, before); handled || err != nil {
+		return handled, err
+	}
+	if handled, err := m.runStatistics(ctx, state, monitor, project, epoch, claim, windows, result, observed, owner, before); handled || err != nil {
 		return handled, err
 	}
 	if !slices.Contains(m.Capabilities, "index") {
@@ -223,6 +236,9 @@ func (m *ManagedProjectIndex) run(ctx context.Context, state, monitor *pgx.Conn,
 func (m *ManagedProjectIndex) recover(ctx context.Context, state *pgx.Conn, project supabaseproject.Project, claim investigationClaim, result *DispatchResult) (bool, error) {
 	if !m.matches(project) || !claim.RecoveryOnly {
 		return false, nil
+	}
+	if claim.MaintenanceOperation == "memory" {
+		return m.recoverMemory(ctx, state, project, claim, result)
 	}
 	if claim.MaintenanceOperation != "" {
 		return m.recoverMaintenance(ctx, state, project, claim, result)

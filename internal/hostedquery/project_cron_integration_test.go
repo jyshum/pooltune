@@ -17,6 +17,10 @@ import (
 )
 
 func TestProjectCronChangesOnlyApprovedSchedule(t *testing.T) {
+	t.Run("legacy_application_telemetry", func(t *testing.T) { testProjectCronChangesOnlyApprovedSchedule(t, false) })
+	t.Run("managed_database_observed", func(t *testing.T) { testProjectCronChangesOnlyApprovedSchedule(t, true) })
+}
+func testProjectCronChangesOnlyApprovedSchedule(t *testing.T, managed bool) {
 	ctx, cfg, _ := testpg.Start(t)
 	admin, err := pgx.ConnectConfig(ctx, cfg)
 	if err != nil {
@@ -87,6 +91,27 @@ func TestProjectCronChangesOnlyApprovedSchedule(t *testing.T) {
 		req.Periods = append(req.Periods, CronPeriod{Cycle: start, Busy: makeWindow(due, true, false), Control: makeWindow(due.Add(30*time.Second), false, false), Quiet: makeWindow(start.Add(7*time.Minute), false, true), Blocks: []CronBlock{{At: due.Add(5 * time.Second), RunID: id, JobID: 17, PID: 23, BackendStart: due, WaitingPID: 24, WaitingStart: due, Query: 42}}})
 		exec(`INSERT INTO cron.job_run_details VALUES ($1,17,23,$2,$3,'succeeded')`, id, due, due.Add(19*time.Second))
 	}
+	if managed {
+		for i, p := range req.Periods {
+			convert := func(w CronWindow) ManagedCronWindow {
+				m := func(old CronMeasure) ManagedCronMeasure {
+					b, a := old.Before, old.After
+					base := int64(w.Start.Sub(g.Postmaster)/time.Second) * 100
+					b.Calls += base
+					a.Calls += base
+					b.ExecutionMS += float64(base) * 100
+					a.ExecutionMS += float64(base) * 100
+					return ManagedCronMeasure{Before: b, After: a}
+				}
+				return ManagedCronWindow{Start: w.Start, End: w.End, Target: m(w.Target), Read: m(w.Healthy), Write: m(w.Write)}
+			}
+			for j := range p.Blocks {
+				p.Blocks[j].WaitingRole = p.Busy.Target.Before.Role
+			}
+			req.ManagedPeriods = append(req.ManagedPeriods, ManagedCronPeriod{Cycle: p.Cycle, Run: CronRun{ID: int64(101 + i), JobID: 17, PID: 23, Start: p.Busy.Start, End: p.Busy.Start.Add(19 * time.Second), Status: "succeeded"}, Busy: convert(p.Busy), Control: convert(p.Control), Quiet: convert(p.Quiet), Blocks: p.Blocks})
+		}
+		req.Periods = nil
+	}
 	for i := range 2 {
 		at := now.Add(time.Duration(i-5) * time.Second)
 		exec(`INSERT INTO cron.job_run_details VALUES ($1,18,32,$2,$3,'succeeded')`, int64(200+i), at, at.Add(time.Second))
@@ -99,7 +124,8 @@ func TestProjectCronChangesOnlyApprovedSchedule(t *testing.T) {
 			}
 			return nil
 		},
-		CheckCapacity: func(context.Context, ProjectCronIntent) error { return nil },
+		CheckCapacity:      func(context.Context, ProjectCronIntent) error { return nil },
+		RecordWitnessFence: func(context.Context, string) error { return nil },
 		RecordIntent: func(ctx context.Context, i ProjectCronIntent) error {
 			_, err := admin.Exec(ctx, `INSERT INTO cron_intent VALUES ($1,$2,$3)`, i.Target.Name, i.Before.Schedule, i.ProposedSchedule)
 			return err
@@ -124,7 +150,7 @@ func TestProjectCronChangesOnlyApprovedSchedule(t *testing.T) {
 	if result, err := applyProjectCron(ctx, cfg, req, bad, provider); !errors.Is(err, denied) || result.WriteAttempted {
 		t.Fatalf("failed durable intent reached mutation: %+v %v", result, err)
 	}
-	for _, mutate := range []func(*ProjectCronRequest){func(r *ProjectCronRequest) { r.Window.DeadlineSeconds = 431 }, func(r *ProjectCronRequest) { r.Window.EveryMinutes = 11 }, func(r *ProjectCronRequest) { r.Target.OwnerOID++ }, func(r *ProjectCronRequest) { r.Target.CommandDigest = "changed" }, func(r *ProjectCronRequest) { r.Periods = nil }} {
+	for _, mutate := range []func(*ProjectCronRequest){func(r *ProjectCronRequest) { r.Window.DeadlineSeconds = 431 }, func(r *ProjectCronRequest) { r.Window.EveryMinutes = 11 }, func(r *ProjectCronRequest) { r.Target.OwnerOID++ }, func(r *ProjectCronRequest) { r.Target.CommandDigest = "changed" }, func(r *ProjectCronRequest) { r.Periods = nil; r.ManagedPeriods = nil }} {
 		bad := req
 		mutate(&bad)
 		if r, e := applyProjectCron(ctx, cfg, bad, guard, provider); e == nil || r.WriteAttempted {

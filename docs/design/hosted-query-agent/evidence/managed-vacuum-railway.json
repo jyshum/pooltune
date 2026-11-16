@@ -1,0 +1,161 @@
+{
+  "source_revision": "b9f964b5c7e7d05bae6d7e449d8dca18bf7d77c0",
+  "deployment": "9623582a-f6a6-49be-8bc6-ac82846de186",
+  "installation": "6116eae51a5a3fc5",
+  "selected_capabilities": [
+    "vacuum"
+  ],
+  "configured_query_ids": 0,
+  "fixture_worker_variables": false,
+  "scope": "Managed Go customer connection, controlled ordinary table and normal reads/writes on Rookery; no fixture executor configuration.",
+  "phase": "not_verified",
+  "jobs": [
+    {
+      "id": 325,
+      "database_oid": 5,
+      "role_oid": 30277,
+      "query_id": "-7555952021301289990",
+      "created_at": "2026-11-16T03:35:03.444614Z",
+      "claimed_at": null,
+      "finished_at": null,
+      "attempts": 0,
+      "outcome": "queued",
+      "reason": "",
+      "plan_node": "",
+      "plan_source": "",
+      "elapsed_ms": null,
+      "target_plan_ms": null,
+      "graph_ms": null,
+      "model_ms": null
+    },
+    {
+      "id": 323,
+      "database_oid": 5,
+      "role_oid": 30277,
+      "query_id": "-1607353139880272215",
+      "created_at": "2026-11-16T03:34:55.44229Z",
+      "claimed_at": "2026-11-16T03:34:55.804979Z",
+      "finished_at": "2026-11-16T03:35:18.491316Z",
+      "attempts": 1,
+      "outcome": "regressed",
+      "reason": "a protected normal-traffic query regressed; completed maintenance cannot be undone",
+      "plan_node": "Index Only Scan \u2192 Index Only Scan",
+      "plan_source": "managed_sample",
+      "elapsed_ms": 22686.954568,
+      "target_plan_ms": null,
+      "graph_ms": null,
+      "model_ms": 3722.1410739999997,
+      "repair": {
+        "kind": "vacuum",
+        "action": "recorded",
+        "metrics": [
+          {
+            "label": "Measured latency for one input",
+            "unit": "ms",
+            "before": 8.106,
+            "after": 1.887
+          },
+          {
+            "label": "Block accesses for one input",
+            "unit": "",
+            "before": 1445,
+            "after": 17
+          },
+          {
+            "label": "Protected normal read mean latency",
+            "unit": "ms",
+            "before": 2.502027599999997,
+            "after": 2.1940111666666553
+          },
+          {
+            "label": "Protected normal write mean latency",
+            "unit": "ms",
+            "before": 0.07347600000000003,
+            "after": 0.8576000000000008
+          }
+        ]
+      }
+    }
+  ],
+  "terminal_job": {
+    "id": 323,
+    "database_oid": 5,
+    "role_oid": 30277,
+    "query_id": "-1607353139880272215",
+    "created_at": "2026-11-16T03:34:55.44229Z",
+    "claimed_at": "2026-11-16T03:34:55.804979Z",
+    "finished_at": "2026-11-16T03:35:18.491316Z",
+    "attempts": 1,
+    "outcome": "regressed",
+    "reason": "a protected normal-traffic query regressed; completed maintenance cannot be undone",
+    "plan_node": "Index Only Scan \u2192 Index Only Scan",
+    "plan_source": "managed_sample",
+    "elapsed_ms": 22686.954568,
+    "target_plan_ms": null,
+    "graph_ms": null,
+    "model_ms": 3722.1410739999997,
+    "repair": {
+      "kind": "vacuum",
+      "action": "recorded",
+      "metrics": [
+        {
+          "label": "Measured latency for one input",
+          "unit": "ms",
+          "before": 8.106,
+          "after": 1.887
+        },
+        {
+          "label": "Block accesses for one input",
+          "unit": "",
+          "before": 1445,
+          "after": 17
+        },
+        {
+          "label": "Protected normal read mean latency",
+          "unit": "ms",
+          "before": 2.502027599999997,
+          "after": 2.1940111666666553
+        },
+        {
+          "label": "Protected normal write mean latency",
+          "unit": "ms",
+          "before": 0.07347600000000003,
+          "after": 0.8576000000000008
+        }
+      ]
+    }
+  },
+  "traffic": [
+    {
+      "Lane": "candidate",
+      "Calls": 206,
+      "Rows": 3605000,
+      "Error": false
+    },
+    {
+      "Lane": "read",
+      "Calls": 210,
+      "Rows": 210,
+      "Error": false
+    },
+    {
+      "Lane": "write",
+      "Calls": 209,
+      "Rows": 209,
+      "Error": false
+    }
+  ],
+  "driver_exit": 0,
+  "driver_stderr_present": false,
+  "repairs_paused_after_test": true,
+  "manual_query_enrollments": 0,
+  "public_index_fingerprint_unchanged": true,
+  "catalog": {
+    "table_oid": "30320",
+    "analyze_count": 1,
+    "vacuum_count": 1,
+    "live_tuples": 70000,
+    "dead_tuples": 0
+  },
+  "interpretation": "Sampled lookup improved but protected completed database write mean regressed. Completed VACUUM cannot be undone. No overall verified benefit claimed."
+}

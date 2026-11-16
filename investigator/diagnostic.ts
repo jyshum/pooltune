@@ -44,8 +44,8 @@ const trafficLookupSchema=z.strictObject({...lookupWindows,traffic_plan:z.strict
  captured_at:z.iso.datetime(),node:trafficNode,child_node:trafficNode.optional(),estimated_rows:count,actual_rows:count,
  filtered_rows:count.optional(),shared_hit_blocks:count,shared_read_blocks:count,execution_ms:z.number().nonnegative().max(60000),
 })});
-const schemas={lookup:z.union([lookupSchema,trafficLookupSchema]),plan:evidenceFields.shape.plan,indexes:z.strictObject({covering_index:z.boolean()}),analyze:evidenceFields.shape.analyze.unwrap(),statistics:evidenceFields.shape.statistics.unwrap(),vacuum:evidenceFields.shape.vacuum.unwrap(),memory:evidenceFields.shape.memory.unwrap(),cron:evidenceFields.shape.cron.unwrap()};
-function identity(input:DiagnosticInput){return {run_id:input.run_id,table_oid:input.table_oid,column_number:input.column_number,...(input.column_numbers?{column_numbers:input.column_numbers}:{})};}
+const schemas={lookup:z.union([lookupSchema,trafficLookupSchema]),plan:evidenceFields.shape.plan,indexes:z.strictObject({covering_index:z.boolean()}),analyze:evidenceFields.shape.analyze.unwrap(),statistics:evidenceFields.shape.statistics.unwrap(),vacuum:evidenceFields.shape.vacuum.unwrap(),memory:z.union([evidenceFields.shape.memory.unwrap(),evidenceFields.shape.managed_memory.unwrap()]),cron:z.union([evidenceFields.shape.cron.unwrap(),evidenceFields.shape.managed_cron.unwrap()])};
+function identity(input:DiagnosticInput){return {...(input.job_id?{job_id:input.job_id}:{}),run_id:input.run_id,table_oid:input.table_oid,column_number:input.column_number,...(input.column_numbers?{column_numbers:input.column_numbers}:{})};}
 function checkedObservation(raw:unknown,input:DiagnosticInput,now:number,expected?:DiagnosticTool):Observation {
  const o=observationSchema.parse(raw);
  if(!sameIndexIdentity(o,input)||(expected&&o.tool!==expected))throw Error('identity');
@@ -142,7 +142,9 @@ export function buildDiagnosticGraph(decide:DiagnosticDecider,read:DiagnosticRea
     if(!p||!i||(repair!=='index'&&!get(repair)))throw Error('missing support');
     const supported=s.current.assessments.filter(a=>a.assessment==='supported');
     if(supported.length!==1||supported[0].cause!==repair||s.current.assessments.some(a=>a.blocks_decision))throw Error('ambiguous');
-    const raw={...identity(s.input),observed_at:p.observed_at,decision:'investigate',lookup_column:'lookup',plan:p.data,...i.data as object,...(repair==='index'?{}:{[repair]:get(repair)!.data})};
+    const support=repair==='index'?undefined:get(repair)!.data;
+    const causeKey=repair==='cron'&&support!==null&&typeof support==='object'&&'application_request_visibility' in support?'managed_cron':repair==='memory'&&support!==null&&typeof support==='object'&&'fallback_preserves_baseline' in support?'managed_memory':repair;
+    const raw={...identity(s.input),observed_at:p.observed_at,decision:'investigate',lookup_column:'lookup',plan:p.data,...i.data as object,...(repair==='index'?{}:{[causeKey]:support})};
     const e=evidenceFields.parse(raw) as Evidence;
     if(repair==='analyze'){
      const a=e.analyze!;

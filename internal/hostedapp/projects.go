@@ -41,11 +41,13 @@ func (p projectRecord) identity() (supabaseproject.Project, error) {
 
 type projectSecrets struct {
 	Password, CA, LogsToken string
-	RepairPassword          string   `json:"repair_password,omitempty"`
-	ObjectiveMS             int      `json:"objective_ms,omitempty"`
-	Automatic               bool     `json:"automatic,omitempty"`
-	Capabilities            []string `json:"capabilities,omitempty"`
-	RepairsPaused           bool     `json:"repairs_paused,omitempty"`
+	RepairPassword          string             `json:"repair_password,omitempty"`
+	ObjectiveMS             int                `json:"objective_ms,omitempty"`
+	Automatic               bool               `json:"automatic,omitempty"`
+	Capabilities            []string           `json:"capabilities,omitempty"`
+	RepairsPaused           bool               `json:"repairs_paused,omitempty"`
+	DisconnectPending       bool               `json:"disconnect_pending,omitempty"`
+	Enrollments             []repairEnrollment `json:"repair_enrollments,omitempty"`
 }
 
 type vault struct{ cipher.AEAD }

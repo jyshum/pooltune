@@ -20,6 +20,7 @@ type Page struct {
 	Invite             bool
 	Projects           []ProjectView
 	Project            ProjectView
+	Enrollment         EnrollmentView
 }
 
 type ProjectView struct {
@@ -142,6 +143,9 @@ func (a *App) showProject(w http.ResponseWriter, r *http.Request, user auth.User
 		view.Capabilities = slices.Clone(projectCapabilities)
 		view.RepairsSelected = len(configured.Capabilities) > 0
 		view.RepairsPaused = configured.RepairsPaused
+		if configured.DisconnectPending && failure == "" {
+			failure = "Repairs are stopped. Temporary scheduler cleanup is pending. Retry disconnect to finish; the encrypted credential is retained only for cleanup."
+		}
 		view.ManagedRepairs = configured.RepairPassword != ""
 		view.RepairWorkerLinked, view.RepairWorkerSummary = a.repairWorkerStatus(r.Context(), row)
 		view.ManagedCredentialNeeded = configured.Automatic && !view.ManagedRepairs && view.RepairsSelected && !view.RepairWorkerLinked
@@ -150,6 +154,17 @@ func (a *App) showProject(w http.ResponseWriter, r *http.Request, user auth.User
 			option.Selected = slices.Contains(configured.Capabilities, option.Key)
 			if option.Selected {
 				option.Availability = repairAvailability(option.Key, view.ManagedRepairs)
+				if view.ManagedRepairs && (option.Key == "memory" || option.Key == "cron") {
+					count := 0
+					for _, enrollment := range configured.Enrollments {
+						if enrollment.Target.Kind == option.Key {
+							count++
+						}
+					}
+					if count > 0 {
+						option.Availability = fmt.Sprintf("Enrolled targets: %d. Automatic repair is still waiting for supported measurements and safety limits.", count)
+					}
+				}
 				if fixtureMatches && a.ownedIndex.Discover == configured.Automatic && option.Key == "index" {
 					option.Availability = "Available for the owned Rookery fixture"
 				}
@@ -193,7 +208,10 @@ func repairAvailability(key string, managed bool) string {
 	case "vacuum":
 		readiness = "Automatically checks eligible lookups for plain table cleanup. Cleanup-setting changes are not connected yet."
 	case "statistics":
-		return "General-project support is still being completed. Your permission is saved."
+		if !managed {
+			return "Reconnect with your database password to enable managed repairs. Your permission is saved."
+		}
+		return "Eligible lookups can run a bounded statistics trial. Pooltune keeps verified improvements; otherwise it restores the previous settings and refreshes statistics. The old random statistics sample cannot be restored exactly."
 	case "memory":
 		return "Not available for general projects yet. Needs an enrolled function, measured disk spill and an enforced limit on simultaneous calls."
 	case "cron":
