@@ -1,5 +1,5 @@
 {
-  "sourceRevision": "7f006cb1c66e5cf00d270d3cc922a605a934fe70",
+  "sourceRevision": "7be68c9b0855355dcd23e7a81050ee1e6d8474a8",
   "summary": "Railway verified five repair families from the normal Rookery setup and both settings. The scheduler moved the test job and saved an inconclusive result. General project repair permissions remain open.",
   "next": [
     "cron",
@@ -235,7 +235,7 @@
     },
     "cron": {
       "status": "partial",
-      "scope": "From simple setup with zero manual query IDs, Railway collected three original Rookery periods, Sonnet recommended moving the job, and PostgreSQL switched schedules. The dashboard could not confirm the change before follow-up and saved an inconclusive result.",
+      "scope": "Railway recorded three original Rookery periods from simple setup with zero manual query IDs. PostgreSQL confirmed the schedule change with 1.9 seconds left. One of the two required scheduler checks completed before the cutoff, and the dashboard saved an inconclusive result.",
       "remaining": "Confirm the native schedule change and verify all three follow-up periods through the Railway dashboard.",
       "evidence": [
         "docs/design/hosted-query-agent/cron-staging.md",
@@ -249,7 +249,9 @@
         "investigator/owned-cron-traffic.ts",
         "docs/design/hosted-query-agent/evidence/mvp-simple-cron-witness-rookery.json",
         "docs/design/hosted-query-agent/evidence/mvp-simple-cron-first-run-railway.json",
-        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-handoff-railway.json"
+        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-handoff-railway.json",
+        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-activation-timeout-railway.json",
+        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-witness-timeout-railway.json"
       ],
       "statusLabel": "Live target run verified"
     },

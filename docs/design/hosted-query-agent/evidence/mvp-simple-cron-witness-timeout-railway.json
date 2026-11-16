@@ -1,0 +1,42 @@
+{
+  "deployment": "4b79e577-954b-4d68-a1e1-cca51f828781",
+  "setup_path": "normal_start_form",
+  "manually_enrolled_query_ids": 0,
+  "worker_config_query_id": 0,
+  "scheduler_witness_preflight": {
+    "succeeded": 2
+  },
+  "first_cycle": "2026-11-16T00:24:00Z",
+  "phase": "observer_failed",
+  "railway_lifecycle": {
+    "archived_periods": [
+      1,
+      2,
+      3
+    ],
+    "observer_failure": "OBSERVER_ERROR"
+  },
+  "verified": false,
+  "owned_database_objects_removed": true,
+  "owned_scheduler_jobs_remaining": 0,
+  "unrelated_scheduler_jobs_unchanged": true,
+  "public_index_fingerprint_unchanged": true,
+  "revision": "7be68c9",
+  "observer_failure_phase": "handoff_acknowledgement",
+  "original_target_runs_succeeded": 3,
+  "observed_alternate_schedule": "1-59/2 * * * *",
+  "dashboard_job": {
+    "id": 306,
+    "outcome": "inconclusive",
+    "reason": "the alternate Cron schedule was observed without durable acknowledgement",
+    "model_ms": 6651.597051
+  },
+  "native_action": {
+    "phase": "post_commit_witnesses",
+    "write_attempted": true,
+    "commit_confirmed": true,
+    "elapsed_ms": 8454.619415,
+    "remaining_to_deadline_ms": 1891,
+    "completed_witnesses_after_commit_and_before_deadline": 1
+  }
+}
