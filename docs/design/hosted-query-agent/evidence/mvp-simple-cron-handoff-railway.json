@@ -1,0 +1,36 @@
+{
+  "deployment": "5da05e1c-3f7e-48e3-a4fe-87df22d92d0b",
+  "setup_path": "normal_start_form",
+  "manually_enrolled_query_ids": 0,
+  "worker_config_query_id": 0,
+  "scheduler_witness_preflight": {
+    "succeeded": 2
+  },
+  "first_cycle": "2026-11-15T23:48:00Z",
+  "phase": "observer_failed",
+  "railway_lifecycle": {
+    "archived_periods": [
+      1,
+      2,
+      3
+    ],
+    "observer_failure": "OBSERVER_ERROR"
+  },
+  "verified": false,
+  "dashboard_disconnected": true,
+  "owned_scheduler_jobs_removed": true,
+  "owned_database_objects_removed": true,
+  "owned_scheduler_jobs_remaining": 0,
+  "unrelated_scheduler_jobs_unchanged": true,
+  "public_index_fingerprint_unchanged": true,
+  "revision": "7f006cb",
+  "original_target_runs_succeeded": 3,
+  "observed_alternate_schedule": "1-59/2 * * * *",
+  "dashboard_job": {
+    "id": 303,
+    "outcome": "inconclusive",
+    "reason": "Cron schedule or commit acknowledgement could not be reconciled",
+    "model_ms": 6418.379014
+  },
+  "observer_failure_phase": "handoff_acknowledgement"
+}

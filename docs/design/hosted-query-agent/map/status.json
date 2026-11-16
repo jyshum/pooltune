@@ -226,8 +226,8 @@
     },
     "cron": {
       "status": "partial",
-      "scope": "Simple setup connected with no manual query IDs, and the dedicated role completed a scheduled target run on Rookery. The first recorder stopped on a query-counter permission and the fixture was removed.",
-      "remaining": "Finish the scoped counter read and collect three original and three future cycles through Railway.",
+      "scope": "From simple setup with zero manual query IDs, Railway collected three original Rookery periods, Sonnet recommended moving the job, and PostgreSQL switched schedules. The dashboard could not confirm the change before follow-up and saved an inconclusive result.",
+      "remaining": "Confirm the native schedule change and verify all three follow-up periods through the Railway dashboard.",
       "evidence": [
         "docs/design/hosted-query-agent/cron-staging.md",
         "internal/hostedquery/project_cron.go",
@@ -239,7 +239,8 @@
         "internal/hostedquery/owned_cron_provider.go",
         "investigator/owned-cron-traffic.ts",
         "docs/design/hosted-query-agent/evidence/mvp-simple-cron-witness-rookery.json",
-        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-first-run-railway.json"
+        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-first-run-railway.json",
+        "docs/design/hosted-query-agent/evidence/mvp-simple-cron-handoff-railway.json"
       ],
       "statusLabel": "Live target run verified"
     },
