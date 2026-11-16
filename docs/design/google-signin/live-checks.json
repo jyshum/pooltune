@@ -1,0 +1,39 @@
+{
+  "deployment": "3aa500b4-24fe-41ed-adc0-42b716c03ad7",
+  "revision": "497c70c4fa7204ac7917f234f92606e599f2cb36",
+  "checks": [
+    {
+      "path": "/healthz",
+      "status": 200,
+      "google_button": false
+    },
+    {
+      "path": "/signup",
+      "status": 200,
+      "google_button": true
+    },
+    {
+      "path": "/signin",
+      "status": 200,
+      "google_button": true
+    },
+    {
+      "path": "/signin",
+      "existing_password_account": "dashboard reached"
+    },
+    {
+      "path": "/app/account",
+      "link_google_visible": true
+    },
+    {
+      "path": "/signout",
+      "status": 200
+    },
+    {
+      "path": "/auth/google/callback",
+      "invalid_state_status": 400
+    }
+  ],
+  "google_production_callback": "verified: user completed consent, account created, dashboard reached",
+  "session_reload": "verified: dashboard remained authenticated"
+}

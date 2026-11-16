@@ -1,5 +1,5 @@
 {
-  "sourceRevision": "6c4cb2269252b0cfd6dc48c6a8cfa935abd21955",
+  "sourceRevision": "497c70c4fa7204ac7917f234f92606e599f2cb36",
   "summary": "Managed setup and all six repair families are implemented and deployed on Railway. Local database tests pass; earlier Rookery runs verified refresh, index rollback and reported cleanup regression. Next: Jared connects Rookery through the customer screens, fixes follow observed failures, then landing and dashboard design. Broader repair qualification remains tracked separately, not a prerequisite to this walkthrough.",
   "next": [
     "connect-project",
@@ -442,13 +442,15 @@
     },
     "auth": {
       "status": "partial",
-      "scope": "Invite signup, email/password sign-in, session expiry and sign-out work. Two test accounts were kept separate.",
-      "remaining": "Public registration, email verification and password recovery remain.",
+      "scope": "Google signup completed through real consent on Railway and retained its session on reload. Existing password login also worked after deployment. Sign-in, explicit linking, migration and security cases pass automated tests.",
+      "remaining": "Live returning Google sign-in and explicit linking were not repeated with Jared. Google remains in Testing with Jared registered as a test user. Public registration, password email verification and recovery remain separate gaps.",
       "evidence": [
         "docs/design/hosted-query-agent/roadmap.md",
-        "docs/design/hosted-query-agent/hosted-preview.md"
+        "docs/design/hosted-query-agent/hosted-preview.md",
+        "docs/design/google-signin/verification.md",
+        "docs/design/google-signin/live-checks.json"
       ],
-      "statusLabel": "Preview sign-in tested"
+      "statusLabel": "Google signup verified on Railway"
     },
     "activity": {
       "status": "partial",
@@ -721,13 +723,15 @@
     },
     "preview-account-session": {
       "status": "verified",
-      "statusLabel": "Preview accounts verified",
-      "scope": "Invite signup, email/password sign-in, session expiry and sign-out work. Two test accounts were kept separate.",
-      "remaining": "Public signup, email verification and password recovery remain.",
+      "statusLabel": "Google signup verified on Railway",
+      "scope": "Google signup completed through real consent on Railway and retained its session on reload. Existing password login also worked after deployment. Sign-in, explicit linking, migration and security cases pass automated tests.",
+      "remaining": "Live returning Google sign-in and explicit linking were not repeated with Jared. Google remains in Testing with Jared registered as a test user. Public registration, password email verification and recovery remain separate gaps.",
       "evidence": [
         "internal/hostedapp/app_integration_test.go",
         "internal/hostedapp/auth/store.go",
-        "docs/design/hosted-query-agent/hosted-preview.md"
+        "docs/design/hosted-query-agent/hosted-preview.md",
+        "docs/design/google-signin/verification.md",
+        "docs/design/google-signin/live-checks.json"
       ]
     },
     "hosted-preview-project": {
@@ -851,6 +855,14 @@
   },
   "colorMeaning": "Green means the stated scope has evidence, not universal production readiness. Yellow can mean implemented but awaiting customer-flow verification; read the card label and remaining work. Gray means planned. The customer walkthrough proceeds now; wider repair qualification is tracked separately.",
   "recent": [
+    {
+      "label": "Google signup verified on Railway",
+      "summary": "Jared completed Google consent, reached his new Pooltune dashboard, and remained signed in after reload. Existing password login also passed on the deployed build. Connect Supabase is next.",
+      "nodes": [
+        "auth",
+        "preview-account-session"
+      ]
+    },
     {
       "label": "Managed build deployed; customer walkthrough next",
       "summary": "6c4cb22 implements the remaining managed paths and passes automated checks. Jared requested the real connection walkthrough next, then landing and dashboard design. No additional live repair success is claimed.",

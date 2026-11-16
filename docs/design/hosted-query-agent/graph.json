@@ -1274,19 +1274,29 @@
       "id": "auth",
       "label": "Sign-in and account access",
       "type": "service",
-      "purpose": "Invite signup, email/password sign-in, session expiry and sign-out work. Two test accounts were kept separate.",
+      "purpose": "Create an invited account with Google or a password, maintain its session, and keep project access tied to its owner.",
       "decisionIds": [],
       "sources": [
         {
           "path": "docs/design/hosted-query-agent/roadmap.md",
           "revision": "2a96b52b6b9c43c44cf27e03b3693838410a146d",
           "kind": "intended"
+        },
+        {
+          "path": "internal/hostedapp/google_integration_test.go",
+          "revision": "497c70c4fa7204ac7917f234f92606e599f2cb36",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Invite signup, email/password sign-in, session expiry and sign-out work. Two test accounts were kept separate.",
-      "after": "Remaining: create accounts and restrict every project and action to its owner.",
-      "parent": "dashboard"
+      "changeSummary": "Adds Google signup, sign-in and explicit account linking to the existing account store.",
+      "after": "Google signup is deployed and verified through the real consent callback and a dashboard reload. Password and explicit linking flows pass automated tests.",
+      "parent": "dashboard",
+      "stack": [
+        "Go",
+        "PostgreSQL",
+        "Google OpenID Connect"
+      ]
     },
     {
       "id": "activity",
@@ -2364,22 +2374,28 @@
       "id": "preview-account-session",
       "label": "Preview accounts and sessions",
       "type": "service",
-      "purpose": "Invite signup, email/password sign-in, session expiry and sign-out work. Two test accounts were kept separate.",
+      "purpose": "Create an invited account with Google or a password, maintain its session, and keep project access tied to its owner.",
       "decisionIds": [],
       "sources": [
         {
           "path": "internal/hostedapp/app_integration_test.go",
           "revision": "073f6080631a8ca6e6e924c1283830fcfd5776a1",
           "kind": "verified"
+        },
+        {
+          "path": "internal/hostedapp/google_integration_test.go",
+          "revision": "497c70c4fa7204ac7917f234f92606e599f2cb36",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Invite signup, email/password sign-in, session expiry and sign-out work. Two test accounts were kept separate.",
-      "after": "Invite signup, email/password sign-in, session expiry and sign-out work. Two test accounts were kept separate.",
+      "changeSummary": "Adds Google signup, sign-in and explicit account linking to the existing account store.",
+      "after": "Google signup is deployed and verified through the real consent callback and a dashboard reload. Password and explicit linking flows pass automated tests.",
       "parent": "dashboard",
       "stack": [
         "Go",
-        "PostgreSQL"
+        "PostgreSQL",
+        "Google OpenID Connect"
       ]
     },
     {
