@@ -542,12 +542,13 @@ Jared asked to build operation-specific permissions for a real project. Keep the
 - [x] Pin the read-only preflight to the registered Supabase installation and native PostgreSQL login. Exercise owner, exact `MAINTAIN`, revoked and foreign-target cases on real local PostgreSQL.
 - [x] Check the eight native actions behind the six product choices. Bind to table, function or job catalog identity, require a selected operation, and reject stale identity and a mismatched Cron window.
 - [x] Expose the same check through `pooltune-project repair-access` so the owner can see which exact permission is missing without sending their repair credential to the hosted app. Disclose the same requirements in signed-in project setup.
-- [ ] Connect the permission grant to the owner-side Go executor and the normal Railway project queue. Exercise the signed-in setup, refusal, action, verification and revocation on Rookery before marking the connection green.
+- [ ] Deliver an authorized repair from the normal Railway project queue to the owner-side Go executor. Exercise the signed-in setup, refusal, action, verification and revocation on Rookery before marking the connection green.
 
 ### Task 60: Connect the owner-side Go worker to the hosted project
 
 The owner creates a revocable key from the signed-in project. Store only its digest in Railway. The Go worker authenticates with that key, reads the current permission epoch and selected repairs, and intersects the result with its locally approved scope. It uses the native permission check from Task 59 and publishes operation statuses. The database credentials, target catalog details, and query text stay in the owner's environment.
 
-- [ ] Verify key creation, replacement, revocation, cross-account and cross-project refusals, and stale permission epochs.
-- [ ] Connect the Go worker to the verified hosted origin and show its current permission report in the owner dashboard.
+- [x] Verify key creation, replacement, revocation, cross-account and cross-project refusals, and stale permission epochs in the signed-in app tests.
+- [x] Implement the permission reporting connection. Verify the Go worker against local PostgreSQL, and verify report delivery and key revocation through Railway on a connected Rookery test project.
+- [ ] Qualify the Go worker on an owner host that can reach Rookery's native database endpoint. The Railway test used the API with actual Rookery catalog results because the test machine could not reach that endpoint directly.
 - [ ] Add a typed repair-job route using measured evidence that satisfies the existing native operation and verification gates. Treat generic plans and metadata as inspection evidence. Prove the full path before marking automatic repairs available.

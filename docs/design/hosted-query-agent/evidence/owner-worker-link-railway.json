@@ -1,0 +1,19 @@
+{
+  "installation": "31aca2b24cdc5c34",
+  "setup_path": "owner_installed_monitor_then_signed_in_repair_choices",
+  "query_ids_entered_in_dashboard": 0,
+  "fixture_manual_enrollment_count": 1,
+  "no_repair_applied": true,
+  "report_probe": "API client mapped exact Rookery catalog privileges to the worker report",
+  "native_cli_run_on_rookery": false,
+  "native_cli_blocker": "Rookery direct host requires IPv6 and this worker host has no route",
+  "commit": "bd2e1cc13eab2a3ecb6461c943b37c224b494a6f",
+  "deployment": "f2003bc8-9186-4e14-b148-76b0f5041e00",
+  "direct_maintain_reported_granted": true,
+  "index_without_owner_access_reported_denied": true,
+  "native_grant_revocation_reported": true,
+  "worker_key_revoked": true,
+  "test_project_disconnected": true,
+  "owned_database_objects_removed": true,
+  "public_index_fingerprint_unchanged": true
+}

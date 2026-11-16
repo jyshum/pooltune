@@ -1,6 +1,6 @@
 {
-  "sourceRevision": "cd1b2371ed01a300357c1c137963ccaecacd9dfa",
-  "summary": "Railway verified all six repair families from normal setup on Rookery with zero manual query IDs. Both settings and index restart recovery were verified. General project repair permissions remain open.",
+  "sourceRevision": "bd2e1cc13eab2a3ecb6461c943b37c224b494a6f",
+  "summary": "Six prepared repair families passed through normal setup on Railway. The worker link and live permission reporting are implemented. Automatic repairs from ordinary traffic still need measured evidence and job delivery.",
   "next": [
     "connect-project",
     "repair-coverage",
@@ -109,7 +109,7 @@
     "inspection": {
       "status": "partial",
       "scope": "Railway used automatically discovered workload evidence for six bounded repairs, including actual job history and matched foreground traffic for the scheduler.",
-      "remaining": "Verify broader query shapes and evidence on representative connections, including ordinary pooled access and the Data API.",
+      "remaining": "Collect representative input and measured before-and-after evidence for ordinary workloads, including protected traffic.",
       "evidence": [
         "internal/graphrunner/diagnostic.go",
         "docs/design/hosted-query-agent/diagnostic-loop.md",
@@ -134,8 +134,8 @@
         "docs/design/hosted-query-agent/evidence/mvp-simple-cron-railway.json"
       ],
       "statusLabel": "Scoped workload evidence verified",
-      "remainingBuild": "Extend the existing evidence checks to broader project and workload shapes.",
-      "remainingVerification": "Qualify additional shapes and representative pooled and Data API access."
+      "remainingBuild": "Capture evidence the Go repair tools can use to test a candidate and verify its effect.",
+      "remainingVerification": "Qualify additional query shapes on representative pooled and Data API paths."
     },
     "experiments": {
       "status": "partial",
@@ -347,8 +347,8 @@
     },
     "repair-coverage": {
       "status": "partial",
-      "scope": "All six prepared Rookery repairs have verified results. The local native permission check also admitted a real ANALYZE and refused it after grant revocation.",
-      "remaining": "Connect normal project provisioning to the owner-side Go worker and qualify the full grant, repair and revocation flow on Railway.",
+      "scope": "All six prepared Rookery repairs have verified results. The owner-side Go worker can report exact database permissions and respond to revocation.",
+      "remaining": "Deliver typed repair jobs using measured evidence from normal traffic and verify an actual action on Rookery through the owner worker.",
       "evidence": [
         "docs/design/hosted-query-agent/roadmap.md",
         "internal/hostedapp/supervisor.go",
@@ -373,14 +373,15 @@
         "docs/design/hosted-query-agent/evidence/mvp-simple-column-target-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-simple-cron-handoff-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-simple-cron-railway.json",
-        "internal/hostedquery/project_repair_access.go"
+        "internal/hostedquery/project_repair_access.go",
+        "docs/design/hosted-query-agent/evidence/owner-worker-link-railway.json"
       ],
-      "statusLabel": "Six simple repair families verified"
+      "statusLabel": "Six prepared repair families verified"
     },
     "connect-project": {
       "status": "partial",
-      "scope": "Normal setup worked with six prepared Rookery cases. Go now checks native authority for the eight actions behind those choices, verified on local PostgreSQL.",
-      "remaining": "Connect the owner-side Go worker to the normal Railway queue. Verify provisioning and a repair on a normally connected Rookery installation.",
+      "scope": "A connected Rookery project received permission reports on Railway. The owner-controlled Go worker passed local PostgreSQL grant and revoke tests.",
+      "remaining": "Run the Go worker on a host with direct Rookery access, then deliver and verify a real authorized repair from normal setup.",
       "evidence": [
         "docs/design/hosted-query-agent/supabase-monitoring.md",
         "cmd/pooltune-project/main.go",
@@ -400,9 +401,10 @@
         "docs/design/hosted-query-agent/evidence/mvp-simple-cron-handoff-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-simple-cron-railway.json",
         "docs/design/hosted-query-agent/repair-authority.md",
-        "internal/hostedquery/project_repair_access.go"
+        "internal/hostedquery/project_repair_access.go",
+        "docs/design/hosted-query-agent/evidence/owner-worker-link-railway.json"
       ],
-      "statusLabel": "Native permission check verified locally"
+      "statusLabel": "Worker link and hosted reports verified"
     },
     "credential-lifecycle": {
       "status": "partial",
@@ -726,8 +728,8 @@
     },
     "agent-permission-setup": {
       "status": "verified",
-      "scope": "Railway verified all six checkboxes from the normal owner form on prepared Rookery workloads. The form now discloses each database permission in local tests.",
-      "remaining": "Apply the selected operations to exact authorized targets through the connected owner-side Go worker.",
+      "scope": "All six checkboxes were verified on prepared Rookery workloads. Owners can now edit selections and revoke the project worker key. Railway showed permission changes backed by real Rookery grants.",
+      "remaining": "Use the selected permissions to deliver and verify a repair from the normal project queue.",
       "evidence": [
         "internal/hostedapp/ui/pages.html",
         "docs/design/hosted-query-agent/evidence/mvp-agent-setup.json",
@@ -739,9 +741,10 @@
         "docs/design/hosted-query-agent/evidence/mvp-simple-cleanup-trigger-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-simple-cron-handoff-railway.json",
         "docs/design/hosted-query-agent/evidence/mvp-simple-cron-railway.json",
-        "internal/hostedquery/project_repair_access.go"
+        "internal/hostedquery/project_repair_access.go",
+        "docs/design/hosted-query-agent/evidence/owner-worker-link-railway.json"
       ],
-      "statusLabel": "Six checkboxes verified"
+      "statusLabel": "Repair choices and worker key verified"
     },
     "automatic-workload-discovery": {
       "status": "verified",
@@ -994,6 +997,16 @@
         "connect-project",
         "agent-permission-setup",
         "repair-coverage"
+      ]
+    },
+    {
+      "label": "Task 60 · Link the Go worker",
+      "summary": "Added project-specific keys and editable repair choices. Local Go tests verified PostgreSQL permissions. Railway displayed grants and revocation measured on Rookery. Action delivery still needs measured evidence.",
+      "nodes": [
+        "connect-project",
+        "agent-permission-setup",
+        "repair-coverage",
+        "inspection"
       ]
     }
   ],

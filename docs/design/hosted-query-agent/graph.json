@@ -3,9 +3,9 @@
   "id": "pooltune-hosted-agent",
   "title": "Maintain Supabase query performance",
   "workType": "Build progress and remaining work",
-  "summary": "Railway verified all six repair families from normal setup on Rookery with zero manual query IDs. Both settings and index restart recovery were verified. General project repair permissions remain open.",
+  "summary": "Six prepared repair families passed through normal setup on Railway. The worker link and live permission reporting are implemented. Automatic repairs from ordinary traffic still need measured evidence and job delivery.",
   "sourceRevision": {
-    "commit": "cd1b2371ed01a300357c1c137963ccaecacd9dfa",
+    "commit": "bd2e1cc13eab2a3ecb6461c943b37c224b494a6f",
     "dirty": false
   },
   "components": [
@@ -1055,7 +1055,7 @@
       "id": "repair-coverage",
       "label": "Qualify broader repairs",
       "type": "service",
-      "purpose": "All six prepared Rookery repairs have verified results. The local native permission check also admitted a real ANALYZE and refused it after grant revocation.",
+      "purpose": "All six prepared Rookery repairs have verified results. The owner-side Go worker can report exact database permissions and respond to revocation.",
       "decisionIds": [],
       "sources": [
         {
@@ -1147,11 +1147,16 @@
           "path": "internal/hostedquery/project_repair_access.go",
           "revision": "cd1b2371ed01a300357c1c137963ccaecacd9dfa",
           "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/owner-worker-link-railway.json",
+          "revision": "bd2e1cc13eab2a3ecb6461c943b37c224b494a6f",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "All six prepared Rookery repairs have verified results. The local native permission check also admitted a real ANALYZE and refused it after grant revocation.",
-      "after": "All six prepared Rookery repairs have verified results. The local native permission check also admitted a real ANALYZE and refused it after grant revocation.",
+      "changeSummary": "All six prepared Rookery repairs have verified results. The owner-side Go worker can report exact database permissions and respond to revocation.",
+      "after": "All six prepared Rookery repairs have verified results. The owner-side Go worker can report exact database permissions and respond to revocation.",
       "parent": "tools",
       "stack": [
         "Go"
@@ -1161,7 +1166,7 @@
       "id": "connect-project",
       "label": "Connect and enroll a project",
       "type": "service",
-      "purpose": "Normal setup worked with six prepared Rookery cases. Go now checks native authority for the eight actions behind those choices, verified on local PostgreSQL.",
+      "purpose": "A connected Rookery project received permission reports on Railway. The owner-controlled Go worker passed local PostgreSQL grant and revoke tests.",
       "decisionIds": [],
       "sources": [
         {
@@ -1218,11 +1223,16 @@
           "path": "internal/hostedquery/project_repair_access.go",
           "revision": "cd1b2371ed01a300357c1c137963ccaecacd9dfa",
           "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/owner-worker-link-railway.json",
+          "revision": "bd2e1cc13eab2a3ecb6461c943b37c224b494a6f",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Normal setup worked with six prepared Rookery cases. Go now checks native authority for the eight actions behind those choices, verified on local PostgreSQL.",
-      "after": "Normal setup worked with six prepared Rookery cases. Go now checks native authority for the eight actions behind those choices, verified on local PostgreSQL.",
+      "changeSummary": "A connected Rookery project received permission reports on Railway. The owner-controlled Go worker passed local PostgreSQL grant and revoke tests.",
+      "after": "A connected Rookery project received permission reports on Railway. The owner-controlled Go worker passed local PostgreSQL grant and revoke tests.",
       "parent": "backend",
       "stack": [
         "Go",
@@ -2420,7 +2430,7 @@
       "id": "agent-permission-setup",
       "label": "Agent setup and repair choices",
       "type": "service",
-      "purpose": "Railway verified all six checkboxes from the normal owner form on prepared Rookery workloads. The form now discloses each database permission in local tests.",
+      "purpose": "All six checkboxes were verified on prepared Rookery workloads. Owners can now edit selections and revoke the project worker key. Railway showed permission changes backed by real Rookery grants.",
       "decisionIds": [],
       "sources": [
         {
@@ -2467,11 +2477,16 @@
           "path": "internal/hostedquery/project_repair_access.go",
           "revision": "cd1b2371ed01a300357c1c137963ccaecacd9dfa",
           "kind": "verified"
+        },
+        {
+          "path": "docs/design/hosted-query-agent/evidence/owner-worker-link-railway.json",
+          "revision": "bd2e1cc13eab2a3ecb6461c943b37c224b494a6f",
+          "kind": "verified"
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Railway verified all six checkboxes from the normal owner form on prepared Rookery workloads. The form now discloses each database permission in local tests.",
-      "after": "Railway verified all six checkboxes from the normal owner form on prepared Rookery workloads. The form now discloses each database permission in local tests.",
+      "changeSummary": "All six checkboxes were verified on prepared Rookery workloads. Owners can now edit selections and revoke the project worker key. Railway showed permission changes backed by real Rookery grants.",
+      "after": "All six checkboxes were verified on prepared Rookery workloads. Owners can now edit selections and revoke the project worker key. Railway showed permission changes backed by real Rookery grants.",
       "parent": "connect-project",
       "stack": [
         "Go",

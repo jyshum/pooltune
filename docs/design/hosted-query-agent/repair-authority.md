@@ -39,7 +39,7 @@ Keep privileged execution in Go and run the same narrow interface as an owner-ho
 
 The signed-in project setup lists the database requirements for each checkbox. The owner can keep the repair login and password in their own environment and run the same native check through `pooltune-project repair-access`. The command verifies the managed installation against its normal setup markers, connects to the canonical Supabase endpoint using its trusted CA, and reports each operation's current PostgreSQL permission.
 
-Set `POOLTUNE_PROJECT_CA_FILE`, `POOLTUNE_REPAIR_DB_ROLE`, and `POOLTUNE_REPAIR_DB_PASSWORD` in the owner's environment. Run the command with the active project reference and installation key.
+Set `POOLTUNE_PROJECT_CA_FILE`, `POOLTUNE_REPAIR_DB_ROLE`, and `POOLTUNE_REPAIR_DB_PASSWORD` in the owner's environment. Run the command with the active project reference and installation key. The worker needs a route to the direct database endpoint. Rookery's direct endpoint requires IPv6. The native session identity check depends on connecting directly to PostgreSQL.
 
 ```sh
 pooltune-project repair-access -ref PROJECT_REF -key INSTALLATION_KEY -scope authorized-targets.json
