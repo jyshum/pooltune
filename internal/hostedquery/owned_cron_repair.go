@@ -154,6 +154,28 @@ func RunOwnedCronRepair(ctx context.Context, cfg *pgx.ConnConfig, req OwnedCronR
 	if err := guards.AdmitModel(ctx); err != nil {
 		return OwnedCronDecision{}, err
 	}
+	// Establish the second exact native connection while Sonnet runs. It does
+	// not start a transaction, and the original connection remains available
+	// for a separate fresh scope check immediately before recording intent.
+	type nativeSession struct {
+		conn *pgx.Conn
+		err  error
+	}
+	dialCtx, cancelDial := context.WithCancel(ctx)
+	dialed := make(chan nativeSession, 1)
+	defer func() {
+		cancelDial()
+		for session := range dialed {
+			if session.conn != nil {
+				closeVacuumConnection(session.conn)
+			}
+		}
+	}()
+	go func() {
+		defer close(dialed)
+		writer, err := pgx.ConnectConfig(dialCtx, cfg.Copy())
+		dialed <- nativeSession{conn: writer, err: err}
+	}()
 	evidence := IndexEvidence{RunID: req.RunID, At: time.Now().UTC(), Decision: Investigate, TableOID: req.Candidate.TableOID,
 		Column: 1, Label: "lookup", Plan: PlanEvidence{Node: node}, Cron: &CronEvidence{JobID: req.Target.JobID, Original: cronOriginal,
 			Alternate: cronAlternate, Periods: before, IdentityVerified: true, RequiredRuns: 1, CycleSeconds: 120, DeadlineSeconds: 120}}
@@ -172,9 +194,14 @@ func RunOwnedCronRepair(ctx context.Context, cfg *pgx.ConnConfig, req OwnedCronR
 		return ownedCronResult(report, "no_change", "the proposal did not authorize the exact alternate Cron window"), nil
 	}
 	report.FirstFutureCycle, report.VerifyAfter = future, verifyAfter
+	session := <-dialed
+	if session.err != nil {
+		return OwnedCronDecision{}, session.err
+	}
+	defer closeVacuumConnection(session.conn)
 	var action OwnedCronAction
 	started = time.Now()
-	applied, err := applyProjectCron(ctx, cfg, actionReq, ProjectCronGuards{
+	applied, err := applyProjectCronOn(ctx, nil, session.conn, actionReq, ProjectCronGuards{
 		CheckPermission: func(ctx context.Context, i ProjectCronIntent) error {
 			if !sameOwnedCronIntent(intent, i) {
 				return errors.New("Cron intent no longer matches the approved fixture")
@@ -249,14 +276,26 @@ func readOwnedCronScope(ctx context.Context, conn *pgx.Conn, req OwnedCronReques
 		if _, err := tx.Exec(ctx, "SET LOCAL search_path=pg_catalog; SET LOCAL statement_timeout='750ms'; SET LOCAL lock_timeout='150ms'"); err != nil {
 			return err
 		}
-		useOwnedCounters := req.Runtime != (OwnedCronRuntime{})
-		if useOwnedCounters {
-			if err := checkOwnedCronCounterView(ctx, tx, req); err != nil {
-				return err
-			}
+		if err := checkOwnedCronScopeCatalog(ctx, tx, req); err != nil {
+			return err
 		}
-		var valid bool
-		if err := tx.QueryRow(ctx, `SELECT EXISTS (
+		var err error
+		node, err = readOwnedCronPlans(ctx, tx, req, controls)
+		return err
+	})
+	return node, err
+}
+
+func checkOwnedCronScopeCatalog(ctx context.Context, tx pgx.Tx, req OwnedCronRequest) error {
+	batch := &pgx.Batch{}
+	useOwnedCounters := req.Runtime != (OwnedCronRuntime{})
+	if useOwnedCounters {
+		if !validOwnedCronRuntime(req) || !validOwnedCronCounterView(req) {
+			return errors.New("exact owned Cron counter view is unavailable")
+		}
+		batch.Queue(ownedCronCounterCatalogSQL, ownedCronCounterCatalogArgs(req)...)
+	}
+	batch.Queue(`SELECT EXISTS (
 			SELECT FROM pg_database d JOIN pg_class c ON c.oid=$2 JOIN pg_namespace n ON n.oid=c.relnamespace
 			WHERE d.oid=$1 AND d.datname=current_database() AND c.relname='candidate' AND n.nspname=$3
 			  AND current_user=session_user AND current_user::regrole::oid=$4 AND c.relowner=$4 AND n.nspowner=$4
@@ -265,64 +304,92 @@ func readOwnedCronScope(ctx context.Context, conn *pgx.Conn, req OwnedCronReques
 			SELECT FROM cron.job WHERE jobid=$6 AND jobname::text=$3||'_witness'
 			  AND username::text=current_user AND database::text=current_database() AND active AND command='SELECT 1' AND schedule='2 seconds'
 		)`, req.Target.DatabaseOID, req.Candidate.TableOID, req.Candidate.Schema, req.Target.OwnerOID,
-			"Pooltune hosted cron fixture "+req.Target.Project, req.Target.WitnessJobID).Scan(&valid); err != nil || !valid {
-			return errors.New("Cron fixture ownership or exact witness could not be verified")
-		}
-		if err := tx.QueryRow(ctx, `SELECT NOT EXISTS (
+		"Pooltune hosted cron fixture "+req.Target.Project, req.Target.WitnessJobID)
+	batch.Queue(`SELECT NOT EXISTS (
 			SELECT FROM (VALUES ($1::text,$2::oid,'f',$3::text),($4::text,$5::oid,'p',$6::text)) want(signature,oid,kind,digest)
 			WHERE NOT EXISTS(SELECT FROM pg_proc p WHERE p.oid=to_regprocedure(want.signature) AND p.oid=want.oid
 			  AND p.proowner=$7 AND p.prokind::text=want.kind AND p.provolatile='v' AND NOT p.prosecdef
 			  AND encode(sha256(convert_to(pg_get_functiondef(p.oid),'UTF8')),'hex')=want.digest
 			  AND NOT EXISTS(SELECT FROM aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) a WHERE a.grantee<>p.proowner))
 		)`, qualified(req.Candidate.Schema, cronReadFunction)+"()", req.ReadOID, req.ReadDigest,
-			qualified(req.Candidate.Schema, cronProcedure)+"(integer)", req.ProcedureOID, req.ProcedureDigest,
-			req.Target.OwnerOID).Scan(&valid); err != nil || !valid {
-			return errors.New("owned Cron routine definition or ownership changed")
-		}
-		plan, err := readLookupPlan(ctx, tx, "EXPLAIN (FORMAT JSON, VERBOSE) "+ownedCronQuery(req.Candidate.Schema))
-		if err != nil || plan.QueryID != req.Observed.Query || plan.Node.Type == "" {
-			return errors.New("the discovered Cron workload no longer matches its exact query")
-		}
-		node = plan.Node.Type
-		checkCounter := func(lane string, c Counter) error {
-			if c.Database != req.Target.DatabaseOID || c.Role != req.Target.OwnerOID {
-				return errors.New("Cron traffic role changed")
-			}
-			var ok bool
-			var err error
-			if useOwnedCounters {
-				ok, err = currentOwnedCronCounters(ctx, tx, req, lane, c)
-			} else {
-				ok, err = currentLookupCounters(ctx, tx, EnrolledLookup{Database: c.Database, Role: c.Role, Query: c.Query},
-					[3]time.Time{c.Boot, c.Reset, c.Entry})
-			}
-			if err != nil || !ok {
-				return errors.New("Cron traffic counter generation changed")
-			}
-			return nil
-		}
-		if err := checkCounter("target", req.Observed); err != nil || controls == nil {
+		qualified(req.Candidate.Schema, cronProcedure)+"(integer)", req.ProcedureOID, req.ProcedureDigest,
+		req.Target.OwnerOID)
+	results := tx.SendBatch(ctx, batch)
+	defer results.Close()
+	if useOwnedCounters {
+		if err := scanOwnedCronCounterView(results.QueryRow()); err != nil {
 			return err
 		}
-		for _, control := range []struct {
-			lane, sql string
-			arg       int32
-			c         Counter
-		}{
-			{"healthy", ownedCronHealthyQuery(req.Candidate.Schema), 43, controls.Healthy.Before},
-			{"write", ownedCronWriteQuery(req.Candidate.Schema), 90001, controls.Write.Before},
-		} {
-			p, err := readLookupPlan(ctx, tx, "EXPLAIN (FORMAT JSON, VERBOSE) "+control.sql, control.arg)
-			if err != nil || p.QueryID != control.c.Query {
-				return errors.New("Cron protected query identity changed")
-			}
-			if err := checkCounter(control.lane, control.c); err != nil {
-				return err
+	}
+	var valid bool
+	if err := results.QueryRow().Scan(&valid); err != nil || !valid {
+		return errors.New("Cron fixture ownership or exact witness could not be verified")
+	}
+	if err := results.QueryRow().Scan(&valid); err != nil || !valid {
+		return errors.New("owned Cron routine definition or ownership changed")
+	}
+	return results.Close()
+}
+
+func readOwnedCronPlans(ctx context.Context, tx pgx.Tx, req OwnedCronRequest, controls *CronWindow) (string, error) {
+	type sample struct {
+		lane, sql string
+		args      []any
+		counter   Counter
+	}
+	samples := []sample{{lane: "target", sql: ownedCronQuery(req.Candidate.Schema), counter: req.Observed}}
+	if controls != nil {
+		samples = append(samples,
+			sample{"healthy", ownedCronHealthyQuery(req.Candidate.Schema), []any{int32(43)}, controls.Healthy.Before},
+			sample{"write", ownedCronWriteQuery(req.Candidate.Schema), []any{int32(90001)}, controls.Write.Before})
+	}
+	useOwnedCounters := req.Runtime != (OwnedCronRuntime{})
+	batch := &pgx.Batch{}
+	for _, item := range samples {
+		if item.counter.Database != req.Target.DatabaseOID || item.counter.Role != req.Target.OwnerOID {
+			return "", errors.New("Cron traffic role changed")
+		}
+		batch.Queue("EXPLAIN (FORMAT JSON, VERBOSE) "+item.sql, item.args...)
+	}
+	if useOwnedCounters {
+		for _, item := range samples {
+			batch.Queue(ownedCronCounterSQL(req), ownedCronCounterArgs(item.lane, item.counter)...)
+		}
+	}
+	results := tx.SendBatch(ctx, batch)
+	defer results.Close()
+	var node string
+	for _, item := range samples {
+		plan, err := scanLookupPlan(results.QueryRow())
+		if err != nil || plan.QueryID != item.counter.Query {
+			return "", errors.New("Cron query identity changed")
+		}
+		if item.lane == "target" {
+			node = plan.Node.Type
+		}
+	}
+	if useOwnedCounters {
+		for range samples {
+			var match bool
+			if err := results.QueryRow().Scan(&match); err != nil || !match {
+				return "", errors.New("Cron traffic counter generation changed")
 			}
 		}
-		return nil
-	})
-	return node, err
+	}
+	if err := results.Close(); err != nil {
+		return "", err
+	}
+	if !useOwnedCounters {
+		for _, item := range samples {
+			c := item.counter
+			ok, err := currentLookupCounters(ctx, tx, EnrolledLookup{Database: c.Database, Role: c.Role, Query: c.Query},
+				[3]time.Time{c.Boot, c.Reset, c.Entry})
+			if err != nil || !ok {
+				return "", errors.New("Cron traffic counter generation changed")
+			}
+		}
+	}
+	return node, nil
 }
 
 func ownedCronPeriodsMatch(req OwnedCronRequest, periods []CronPeriod, first time.Time) bool {

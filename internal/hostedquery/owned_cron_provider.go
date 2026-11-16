@@ -152,14 +152,16 @@ func newOwnedCronProvider(req OwnedCronRequest) projectCronProvider {
 	}
 	return projectCronProvider{
 		check: func(ctx context.Context, db trialReader) error {
-			if err := checkProjectCronProviderCatalog(ctx, db); err != nil {
-				return err
+			if !validOwnedCronRuntime(req) {
+				return errors.New("exact temporary Cron scheduler reader is unavailable")
 			}
 			var scoped bool
-			if err := db.QueryRow(ctx, `SELECT pg_catalog.row_security_active('cron.job') AND pg_catalog.row_security_active('cron.job_run_details')`).Scan(&scoped); err != nil || !scoped {
-				return errors.New("owned Cron job and run history require active row security")
+			if err := db.QueryRow(ctx, `SELECT `+projectCronProviderCatalogSQL+`
+				AND pg_catalog.row_security_active('cron.job') AND pg_catalog.row_security_active('cron.job_run_details')
+				AND `+ownedCronRuntimeIsPinned, ownedCronRuntimeArgs(req)...).Scan(&scoped); err != nil || !scoped {
+				return errors.New("scoped Cron provider, row security or exact scheduler reader unavailable")
 			}
-			return checkOwnedCronRuntime(ctx, db, req)
+			return nil
 		},
 		clock: func(ctx context.Context, db trialReader) (time.Time, CronGeneration, error) {
 			return readOwnedCronRuntime(ctx, db, req)

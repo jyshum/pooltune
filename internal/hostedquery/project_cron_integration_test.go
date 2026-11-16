@@ -259,10 +259,15 @@ func TestProjectCronChangesOnlyApprovedSchedule(t *testing.T) {
 	if r, e := applyProjectCron(ctx, lateReadback, req, guard, accurateAcknowledgement); e != nil || len(r.PostCommitWitnesses) != 2 || !r.CommitAt.Equal(now) {
 		t.Fatalf("catalog round trip obscured a real later witness: %+v %v", r, e)
 	}
+	if trace.separateWrites != 0 || trace.guardedWriteBatches != 1 {
+		t.Fatalf("Cron writes and exact in-transaction readbacks required separate round trips: writes=%d batches=%d",
+			trace.separateWrites, trace.guardedWriteBatches)
+	}
 }
 
 type projectCronReadbackTrace struct {
-	committed, readbackBeforeClock bool
+	committed, readbackBeforeClock      bool
+	separateWrites, guardedWriteBatches int
 }
 
 func (t *projectCronReadbackTrace) TraceQueryStart(ctx context.Context, _ *pgx.Conn, query pgx.TraceQueryStartData) context.Context {
@@ -272,7 +277,23 @@ func (t *projectCronReadbackTrace) TraceQueryStart(ctx context.Context, _ *pgx.C
 	if t.committed && strings.Contains(query.SQL, "SELECT j.schedule,") {
 		t.readbackBeforeClock = true
 	}
+	if strings.Contains(query.SQL, "SELECT cron.alter_job(") {
+		t.separateWrites++
+	}
 	return ctx
 }
 
 func (*projectCronReadbackTrace) TraceQueryEnd(context.Context, *pgx.Conn, pgx.TraceQueryEndData) {}
+
+func (t *projectCronReadbackTrace) TraceBatchStart(ctx context.Context, _ *pgx.Conn, data pgx.TraceBatchStartData) context.Context {
+	queries := data.Batch.QueuedQueries
+	if len(queries) == 4 && strings.Contains(queries[0].SQL, "active := true") && strings.Contains(queries[1].SQL, "schedule := ") &&
+		strings.Contains(queries[2].SQL, "SELECT j.schedule,") && strings.Contains(queries[3].SQL, "pg_catalog.to_jsonb(w)") {
+		t.guardedWriteBatches++
+	}
+	return ctx
+}
+
+func (*projectCronReadbackTrace) TraceBatchQuery(context.Context, *pgx.Conn, pgx.TraceBatchQueryData) {
+}
+func (*projectCronReadbackTrace) TraceBatchEnd(context.Context, *pgx.Conn, pgx.TraceBatchEndData) {}

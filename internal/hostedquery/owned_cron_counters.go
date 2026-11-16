@@ -5,6 +5,7 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/jackc/pgx/v5"
 	"pooltune/internal/supabaseproject"
 )
 
@@ -74,12 +75,7 @@ func validOwnedCronCounterView(req OwnedCronRequest) bool {
 	return req.Runtime.CounterViewOID != 0 && len(req.Runtime.CounterViewDigest) == 64
 }
 
-func checkOwnedCronCounterView(ctx context.Context, db trialReader, req OwnedCronRequest) error {
-	if !validOwnedCronRuntime(req) || !validOwnedCronCounterView(req) {
-		return errors.New("exact owned Cron counter view is unavailable")
-	}
-	var ready bool
-	err := db.QueryRow(ctx, `SELECT EXISTS(
+const ownedCronCounterCatalogSQL = `SELECT EXISTS(
 		SELECT FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
 		JOIN pg_catalog.pg_rewrite r ON r.ev_class=c.oid AND r.rulename='_RETURN'
 		WHERE c.oid=$1 AND n.nspname=$2 AND c.relname='statement_counters' AND c.relkind='v'
@@ -89,17 +85,39 @@ func checkOwnedCronCounterView(ctx context.Context, db trialReader, req OwnedCro
 		  AND current_user=session_user AND pg_catalog.has_table_privilege(current_user,c.oid,'SELECT')
 		  AND NOT EXISTS(SELECT FROM pg_catalog.aclexplode(COALESCE(c.relacl,pg_catalog.acldefault('r',c.relowner))) a
 		    WHERE a.grantee<>c.relowner AND (a.grantee<>current_user::regrole::oid OR a.privilege_type<>'SELECT' OR a.is_grantable))
-	)`, req.Runtime.CounterViewOID, req.Runtime.Schema, req.Runtime.OwnerOID, req.Runtime.CounterViewDigest).Scan(&ready)
+	)`
+
+func ownedCronCounterCatalogArgs(req OwnedCronRequest) []any {
+	return []any{req.Runtime.CounterViewOID, req.Runtime.Schema, req.Runtime.OwnerOID, req.Runtime.CounterViewDigest}
+}
+
+func checkOwnedCronCounterView(ctx context.Context, db trialReader, req OwnedCronRequest) error {
+	if !validOwnedCronRuntime(req) || !validOwnedCronCounterView(req) {
+		return errors.New("exact owned Cron counter view is unavailable")
+	}
+	return scanOwnedCronCounterView(db.QueryRow(ctx, ownedCronCounterCatalogSQL, ownedCronCounterCatalogArgs(req)...))
+}
+
+func scanOwnedCronCounterView(row pgx.Row) error {
+	var ready bool
+	err := row.Scan(&ready)
 	if err != nil || !ready {
 		return errors.New("exact owned Cron counter view is unavailable")
 	}
 	return nil
 }
 
+func ownedCronCounterSQL(req OwnedCronRequest) string {
+	return `SELECT EXISTS(SELECT FROM ` + qualified(req.Runtime.Schema, ownedCronCounterView) + `
+		WHERE lane=$1 AND dbid=$2 AND userid=$3 AND queryid=$4 AND boot=$5 AND reset_at=$6 AND entry_since=$7)`
+}
+
+func ownedCronCounterArgs(lane string, c Counter) []any {
+	return []any{lane, c.Database, c.Role, c.Query, c.Boot, c.Reset, c.Entry}
+}
+
 func currentOwnedCronCounters(ctx context.Context, db trialReader, req OwnedCronRequest, lane string, counter Counter) (bool, error) {
 	var match bool
-	err := db.QueryRow(ctx, `SELECT EXISTS(SELECT FROM `+qualified(req.Runtime.Schema, ownedCronCounterView)+`
-		WHERE lane=$1 AND dbid=$2 AND userid=$3 AND queryid=$4 AND boot=$5 AND reset_at=$6 AND entry_since=$7)`,
-		lane, counter.Database, counter.Role, counter.Query, counter.Boot, counter.Reset, counter.Entry).Scan(&match)
+	err := db.QueryRow(ctx, ownedCronCounterSQL(req), ownedCronCounterArgs(lane, counter)...).Scan(&match)
 	return match, err
 }

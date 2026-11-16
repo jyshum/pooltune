@@ -99,61 +99,98 @@ func ReadProjectCron(ctx context.Context, db *pgx.Conn, target ProjectCronTarget
 	return readProjectCronJob(ctx, db, target)
 }
 
-func readProjectCronJob(ctx context.Context, db trialReader, t ProjectCronTarget) (ProjectCronSnapshot, error) {
-	var out ProjectCronSnapshot
-	if t.Project == "" || t.DatabaseOID == 0 || t.OwnerOID == 0 || t.JobID <= 0 || t.WitnessJobID <= 0 || t.WitnessJobID == t.JobID || t.Name == "" || len(t.CommandDigest) != 64 {
-		return out, errors.New("missing enrolled Cron target identity")
-	}
-	err := db.QueryRow(ctx, `
+const projectCronJobSQL = `
 		SELECT j.schedule,pg_catalog.encode(pg_catalog.sha256(pg_catalog.convert_to((pg_catalog.to_jsonb(j)-'schedule')::text,'UTF8')),'hex'),j.xmin::text
 		FROM cron.job j JOIN pg_catalog.pg_roles r ON r.rolname::text=j.username::text
 		JOIN pg_catalog.pg_database d ON d.datname=pg_catalog.current_database()
 		WHERE d.oid=$1 AND r.oid=$2 AND j.jobid=$3 AND j.jobname::text=$4 AND j.active
 		  AND current_user=session_user AND r.rolname=current_user AND j.database::text=d.datname::text
 		  AND pg_catalog.encode(pg_catalog.sha256(pg_catalog.convert_to(j.command,'UTF8')),'hex')=$5
-	`, t.DatabaseOID, t.OwnerOID, t.JobID, t.Name, t.CommandDigest).Scan(&out.Schedule, &out.Fingerprint, &out.Generation)
+	`
+
+func validProjectCronTarget(t ProjectCronTarget) bool {
+	return t.Project != "" && t.DatabaseOID != 0 && t.OwnerOID != 0 && t.JobID > 0 && t.WitnessJobID > 0 &&
+		t.WitnessJobID != t.JobID && t.Name != "" && len(t.CommandDigest) == 64
+}
+
+func readProjectCronJob(ctx context.Context, db trialReader, t ProjectCronTarget) (ProjectCronSnapshot, error) {
+	if !validProjectCronTarget(t) {
+		return ProjectCronSnapshot{}, errors.New("missing enrolled Cron target identity")
+	}
+	return scanProjectCronJob(db.QueryRow(ctx, projectCronJobSQL, t.DatabaseOID, t.OwnerOID, t.JobID, t.Name, t.CommandDigest))
+}
+
+func scanProjectCronJob(row pgx.Row) (ProjectCronSnapshot, error) {
+	var out ProjectCronSnapshot
+	err := row.Scan(&out.Schedule, &out.Fingerprint, &out.Generation)
 	if err != nil {
 		return out, fmt.Errorf("read exact active Cron job as owner: %w", err)
 	}
 	return out, nil
 }
 
-func readProjectCronWitness(ctx context.Context, db trialReader, target ProjectCronTarget) (string, error) {
-	var fingerprint string
-	err := db.QueryRow(ctx, `
+const projectCronWitnessSQL = `
 		SELECT pg_catalog.encode(pg_catalog.sha256(pg_catalog.convert_to(pg_catalog.to_jsonb(w)::text,'UTF8')),'hex')
 		FROM cron.job w JOIN cron.job t ON t.jobid=$1
 		WHERE w.jobid=$2 AND t.username::text=current_user AND t.database::text=current_database()
 		  AND w.username=t.username AND w.database=t.database AND w.active
 		  AND w.command='SELECT 1' AND w.schedule='2 seconds'
-	`, target.JobID, target.WitnessJobID).Scan(&fingerprint)
-	return fingerprint, err
+	`
+
+func queueProjectCronPair(batch *pgx.Batch, target ProjectCronTarget) {
+	batch.Queue(projectCronJobSQL, target.DatabaseOID, target.OwnerOID, target.JobID, target.Name, target.CommandDigest)
+	batch.Queue(projectCronWitnessSQL, target.JobID, target.WitnessJobID)
 }
 
-func checkProjectCronProvider(ctx context.Context, db trialReader) error {
-	return checkProjectCronProviderPrerequisites(ctx, db, true)
-}
-
-func checkProjectCronProviderCatalog(ctx context.Context, db trialReader) error {
-	return checkProjectCronProviderPrerequisites(ctx, db, false)
-}
-
-func checkProjectCronProviderPrerequisites(ctx context.Context, db trialReader, directRuntime bool) error {
-	const directSettings = ` AND COALESCE(pg_catalog.current_setting('cron.timezone',true) IN ('UTC','GMT'),false)
-		AND pg_catalog.current_setting('cron.log_run',true)='on' AND pg_catalog.current_setting('cron.use_background_workers',true)='off'
-		AND pg_catalog.current_setting('cron.database_name',true)=pg_catalog.current_database()`
-	settings := ""
-	if directRuntime {
-		settings = directSettings
+func readProjectCronPair(ctx context.Context, db cronCatalogReader, target ProjectCronTarget) (ProjectCronSnapshot, string, error) {
+	if !validProjectCronTarget(target) {
+		return ProjectCronSnapshot{}, "", errors.New("missing enrolled Cron target identity")
 	}
-	var valid bool
-	err := db.QueryRow(ctx, `SELECT EXISTS (
+	batch := &pgx.Batch{}
+	queueProjectCronPair(batch, target)
+	return scanProjectCronPair(db.SendBatch(ctx, batch))
+}
+
+func scanProjectCronPair(results pgx.BatchResults) (ProjectCronSnapshot, string, error) {
+	job, err := scanProjectCronJob(results.QueryRow())
+	if err != nil {
+		return job, "", errors.Join(err, results.Close())
+	}
+	var witness string
+	err = results.QueryRow().Scan(&witness)
+	return job, witness, errors.Join(err, results.Close())
+}
+
+func changeProjectCronPair(ctx context.Context, tx pgx.Tx, target ProjectCronTarget, proposed string) (ProjectCronSnapshot, string, error) {
+	batch := &pgx.Batch{}
+	// PostgreSQL runs these in order in the already-open Repeatable Read
+	// transaction. A row conflict aborts the transaction, including both writes.
+	batch.Queue(`SELECT cron.alter_job($1::bigint,active := true)`, target.WitnessJobID)
+	batch.Queue(`SELECT cron.alter_job($1::bigint,schedule := $2::text)`, target.JobID, proposed)
+	queueProjectCronPair(batch, target)
+	results := tx.SendBatch(ctx, batch)
+	for range 2 {
+		if _, err := results.Exec(); err != nil {
+			return ProjectCronSnapshot{}, "", errors.Join(err, results.Close())
+		}
+	}
+	return scanProjectCronPair(results)
+}
+
+const projectCronProviderCatalogSQL = `EXISTS (
 		SELECT FROM pg_catalog.pg_extension e JOIN pg_catalog.pg_depend dep ON dep.refobjid=e.oid
 		WHERE e.extname='pg_cron' AND e.extversion='1.6.4' AND dep.deptype='e' AND dep.refclassid='pg_catalog.pg_extension'::regclass
 		  AND dep.classid='pg_catalog.pg_proc'::regclass AND dep.objid=pg_catalog.to_regprocedure('cron.alter_job(bigint,text,text,text,text,boolean)')
 	) AND NOT pg_catalog.pg_is_in_recovery()
 	  AND current_user=session_user AND NOT pg_catalog.has_any_column_privilege(current_user,'cron.job','UPDATE')
-	  AND pg_catalog.has_function_privilege(current_user,pg_catalog.to_regprocedure('cron.alter_job(bigint,text,text,text,text,boolean)'),'EXECUTE')`+settings).Scan(&valid)
+	  AND pg_catalog.has_function_privilege(current_user,pg_catalog.to_regprocedure('cron.alter_job(bigint,text,text,text,text,boolean)'),'EXECUTE')`
+
+func checkProjectCronProvider(ctx context.Context, db trialReader) error {
+	const directSettings = ` AND COALESCE(pg_catalog.current_setting('cron.timezone',true) IN ('UTC','GMT'),false)
+		AND pg_catalog.current_setting('cron.log_run',true)='on' AND pg_catalog.current_setting('cron.use_background_workers',true)='off'
+		AND pg_catalog.current_setting('cron.database_name',true)=pg_catalog.current_database()`
+	var valid bool
+	err := db.QueryRow(ctx, "SELECT "+projectCronProviderCatalogSQL+directSettings).Scan(&valid)
 	if err != nil || !valid {
 		return errors.New("registered pg_cron schedule-only provider or runtime prerequisites unavailable")
 	}
@@ -168,7 +205,11 @@ func ApplyProjectCron(ctx context.Context, cfg *pgx.ConnConfig, req ProjectCronR
 }
 
 func applyProjectCron(ctx context.Context, cfg *pgx.ConnConfig, req ProjectCronRequest, guards ProjectCronGuards, provider projectCronProvider) (out ProjectCronResult, err error) {
-	if cfg == nil || guards.CheckPermission == nil || guards.CheckCapacity == nil || guards.RecordIntent == nil || req.RunID == "" || len(req.RunID) > 64 {
+	return applyProjectCronOn(ctx, cfg, nil, req, guards, provider)
+}
+
+func applyProjectCronOn(ctx context.Context, cfg *pgx.ConnConfig, db *pgx.Conn, req ProjectCronRequest, guards ProjectCronGuards, provider projectCronProvider) (out ProjectCronResult, err error) {
+	if (cfg == nil && db == nil) || guards.CheckPermission == nil || guards.CheckCapacity == nil || guards.RecordIntent == nil || req.RunID == "" || len(req.RunID) > 64 {
 		return out, errors.New("Cron change requires native route, permissions, capacity and durable intent")
 	}
 	original, proposed, err := req.Window.schedules()
@@ -197,11 +238,13 @@ func applyProjectCron(ctx context.Context, cfg *pgx.ConnConfig, req ProjectCronR
 		}
 		slog.Info("owned Cron native action stopped", fields...)
 	}()
-	db, err := pgx.ConnectConfig(ctx, cfg.Copy())
-	if err != nil {
-		return out, err
+	if db == nil {
+		db, err = pgx.ConnectConfig(ctx, cfg.Copy())
+		if err != nil {
+			return out, err
+		}
+		defer closeVacuumConnection(db)
 	}
-	defer closeVacuumConnection(db)
 	phase = "provider_preflight"
 	var pid int32
 	if err := db.QueryRow(ctx, "SELECT pg_catalog.pg_backend_pid()").Scan(&pid); err != nil || pid != int32(db.PgConn().PID()) {
@@ -237,14 +280,11 @@ func applyProjectCron(ctx context.Context, cfg *pgx.ConnConfig, req ProjectCronR
 		}
 		futureCycle = firstFuture
 		phase = "handoff_identity"
-		before, err := readProjectCronJob(ctx, tx, req.Target)
+		before, witness, err := readProjectCronPair(ctx, tx, req.Target)
 		if err != nil || before != req.Baseline {
 			return errors.New("Cron job identity or schedule changed before its handoff")
 		}
-		witnessBefore, err = readProjectCronWitness(ctx, tx, req.Target)
-		if err != nil {
-			return errors.New("owned Cron scheduler witness changed before handoff")
-		}
+		witnessBefore = witness
 		intent := ProjectCronIntent{Target: req.Target, Window: req.Window, Before: before, Generation: generation,
 			RunID: req.RunID, ProposedSchedule: proposed, FirstFutureCycle: firstFuture}
 		for _, check := range []struct {
@@ -272,19 +312,15 @@ func applyProjectCron(ctx context.Context, cfg *pgx.ConnConfig, req ProjectCronR
 		phase = "schedule_write"
 		// The witness is already active in this snapshot. Its same-value API
 		// update detects concurrent stops or edits and holds its row until commit.
-		if _, err := tx.Exec(ctx, `SELECT cron.alter_job($1::bigint,active := true)`, req.Target.WitnessJobID); err != nil {
-			return err
-		}
-		if _, err := tx.Exec(ctx, `SELECT cron.alter_job($1::bigint,schedule := $2::text)`, req.Target.JobID, proposed); err != nil {
+		expected, witness, err = changeProjectCronPair(ctx, tx, req.Target, proposed)
+		if err != nil {
 			return err
 		}
 		phase = "transaction_identity"
-		expected, err = readProjectCronJob(ctx, tx, req.Target)
-		if err != nil || expected.Schedule != proposed || expected.Fingerprint != before.Fingerprint || expected.Generation == before.Generation {
+		if expected.Schedule != proposed || expected.Fingerprint != before.Fingerprint || expected.Generation == before.Generation {
 			return errors.New("Cron provider changed fields outside the approved schedule")
 		}
-		witness, err := readProjectCronWitness(ctx, tx, req.Target)
-		if err != nil || witness != witnessBefore {
+		if witness != witnessBefore {
 			return errors.New("Cron provider changed the owned scheduler witness")
 		}
 		out.FirstFutureCycle = firstFuture
@@ -320,12 +356,11 @@ func applyProjectCron(ctx context.Context, cfg *pgx.ConnConfig, req ProjectCronR
 		return out, err
 	}
 	phase = "acknowledgement_identity"
-	actual, err = readProjectCronJob(ctx, db, req.Target)
+	actual, witness, err := readProjectCronPair(ctx, db, req.Target)
 	if err != nil || actual != expected {
 		return out, errors.New("Cron job changed before scheduler acknowledgement")
 	}
-	witness, err := readProjectCronWitness(ctx, db, req.Target)
-	if err != nil || witness != witnessBefore {
+	if witness != witnessBefore {
 		return out, errors.New("owned Cron witness changed before scheduler acknowledgement")
 	}
 	out.After = actual
