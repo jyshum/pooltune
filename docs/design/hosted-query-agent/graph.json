@@ -3,10 +3,10 @@
   "id": "pooltune-hosted-agent",
   "title": "Maintain Supabase query performance",
   "workType": "Build progress and remaining work",
-  "summary": "A fresh customer connection now runs Go repairs on Railway without a separate worker or query IDs. Rookery verified an automatic compound-index trial and exact rollback after protected traffic regressed. Six earlier prepared repair proofs remain valid; statistics retention, automatic function memory and scheduling still need ordinary-project completion.",
+  "summary": "Managed setup and all six repair families are implemented and deployed on Railway. Local database tests pass; earlier Rookery runs verified refresh, index rollback and reported cleanup regression. Next: Jared connects Rookery through the customer screens, fixes follow observed failures, then landing and dashboard design. Broader repair qualification remains tracked separately, not a prerequisite to this walkthrough.",
   "sourceRevision": {
-    "commit": "b9f964b5c7e7d05bae6d7e449d8dca18bf7d77c0",
-    "dirty": true
+    "commit": "6c4cb2269252b0cfd6dc48c6a8cfa935abd21955",
+    "dirty": false
   },
   "components": [
     {
@@ -30,7 +30,7 @@
       "id": "dashboard",
       "label": "Customer dashboard",
       "type": "interface",
-      "purpose": "Railway serves the original landing, account signup, agent setup and saved activity. Repair choices and pause are stored per project.",
+      "purpose": "The deployed dashboard contains account entry, project setup, repair permissions, pause and saved activity.",
       "decisionIds": [
         "d-hosting",
         "d-onboarding"
@@ -48,8 +48,8 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Railway serves the original landing, account signup, agent setup and saved activity. Repair choices and pause are stored per project.",
-      "after": "Railway serves the original landing, account signup, agent setup and saved activity. Repair choices and pause are stored per project.",
+      "changeSummary": "The deployed dashboard contains account entry, project setup, repair permissions, pause and saved activity.",
+      "after": "The deployed dashboard contains account entry, project setup, repair permissions, pause and saved activity.",
       "expandWhy": "What will a customer use to connect a project and watch Pooltune work?"
     },
     {
@@ -234,9 +234,9 @@
     },
     {
       "id": "tools",
-      "label": "Database tools: managed repairs advancing",
+      "label": "Database tools: six families implemented",
       "type": "service",
-      "purpose": "All six repair families have prepared Rookery proofs. The managed customer route additionally verified statistics refresh, an exact index rollback, and plain cleanup with a reported protected-traffic regression.",
+      "purpose": "Managed index, refresh, richer statistics, cleanup, function memory and scheduling paths are implemented. Local database integration tests pass. Rookery managed refresh, index rollback and plain cleanup outcomes are recorded.",
       "decisionIds": [
         "d-language"
       ],
@@ -283,12 +283,12 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "All six repair families have prepared Rookery proofs. The managed customer route additionally verified statistics refresh, an exact index rollback, and plain cleanup with a reported protected-traffic regression.",
+      "changeSummary": "Managed index, refresh, richer statistics, cleanup, function memory and scheduling paths are implemented. Local database integration tests pass. Rookery managed refresh, index rollback and plain cleanup outcomes are recorded.",
       "stack": [
         "Go"
       ],
       "expandWhy": "What can the agent inspect or change, and what evidence and recovery does each repair require?",
-      "after": "All six repair families have prepared Rookery proofs. A fresh managed connection additionally verified index execution and rollback using native Go authority and genuine application traffic."
+      "after": "Managed index, refresh, richer statistics, cleanup, function memory and scheduling paths are implemented. Local database integration tests pass. Rookery managed refresh, index rollback and plain cleanup outcomes are recorded."
     },
     {
       "id": "state",
@@ -412,7 +412,7 @@
       "id": "inspection",
       "label": "Inspect existing evidence",
       "type": "service",
-      "purpose": "Managed lookup measurements work on Rookery. New local readers attribute exact function spill and real provider memory capacity, and collect actual scheduler blocking with explicit application-visibility limits.",
+      "purpose": "Managed readers cover supported lookup plans, statistics and cleanup evidence, function spill and provider memory, and scheduler blocking. The new reader paths pass local database tests and are deployed.",
       "decisionIds": [
         "d-reuse",
         "d-identity"
@@ -500,19 +500,19 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Managed lookup measurements work on Rookery. New local readers attribute exact function spill and real provider memory capacity, and collect actual scheduler blocking with explicit application-visibility limits.",
+      "changeSummary": "Managed readers cover supported lookup plans, statistics and cleanup evidence, function spill and provider memory, and scheduler blocking. The new reader paths pass local database tests and are deployed.",
       "stack": [
         "Go"
       ],
       "parent": "tools",
-      "after": "Railway discovered a compound integer lookup from ordinary test requests and measured one existing key under the application role before and after a real index change.",
+      "after": "Managed readers cover supported lookup plans, statistics and cleanup evidence, function spill and provider memory, and scheduler blocking. The new reader paths pass local database tests and are deployed.",
       "expandWhy": "Which discovered statements can Pooltune match to their app role and database objects?"
     },
     {
       "id": "experiments",
       "label": "Run a justified experiment",
       "type": "service",
-      "purpose": "A discovered managed lookup reached a real before/after experiment. Normal read/write counters rejected the index despite a faster sample; the exact created index was removed.",
+      "purpose": "Committed statistics trials, bounded function-memory allowance with fallback, scheduling follow-ups and cleanup-setting verification are implemented. Local database recovery tests pass; managed index rollback has live Rookery evidence.",
       "decisionIds": [
         "d-reuse",
         "d-trials",
@@ -536,12 +536,12 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "A discovered managed lookup reached a real before/after experiment. Normal read/write counters rejected the index despite a faster sample; the exact created index was removed.",
+      "changeSummary": "Committed statistics trials, bounded function-memory allowance with fallback, scheduling follow-ups and cleanup-setting verification are implemented. Local database recovery tests pass; managed index rollback has live Rookery evidence.",
       "stack": [
         "Go"
       ],
       "parent": "tools",
-      "after": "A discovered managed lookup reached a real before/after experiment. Normal read/write counters rejected the index despite a faster sample; the exact created index was removed."
+      "after": "Committed statistics trials, bounded function-memory allowance with fallback, scheduling follow-ups and cleanup-setting verification are implemented. Local database recovery tests pass; managed index rollback has live Rookery evidence."
     },
     {
       "id": "index",
@@ -617,7 +617,7 @@
       "id": "richer",
       "label": "Improve statistics detail",
       "type": "service",
-      "purpose": "Both prepared statistics variants passed Rookery. Ordinary managed committed trials now pass local PostgreSQL action, protected-traffic, deadline and restart-recovery checks.",
+      "purpose": "Managed column-target and joint-statistics trials, protected-traffic checks and conditional recovery pass local database tests and are deployed.",
       "decisionIds": [],
       "sources": [
         {
@@ -647,19 +647,19 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Both prepared statistics variants passed Rookery. Ordinary managed committed trials now pass local PostgreSQL action, protected-traffic, deadline and restart-recovery checks.",
+      "changeSummary": "Managed column-target and joint-statistics trials, protected-traffic checks and conditional recovery pass local database tests and are deployed.",
       "stack": [
         "Go"
       ],
       "parent": "tools",
-      "after": "Simple setup verified retained joint statistics and a measured individual-column trial that restored the prior setting when the query regressed.",
+      "after": "Managed column-target and joint-statistics trials, protected-traffic checks and conditional recovery pass local database tests and are deployed.",
       "expandWhy": "Which statistics improvements exist and which remain?"
     },
     {
       "id": "cleanup",
       "label": "Perform targeted cleanup",
       "type": "service",
-      "purpose": "Prepared plain and automatic-cleanup settings passed Rookery. Managed plain VACUUM executed on Rookery, but the protected write workload regressed and the outcome was reported honestly.",
+      "purpose": "Plain VACUUM has a recorded live managed outcome with protected-traffic regression. Automatic cleanup-setting changes and restart recovery pass local database tests and are deployed.",
       "decisionIds": [],
       "sources": [
         {
@@ -694,19 +694,19 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Prepared plain and automatic-cleanup settings passed Rookery. Managed plain VACUUM executed on Rookery, but the protected write workload regressed and the outcome was reported honestly.",
+      "changeSummary": "Plain VACUUM has a recorded live managed outcome with protected-traffic regression. Automatic cleanup-setting changes and restart recovery pass local database tests and are deployed.",
       "stack": [
         "Go"
       ],
       "parent": "tools",
-      "after": "Both plain cleanup and the cleanup-trigger setting passed on Railway from simple setup. PostgreSQL independently recorded which action ran.",
+      "after": "Plain VACUUM has a recorded live managed outcome with protected-traffic regression. Automatic cleanup-setting changes and restart recovery pass local database tests and are deployed.",
       "expandWhy": "Which cleanup actions exist and which remain?"
     },
     {
       "id": "memory",
-      "label": "Function memory: managed tests pass",
+      "label": "Function memory: implemented",
       "type": "service",
-      "purpose": "The ordinary function route passes local PostgreSQL tests: owner enrollment, actual function-call discovery, inner/outer disk spill, fresh capacity, bounded memory allowance, original-memory overflow fallback and exact recovery.",
+      "purpose": "Managed function discovery, spill and capacity checks, capped extra memory, baseline fallback and owner-edit protection pass local database tests and independent review. The code is deployed.",
       "decisionIds": [],
       "sources": [
         {
@@ -731,18 +731,18 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "The ordinary function route passes local PostgreSQL tests: owner enrollment, actual function-call discovery, inner/outer disk spill, fresh capacity, bounded memory allowance, original-memory overflow fallback and exact recovery.",
+      "changeSummary": "Managed function discovery, spill and capacity checks, capped extra memory, baseline fallback and owner-edit protection pass local database tests and independent review. The code is deployed.",
       "stack": [
         "Go"
       ],
       "parent": "tools",
-      "after": "The prepared Rookery function-memory test remains verified. Ordinary functions can now be explicitly enrolled by signature; automatic execution still needs the approved allowance and original-memory fallback."
+      "after": "Managed function discovery, spill and capacity checks, capped extra memory, baseline fallback and owner-edit protection pass local database tests and independent review. The code is deployed."
     },
     {
       "id": "cron",
-      "label": "Job scheduling: managed integration",
+      "label": "Job scheduling: implemented",
       "type": "service",
-      "purpose": "Native scheduler policy, database-observed protection, temporary witness and disconnect cleanup pass local checks. The ordinary project observer and durable follow-up integration are being completed.",
+      "purpose": "Managed scheduler collection, exact job and waiting-role checks, durable follow-up and pending recovery are implemented and locally tested. The code is deployed.",
       "decisionIds": [],
       "sources": [
         {
@@ -822,12 +822,12 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Native scheduler policy, database-observed protection, temporary witness and disconnect cleanup pass local checks. The ordinary project observer and durable follow-up integration are being completed.",
+      "changeSummary": "Managed scheduler collection, exact job and waiting-role checks, durable follow-up and pending recovery are implemented and locally tested. The code is deployed.",
       "stack": [
         "Go"
       ],
       "parent": "tools",
-      "after": "The prepared six-period scheduler test remains verified. Ordinary jobs can be explicitly enrolled by name and schedule window. Native Rookery ownership and scheduler settings are readable."
+      "after": "Managed scheduler collection, exact job and waiting-role checks, durable follow-up and pending recovery are implemented and locally tested. The code is deployed."
     },
     {
       "id": "recovery",
@@ -1055,7 +1055,7 @@
       "id": "repair-coverage",
       "label": "Qualify broader repairs",
       "type": "service",
-      "purpose": "Managed setup and index trial/rollback passed through Railway. General ANALYZE and plain VACUUM are implemented and undergoing live qualification. Statistics and function-memory completion now have explicit design approval.",
+      "purpose": "All six managed repair families are implemented in the deployed build. Automated tests cover permissions, guarded execution and recovery; prior Rookery proofs retain their original scope.",
       "decisionIds": [],
       "sources": [
         {
@@ -1155,8 +1155,8 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Managed setup and index trial/rollback passed through Railway. General ANALYZE and plain VACUUM are implemented and undergoing live qualification. Statistics and function-memory completion now have explicit design approval.",
-      "after": "Managed setup and index trial/rollback passed through Railway. General ANALYZE and plain VACUUM are implemented and undergoing live qualification. Statistics and function-memory completion now have explicit design approval.",
+      "changeSummary": "All six managed repair families are implemented in the deployed build. Automated tests cover permissions, guarded execution and recovery; prior Rookery proofs retain their original scope.",
+      "after": "All six managed repair families are implemented in the deployed build. Automated tests cover permissions, guarded execution and recovery; prior Rookery proofs retain their original scope.",
       "parent": "tools",
       "stack": [
         "Go"
@@ -1166,7 +1166,7 @@
       "id": "connect-project",
       "label": "Connect project: managed setup verified",
       "type": "service",
-      "purpose": "The Railway customer form accepted one native database credential, encrypted it and automatically started the Go worker. A discovered Rookery lookup reached index creation and exact rollback without query IDs or a separate worker key.",
+      "purpose": "The deployed customer setup creates the monitor and managed Go worker. Earlier Rookery setup required no separate worker deployment or query IDs.",
       "decisionIds": [],
       "sources": [
         {
@@ -1231,8 +1231,8 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "The Railway customer form accepted one native database credential, encrypted it and automatically started the Go worker. A discovered Rookery lookup reached index creation and exact rollback without query IDs or a separate worker key.",
-      "after": "The Railway customer form accepted one native database credential, encrypted it and automatically started the Go worker. A discovered Rookery lookup reached index creation and exact rollback without query IDs or a separate worker key.",
+      "changeSummary": "The deployed customer setup creates the monitor and managed Go worker. Earlier Rookery setup required no separate worker deployment or query IDs.",
+      "after": "The deployed customer setup creates the monitor and managed Go worker. Earlier Rookery setup required no separate worker deployment or query IDs.",
       "parent": "backend",
       "stack": [
         "Go",
@@ -1378,7 +1378,7 @@
       "id": "operations",
       "label": "Production operations",
       "type": "service",
-      "purpose": "The owned compound repair passed through simple setup. A separate Railway restart after the database write verified catalog-only recovery.",
+      "purpose": "Build 6c4cb22 deployed successfully to Railway as 22a116a2-be8c-42f9-a3e0-5f3d55f301b5. Local database recovery tests pass and an earlier hosted index restart is recorded.",
       "decisionIds": [],
       "sources": [
         {
@@ -1388,8 +1388,8 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "The owned compound repair passed through simple setup. A separate Railway restart after the database write verified catalog-only recovery.",
-      "after": "The owned compound repair passed through simple setup. A separate Railway restart after the database write verified catalog-only recovery.",
+      "changeSummary": "Build 6c4cb22 deployed successfully to Railway as 22a116a2-be8c-42f9-a3e0-5f3d55f301b5. Local database recovery tests pass and an earlier hosted index restart is recorded.",
+      "after": "Build 6c4cb22 deployed successfully to Railway as 22a116a2-be8c-42f9-a3e0-5f3d55f301b5. Local database recovery tests pass and an earlier hosted index restart is recorded.",
       "stack": [
         "Go",
         "PostgreSQL",
@@ -1654,7 +1654,7 @@
     },
     {
       "id": "statistics-target",
-      "label": "Column statistics targets: remaining",
+      "label": "Column statistics targets: implemented",
       "type": "service",
       "parent": "richer",
       "purpose": "Railway ran and measured a higher target for one column from simple setup. The row estimate got closer while query latency rose, so PostgreSQL restored the exact previous setting and sample.",
@@ -1726,7 +1726,7 @@
     },
     {
       "id": "cleanup-settings",
-      "label": "Cleanup settings: remaining",
+      "label": "Cleanup settings: implemented",
       "type": "service",
       "parent": "cleanup",
       "purpose": "Railway lowered the exact table\u2019s trigger. PostgreSQL ran one automatic cleanup and no manual cleanup. Dead tuples dropped from 17,459 to 1,500 and the tested query from 42.93 to 23.68 ms.",

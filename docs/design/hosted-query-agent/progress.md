@@ -692,3 +692,12 @@ A final bridge audit found that managed memory treated an ordinary model decline
 ### Deployment checkpoint checks
 
 The fresh full `go test -race -tags integration ./... -count=1` passed, including hostedquery in333.320s. The subsequent one-condition memory-decline fix passed its native focused race suite11.383s and a fresh full `go test ./... -count=1`; `go vet ./...`, investigator typecheck/all118 tests, generated-map consistency and staged whitespace checks passed. The remaining milestone is live qualification of these managed paths, not further fixture-only completion claims.
+
+
+### Customer walkthrough handoff and main integration, November 15
+
+Jared authorized pushing the saved build and updating the map, then his own Rookery customer walkthrough, fixes for observed failures, and landing/dashboard design. He subsequently requested merging to main. Existing ask/final_only selections persist. Broader family-specific live checks remain open but are no longer a prerequisite to beginning his walkthrough. [Exact handoff and requirements](customer-walkthrough.md).
+
+Railway deployment `22a116a2-be8c-42f9-a3e0-5f3d55f301b5` reached SUCCESS for source `6c4cb22`. The map now distinguishes implemented/deployed repair paths from live-qualified outcomes and removes stale implementation tasks. No new live repair proof or blanket green status is asserted. Preview signup still needs an invite code, and repair setup still asks for the project token, database password and root certificate.
+
+Handoff checks: a fresh Go unit suite passed on the unchanged implementation; map schema/status coverage, deterministic regeneration and whitespace checks passed. The browser refused the local-file map URL under its URL policy, so this refresh is structurally validated but not visually rechecked. No alternative route was used. The deployed landing page was observed responding and still contains stale read-only wording; this is recorded for the requested design pass. Signup's preview invite remains required.
