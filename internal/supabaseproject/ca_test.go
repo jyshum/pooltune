@@ -7,6 +7,7 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
+	"fmt"
 	"math/big"
 	"net/http"
 	"net/http/httptest"
@@ -46,5 +47,27 @@ func TestOfficialCARejectsInvalidAndCachesVerifiedCertificate(t *testing.T) {
 	der, _ = x509.CreateCertificate(rand.Reader, cert, cert, &key.PublicKey, key)
 	if _, err := validateCA(pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: der}), now); err == nil {
 		t.Fatal("leaf accepted as CA")
+	}
+}
+
+func TestOfficialCAWaitDoesNotOutliveSetupCancellation(t *testing.T) {
+	entered, release := make(chan struct{}, 1), make(chan struct{})
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		entered <- struct{}{}
+		<-release
+		fmt.Fprint(w, "invalid fixture certificate")
+	}))
+	defer server.Close()
+	source := &certificateSource{client: server.Client(), endpoint: server.URL}
+	done := make(chan struct{})
+	go func() { _, _ = source.read(context.Background()); close(done) }()
+	<-entered
+	go func() { time.Sleep(150 * time.Millisecond); close(release) }()
+	defer func() { <-done }()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Millisecond)
+	defer cancel()
+	start := time.Now()
+	if _, err := source.read(ctx); err == nil || time.Since(start) > 120*time.Millisecond {
+		t.Fatalf("CA cache wait exceeded canceled setup budget: %v %v", time.Since(start), err)
 	}
 }

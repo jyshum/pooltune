@@ -34,10 +34,51 @@ func (a *App) projectSupabaseToken(ctx context.Context, row projectRecord) (stri
 	}
 	for _, p := range projects {
 		if p.Ref == row.Ref && p.Organization == row.SupabaseOrg && p.Status == "ACTIVE_HEALTHY" {
+			if err := a.supabase.verifyWriteAuthority(ctx, row.Ref, token); err != nil {
+				return "", err
+			}
 			return token, nil
 		}
 	}
 	return "", errSupabaseProjectAccess
+}
+
+// Project visibility alone does not prove database-write authority. Supabase
+// executes read-only members' queries as supabase_read_only_user. This fixed,
+// catalog-only query must instead execute as the writable, non-superuser owner.
+// A successful HTTP status or SELECT 1 would also admit read-only members.
+const supabaseWriteAuthoritySQL = `SELECT current_user='postgres'
+ AND pg_catalog.current_database()='postgres'
+ AND pg_catalog.current_setting('transaction_read_only')='off'
+ AND NOT pg_catalog.pg_is_in_recovery()
+ AND EXISTS(SELECT FROM pg_catalog.pg_roles WHERE rolname=current_user
+ AND rolcanlogin AND NOT rolsuper
+ AND (rolvaliduntil IS NULL OR rolvaliduntil>pg_catalog.statement_timestamp())) AS authorized`
+
+func (s *supabaseOAuth) verifyWriteAuthority(ctx context.Context, ref, token string) error {
+	body, err := json.Marshal(struct {
+		Query                   string `json:"query"`
+		ReadOnly                bool   `json:"read_only"`
+		DisableStatementTimeout bool   `json:"disable_statement_timeout"`
+	}{Query: supabaseWriteAuthoritySQL})
+	if err != nil {
+		return errSupabaseUnavailable
+	}
+	var response []map[string]bool
+	if err := s.request(ctx, "POST", "/v1/projects/"+ref+"/database/query", token, "application/json", strings.NewReader(string(body)), &response); err != nil {
+		return err
+	}
+	if len(response) != 1 || len(response[0]) != 1 {
+		return errSupabaseUnavailable
+	}
+	authorized, known := response[0]["authorized"]
+	if !known {
+		return errSupabaseUnavailable
+	}
+	if !authorized {
+		return errSupabaseProjectAccess
+	}
+	return nil
 }
 
 // CLI credentials are shared by Supabase per database. The transaction lock and

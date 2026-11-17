@@ -19,6 +19,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"pooltune/internal/hostedquery"
 	"pooltune/internal/testpg"
@@ -26,6 +27,8 @@ import (
 
 func TestSupabaseOAuthBindingPickerAndRefresh(t *testing.T) {
 	ctx, state, _ := testpg.Start(t)
+	ctx, cancelTest := context.WithTimeout(context.WithoutCancel(ctx), 45*time.Second)
+	defer cancelTest()
 	pc, _ := pgxpool.ParseConfig(state.ConnString())
 	pc.ConnConfig = state
 	pool, err := pgxpool.NewWithConfig(ctx, pc)
@@ -42,12 +45,15 @@ func TestSupabaseOAuthBindingPickerAndRefresh(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, other, err := app.accounts.Register(ctx, "other@example.com", "one exact test passphrase")
+	otherUser, other, err := app.accounts.Register(ctx, "other@example.com", "one exact test passphrase")
 	if err != nil {
 		t.Fatal(err)
 	}
 	var exchanges, refreshes, issuances atomic.Int32
 	var denied atomic.Bool
+	var writeDenied atomic.Bool
+	var probeStatus atomic.Int32
+	var delayedSetup atomic.Bool
 	var malformed atomic.Bool
 	var expectedChallenge string
 	var revoked atomic.Bool
@@ -56,6 +62,18 @@ func TestSupabaseOAuthBindingPickerAndRefresh(t *testing.T) {
 	defer cancelRefresh()
 	provider := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
+		if delayedSetup.Load() && (r.URL.Path == "/v1/projects" || r.URL.Path == "/v1/organizations" || strings.HasSuffix(r.URL.Path, "/database/query")) {
+			delay := 6 * time.Second
+			if strings.HasSuffix(r.URL.Path, "/database/query") {
+				delay = 7 * time.Second
+			}
+			select {
+			case <-r.Context().Done():
+				return
+			case <-time.After(delay):
+			}
+		}
+
 		switch r.URL.Path {
 		case "/v1/oauth/token":
 			id, secret, ok := r.BasicAuth()
@@ -103,6 +121,24 @@ func TestSupabaseOAuthBindingPickerAndRefresh(t *testing.T) {
 				return
 			}
 			fmt.Fprint(w, `[{"id":"abcdefghijklmnopqrst","ref":"abcdefghijklmnopqrst","name":"Allowed project","organization_id":"org-id","organization_slug":"our-org","region":"us-west-1","created_at":"2026-01-01","status":"ACTIVE_HEALTHY","database":{"host":"db.abcdefghijklmnopqrst.supabase.co","version":"17","postgres_engine":"postgres","release_channel":"ga"}}]`)
+		case "/v1/projects/abcdefghijklmnopqrst/database/query":
+			var body struct {
+				Query          string `json:"query"`
+				ReadOnly       *bool  `json:"read_only"`
+				DisableTimeout *bool  `json:"disable_statement_timeout"`
+			}
+			if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.ReadOnly == nil || *body.ReadOnly || body.DisableTimeout == nil || *body.DisableTimeout || !strings.Contains(body.Query, "current_user='postgres'") {
+				t.Error("write authority was not checked with fixed owner identity and bounded execution")
+			}
+			if code := int(probeStatus.Load()); code != 0 {
+				w.WriteHeader(code)
+				return
+			}
+			if delayedSetup.Load() || writeDenied.Load() || r.Header.Get("Authorization") == "Bearer read-only-access" {
+				fmt.Fprint(w, `[{"authorized":false}]`)
+				return
+			}
+			fmt.Fprint(w, `[{"authorized":true}]`)
 		case "/v1/projects/abcdefghijklmnopqrst/cli/login-role":
 			issuances.Add(1)
 			role := "cli_login_postgres"
@@ -236,6 +272,25 @@ func TestSupabaseOAuthBindingPickerAndRefresh(t *testing.T) {
 	if _, err = app.supabaseToken(ctx, user.ID, connection); err != nil || refreshes.Load() != 2 {
 		t.Fatal("rotated token did not persist after caller cancellation")
 	}
+	t.Run("refresh lock respects setup deadline", func(t *testing.T) {
+		blocker, err := pool.Begin(ctx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err := blocker.Exec(ctx, `SELECT id FROM pooltune_app.supabase_connections WHERE id=$1 FOR UPDATE`, connection); err != nil {
+			t.Fatal(err)
+		}
+		done := make(chan struct{})
+		go func() { time.Sleep(150 * time.Millisecond); _ = blocker.Rollback(context.Background()); close(done) }()
+		defer func() { <-done }()
+		limited, cancel := context.WithTimeout(ctx, 30*time.Millisecond)
+		defer cancel()
+		start := time.Now()
+		_, err = app.supabaseToken(limited, user.ID, connection)
+		if err != errSupabaseUnavailable || time.Since(start) > 120*time.Millisecond {
+			t.Fatalf("detached refresh exceeded setup deadline: %v, %v", time.Since(start), err)
+		}
+	})
 	if _, err = app.supabaseToken(ctx, user.ID+1, connection); err == nil {
 		t.Fatal("cross-owner token access")
 	}
@@ -276,6 +331,39 @@ func TestSupabaseOAuthBindingPickerAndRefresh(t *testing.T) {
 	if issuances.Load() != 2 {
 		t.Fatalf("stale retry reminted more than once: %d", issuances.Load())
 	}
+	writeDenied.Store(true)
+	if _, err := app.temporaryLogin(ctx, row, ""); err != errSupabaseProjectAccess {
+		t.Fatalf("cached native login bypassed database-write downgrade: %v", err)
+	}
+	writeDenied.Store(false)
+	for _, status := range []int32{429, 503} {
+		probeStatus.Store(status)
+		if _, err := app.temporaryLogin(ctx, row, ""); err != errSupabaseUnavailable {
+			t.Fatalf("transient write probe accepted or revoked grant: %v", err)
+		}
+	}
+	probeStatus.Store(0)
+	readOnlyGrant, err := app.saveSupabaseGrant(ctx, otherUser.ID, supabaseGrant{Access: "read-only-access", Refresh: "read-only-refresh", ExpiresIn: 3600, Type: "Bearer"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	readOnlyID, err := app.projects.create(ctx, otherUser.ID, "Same project, another owner", row.Ref)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := pool.Exec(ctx, `UPDATE pooltune_app.projects SET supabase_connection=$2,supabase_org=$3 WHERE id=$1`, readOnlyID, readOnlyGrant, row.SupabaseOrg); err != nil {
+		t.Fatal(err)
+	}
+	readOnlyRow, err := app.projects.find(ctx, otherUser.ID, readOnlyID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := app.temporaryLogin(ctx, readOnlyRow, ""); err != errSupabaseProjectAccess {
+		t.Fatalf("another account borrowed shared cache without write authority: %v", err)
+	}
+	if _, err := app.temporaryLogin(ctx, row, ""); err != nil || issuances.Load() != 2 {
+		t.Fatalf("denied account destroyed healthy credential cache: %v", err)
+	}
 	denied.Store(true)
 	if _, err = app.temporaryLogin(ctx, row, ""); err == nil {
 		t.Fatal("cached native login bypassed provider denial")
@@ -296,6 +384,25 @@ func TestSupabaseOAuthBindingPickerAndRefresh(t *testing.T) {
 	if _, err = app.temporaryLogin(ctx, staleRow, ""); err == nil {
 		t.Fatal("stale installation issued credentials")
 	}
+	t.Run("slow setup returns retry before response deadline", func(t *testing.T) {
+		delayedSetup.Store(true)
+		started := time.Now()
+		failed := request("POST", projectPath+"/start", session, nil, url.Values{"capability": {"memory"}})
+		elapsed := time.Since(started)
+		delayedSetup.Store(false)
+		if elapsed > 18750*time.Millisecond {
+			t.Fatalf("setup exceeded whole-request budget: %v", elapsed)
+		}
+		if failed.Code != 400 || !strings.Contains(failed.Body.String(), `value="memory"`) {
+			t.Fatalf("slow setup lost retry screen: %d", failed.Code)
+		}
+		writeDenied.Store(true)
+		retry := request("POST", projectPath+"/start", session, nil, url.Values{"capability": {"memory"}})
+		writeDenied.Store(false)
+		if retry.Code != 400 || !strings.Contains(retry.Body.String(), `value="memory"`) || strings.Contains(retry.Body.String(), `name="setup_token"`) {
+			t.Fatal("retry lost choices or exposed manual setup")
+		}
+	})
 	// A failed automatic start retains repair choices and never reveals manual fields.
 	denied.Store(true)
 	failed := request("POST", projectPath+"/start", session, nil, url.Values{"capability": {"memory"}})
@@ -391,4 +498,50 @@ func TestSupabaseOAuthBindingPickerAndRefresh(t *testing.T) {
 	if err = pool.QueryRow(ctx, `SELECT revoked AND secret IS NULL FROM pooltune_app.supabase_connections WHERE id=$1`, connection).Scan(&removed); err != nil || !removed {
 		t.Fatal("terminal token retained")
 	}
+}
+
+func TestSupabaseWriteAuthorityCatalogIdentity(t *testing.T) {
+	ctx, config, _ := testpg.Start(t)
+	db, err := pgx.ConnectConfig(ctx, config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close(ctx)
+	check := func(want bool) {
+		t.Helper()
+		var allowed bool
+		if err := db.QueryRow(ctx, supabaseWriteAuthoritySQL).Scan(&allowed); err != nil || allowed != want {
+			t.Fatalf("write authority=%v, want %v: %v", allowed, want, err)
+		}
+	}
+	check(false) // A superuser is never the supported provider identity.
+	if _, err := db.Exec(ctx, `CREATE ROLE authority_control LOGIN SUPERUSER PASSWORD 'authority-control'`); err != nil {
+		t.Fatal(err)
+	}
+	controlConfig := config.Copy()
+	controlConfig.User = "authority_control"
+	controlConfig.Password = "authority-control"
+	control, err := pgx.ConnectConfig(ctx, controlConfig)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer control.Close(ctx)
+	db = control
+	if _, err := db.Exec(ctx, `ALTER ROLE postgres RENAME TO bootstrap_admin; CREATE ROLE postgres LOGIN; CREATE ROLE supabase_read_only_user; SET ROLE supabase_read_only_user`, pgx.QueryExecModeSimpleProtocol); err != nil {
+		t.Fatal(err)
+	}
+	check(false)
+	if _, err := db.Exec(ctx, `RESET ROLE;SET ROLE postgres`, pgx.QueryExecModeSimpleProtocol); err != nil {
+		t.Fatal(err)
+	}
+	check(true)
+	tx, err := db.BeginTx(ctx, pgx.TxOptions{AccessMode: pgx.ReadOnly})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var allowed bool
+	if err := tx.QueryRow(ctx, supabaseWriteAuthoritySQL).Scan(&allowed); err != nil || allowed {
+		t.Fatalf("read-only owner accepted: %v", err)
+	}
+	_ = tx.Rollback(ctx)
 }

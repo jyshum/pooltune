@@ -50,3 +50,21 @@ func TestSupabaseProviderRejectsMalformedAuthorityAndRedactsErrors(t *testing.T)
 		t.Fatal("rate limiting treated as revoked grant")
 	}
 }
+
+func TestSupabaseWriteAuthorityRequiresExactOwnerProof(t *testing.T) {
+	raw := `[{"authorized":true}]`
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { fmt.Fprint(w, raw) }))
+	defer server.Close()
+	client, _ := newSupabaseOAuth("client", "secret", "https://app.example")
+	client.endpoint = server.URL
+	for _, body := range []string{`[]`, `null`, `[{"authorized":false}]`, `[{"authorized":null}]`, `[{"authorized":true},{"authorized":true}]`, `[{"authorized":true,"other":true}]`, `[{"authorized":"true"}]`, `{"authorized":true}`} {
+		raw = body
+		if err := client.verifyWriteAuthority(context.Background(), "abcdefghijklmnopqrst", "access"); err == nil {
+			t.Fatalf("malformed or denied authority accepted: %s", body)
+		}
+	}
+	raw = `[{"authorized":true}]`
+	if err := client.verifyWriteAuthority(context.Background(), "abcdefghijklmnopqrst", "access"); err != nil {
+		t.Fatal(err)
+	}
+}

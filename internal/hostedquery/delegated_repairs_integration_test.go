@@ -5,9 +5,11 @@ package hostedquery
 import (
 	"context"
 	"encoding/pem"
+	"errors"
 	"github.com/jackc/pgx/v5"
 	"pooltune/internal/supabaseproject"
 	"pooltune/internal/testpg"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -39,9 +41,15 @@ func TestDelegatedManagedRepairCatalogAndSecondaryIndexSessions(t *testing.T) {
 		t.Fatal(err)
 	}
 	calls := 0
+	credentialTTL := time.Minute
+	var denyCredentials atomic.Bool
+	denied := errors.New("test authority revoked")
 	bound, base, err := supabaseproject.WithDelegatedRepair(ctx, project, pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: cert.Certificate[0]}), func(context.Context, string) (supabaseproject.TemporaryLogin, error) {
+		if denyCredentials.Load() {
+			return supabaseproject.TemporaryLogin{}, denied
+		}
 		calls++
-		return supabaseproject.TemporaryLogin{Role: "cli_login_postgres", Password: "temporary", ExpiresAt: time.Now().Add(time.Minute)}, nil
+		return supabaseproject.TemporaryLogin{Role: "cli_login_postgres", Password: "temporary", ExpiresAt: time.Now().Add(credentialTTL)}, nil
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -100,6 +108,59 @@ func TestDelegatedManagedRepairCatalogAndSecondaryIndexSessions(t *testing.T) {
 	if err != nil || !result.WriteAttempted || result.IndexOID == 0 || !recorded || calls < 3 {
 		t.Fatalf("delegated native index/secondary pin: %+v %v resolves=%d", result, err, calls)
 	}
+	t.Run("cron replaces expiring owner sessions", func(t *testing.T) {
+		if err := PrepareWorkerState(ctx, control); err != nil {
+			t.Fatal(err)
+		}
+		if err := PrepareManagedCronState(ctx, control); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := control.Exec(ctx, `INSERT INTO pooltune_worker.projects(project_id,monitor_epoch) VALUES($1,1)`, project.ID()); err != nil {
+			t.Fatal(err)
+		}
+		credentialTTL = 6 * time.Second
+		defer func() { credentialTTL = time.Minute; denyCredentials.Store(false) }()
+		cronConfig := base.Copy()
+		cronConfig.RuntimeParams["application_name"] = "delegated-cron-renewal"
+		collector := &ManagedProjectCron{Config: cronConfig}
+		collectCtx, cancel := context.WithTimeout(bound, 9*time.Second)
+		done := make(chan error, 1)
+		finished := false
+		go func() { done <- collector.Run(collectCtx, controlCfg, project, 1) }()
+		defer func() {
+			cancel()
+			if finished {
+				return
+			}
+			if err := <-done; !errors.Is(err, context.Canceled) && !errors.Is(err, context.DeadlineExceeded) {
+				t.Errorf("collector exited unexpectedly: %v", err)
+			}
+		}()
+		var first uint32
+		deadline := time.Now().Add(8 * time.Second)
+		for time.Now().Before(deadline) {
+			var pid uint32
+			err := control.QueryRow(ctx, `SELECT pid FROM pg_stat_activity WHERE application_name='delegated-cron-renewal' ORDER BY backend_start DESC LIMIT 1`).Scan(&pid)
+			if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+				t.Fatal(err)
+			}
+			if pid != 0 {
+				if first == 0 {
+					first = pid
+				} else if first != pid {
+					denyCredentials.Store(true)
+					err := <-done
+					finished = true
+					if !errors.Is(err, denied) {
+						t.Fatalf("renewal failed to stop revoked authority: %v", err)
+					}
+					return
+				}
+			}
+			time.Sleep(25 * time.Millisecond)
+		}
+		t.Fatal("cron retained one delegated owner connection beyond its temporary credential lifetime")
+	})
 	if _, err = control.Exec(ctx, `REVOKE postgres FROM cli_login_postgres`); err != nil {
 		t.Fatal(err)
 	}

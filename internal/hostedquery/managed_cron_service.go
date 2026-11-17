@@ -25,9 +25,27 @@ func (m *ManagedProjectCron) Run(ctx context.Context, stateConfig *pgx.ConnConfi
 	if err != nil {
 		return err
 	}
-	defer closeVacuumConnection(owner)
+	defer func() {
+		if owner != nil {
+			closeVacuumConnection(owner)
+		}
+	}()
 	if err := project.VerifyManagedRepair(ctx, owner); err != nil {
 		return err
+	}
+	// Observations take at most five seconds. Renew before that budget can
+	// exceed the verified session lifetime. Allow one extra second for the SQL
+	// identity fence's timestamp precision, and also replace broken connections.
+	renewOwner := func() error {
+		if !supabaseproject.RepairSessionNeedsRenewal(ctx, owner, 6*time.Second) {
+			return nil
+		}
+		closeVacuumConnection(owner)
+		owner, err = supabaseproject.ConnectRepair(ctx, m.Config)
+		if err != nil {
+			return err
+		}
+		return project.VerifyManagedRepair(ctx, owner)
 	}
 	// The supervisor removes old witnesses before starting the dispatcher.
 	ticker := time.NewTicker(500 * time.Millisecond)
@@ -40,6 +58,9 @@ func (m *ManagedProjectCron) Run(ctx context.Context, stateConfig *pgx.ConnConfi
 		}
 		if current != epoch {
 			return ErrProjectDisconnected
+		}
+		if err := renewOwner(); err != nil {
+			return err
 		}
 		if time.Since(lastSweep) >= 10*time.Second {
 			pending, err := PendingManagedCronWitnesses(ctx, state, project.ID())
@@ -73,6 +94,9 @@ func (m *ManagedProjectCron) Run(ctx context.Context, stateConfig *pgx.ConnConfi
 			}
 			if !managedCronObservationDue(time.Now(), enrolled.Window) {
 				continue
+			}
+			if err := renewOwner(); err != nil {
+				return err
 			}
 			observation, err := ObserveManagedCron(ctx, owner, enrolled)
 			if err != nil {

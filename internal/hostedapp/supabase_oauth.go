@@ -175,7 +175,11 @@ func (a *App) supabaseToken(ctx context.Context, owner int64, id string) (string
 		return "", err
 	}
 	// A browser disconnect must not discard a refresh token after the provider rotates it.
-	ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 12*time.Second)
+	deadline := time.Now().Add(12 * time.Second)
+	if parentDeadline, ok := ctx.Deadline(); ok && parentDeadline.Before(deadline) {
+		deadline = parentDeadline
+	}
+	ctx, cancel := context.WithDeadline(context.WithoutCancel(ctx), deadline)
 	defer cancel()
 	var token string
 	var terminal bool
@@ -184,7 +188,10 @@ func (a *App) supabaseToken(ctx context.Context, owner int64, id string) (string
 		var expiry time.Time
 		var revoked bool
 		if err := tx.QueryRow(ctx, `SELECT secret,expires_at,revoked FROM pooltune_app.supabase_connections WHERE id=$1 AND owner_id=$2 FOR UPDATE`, id, owner).Scan(&sealed, &expiry, &revoked); err != nil {
-			return errSupabaseReconnect
+			if errors.Is(err, pgx.ErrNoRows) {
+				return errSupabaseReconnect
+			}
+			return errSupabaseUnavailable
 		}
 		if revoked {
 			return errSupabaseReconnect

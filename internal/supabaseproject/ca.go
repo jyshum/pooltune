@@ -27,11 +27,18 @@ type certificateSource struct {
 
 func OfficialCA(ctx context.Context) ([]byte, error) { return officialCA.read(ctx) }
 func (s *certificateSource) read(ctx context.Context) ([]byte, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	if len(s.cached) > 0 && time.Now().Before(s.until) {
-		return bytes.Clone(s.cached), nil
+	if ctx.Err() != nil {
+		return nil, errCA
 	}
+	s.mu.Lock()
+	if len(s.cached) > 0 && time.Now().Before(s.until) {
+		certificate := bytes.Clone(s.cached)
+		s.mu.Unlock()
+		return certificate, nil
+	}
+	s.mu.Unlock()
+	// Do not hold the cache lock during network I/O: another setup must be
+	// able to honor its own deadline while this download is in progress.
 	req, err := http.NewRequestWithContext(ctx, "GET", s.endpoint, nil)
 	if err != nil {
 		return nil, errCA
@@ -52,6 +59,8 @@ func (s *certificateSource) read(ctx context.Context) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	s.cached = bytes.Clone(data)
 	s.until = minTime(until, time.Now().Add(24*time.Hour))
 	return data, nil

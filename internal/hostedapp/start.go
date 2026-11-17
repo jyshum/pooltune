@@ -48,7 +48,11 @@ func capabilityChoices(form url.Values) ([]string, error) {
 }
 
 func (a *App) startProject(w http.ResponseWriter, r *http.Request, user auth.User) {
-	row, ok := a.ownedProject(w, r, user)
+	// Keep provider authorization, CA retrieval and installation within one
+	// budget, leaving response time before the server's 22-second write limit.
+	ctx, cancel := context.WithTimeout(r.Context(), 18*time.Second)
+	defer cancel()
+	row, ok := a.ownedProject(w, r.WithContext(ctx), user)
 	if !ok {
 		return
 	}
@@ -63,17 +67,17 @@ func (a *App) startProject(w http.ResponseWriter, r *http.Request, user auth.Use
 	}
 	var token, ca string
 	if row.SupabaseConnection != "" {
-		tag, err := a.projects.db.Exec(r.Context(), `UPDATE pooltune_app.projects SET setup_capabilities=$3 WHERE id=$1 AND owner_id=$2 AND epoch=$4 AND epoch<=0`, row.ID, row.Owner, append([]string{}, selected...), row.Epoch)
+		tag, err := a.projects.db.Exec(ctx, `UPDATE pooltune_app.projects SET setup_capabilities=$3 WHERE id=$1 AND owner_id=$2 AND epoch=$4 AND epoch<=0`, row.ID, row.Owner, append([]string{}, selected...), row.Epoch)
 		if err != nil || tag.RowsAffected() != 1 {
 			a.showProject(w, r, user, row, "Could not save repair choices. Refresh and retry.", selected)
 			return
 		}
 	}
 	if row.SupabaseConnection != "" {
-		token, err = a.projectSupabaseToken(r.Context(), row)
+		token, err = a.projectSupabaseToken(ctx, row)
 		if err == nil {
 			var pem []byte
-			pem, err = supabaseproject.OfficialCA(r.Context())
+			pem, err = supabaseproject.OfficialCA(ctx)
 			ca = string(pem)
 		}
 		if err != nil {
@@ -100,7 +104,7 @@ func (a *App) startProject(w http.ResponseWriter, r *http.Request, user auth.Use
 		a.showProject(w, r, user, row, "Enter a valid database credential.", selected)
 		return
 	}
-	if err := a.startAutomaticProject(r.Context(), row, token, ca, selected, repairPassword, objectiveMS); err != nil {
+	if err := a.startAutomaticProject(ctx, row, token, ca, selected, repairPassword, objectiveMS); err != nil {
 		message := err.Error()
 		if row.SupabaseConnection != "" {
 			if errors.Is(err, supabaseproject.ErrSetupPermission) {

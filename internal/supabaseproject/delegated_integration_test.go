@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/pem"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"net"
 	"pooltune/internal/testpg"
 	"strconv"
@@ -70,6 +71,22 @@ func TestDelegatedConnectorIdentityRenewalAndRevocation(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close(context.Background())
+	t.Run("preserves caller warning handler", func(t *testing.T) {
+		config := route.Copy()
+		warned := false
+		config.OnNotice = func(_ *pgconn.PgConn, notice *pgconn.Notice) { warned = notice.SeverityUnlocalized == "WARNING" }
+		connection, err := ConnectRepair(bound, config)
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer connection.Close(ctx)
+		if _, err := connection.Exec(ctx, `DO $$ BEGIN RAISE WARNING 'maintenance must stop'; END $$`); err != nil {
+			t.Fatal(err)
+		}
+		if !warned {
+			t.Fatal("delegated connector discarded the maintenance warning guard")
+		}
+	})
 	var current, session string
 	if err = db.QueryRow(ctx, `SELECT current_user,session_user`).Scan(&current, &session); err != nil || current != "postgres" || session != "cli_login_postgres" {
 		t.Fatalf("wrong identity %q %q %v", current, session, err)

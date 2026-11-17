@@ -74,6 +74,7 @@ func ConnectRepair(ctx context.Context, cfg *pgx.ConnConfig) (*pgx.Conn, error) 
 		fresh.Password = login.Password
 		// Preserve the caller's bounded action settings, never its TLS or destination.
 		fresh.RuntimeParams = cfg.Copy().RuntimeParams
+		fresh.OnNotice = cfg.OnNotice
 		db, err := pgx.ConnectConfig(ctx, fresh)
 		if err != nil {
 			var pgErr *pgconn.PgError
@@ -95,6 +96,28 @@ func ConnectRepair(ctx context.Context, cfg *pgx.ConnConfig) (*pgx.Conn, error) 
 		return db, nil
 	}
 	return nil, errors.New("temporary database login could not be renewed")
+}
+
+// RepairSessionNeedsRenewal reports whether a collector must replace its native
+// session before starting work with the given bounded duration. It does not extend
+// authority on the old connection; ConnectRepair must authenticate its replacement.
+func RepairSessionNeedsRenewal(ctx context.Context, db *pgx.Conn, duration time.Duration) bool {
+	if db == nil || db.IsClosed() {
+		return true
+	}
+	if db.Config().User != "cli_login_postgres" {
+		return false
+	}
+	provider, ok := ctx.Value(delegatedContextKey{}).(*delegatedConnector)
+	if !ok {
+		return true
+	}
+	entry, ok := provider.verified.Load(db.PgConn().PID())
+	if !ok {
+		return true
+	}
+	verified := entry.(verifiedSession)
+	return verified.conn.Value() != db || !time.Now().Add(duration).Before(verified.expiry)
 }
 
 const delegatedRoleSQL = `current_user='postgres' AND session_user='cli_login_postgres'
