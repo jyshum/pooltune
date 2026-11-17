@@ -167,6 +167,11 @@ func (a *App) saveSupabaseGrant(ctx context.Context, owner int64, g supabaseGran
 	_, err = a.projects.db.Exec(ctx, `INSERT INTO pooltune_app.supabase_connections(id,owner_id,secret,expires_at) VALUES($1,$2,$3,$4)`, id, owner, sealed, time.Now().Add(time.Duration(g.ExpiresIn)*time.Second))
 	return id, err
 }
+
+// A setup has an 18-second work budget. Only local persistence of an already
+// completed exchange may use this reserve, leaving response time before 22 seconds.
+const supabaseRefreshPersistenceReserve = 2 * time.Second
+
 func (a *App) supabaseToken(ctx context.Context, owner int64, id string) (string, error) {
 	if a.supabase == nil {
 		return "", errSupabaseReconnect
@@ -174,62 +179,77 @@ func (a *App) supabaseToken(ctx context.Context, owner int64, id string) (string
 	if err := ctx.Err(); err != nil {
 		return "", err
 	}
-	// A browser disconnect must not discard a refresh token after the provider rotates it.
+	// Caller cancellation cannot discard an in-flight rotation, but external
+	// work must still finish by the earlier caller deadline or 12-second limit.
 	deadline := time.Now().Add(12 * time.Second)
 	if parentDeadline, ok := ctx.Deadline(); ok && parentDeadline.Before(deadline) {
 		deadline = parentDeadline
 	}
-	ctx, cancel := context.WithDeadline(context.WithoutCancel(ctx), deadline)
-	defer cancel()
-	var token string
-	var terminal bool
-	err := pgx.BeginFunc(ctx, a.projects.db, func(tx pgx.Tx) error {
-		var sealed []byte
-		var expiry time.Time
-		var revoked bool
-		if err := tx.QueryRow(ctx, `SELECT secret,expires_at,revoked FROM pooltune_app.supabase_connections WHERE id=$1 AND owner_id=$2 FOR UPDATE`, id, owner).Scan(&sealed, &expiry, &revoked); err != nil {
-			if errors.Is(err, pgx.ErrNoRows) {
-				return errSupabaseReconnect
-			}
-			return errSupabaseUnavailable
+	work, cancelWork := context.WithDeadline(context.WithoutCancel(ctx), deadline)
+	defer cancelWork()
+	settlement, cancelSettlement := context.WithDeadline(context.WithoutCancel(ctx), deadline.Add(supabaseRefreshPersistenceReserve))
+	defer cancelSettlement()
+	tx, err := a.projects.db.Begin(work)
+	if err != nil {
+		return "", errSupabaseUnavailable
+	}
+	defer func() { _ = tx.Rollback(settlement) }()
+	var sealed []byte
+	var expiry time.Time
+	var revoked bool
+	if err := tx.QueryRow(work, `SELECT secret,expires_at,revoked FROM pooltune_app.supabase_connections WHERE id=$1 AND owner_id=$2 FOR UPDATE`, id, owner).Scan(&sealed, &expiry, &revoked); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return "", errSupabaseReconnect
 		}
-		if revoked {
-			return errSupabaseReconnect
-		}
-		plain, err := a.vault.Open(nil, nil, sealed, supabaseBinding(owner, id))
-		if err != nil {
-			return errSupabaseReconnect
-		}
-		var g supabaseGrant
-		if json.Unmarshal(plain, &g) != nil {
-			return errSupabaseReconnect
-		}
-		if !time.Now().Add(time.Minute).Before(expiry) {
-			g, err = a.supabase.exchange(ctx, url.Values{"grant_type": {"refresh_token"}, "refresh_token": {g.Refresh}})
-			if errors.Is(err, errSupabaseReconnect) {
-				terminal = true
-				_, err = tx.Exec(ctx, `UPDATE pooltune_app.supabase_connections SET revoked=true,secret=NULL WHERE id=$1 AND owner_id=$2`, id, owner)
-				return err
-			}
-			if err != nil {
-				return err
-			}
-			plain, err = json.Marshal(g)
-			if err != nil {
-				return err
-			}
-			sealed = a.vault.Seal(nil, nil, plain, supabaseBinding(owner, id))
-			if _, err = tx.Exec(ctx, `UPDATE pooltune_app.supabase_connections SET secret=$3,expires_at=$4 WHERE id=$1 AND owner_id=$2`, id, owner, sealed, time.Now().Add(time.Duration(g.ExpiresIn)*time.Second)); err != nil {
-				return err
-			}
-		}
-		token = g.Access
-		return nil
-	})
-	if terminal && err == nil {
+		return "", errSupabaseUnavailable
+	}
+	if revoked {
 		return "", errSupabaseReconnect
 	}
-	return token, err
+	plain, err := a.vault.Open(nil, nil, sealed, supabaseBinding(owner, id))
+	if err != nil {
+		return "", errSupabaseReconnect
+	}
+	var g supabaseGrant
+	if json.Unmarshal(plain, &g) != nil {
+		return "", errSupabaseReconnect
+	}
+	if time.Now().Add(time.Minute).Before(expiry) {
+		if err := tx.Commit(work); err != nil {
+			return "", errSupabaseUnavailable
+		}
+		return g.Access, nil
+	}
+	g, err = a.supabase.exchange(work, url.Values{"grant_type": {"refresh_token"}, "refresh_token": {g.Refresh}})
+	terminal := errors.Is(err, errSupabaseReconnect)
+	if err != nil && !terminal {
+		return "", err
+	}
+	// The provider has answered. Keep the row lock until its replacement token
+	// (or terminal revocation) is durable, even if the request deadline just passed.
+	// This context is never used for HTTP, and UPDATE plus COMMIT share its budget.
+	persist, cancelPersist := context.WithTimeout(settlement, supabaseRefreshPersistenceReserve)
+	defer cancelPersist()
+	if terminal {
+		_, err = tx.Exec(persist, `UPDATE pooltune_app.supabase_connections SET revoked=true,secret=NULL WHERE id=$1 AND owner_id=$2`, id, owner)
+	} else {
+		plain, err = json.Marshal(g)
+		if err != nil {
+			return "", errSupabaseUnavailable
+		}
+		sealed = a.vault.Seal(nil, nil, plain, supabaseBinding(owner, id))
+		_, err = tx.Exec(persist, `UPDATE pooltune_app.supabase_connections SET secret=$3,expires_at=$4 WHERE id=$1 AND owner_id=$2`, id, owner, sealed, time.Now().Add(time.Duration(g.ExpiresIn)*time.Second))
+	}
+	if err != nil {
+		return "", errSupabaseUnavailable
+	}
+	if err := tx.Commit(persist); err != nil {
+		return "", errSupabaseUnavailable
+	}
+	if terminal {
+		return "", errSupabaseReconnect
+	}
+	return g.Access, nil
 }
 func (a *App) supabaseCookie(w http.ResponseWriter, value string, age int) {
 	http.SetCookie(w, &http.Cookie{Name: a.cookie + "_supabase", Value: value, Path: "/", Secure: a.origin.Scheme == "https", HttpOnly: true, SameSite: http.SameSiteLaxMode, MaxAge: age})

@@ -64,7 +64,7 @@ func (s *supabaseOAuth) verifyWriteAuthority(ctx context.Context, ref, token str
 	if err != nil {
 		return errSupabaseUnavailable
 	}
-	var response []map[string]bool
+	var response []map[string]*bool
 	if err := s.request(ctx, "POST", "/v1/projects/"+ref+"/database/query", token, "application/json", strings.NewReader(string(body)), &response); err != nil {
 		return err
 	}
@@ -72,10 +72,10 @@ func (s *supabaseOAuth) verifyWriteAuthority(ctx context.Context, ref, token str
 		return errSupabaseUnavailable
 	}
 	authorized, known := response[0]["authorized"]
-	if !known {
+	if !known || authorized == nil {
 		return errSupabaseUnavailable
 	}
-	if !authorized {
+	if !*authorized {
 		return errSupabaseProjectAccess
 	}
 	return nil

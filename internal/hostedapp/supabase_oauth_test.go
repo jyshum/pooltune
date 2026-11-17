@@ -59,8 +59,12 @@ func TestSupabaseWriteAuthorityRequiresExactOwnerProof(t *testing.T) {
 	client.endpoint = server.URL
 	for _, body := range []string{`[]`, `null`, `[{"authorized":false}]`, `[{"authorized":null}]`, `[{"authorized":true},{"authorized":true}]`, `[{"authorized":true,"other":true}]`, `[{"authorized":"true"}]`, `{"authorized":true}`} {
 		raw = body
-		if err := client.verifyWriteAuthority(context.Background(), "abcdefghijklmnopqrst", "access"); err == nil {
-			t.Fatalf("malformed or denied authority accepted: %s", body)
+		want := errSupabaseUnavailable
+		if body == `[{"authorized":false}]` {
+			want = errSupabaseProjectAccess
+		}
+		if err := client.verifyWriteAuthority(context.Background(), "abcdefghijklmnopqrst", "access"); err != want {
+			t.Fatalf("authority response %s: got %v, want %v", body, err, want)
 		}
 	}
 	raw = `[{"authorized":true}]`
