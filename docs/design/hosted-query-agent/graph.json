@@ -5,7 +5,7 @@
   "workType": "Build progress and remaining work",
   "summary": "Managed setup and all six repair families are implemented and deployed on Railway. Local database tests pass; earlier Rookery runs verified refresh, index rollback and reported cleanup regression. Next: Jared connects Rookery through the customer screens, fixes follow observed failures, then landing and dashboard design. Broader repair qualification remains tracked separately, not a prerequisite to this walkthrough.",
   "sourceRevision": {
-    "commit": "6c4cb2269252b0cfd6dc48c6a8cfa935abd21955",
+    "commit": "08d6fd3b0499d31478298a51c3e5583ad712a3aa",
     "dirty": false
   },
   "components": [
@@ -1164,9 +1164,9 @@
     },
     {
       "id": "connect-project",
-      "label": "Connect project: managed setup verified",
+      "label": "Connect Supabase and select a project",
       "type": "service",
-      "purpose": "The deployed customer setup creates the monitor and managed Go worker. Earlier Rookery setup required no separate worker deployment or query IDs.",
+      "purpose": "Jared connected Rookery through Supabase OAuth, selected the project and repair choices, and reached Monitoring without copied connection fields. Native setup and advancing monitor checks were verified on Railway.",
       "decisionIds": [],
       "sources": [
         {
@@ -1228,22 +1228,33 @@
           "path": "docs/design/hosted-query-agent/evidence/owner-worker-link-railway.json",
           "revision": "bd2e1cc13eab2a3ecb6461c943b37c224b494a6f",
           "kind": "verified"
+        },
+        {
+          "path": "docs/design/supabase-connect/design.md",
+          "revision": "08d6fd3b0499d31478298a51c3e5583ad712a3aa",
+          "kind": "intended"
+        },
+        {
+          "path": "docs/design/supabase-connect/verification.md",
+          "revision": "08d6fd3b0499d31478298a51c3e5583ad712a3aa",
+          "kind": "verified"
         }
       ],
-      "changeStatus": "new",
-      "changeSummary": "The deployed customer setup creates the monitor and managed Go worker. Earlier Rookery setup required no separate worker deployment or query IDs.",
-      "after": "The deployed customer setup creates the monitor and managed Go worker. Earlier Rookery setup required no separate worker deployment or query IDs.",
+      "changeStatus": "modified",
+      "changeSummary": "Add Management OAuth and project selection by name, then start from repair checkboxes without copied connection fields.",
+      "after": "Jared connected Rookery through Supabase OAuth, selected the project and repair choices, and reached Monitoring without copied connection fields. Native setup and advancing monitor checks were verified on Railway.",
       "parent": "backend",
       "stack": [
         "Go",
         "PostgreSQL"
-      ]
+      ],
+      "before": "The deployed customer setup creates the monitor and managed Go worker. Earlier Rookery setup required no separate worker deployment or query IDs."
     },
     {
       "id": "credential-lifecycle",
       "label": "Secure project access",
       "type": "service",
-      "purpose": "Managed database credentials are encrypted on Railway. Jared approved retaining one project-scoped Database Write and Logs Read token, with a non-expiring Rookery token for repeated qualification. Local tests verify encrypted owner-bound token replacement.",
+      "purpose": "Encrypted OAuth grants, serialized refresh, renewable temporary native credentials and automatic verified CA retrieval are implemented. The strict writable-provider proof, temporary login, TLS and native installation passed live. Revocation and renewal boundaries have local tests; broader lifecycle checks remain separate.",
       "decisionIds": [],
       "sources": [
         {
@@ -1260,15 +1271,26 @@
           "path": "internal/hostedapp/projects.go",
           "revision": "895620198f40338eb335d780fe092e05c932b7f9",
           "kind": "verified"
+        },
+        {
+          "path": "docs/design/supabase-connect/design.md",
+          "revision": "08d6fd3b0499d31478298a51c3e5583ad712a3aa",
+          "kind": "intended"
+        },
+        {
+          "path": "docs/design/supabase-connect/verification.md",
+          "revision": "08d6fd3b0499d31478298a51c3e5583ad712a3aa",
+          "kind": "verified"
         }
       ],
-      "changeStatus": "new",
-      "changeSummary": "Managed database credentials are encrypted on Railway. Jared approved retaining one project-scoped Database Write and Logs Read token, with a non-expiring Rookery token for repeated qualification. Local tests verify encrypted owner-bound token replacement.",
-      "after": "Account-and-project-bound encryption now includes the repair credential. Setup checks the native database identity. Disconnect removes the stored credential.",
+      "changeStatus": "modified",
+      "changeSummary": "Add encrypted rotating OAuth grants, provider-issued temporary database credentials and automatic verified certificate retrieval.",
+      "after": "Encrypted OAuth grants, serialized refresh, renewable temporary native credentials and automatic verified CA retrieval are implemented. The strict writable-provider proof, temporary login, TLS and native installation passed live. Revocation and renewal boundaries have local tests; broader lifecycle checks remain separate.",
       "parent": "backend",
       "stack": [
         "Go"
-      ]
+      ],
+      "before": "Managed database credentials are encrypted on Railway. Jared approved retaining one project-scoped Database Write and Logs Read token, with a non-expiring Rookery token for repeated qualification. Local tests verify encrypted owner-bound token replacement."
     },
     {
       "id": "auth",
@@ -1411,7 +1433,7 @@
       "label": "Hosted investigator: index case",
       "type": "service",
       "parent": "investigator",
-      "purpose": "Connected and verified for the owned index fixture: Railway queue \u2192 diagnostic Sonnet graph \u2192 Go index repair \u2192 measured improvement. Queued job survived an actual service restart.",
+      "purpose": "Connected and verified for the owned index fixture: Railway queue → diagnostic Sonnet graph → Go index repair → measured improvement. Queued job survived an actual service restart.",
       "decisionIds": [],
       "sources": [
         {
@@ -1426,8 +1448,8 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Connected and verified for the owned index fixture: Railway queue \u2192 diagnostic Sonnet graph \u2192 Go index repair \u2192 measured improvement. Queued job survived an actual service restart.",
-      "after": "Connected and verified for the owned index fixture: Railway queue \u2192 diagnostic Sonnet graph \u2192 Go index repair \u2192 measured improvement. Queued job survived an actual service restart.",
+      "changeSummary": "Connected and verified for the owned index fixture: Railway queue → diagnostic Sonnet graph → Go index repair → measured improvement. Queued job survived an actual service restart.",
+      "after": "Connected and verified for the owned index fixture: Railway queue → diagnostic Sonnet graph → Go index repair → measured improvement. Queued job survived an actual service restart.",
       "stack": [
         "Go",
         "TypeScript",
@@ -1739,7 +1761,7 @@
       "label": "Cleanup settings: implemented",
       "type": "service",
       "parent": "cleanup",
-      "purpose": "Railway lowered the exact table\u2019s trigger. PostgreSQL ran one automatic cleanup and no manual cleanup. Dead tuples dropped from 17,459 to 1,500 and the tested query from 42.93 to 23.68 ms.",
+      "purpose": "Railway lowered the exact table’s trigger. PostgreSQL ran one automatic cleanup and no manual cleanup. Dead tuples dropped from 17,459 to 1,500 and the tested query from 42.93 to 23.68 ms.",
       "decisionIds": [],
       "sources": [
         {
@@ -1764,8 +1786,8 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Railway lowered the exact table\u2019s trigger. PostgreSQL ran one automatic cleanup and no manual cleanup. Dead tuples dropped from 17,459 to 1,500 and the tested query from 42.93 to 23.68 ms.",
-      "after": "Railway lowered the exact table\u2019s trigger. PostgreSQL ran one automatic cleanup and no manual cleanup. Dead tuples dropped from 17,459 to 1,500 and the tested query from 42.93 to 23.68 ms.",
+      "changeSummary": "Railway lowered the exact table’s trigger. PostgreSQL ran one automatic cleanup and no manual cleanup. Dead tuples dropped from 17,459 to 1,500 and the tested query from 42.93 to 23.68 ms.",
+      "after": "Railway lowered the exact table’s trigger. PostgreSQL ran one automatic cleanup and no manual cleanup. Dead tuples dropped from 17,459 to 1,500 and the tested query from 42.93 to 23.68 ms.",
       "stack": [
         "Go"
       ]
@@ -2347,7 +2369,7 @@
       "id": "project-activity-history",
       "label": "Project activity history",
       "type": "service",
-      "purpose": "Project-scoped polls, query windows and diagnosis timings are visible in the owning account\u2019s Railway dashboard and history download. Reconnect preserved the diagnosis.",
+      "purpose": "Project-scoped polls, query windows and diagnosis timings are visible in the owning account’s Railway dashboard and history download. Reconnect preserved the diagnosis.",
       "decisionIds": [],
       "sources": [
         {
@@ -2362,8 +2384,8 @@
         }
       ],
       "changeStatus": "new",
-      "changeSummary": "Project-scoped polls, query windows and diagnosis timings are visible in the owning account\u2019s Railway dashboard and history download. Reconnect preserved the diagnosis.",
-      "after": "Project-scoped polls, query windows and diagnosis timings are visible in the owning account\u2019s Railway dashboard and history download. Reconnect preserved the diagnosis.",
+      "changeSummary": "Project-scoped polls, query windows and diagnosis timings are visible in the owning account’s Railway dashboard and history download. Reconnect preserved the diagnosis.",
+      "after": "Project-scoped polls, query windows and diagnosis timings are visible in the owning account’s Railway dashboard and history download. Reconnect preserved the diagnosis.",
       "parent": "state",
       "stack": [
         "Go",
@@ -2446,7 +2468,7 @@
       "id": "agent-permission-setup",
       "label": "Agent setup and repair choices",
       "type": "service",
-      "purpose": "All six checkboxes were verified on prepared Rookery workloads. Owners can now edit selections and revoke the project worker key. Railway showed permission changes backed by real Rookery grants.",
+      "purpose": "The normal flow is Connect Supabase, choose a project and repair permissions, then the dashboard. All six choices persisted in the live Rookery setup. Function/job target selection, safety limits and measured evidence remain required before those repairs.",
       "decisionIds": [],
       "sources": [
         {
@@ -2498,16 +2520,27 @@
           "path": "docs/design/hosted-query-agent/evidence/owner-worker-link-railway.json",
           "revision": "bd2e1cc13eab2a3ecb6461c943b37c224b494a6f",
           "kind": "verified"
+        },
+        {
+          "path": "docs/design/supabase-connect/design.md",
+          "revision": "08d6fd3b0499d31478298a51c3e5583ad712a3aa",
+          "kind": "intended"
+        },
+        {
+          "path": "docs/design/supabase-connect/verification.md",
+          "revision": "08d6fd3b0499d31478298a51c3e5583ad712a3aa",
+          "kind": "verified"
         }
       ],
-      "changeStatus": "new",
-      "changeSummary": "All six checkboxes were verified on prepared Rookery workloads. Owners can now edit selections and revoke the project worker key. Railway showed permission changes backed by real Rookery grants.",
-      "after": "All six checkboxes were verified on prepared Rookery workloads. Owners can now edit selections and revoke the project worker key. Railway showed permission changes backed by real Rookery grants.",
+      "changeStatus": "modified",
+      "changeSummary": "Remove manual setup credentials from the normal flow while preserving selected repairs and exact target requirements.",
+      "after": "The normal flow is Connect Supabase, choose a project and repair permissions, then the dashboard. All six choices persisted in the live Rookery setup. Function/job target selection, safety limits and measured evidence remain required before those repairs.",
       "parent": "connect-project",
       "stack": [
         "Go",
         "PostgreSQL"
-      ]
+      ],
+      "before": "All six checkboxes were verified on prepared Rookery workloads. Owners can now edit selections and revoke the project worker key. Railway showed permission changes backed by real Rookery grants."
     },
     {
       "id": "automatic-workload-discovery",

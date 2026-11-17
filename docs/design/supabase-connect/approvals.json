@@ -1,0 +1,24 @@
+{
+  "records": [
+    {
+      "date": "2026-11-16",
+      "actor": "user",
+      "statement": "yes lets build that, and figure out how to get rid of the password and certificate steps too. i want them to just connect supabase, pick their project, check the boxes and thats it",
+      "scope": "Implement Supabase authorization, project picker, repair choices and automatic credential/certificate setup; determine the supporting mechanism.",
+      "limits": "Preserve unrelated repair safety decisions and permissions. Does not authorize password resets, TLS weakening or arbitrary function/job changes."
+    },
+    {
+      "date": "2026-11-16",
+      "action": "Create Pooltune Supabase OAuth app in Jared\u2019s Work and save credentials to scoped Railway web service",
+      "scope": "Database Read/Write; Organizations, Projects and Analytics Read; callback https://pooltune.up.railway.app/auth/supabase/callback",
+      "request": "May I create the Pooltune OAuth app in \u201cJared\u2019s Work\u201d and save its credentials to Pooltune\u2019s Railway web service?",
+      "user_answer": "Yes, create and configure it",
+      "status": "approved"
+    }
+  ],
+  "workflow": {
+    "designConflictMode": "ask",
+    "humanReviewMode": "final_only",
+    "source": "../hosted-query-agent/customer-walkthrough.md"
+  }
+}
