@@ -18,7 +18,7 @@ func TestRepairReadinessPreservesChoicesWithoutPromisingAllRepairs(t *testing.T)
 	if strings.Count(page, " checked>") != 6 {
 		t.Fatal("readiness guidance removed saved repair choices")
 	}
-	for _, expected := range []string{"one- or two-column integer lookups", "stale statistics", "plain table cleanup", "keeps verified improvements", "enrolled function", "simultaneous calls", "enrolled job", "approved schedule window", "measured job history"} {
+	for _, expected := range []string{"one- or two-column integer lookups", "stale statistics", "plain table cleanup", "keeps verified improvements", "chosen function", "simultaneous calls", "chosen job", "permitted schedule window", "measured job history"} {
 		if !strings.Contains(page, expected) {
 			t.Errorf("missing repair limit %q", expected)
 		}

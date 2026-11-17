@@ -222,16 +222,16 @@ func repairAvailability(key string, managed bool) string {
 	case "analyze":
 		readiness = "Automatically checks eligible one-column integer lookups for stale statistics."
 	case "vacuum":
-		readiness = "Automatically checks eligible lookups for plain table cleanup. Cleanup-setting changes are not connected yet."
+		readiness = "Automatically checks eligible lookups for plain table cleanup and changes to cleanup settings. A repair still needs measured evidence."
 	case "statistics":
 		if !managed {
 			return "Reconnect with your database password to enable managed repairs. Your permission is saved."
 		}
 		return "Eligible lookups can run a bounded statistics trial. Pooltune keeps verified improvements; otherwise it restores the previous settings and refreshes statistics. The old random statistics sample cannot be restored exactly."
 	case "memory":
-		return "Not available for general projects yet. Needs an enrolled function, measured disk spill and an enforced limit on simultaneous calls."
+		return "Needs a chosen function, limits on memory and simultaneous calls, and measured evidence of disk spill."
 	case "cron":
-		return "Not available for general projects yet. Needs an enrolled job, an approved schedule window and measured job history."
+		return "Needs a chosen job, a permitted schedule window and measured job history."
 	default:
 		return "This repair is not available for this project."
 	}
