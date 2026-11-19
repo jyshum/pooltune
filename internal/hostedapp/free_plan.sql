@@ -26,20 +26,19 @@ GROUP BY p.owner_id, date_trunc('month', b.utc_day)::date;
 CREATE OR REPLACE FUNCTION pooltune_app.free_plan_usage(account bigint)
 RETURNS TABLE (credits bigint, account_micros bigint, pool_micros bigint)
 LANGUAGE sql STABLE AS $$
-    WITH amounts AS (
-        SELECT u.*, owner_id = account AND month = date_trunc('month', statement_timestamp() AT TIME ZONE 'UTC')::date AS current_account
-        FROM pooltune_app.free_model_usage u
-    )
-    SELECT coalesce(sum(credits) FILTER (WHERE current_account), 0)::bigint,
-           coalesce(sum(micros) FILTER (WHERE current_account), 0)::bigint,
-           coalesce(sum(micros), 0)::bigint FROM amounts
+    SELECT coalesce(sum(u.credits) FILTER (
+               WHERE u.owner_id = account AND u.month = date_trunc('month', statement_timestamp() AT TIME ZONE 'UTC')::date
+           ), 0)::bigint,
+           coalesce(sum(u.micros) FILTER (WHERE u.owner_id = account), 0)::bigint,
+           coalesce(sum(u.micros), 0)::bigint
+    FROM pooltune_app.free_model_usage u
 $$;
 
 CREATE OR REPLACE FUNCTION pooltune_app.reserve_free_model(project text, expected_epoch bigint, maximum bigint)
 RETURNS bigint LANGUAGE plpgsql VOLATILE AS $$
 DECLARE account bigint; receipt bigint;
 BEGIN
-    IF maximum IS NULL OR maximum <= 0 OR maximum > 1000000 THEN RETURN NULL; END IF;
+    IF maximum IS NULL OR maximum <= 0 OR maximum > 250000 THEN RETURN NULL; END IF;
     -- Serialize admissions across accounts and processes before reading the shared pool.
     PERFORM pg_advisory_xact_lock(761994345011);
     SELECT owner_id INTO account FROM pooltune_app.projects
@@ -48,7 +47,7 @@ BEGIN
     INSERT INTO pooltune_app.free_model_usage(owner_id, month, credits, micros)
     SELECT account, date_trunc('month', statement_timestamp() AT TIME ZONE 'UTC')::date, 1, maximum
     FROM pooltune_app.free_plan_usage(account)
-    WHERE credits < 50 AND account_micros + maximum <= 1000000 AND pool_micros + maximum <= 45000000
+    WHERE credits < 50 AND account_micros + maximum <= 250000 AND pool_micros + maximum <= 45000000
     RETURNING id INTO receipt;
     RETURN receipt;
 END

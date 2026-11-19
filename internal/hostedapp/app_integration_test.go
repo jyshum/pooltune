@@ -169,10 +169,10 @@ func TestAccountDashboardAndProjectOwnership(t *testing.T) {
 		t.Fatalf("stale epoch reserved a provider call: %v", err)
 	}
 	testFreeBudgets(t, ctx, pool, app, ownerUser.ID, projectID, row.Epoch)
-	if w := request("GET", "/app?view=projects", nil, owner, ""); w.Code != 200 || !strings.Contains(w.Body.String(), "50 / 50") || !strings.Contains(w.Body.String(), "$45.00 / $45.00") {
+	if w := request("GET", "/app?view=projects", nil, owner, ""); w.Code != 200 || !strings.Contains(w.Body.String(), "50 / 50") || !strings.Contains(w.Body.String(), "$0.25 / $0.25") || !strings.Contains(w.Body.String(), "$45.00 / $45.00") {
 		t.Fatal("directory did not show account and platform budget limits")
 	}
-	if w := request("GET", "/app?view=projects", nil, other, ""); w.Code != 200 || !strings.Contains(w.Body.String(), "0 / 50") || !strings.Contains(w.Body.String(), "$45.00 / $45.00") {
+	if w := request("GET", "/app?view=projects", nil, other, ""); w.Code != 200 || !strings.Contains(w.Body.String(), "0 / 50") || !strings.Contains(w.Body.String(), "$0.00 / $0.25") || !strings.Contains(w.Body.String(), "$45.00 / $45.00") {
 		t.Fatal("directory must isolate account usage and share the aggregate pool")
 	}
 	keyPath := projectPath + "/repair-worker-key"

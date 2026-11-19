@@ -358,7 +358,7 @@ func (s projectStore) admitModel(ctx context.Context, id string, epoch int64) er
 	err := s.db.QueryRow(ctx, `SELECT EXISTS(SELECT FROM pooltune_app.projects p
  CROSS JOIN LATERAL pooltune_app.free_plan_usage(p.owner_id) u
  WHERE p.id=$1 AND p.epoch=$2 AND p.epoch>0 AND NOT p.agent_paused AND NOT p.supabase_blocked
- AND u.credits<50 AND u.account_micros<1000000 AND u.pool_micros<45000000)`, id, epoch).Scan(&ok)
+ AND u.credits<50 AND u.account_micros<250000 AND u.pool_micros<45000000)`, id, epoch).Scan(&ok)
 	if err == nil && !ok {
 		return hostedquery.ErrProjectModelBudget
 	}

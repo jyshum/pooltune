@@ -4,8 +4,9 @@ package hostedapp
 
 import (
 	"context"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"testing"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func testFreeBudgets(t *testing.T, ctx context.Context, db *pgxpool.Pool, a *App, owner int64, project string, epoch int64) {
@@ -46,16 +47,17 @@ func testFreeBudgets(t *testing.T, ctx context.Context, db *pgxpool.Pool, a *App
 	// never used by this test; only the active epoch is needed for admission.
 	exec(`INSERT INTO pooltune_app.projects (id,ref,name,owner_id,epoch,secret)
  SELECT 'second', 'otherref','Other project',owner_id,epoch,secret FROM pooltune_app.projects WHERE id=$1`, project)
-	// Older usage counts toward the lifetime pool, including after reinitialization.
+	// Last month’s credits expire, but both the account and the pool retain its spend.
 	exec(`INSERT INTO pooltune_app.free_model_usage(owner_id,month,credits,micros,settled)
- VALUES ($1, date_trunc('month', now() AT TIME ZONE 'UTC')::date - interval '1 month',50,44000000,true)`, owner)
+ VALUES ($1, date_trunc('month', now() AT TIME ZONE 'UTC')::date - interval '1 month',50,200000,true),
+ (-1, current_date,1,44750000,true)`, owner)
 	if err := a.projects.prepare(ctx); err != nil {
 		t.Fatal(err)
 	}
-	check(project, 999950, true)
+	check(project, 49950, true)
 	check("second", 51, false)
 	// Release unused dollars after a provider usage receipt, retaining the credit.
-	exec("UPDATE pooltune_app.free_model_usage SET micros=999900, settled=true WHERE NOT settled")
+	exec("UPDATE pooltune_app.free_model_usage SET micros=49900, settled=true WHERE NOT settled")
 	for range 48 {
 		check(project, 1, true)
 	}
@@ -87,9 +89,9 @@ func testFreeBudgets(t *testing.T, ctx context.Context, db *pgxpool.Pool, a *App
 	}
 	check("second", 1, false)
 	// Free some money to isolate the credit limit.
-	exec("UPDATE pooltune_app.free_model_usage SET micros=micros-1 WHERE micros=999900")
+	exec("UPDATE pooltune_app.free_model_usage SET micros=micros-1 WHERE micros=49900")
 	check(project, 1, false)
-	exec("UPDATE pooltune_app.free_model_usage SET micros=micros+1 WHERE micros=999899")
+	exec("UPDATE pooltune_app.free_model_usage SET micros=micros+1 WHERE micros=49899")
 	// A different account with an empty current month still shares the full pool.
 	exec(`INSERT INTO pooltune_app.projects(id,ref,name,owner_id,epoch,secret)
  SELECT 'other', 'thirdref','Other account',u.id,p.epoch,p.secret FROM pooltune_app.projects p
@@ -97,8 +99,8 @@ func testFreeBudgets(t *testing.T, ctx context.Context, db *pgxpool.Pool, a *App
 	check("other", 1, false)
 	// Isolate the account dollar limit from the global limit.
 	exec("DELETE FROM pooltune_app.free_model_usage WHERE id=(SELECT min(id) FROM pooltune_app.free_model_usage WHERE micros=1)")
-	exec("UPDATE pooltune_app.free_model_usage SET micros=micros-100 WHERE micros=44000000")
+	exec("UPDATE pooltune_app.free_model_usage SET micros=micros-100 WHERE micros=44750000")
 	check("second", 2, false)
 	check("second", 1, true)
-	exec("UPDATE pooltune_app.free_model_usage SET micros=micros+100 WHERE micros=43999900")
+	exec("UPDATE pooltune_app.free_model_usage SET micros=micros+100 WHERE micros=44749900")
 }

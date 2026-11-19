@@ -63,13 +63,14 @@
       <meter min="0" max="{{.ProjectLimit}}" value="{{len .Projects}}" aria-label="Project slots used"></meter>
       <div class="usage-heading"><span>Monthly diagnosis credits</span><strong>{{.CreditsUsed}} / 50</strong></div>
       <meter min="0" max="50" value="{{.CreditsUsed}}" aria-label="Monthly diagnosis credits used"></meter>
-      <div class="usage-heading"><span>Monthly AI spend</span><strong>{{.AccountDollars}} / $1.00</strong></div>
-      <meter min="0" max="1000000" value="{{.AccountMicros}}" aria-label="Account AI budget used"></meter>
-      <p>Shared across your projects. Resets on the first of each month at 00:00 UTC.</p>
-      <div class="usage-heading"><span>All free accounts</span><strong>{{.PoolDollars}} / $45.00</strong></div>
+      <p>Credits reset on the first of each month at 00:00 UTC.</p>
+      <div class="usage-heading"><span>Your demo AI budget</span><strong>{{.AccountDollars}} / $0.25</strong></div>
+      <meter min="0" max="250000" value="{{.AccountMicros}}" aria-label="Lifetime account AI budget used"></meter>
+      <p>One-time allowance shared across your projects.</p>
+      <div class="usage-heading"><span>Shared demo fund</span><strong>{{.PoolDollars}} / $45.00</strong></div>
       <meter min="0" max="45000000" value="{{.PoolMicros}}" aria-label="Lifetime free AI budget used"></meter>
       <p>Lifetime pool. Usage includes pending reservations. Each request must fit the remaining budget.</p>
-      {{if or (ge .CreditsUsed 50) (ge .AccountMicros 1000000) (ge .PoolMicros 45000000)}}<p>AI diagnoses are paused. Database monitoring continues.</p>{{end}}
+      {{if or (ge .CreditsUsed 50) (ge .AccountMicros 250000) (ge .PoolMicros 45000000)}}<p>AI diagnoses are paused. Database monitoring continues.</p>{{end}}
     </aside>
   </div>
 </main>
