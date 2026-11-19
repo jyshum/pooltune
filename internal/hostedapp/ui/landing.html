@@ -1,35 +1,64 @@
 {{define "landing-brand"}}<span class="mark" aria-hidden="true"><i></i><i></i><i></i></span><span>pooltune</span>{{end}}
-{{define "landing-start"}}<a class="start" href="{{if .User}}/app{{else}}/signup{{end}}">{{if .User}}Open workspace{{else}}Start your project{{end}} <span aria-hidden="true">↗</span></a>{{end}}
+{{define "landing-start"}}<a class="start" href="{{if .User}}/app{{else}}/signup{{end}}">{{if .User}}Open workspace{{else}}Start your project{{end}} <span aria-hidden="true">→</span></a>{{end}}
 {{define "home"}}<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Pooltune · Automatic PostgreSQL tuning</title>
-<meta name="description" content="Connect your Supabase project and choose which PostgreSQL repairs Pooltune can run. Follow each investigation from slow query to measured result.">
-<link rel="stylesheet" href="/assets/landing.css"><script defer src="/assets/landing.js"></script></head>
-<body id="top"><a class="skip" href="#main">Skip to content</a>
-<header><nav class="frame" aria-label="Main navigation"><a class="brand" href="#top">{{template "landing-brand"}}</a>
-<div class="navlinks"><a href="#how">How it works</a><a href="#setup">Get started</a><a href="https://github.com/jyshum/pooltune">GitHub ↗</a></div>
-<a class="login" href="{{if .User}}/app{{else}}/signin{{end}}">{{if .User}}Workspace{{else}}Sign in{{end}} <span aria-hidden="true">↗</span></a></nav></header>
-<main id="main" class="frame">
-<section class="hero"><div class="intro"><p class="kicker"><b></b>A PostgreSQL tuning agent</p>
-<h1>Tune your database.<br><em>Automatically.</em></h1>
-<p class="lead">Pooltune finds slow queries in your Supabase project, runs the repairs you allow, and measures the difference.</p>
-<div class="actions">{{template "landing-start" .}}<a class="demo" href="mailto:jaredshum101@gmail.com?subject=Pooltune%20demo">Request a demo ↗</a></div></div>
-<div class="art" aria-hidden="true"><canvas id="wave"></canvas></div></section>
-<section id="how" class="chapter"><div class="section-title"><p class="kicker"><b></b>How it works</p><h2>From slow query<br>to verified repair.</h2></div>
-<div class="story"><div class="steps">
-<article id="observe"><a href="#observe"><small>01</small><h3>Observe the workload</h3></a><p>Pooltune watches the queries your application already runs and finds lookups worth investigating.</p></article>
-<article id="diagnose"><a href="#diagnose"><small>02</small><h3>Find the cause</h3></a><p>The agent checks the execution plan and table statistics to explain why a lookup slowed down.</p></article>
-<article id="verify"><a href="#verify"><small>03</small><h3>Repair and verify</h3></a><p>With your permission, Pooltune applies an eligible repair and compares the same sampled input before and after.</p></article>
-</div><aside class="record" aria-label="Example investigation from a controlled Supabase test"><div class="record-head"><span class="square"></span> Recorded investigation <span>318</span></div>
-<div class="record-body"><p class="mono">SUPABASE / CONTROLLED TEST</p>
-<div class="scene" data-step="0"><h3>A slow lookup</h3><div class="metric">14.503 <small>ms</small></div><div class="meter before"></div><p>Sampled query execution time before repair</p></div>
-<div class="scene" data-step="1"><h3>Stale table statistics</h3><dl><dt>Finding</dt><dd>Outdated planner estimates</dd><dt>Permitted repair</dt><dd>Refresh statistics</dd></dl></div>
-<div class="scene" data-step="2"><h3>After the refresh</h3><div class="metric">0.252 <small>ms</small></div><div class="meter after"></div><p>98.3% less execution time for this sampled lookup</p></div></div>
-<div class="record-foot">PostgreSQL <span>Query execution</span></div></aside></div></section>
-<section class="chapter integrations"><div class="section-title"><p class="kicker"><b></b>Integrations</p><h2>Built for the deployments<br>you already run.</h2></div>
-<div class="providers"><div><strong><span class="bolt" aria-hidden="true">ϟ</span> Supabase</strong><a href="{{if .User}}/app/projects/new{{else}}/signup{{end}}">Connect project ↗</a></div>
-<div><strong>Azure</strong><span>Coming soon</span></div><div><strong>Google Cloud</strong><span>Coming soon</span></div><div><strong>PgBouncer</strong><span>Coming soon</span></div></div></section>
-<section id="setup" class="chapter setup"><div class="section-title"><p class="kicker"><b></b>Get started</p><h2>Connect your project.</h2></div>
-<div class="setup-grid"><ol><li>Authorize Supabase</li><li>Choose your project</li><li>Select repair permissions</li></ol><div class="setup-action"><p>Your first monitoring check appears in your project dashboard.</p>{{template "landing-start" .}}</div></div></section>
-</main><footer class="frame"><a class="brand" href="#top" aria-label="Pooltune, back to top">{{template "landing-brand"}}</a><p>Built with Go, TypeScript and LangGraph.</p><a href="https://github.com/jyshum/pooltune">GitHub ↗</a></footer>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101313">
+  <title>Pooltune · Automatic database tuning</title>
+  <meta name="description" content="Connect a Supabase project, choose your database repair permissions, and see what each change did.">
+  <link rel="stylesheet" href="/assets/landing.css"><script defer src="/assets/landing.js"></script>
+</head>
+<body id="top">
+<a class="skip" href="#main">Skip to content</a>
+<header><nav aria-label="Main navigation">
+  <a class="brand" href="#top">{{template "landing-brand"}}</a>
+  <div class="links"><a href="#how">How it works</a><a href="#integrations">Integrations</a><a href="#setup">Get started</a><a href="https://github.com/jyshum/pooltune">GitHub ↗</a></div>
+  <a class="login" href="{{if .User}}/app{{else}}/signin{{end}}">{{if .User}}Open workspace{{else}}Sign in{{end}} <span aria-hidden="true">↗</span></a>
+</nav></header>
+<main id="main">
+<section class="hero" aria-labelledby="title">
+  <div class="hero-copy">
+    <p class="intro">Pooltune finds performance issues in your database, runs the repairs you allow, and measures the difference.</p>
+    <div><h1 id="title">Tune your database.<br><em>Automatically.</em></h1>
+    <div class="actions">{{template "landing-start" .}}<a href="mailto:jaredshum101@gmail.com?subject=Pooltune%20demo">Request a demo ↗</a></div></div>
+  </div>
+  <div class="wave-panel" aria-hidden="true"><canvas id="wave"></canvas></div>
+</section>
+<section class="walk" id="how" aria-labelledby="how-title">
+  <div class="pin">
+    <div class="section-head"><div><p class="label">How it works</p><h2 id="how-title">Inside a database repair.</h2></div><a href="#integrations">Skip walkthrough ↓</a></div>
+    <div class="story-body">
+      <div class="steps">
+        <button type="button" aria-current="step"><small>01</small><span><strong>Measure the lookup</strong><span class="detail">One lookup touched 866 database blocks. Pooltune measured it before making a change.</span></span></button>
+        <button type="button"><small>02</small><span><strong>Build the index</strong><span class="detail">With index repairs enabled, Pooltune created a compound index concurrently so writes could continue.</span></span></button>
+        <button type="button"><small>03</small><span><strong>Verify the result</strong><span class="detail">The same lookup touched four blocks in 0.070 ms with the new index. Pooltune checked the execution plan and compared the timings.</span></span></button>
+      </div>
+      <div class="monitor">
+        <p class="label">Controlled Supabase test <span>Compound index</span></p>
+        <div class="diagram" aria-hidden="true"><canvas id="blocks"></canvas></div>
+        <div class="readout"><div><small>Block accesses</small><strong id="block-value">866</strong></div><div><small>Sample execution time</small><strong id="timing">16.605 ms</strong></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="repairs" aria-labelledby="repairs-title">
+  <div class="section-head"><div><p class="label">Repair permissions</p><h2 id="repairs-title">Choose what Pooltune can change.</h2></div></div>
+  <ul>{{range .Capabilities}}<li>{{.Label}}</li>{{end}}</ul>
+</section>
+<section id="integrations" aria-labelledby="providers-title">
+  <div class="section-head field"><div><p class="label">Works with</p><h2 id="providers-title">Built for the deployments<br>you already run.</h2></div></div>
+  <div class="providers">
+    <div>{{template "logo-azure"}}<strong>Azure</strong><small>Coming soon</small></div>
+    <div>{{template "logo-googleCloud"}}<strong>Google Cloud</strong><small>Coming soon</small></div>
+    <a href="{{if .User}}/app/projects/new{{else}}/signup{{end}}">{{template "logo-supabase"}}<strong>Supabase</strong><small>Connect project ↗</small></a>
+    <div>{{template "logo-postgresql"}}<strong>PgBouncer</strong><small>Coming soon</small></div>
+  </div>
+</section>
+<section id="setup" class="setup" aria-labelledby="setup-title">
+  <div><p class="label">Get started</p><h2 id="setup-title">Connect your project.</h2>{{template "landing-start" .}}</div>
+  <ol><li>Authorize Supabase</li><li>Choose your project</li><li>Select repairs and start monitoring</li></ol>
+</section>
+</main>
+<footer><a class="brand" href="#top" aria-label="Pooltune, back to top">{{template "landing-brand"}}</a><a href="https://github.com/jyshum/pooltune">GitHub ↗</a><a href="#top">Back to top ↑</a></footer>
 </body></html>{{end}}

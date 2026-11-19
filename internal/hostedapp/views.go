@@ -15,6 +15,7 @@ import (
 )
 
 type Page struct {
+	Capabilities       []CapabilityView
 	Title, User, Error string
 	Notice             string
 	GoogleEnabled      bool
