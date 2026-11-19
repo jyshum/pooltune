@@ -15,7 +15,7 @@
   let stage = 0;
   let progress = 0;
 
-  // Both animations share the same visibility and reduced-motion behavior.
+  // The canvases share the same visibility and reduced-motion behavior.
   function surface(canvas, paint) {
     const context = canvas.getContext("2d");
     if (!context) return () => {};
@@ -57,12 +57,18 @@
 
   const wave = document.querySelector("#wave");
   let pointer = null;
-  let radius = 0;
+  let offsets = new Float32Array(0);
+  let columns = 0;
   wave.addEventListener("pointermove", (event) => {
     pointer = { x: event.offsetX, y: event.offsetY, inside: true };
   });
-  wave.addEventListener("pointerleave", () => {
+  function releasePointer() {
     if (pointer) pointer.inside = false;
+  }
+  wave.addEventListener("pointerleave", releasePointer);
+  wave.addEventListener("pointercancel", releasePointer);
+  wave.addEventListener("pointerup", (event) => {
+    if (event.pointerType !== "mouse") releasePointer();
   });
 
   const palette = [
@@ -81,10 +87,14 @@
     ctx.fillRect(0, 0, w, h);
     const pitch = Math.max(8, Math.min(13, w / 59));
     const buckets = palette.map(() => new Path2D());
-    radius +=
-      ((pointer?.inside && !reduced.matches ? Math.min(95, w * 0.16) : 0) -
-        radius) *
-      0.22;
+    const cols = Math.ceil(w / pitch);
+    const rows = Math.ceil(h / pitch);
+    if (columns !== cols || offsets.length !== cols * rows * 2) {
+      offsets = new Float32Array(cols * rows * 2);
+      columns = cols;
+    }
+    const radius = Math.min(125, w * 0.24);
+    const repel = pointer?.inside && !reduced.matches;
     for (let col = 0; col * pitch < w; col++) {
       const x = col * pitch,
         u = x / w;
@@ -107,21 +117,34 @@
             : 0.025;
         let level = body + glow * 0.48 + grain * 0.13;
         if (depth < -0.03 && grain < 0.94) level *= 0.44;
-        if (pointer && radius > 1)
-          level *= Math.max(
-            0,
-            Math.min(
-              1,
-              (Math.hypot(x - pointer.x, y - pointer.y) - radius * 0.55) /
-                (radius * 0.45),
-            ),
-          );
+        // Move each square from its resting position. The offset follows its
+        // target over several frames, so passing the pointer leaves a short wake.
+        const slot = (row * cols + col) * 2;
+        let targetX = 0,
+          targetY = 0;
+        if (repel) {
+          const dx = x + pitch / 2 - pointer.x;
+          const dy = y + pitch / 2 - pointer.y;
+          const distance = Math.hypot(dx, dy);
+          if (distance < radius) {
+            const push = radius * 0.63 * (1 - distance / radius) ** 2;
+            targetX = distance ? (push * dx) / distance : push;
+            targetY = distance ? (push * dy) / distance : 0;
+          }
+        }
+        const ease = targetX || targetY ? 0.42 : 0.18;
+        offsets[slot] = reduced.matches
+          ? 0
+          : offsets[slot] + (targetX - offsets[slot]) * ease;
+        offsets[slot + 1] = reduced.matches
+          ? 0
+          : offsets[slot + 1] + (targetY - offsets[slot + 1]) * ease;
         if (level < 0.047) continue;
         const size = pitch * (0.22 + Math.min(1, level) * 0.57);
         const bucket = Math.min(8, Math.floor(level * 9));
         buckets[bucket].rect(
-          x + (pitch - size) / 2,
-          y + (pitch - size) / 2,
+          x + (pitch - size) / 2 + offsets[slot],
+          y + (pitch - size) / 2 + offsets[slot + 1],
           size,
           size,
         );
@@ -129,6 +152,42 @@
     }
     buckets.forEach((path, i) => {
       ctx.fillStyle = palette[i];
+      ctx.fill(path);
+    });
+  });
+
+  // The overhead view uses the same three travelling swells as the original
+  // Vercel provider section, with dark water between the crests.
+  const swellShades = Array.from({ length: 14 }, (_, i) => {
+    const f = i / 13;
+    const mix = Math.max(0, Math.min(1, (f - 0.55) / 0.4));
+    const blend = mix * mix * (3 - 2 * mix);
+    const rgb = [63, 181, 196].map((c) => Math.round(150 + (c - 150) * blend));
+    return "rgba(" + rgb.join(",") + "," + (0.22 + f * 0.38) + ")";
+  });
+  surface(document.querySelector("#swells"), (ctx, w, h, t) => {
+    ctx.clearRect(0, 0, w, h);
+    const paths = swellShades.map(() => new Path2D());
+    for (let y = 5.5; y < h; y += 11) {
+      for (let x = 5.5; x < w; x += 11) {
+        const a = Math.sin(x * 0.014 + y * 0.006 - t * 0.8);
+        const b = Math.sin(-x * 0.005 + y * 0.017 - t * 0.55 + 1.3);
+        const c = Math.sin(
+          Math.hypot(x - w * 0.15, y + h * 0.6) * 0.022 - t * 1.05,
+        );
+        const crest = Math.min(1, (a * 0.5 + b * 0.3 + c * 0.2) / 0.84);
+        if (crest <= 0) continue;
+        const size = 3 + 2 * crest;
+        paths[Math.round(crest * 13)].rect(
+          x - size / 2,
+          y - size / 2,
+          size,
+          size,
+        );
+      }
+    }
+    paths.forEach((path, i) => {
+      ctx.fillStyle = swellShades[i];
       ctx.fill(path);
     });
   });

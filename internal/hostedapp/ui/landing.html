@@ -47,13 +47,14 @@
   <ul>{{range .Capabilities}}<li>{{.Label}}</li>{{end}}</ul>
 </section>
 <section id="integrations" aria-labelledby="providers-title">
-  <div class="section-head field"><div><p class="label">Works with</p><h2 id="providers-title">Built for the deployments<br>you already run.</h2></div></div>
+  <canvas id="swells" aria-hidden="true"></canvas>
+  <div class="integrations-inner"><div class="provider-heading"><p class="label">Works with</p><h2 id="providers-title">Built for the deployments<br>you already run.</h2></div>
   <div class="providers">
     <div>{{template "logo-azure"}}<strong>Azure</strong><small>Coming soon</small></div>
     <div>{{template "logo-googleCloud"}}<strong>Google Cloud</strong><small>Coming soon</small></div>
     <a href="{{if .User}}/app/projects/new{{else}}/signup{{end}}">{{template "logo-supabase"}}<strong>Supabase</strong><small>Connect project ↗</small></a>
     <div>{{template "logo-postgresql"}}<strong>PgBouncer</strong><small>Coming soon</small></div>
-  </div>
+  </div></div>
 </section>
 <section id="setup" class="setup" aria-labelledby="setup-title">
   <div><p class="label">Get started</p><h2 id="setup-title">Connect your project.</h2>{{template "landing-start" .}}</div>
