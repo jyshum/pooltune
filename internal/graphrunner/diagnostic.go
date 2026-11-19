@@ -13,6 +13,7 @@ import (
 	"pooltune/internal/hostedquery"
 	"pooltune/internal/labdb"
 	"slices"
+	"strconv"
 	"time"
 )
 
@@ -59,13 +60,33 @@ func DiagnosticProcess(stateDSN string) (DiagnosticInvestigator, error) {
 	if stateDSN == "" {
 		return nil, errors.New("diagnostic process requires durable state")
 	}
-	return diagnosticProcess(stateDSN, false)
+	return diagnosticProcess(stateDSN, false, false)
 }
 
 // DiagnosticReplayProcess has no durable job or action adapter. It is explicitly
 // for model evaluation against retained synthetic evidence, never customer repair.
-func DiagnosticReplayProcess() (DiagnosticInvestigator, error) { return diagnosticProcess("", true) }
-func diagnosticProcess(stateDSN string, replay bool) (DiagnosticInvestigator, error) {
+func DiagnosticReplayProcess() (DiagnosticInvestigator, error) {
+	return diagnosticProcess("", true, false)
+}
+
+type freeProjectKey struct{}
+type freeProject struct {
+	id    string
+	epoch int64
+}
+
+func WithFreeProject(ctx context.Context, id string, epoch int64) context.Context {
+	return context.WithValue(ctx, freeProjectKey{}, freeProject{id, epoch})
+}
+
+func FreePlanDiagnosticProcess(stateDSN string) (DiagnosticInvestigator, error) {
+	if stateDSN == "" {
+		return nil, errors.New("free plan requires durable budget storage")
+	}
+	return diagnosticProcess(stateDSN, false, true)
+}
+
+func diagnosticProcess(stateDSN string, replay, freePlan bool) (DiagnosticInvestigator, error) {
 	if os.Getenv("ANTHROPIC_API_KEY") == "" || os.Getenv("POOLTUNE_ANTHROPIC_MODEL") == "" {
 		return nil, errors.New("diagnostic model configuration required")
 	}
@@ -81,6 +102,10 @@ func diagnosticProcess(stateDSN string, replay bool) (DiagnosticInvestigator, er
 		return nil, err
 	}
 	return func(ctx context.Context, input DiagnosticInput, read DiagnosticReader) (result DiagnosticResult, err error) {
+		project, _ := ctx.Value(freeProjectKey{}).(freeProject)
+		if freePlan && (project.id == "" || project.epoch <= 0) {
+			return result, errors.New("missing free plan project")
+		}
 		started := time.Now()
 		defer func() { result.TotalMS = float64(time.Since(started)) / float64(time.Millisecond) }()
 		ctx, cancel := context.WithTimeout(ctx, 22*time.Second)
@@ -103,6 +128,9 @@ func diagnosticProcess(stateDSN string, replay bool) (DiagnosticInvestigator, er
 		return runDiagnostic(ctx, input, read, func(ctx context.Context) *exec.Cmd {
 			c := exec.CommandContext(ctx, node, path)
 			c.Env = []string{"ANTHROPIC_API_KEY=" + os.Getenv("ANTHROPIC_API_KEY"), "POOLTUNE_ANTHROPIC_MODEL=" + os.Getenv("POOLTUNE_ANTHROPIC_MODEL"), "LANGSMITH_TRACING=false", "POOLTUNE_LAB_STATE_DSN=" + stateDSN, "POOLTUNE_STAGING_PRIVATE_STATE=" + os.Getenv("POOLTUNE_STAGING_PRIVATE_STATE")}
+			if freePlan {
+				c.Env = append(c.Env, "POOLTUNE_FREE_PROJECT="+project.id, "POOLTUNE_FREE_EPOCH="+strconv.FormatInt(project.epoch, 10))
+			}
 			if replay {
 				c.Env = append(c.Env, "POOLTUNE_DIAGNOSTIC_REPLAY=1")
 			}

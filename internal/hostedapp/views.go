@@ -15,24 +15,25 @@ import (
 )
 
 type Page struct {
-	ProjectLimit, CreditLimit, CreditsUsed int
-	Draft                                  string
-	Capabilities                           []CapabilityView
-	Title, User, Error                     string
-	Notice                                 string
-	GoogleEnabled                          bool
-	SupabaseProjects                       []SupabaseProject
-	SupabaseConnection                     string
-	RepairWorkerKey                        string
-	Signup                                 bool
-	Projects                               []ProjectView
-	Project                                ProjectView
-	Enrollment                             EnrollmentView
+	ProjectLimit, CreditsUsed   int
+	AccountMicros, PoolMicros   int64
+	AccountDollars, PoolDollars string
+	Draft                       string
+	Capabilities                []CapabilityView
+	Title, User, Error          string
+	Notice                      string
+	GoogleEnabled               bool
+	SupabaseProjects            []SupabaseProject
+	SupabaseConnection          string
+	RepairWorkerKey             string
+	Signup                      bool
+	Projects                    []ProjectView
+	Project                     ProjectView
+	Enrollment                  EnrollmentView
 }
 
 type ProjectView struct {
 	SharedName                            bool
-	CreditsUsed                           int
 	PollCadence                           string
 	BeforeRun                             int64
 	OlderRunsAfter                        int64
@@ -137,6 +138,13 @@ func baseProjectView(row projectRecord) ProjectView {
 	return ProjectView{Epoch: row.Epoch, AgentPaused: row.AgentPaused, SupabaseBlocked: row.SupabaseBlocked, ID: row.ID, Name: row.Name, Ref: row.Ref, Status: status}
 }
 
+func formatBudgetUSD(micros int64) string {
+	if micros > 0 && micros < 10000 {
+		return "< $0.01"
+	}
+	return fmt.Sprintf("$%d.%02d", micros/1000000, (micros%1000000)/10000)
+}
+
 func (a *App) dashboard(w http.ResponseWriter, r *http.Request, user auth.User) {
 	rows, err := a.projects.list(r.Context(), user.ID)
 	if err != nil {
@@ -147,7 +155,14 @@ func (a *App) dashboard(w http.ResponseWriter, r *http.Request, user auth.User) 
 		a.setupPermissions(w, r, user)
 		return
 	}
-	page := Page{Title: "Projects", User: user.Email, ProjectLimit: maxActiveProjects, CreditLimit: dailyDiagnosisCredits}
+	page := Page{Title: "Projects", User: user.Email, ProjectLimit: maxActiveProjects}
+	err = a.projects.db.QueryRow(r.Context(), "SELECT credits, account_micros, pool_micros FROM pooltune_app.free_plan_usage($1)", user.ID).Scan(&page.CreditsUsed, &page.AccountMicros, &page.PoolMicros)
+	if err != nil {
+		http.Error(w, "Could not load plan usage.", http.StatusServiceUnavailable)
+		return
+	}
+	page.AccountDollars = formatBudgetUSD(page.AccountMicros)
+	page.PoolDollars = formatBudgetUSD(page.PoolMicros)
 	names := make(map[string]int, len(rows))
 	for _, row := range rows {
 		names[strings.ToLower(row.Name)]++
@@ -155,8 +170,6 @@ func (a *App) dashboard(w http.ResponseWriter, r *http.Request, user auth.User) 
 	for _, row := range rows {
 		project := baseProjectView(row)
 		project.SharedName = names[strings.ToLower(row.Name)] > 1
-		project.CreditsUsed = row.CreditsUsed
-		page.CreditsUsed += row.CreditsUsed
 		page.Projects = append(page.Projects, project)
 	}
 	a.render(w, http.StatusOK, "dashboard", page)
@@ -453,7 +466,7 @@ func populateActivity(view *ProjectView, activity hostedquery.ProjectActivity, i
 			}
 		}
 		if item.Reason == "daily_model_limit" {
-			item.Reason = "The daily diagnosis limit has been reached. Monitoring continues."
+			item.Reason = "The free diagnosis budget was reached. Monitoring continues."
 		}
 		if job.ClaimedAt != nil {
 			item.Started = displayTime(*job.ClaimedAt)

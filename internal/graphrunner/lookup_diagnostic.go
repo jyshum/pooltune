@@ -16,6 +16,10 @@ func ProjectLookupInvestigator(stateDSN string) (hostedquery.EnrolledLookupInves
 	if err != nil {
 		return nil, err
 	}
+	return LookupWithDiagnostic(investigate), nil
+}
+
+func LookupWithDiagnostic(investigate DiagnosticInvestigator) hostedquery.EnrolledLookupInvestigator {
 	return func(ctx context.Context, runID string, tableOID uint32, column int16, at time.Time,
 		evidence hostedquery.LookupEvidence, admit func(context.Context) error) (*hostedquery.LookupDiagnosis, error) {
 		identity := DiagnosticIdentity{RunID: runID, TableOID: tableOID, Column: column}
@@ -40,6 +44,9 @@ func ProjectLookupInvestigator(stateDSN string) (hostedquery.EnrolledLookupInves
 		if err != nil {
 			return nil, err
 		}
+		if result.StopReason == "free_plan_limit" {
+			return nil, hostedquery.ErrProjectModelBudget
+		}
 		if result.StopReason != "" || result.ModelCalls != 1 {
 			return nil, nil
 		}
@@ -61,5 +68,5 @@ func ProjectLookupInvestigator(stateDSN string) (hostedquery.EnrolledLookupInves
 			Reason: decision.Reason, Assessments: decision.Assessments,
 			Model: result.Proposal.ModelCall.Model, ModelMS: result.ModelMS,
 		}, nil
-	}, nil
+	}
 }

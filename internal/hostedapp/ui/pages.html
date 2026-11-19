@@ -61,10 +61,15 @@
     <aside class="plan-usage" aria-labelledby="plan-title"><h2 id="plan-title">Free plan</h2>
       <div class="usage-heading"><span>Project slots</span><strong>{{len .Projects}} / {{.ProjectLimit}}</strong></div>
       <meter min="0" max="{{.ProjectLimit}}" value="{{len .Projects}}" aria-label="Project slots used"></meter>
-      <div class="usage-heading"><span>Diagnosis credits today</span><strong>{{.CreditsUsed}}</strong></div>
-      <p>{{.CreditLimit}} per project · resets at 00:00 UTC</p>
-      {{range .Projects}}<div class="credit-project"><span>{{.Name}}{{if .SharedName}}<small class="duplicate-ref">Ref · {{.Ref}}</small>{{end}}</span><small>{{.CreditsUsed}} / {{$.CreditLimit}}</small></div>
-      <meter min="0" max="{{$.CreditLimit}}" value="{{.CreditsUsed}}" aria-label="Credits used for {{.Name}}"></meter>{{end}}
+      <div class="usage-heading"><span>Monthly diagnosis credits</span><strong>{{.CreditsUsed}} / 50</strong></div>
+      <meter min="0" max="50" value="{{.CreditsUsed}}" aria-label="Monthly diagnosis credits used"></meter>
+      <div class="usage-heading"><span>Monthly AI spend</span><strong>{{.AccountDollars}} / $1.00</strong></div>
+      <meter min="0" max="1000000" value="{{.AccountMicros}}" aria-label="Account AI budget used"></meter>
+      <p>Shared across your projects. Resets on the first of each month at 00:00 UTC.</p>
+      <div class="usage-heading"><span>All free accounts</span><strong>{{.PoolDollars}} / $45.00</strong></div>
+      <meter min="0" max="45000000" value="{{.PoolMicros}}" aria-label="Lifetime free AI budget used"></meter>
+      <p>Lifetime pool. Usage includes pending reservations. Each request must fit the remaining budget.</p>
+      {{if or (ge .CreditsUsed 50) (ge .AccountMicros 1000000) (ge .PoolMicros 45000000)}}<p>AI diagnoses are paused. Database monitoring continues.</p>{{end}}
     </aside>
   </div>
 </main>

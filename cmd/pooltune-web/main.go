@@ -84,14 +84,11 @@ func run(ctx context.Context) error {
 	var investigate hostedquery.EnrolledLookupInvestigator
 	var investigateRepair hostedquery.IndexInvestigator
 	if os.Getenv("ANTHROPIC_API_KEY") != "" || os.Getenv("POOLTUNE_ANTHROPIC_MODEL") != "" {
-		investigate, err = graphrunner.ProjectLookupInvestigator(stateDSN)
+		diagnose, err := graphrunner.FreePlanDiagnosticProcess(stateDSN)
 		if err != nil {
 			return err
 		}
-		diagnose, err := graphrunner.DiagnosticProcess(stateDSN)
-		if err != nil {
-			return err
-		}
+		investigate = graphrunner.LookupWithDiagnostic(diagnose)
 		investigateRepair = graphrunner.AdaptDiagnostic(diagnose, nil)
 	}
 	fixture, err := readOwnedIndexFixture(stateDSN)
@@ -164,7 +161,7 @@ func readOwnedIndexFixture(stateDSN string) (*hostedquery.OwnedProjectIndex, err
 	if err != nil {
 		return nil, invalid
 	}
-	diagnose, err := graphrunner.DiagnosticProcess(stateDSN)
+	diagnose, err := graphrunner.FreePlanDiagnosticProcess(stateDSN)
 	if err != nil {
 		return nil, invalid
 	}

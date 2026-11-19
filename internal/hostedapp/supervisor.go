@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"pooltune/internal/graphrunner"
 	"pooltune/internal/hostedquery"
 	"pooltune/internal/labdb"
 	"pooltune/internal/supabaseproject"
@@ -87,6 +88,7 @@ func (a *App) superviseProject(ctx context.Context, row projectRecord) {
 }
 
 func (a *App) runProject(ctx context.Context, row projectRecord) error {
+	ctx = graphrunner.WithFreeProject(ctx, row.ID, row.Epoch)
 	identity, err := row.identity()
 	if err != nil {
 		return err

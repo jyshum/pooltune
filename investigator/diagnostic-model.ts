@@ -87,23 +87,27 @@ export function summarizeDiagnosticEvidence(observations:Observation[]) {
  };
 }
 
-export const diagnosticDecider:DiagnosticDecider=async(view,signal)=>{
- const modelName=process.env.POOLTUNE_ANTHROPIC_MODEL;
- if(!modelName||!process.env.ANTHROPIC_API_KEY)throw Error('Model configuration required');
- const exactColumnTarget=hasExactColumnTargetEvidence(view);
- const model=new ChatAnthropic({model:modelName,maxTokens:exactColumnTarget?600:1200,maxRetries:0,clientOptions:{timeout:8500}});
- let instructions=exactColumnTarget?columnTargetInstructions:diagnosticInstructions;
- if(view.mode==='enrolled_lookup'){
-  const trafficPlan=view.observations.some(o=>o.data!==null&&typeof o.data==='object'&&'traffic_plan' in o.data);
-  instructions=trafficPlan?enrolledTrafficInstructions:enrolledLookupInstructions;
- }
- const result=await model.withStructuredOutput(diagnosticDecisionSchema,{name:'diagnostic_step',method:'jsonSchema',includeRaw:true}).invoke([
-  new SystemMessage(instructions),new HumanMessage(JSON.stringify({...view,measurement_summary:summarizeDiagnosticEvidence(view.observations)})),
- ],{signal});
- const decision=parseDiagnosticModelOutput(result);
- const usage=isAIMessage(result.raw)?result.raw.usage_metadata:undefined;
- return {decision,model:modelName,input_tokens:usage?.input_tokens,output_tokens:usage?.output_tokens};
-};
+export function createDiagnosticDecider(transport?: typeof fetch): DiagnosticDecider {
+ return async(view,signal)=>{
+  const modelName=process.env.POOLTUNE_ANTHROPIC_MODEL;
+  if(!modelName||!process.env.ANTHROPIC_API_KEY)throw Error('Model configuration required');
+  const exactColumnTarget=hasExactColumnTargetEvidence(view);
+  const model=new ChatAnthropic({model:modelName,maxTokens:exactColumnTarget?600:1200,maxRetries:0,clientOptions:{timeout:8500,fetch:transport}});
+  let instructions=exactColumnTarget?columnTargetInstructions:diagnosticInstructions;
+  if(view.mode==='enrolled_lookup'){
+   const trafficPlan=view.observations.some(o=>o.data!==null&&typeof o.data==='object'&&'traffic_plan' in o.data);
+   instructions=trafficPlan?enrolledTrafficInstructions:enrolledLookupInstructions;
+  }
+  const result=await model.withStructuredOutput(diagnosticDecisionSchema,{name:'diagnostic_step',method:'jsonSchema',includeRaw:true}).invoke([
+   new SystemMessage(instructions),new HumanMessage(JSON.stringify({...view,measurement_summary:summarizeDiagnosticEvidence(view.observations)})),
+  ],{signal});
+  const decision=parseDiagnosticModelOutput(result);
+  const usage=isAIMessage(result.raw)?result.raw.usage_metadata:undefined;
+  return {decision,model:modelName,input_tokens:usage?.input_tokens,output_tokens:usage?.output_tokens};
+ };
+}
+
+export const diagnosticDecider = createDiagnosticDecider();
 
 // Studio can inspect supplied evidence; live reads require the Go process bridge.
 export const diagnosticGraph=buildDiagnosticGraph(diagnosticDecider,async()=>{throw Error('Go evidence reader is not attached to this Studio session');});

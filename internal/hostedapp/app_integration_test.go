@@ -168,19 +168,12 @@ func TestAccountDashboardAndProjectOwnership(t *testing.T) {
 	if err := app.projects.admitModel(ctx, projectID, row.Epoch+1); !errors.Is(err, hostedquery.ErrProjectModelBudget) {
 		t.Fatalf("stale epoch reserved a provider call: %v", err)
 	}
-	for n := 0; n < 8; n++ {
-		if err := app.projects.admitModel(ctx, projectID, row.Epoch); err != nil {
-			t.Fatalf("model admission %d: %v", n, err)
-		}
+	testFreeBudgets(t, ctx, pool, app, ownerUser.ID, projectID, row.Epoch)
+	if w := request("GET", "/app?view=projects", nil, owner, ""); w.Code != 200 || !strings.Contains(w.Body.String(), "50 / 50") || !strings.Contains(w.Body.String(), "$45.00 / $45.00") {
+		t.Fatal("directory did not show account and platform budget limits")
 	}
-	if err := (projectStore{pool}).admitModel(ctx, projectID, row.Epoch); !errors.Is(err, hostedquery.ErrProjectModelBudget) {
-		t.Fatalf("budget did not survive store reconnect: %v", err)
-	}
-	if w := request("GET", "/app?view=projects", nil, owner, ""); w.Code != 200 || !strings.Contains(w.Body.String(), "8 / 8") {
-		t.Fatal("directory did not show the eight reserved diagnosis credits")
-	}
-	if w := request("GET", "/app?view=projects", nil, other, ""); w.Code != 200 || strings.Contains(w.Body.String(), "8 / 8") {
-		t.Fatal("directory disclosed another owner's credit usage")
+	if w := request("GET", "/app?view=projects", nil, other, ""); w.Code != 200 || !strings.Contains(w.Body.String(), "0 / 50") || !strings.Contains(w.Body.String(), "$45.00 / $45.00") {
+		t.Fatal("directory must isolate account usage and share the aggregate pool")
 	}
 	keyPath := projectPath + "/repair-worker-key"
 	apiPath := "/api/projects/" + projectID + "/repair-worker"

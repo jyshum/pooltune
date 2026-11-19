@@ -5,6 +5,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
+	_ "embed"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -20,7 +21,9 @@ import (
 )
 
 const maxActiveProjects = 5
-const dailyDiagnosisCredits = 8
+
+//go:embed free_plan.sql
+var freePlanSchema string
 
 var (
 	errProjectCapacity = errors.New("preview project limit reached")
@@ -30,7 +33,6 @@ var (
 )
 
 type projectRecord struct {
-	CreditsUsed                     int
 	ID, Ref, Name                   string
 	SupabaseConnection, SupabaseOrg string
 	Owner, Epoch                    int64
@@ -122,6 +124,9 @@ func (s projectStore) prepare(ctx context.Context) error {
 				calls integer NOT NULL CHECK (calls>0),
 				PRIMARY KEY(project_id,utc_day)
 			)`)
+		if err == nil {
+			_, err = tx.Exec(ctx, freePlanSchema)
+		}
 		return err
 	})
 }
@@ -166,7 +171,7 @@ func (s projectStore) find(ctx context.Context, owner int64, id string) (project
 }
 
 func (s projectStore) list(ctx context.Context, owner int64) ([]projectRecord, error) {
-	rows, err := s.db.Query(ctx, `SELECT `+publicProjectColumns+`, COALESCE((SELECT calls FROM pooltune_app.model_budgets WHERE project_id=p.id AND utc_day=(CURRENT_TIMESTAMP AT TIME ZONE 'UTC')::date),0) FROM pooltune_app.projects p WHERE owner_id=$1 ORDER BY lower(name),id`, owner)
+	rows, err := s.db.Query(ctx, `SELECT `+publicProjectColumns+` FROM pooltune_app.projects p WHERE owner_id=$1 ORDER BY lower(name),id`, owner)
 	if err != nil {
 		return nil, err
 	}
@@ -174,7 +179,7 @@ func (s projectStore) list(ctx context.Context, owner int64) ([]projectRecord, e
 	var projects []projectRecord
 	for rows.Next() {
 		var p projectRecord
-		if err := rows.Scan(&p.ID, &p.Ref, &p.Name, &p.Owner, &p.Epoch, &p.Configured, &p.SupabaseConnection, &p.SupabaseOrg, &p.SupabaseBlocked, &p.AgentPaused, &p.CreditsUsed); err != nil {
+		if err := rows.Scan(&p.ID, &p.Ref, &p.Name, &p.Owner, &p.Epoch, &p.Configured, &p.SupabaseConnection, &p.SupabaseOrg, &p.SupabaseBlocked, &p.AgentPaused); err != nil {
 			return nil, err
 		}
 		projects = append(projects, p)
@@ -346,16 +351,15 @@ func checkProject(ctx context.Context, project projectRecord, credentials projec
 	return nil
 }
 
-// Admission happens immediately before the provider request and survives restarts.
+// Preflight skips investigations that cannot run. The provider transport makes the
+// binding reservation once it knows the outbound request size.
 func (s projectStore) admitModel(ctx context.Context, id string, epoch int64) error {
-	var calls int
-	err := s.db.QueryRow(ctx, `WITH current_day AS (SELECT (statement_timestamp() AT TIME ZONE 'UTC')::date AS day),
-		active AS (SELECT id FROM pooltune_app.projects WHERE id=$1 AND epoch=$3 AND epoch>0 AND NOT agent_paused FOR UPDATE),
-		cleanup AS (DELETE FROM pooltune_app.model_budgets WHERE project_id=$1 AND utc_day < (SELECT day-8 FROM current_day))
-		INSERT INTO pooltune_app.model_budgets(project_id,utc_day,calls) SELECT id, day, 1 FROM current_day CROSS JOIN active
-		ON CONFLICT (project_id, utc_day) DO UPDATE SET calls=model_budgets.calls+1 WHERE model_budgets.calls < $2
-		RETURNING calls`, id, dailyDiagnosisCredits, epoch).Scan(&calls)
-	if errors.Is(err, pgx.ErrNoRows) {
+	var ok bool
+	err := s.db.QueryRow(ctx, `SELECT EXISTS(SELECT FROM pooltune_app.projects p
+ CROSS JOIN LATERAL pooltune_app.free_plan_usage(p.owner_id) u
+ WHERE p.id=$1 AND p.epoch=$2 AND p.epoch>0 AND NOT p.agent_paused AND NOT p.supabase_blocked
+ AND u.credits<50 AND u.account_micros<1000000 AND u.pool_micros<45000000)`, id, epoch).Scan(&ok)
+	if err == nil && !ok {
 		return hostedquery.ErrProjectModelBudget
 	}
 	return err

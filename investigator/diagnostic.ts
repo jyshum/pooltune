@@ -1,3 +1,4 @@
+import { isFreePlanLimit } from "./free-budget.ts";
 import { END, START, StateGraph, StateSchema } from '@langchain/langgraph';
 import type { BaseCheckpointSaver } from '@langchain/langgraph';
 import { z } from 'zod';
@@ -103,6 +104,7 @@ export function buildDiagnosticGraph(decide:DiagnosticDecider,read:DiagnosticRea
    }
    return {...meta,current:d,history:[...s.history,d]};
   }catch(error){
+   if(isFreePlanLimit(error)) return {stop_reason:'free_plan_limit'};
    let stop_reason='model_failed';
    if(error instanceof DiagnosticDeadline||(error instanceof Error&&error.name==='APIConnectionTimeoutError'))stop_reason='model_timeout';
    else if(error instanceof Error&&error.name==='DiagnosticModelOutputError'&&['model_output_length','model_output_invalid'].includes(error.message))stop_reason=error.message;
@@ -124,7 +126,7 @@ export function buildDiagnosticGraph(decide:DiagnosticDecider,read:DiagnosticRea
  })
  .addNode('finish',s=>{
   let stop_reason=s.stop_reason;
-  const reason=stop_reason==='model_timeout'?'The model did not respond within its time budget.':stop_reason||s.current?.reason||'Insufficient evidence.';
+  const reason=stop_reason==='free_plan_limit'?'The remaining free plan budget cannot cover this request. Monitoring continues.':stop_reason==='model_timeout'?'The model did not respond within its time budget.':stop_reason||s.current?.reason||'Insufficient evidence.';
   let proposal:Proposal={...identity(s.input),outcome:'no_change',reason};
   if(!stop_reason&&s.current?.action==='propose'){
    try{

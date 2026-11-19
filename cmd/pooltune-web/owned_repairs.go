@@ -38,7 +38,7 @@ func readOwnedCronFixture(stateDSN string) (*hostedquery.OwnedProjectCron, error
 	if err != nil {
 		return nil, err
 	}
-	diagnose, err := graphrunner.DiagnosticProcess(stateDSN)
+	diagnose, err := graphrunner.FreePlanDiagnosticProcess(stateDSN)
 	if err != nil {
 		return nil, invalid
 	}
@@ -83,7 +83,7 @@ func readOwnedRepairFixture(stateDSN string) (*hostedquery.OwnedProjectRepair, e
 	if err != nil {
 		return nil, invalid
 	}
-	diagnose, err := graphrunner.DiagnosticProcess(stateDSN)
+	diagnose, err := graphrunner.FreePlanDiagnosticProcess(stateDSN)
 	if err != nil {
 		return nil, invalid
 	}
