@@ -185,7 +185,7 @@ h1, h2, h3, .brand, .portrait-caption strong, .metric-grid article > strong {
 .project-search input:focus-visible { outline: none; }
 .project-search:focus-within { outline: 1px solid var(--brand); }
 .directory .project-grid { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; }
-.directory .project-link { display: flex; flex-direction: column; gap: 12px; align-items: stretch; aspect-ratio: 1; min-height: 148px; padding: clamp(14px,1.6vw,22px); }
+.directory .project-link { display: flex; flex-direction: column; gap: 10px; align-items: stretch; min-height: 144px; padding: clamp(14px,1.6vw,22px); }
 .directory .project-card h2 { font-size: 16px; line-height: 1.2; overflow-wrap: anywhere; }
 .directory .card-provider { width: 22px; }
 .directory .project-arrow { color: var(--muted); }
