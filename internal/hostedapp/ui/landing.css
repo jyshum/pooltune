@@ -244,15 +244,17 @@ h2 {
   position: relative;
   border-bottom: 1px solid var(--line);
 }
-.pinned .walk {
-  height: 310svh;
-}
-.pinned .pin {
-  position: sticky;
-  top: var(--nav);
-  height: calc(100svh - var(--nav));
-  display: flex;
-  flex-direction: column;
+@media (min-height: 560px) and (prefers-reduced-motion: no-preference) {
+  .enhanced .walk {
+    height: 310svh;
+  }
+  .enhanced .pin {
+    position: sticky;
+    top: var(--nav);
+    height: calc(100svh - var(--nav));
+    display: flex;
+    flex-direction: column;
+  }
 }
 .pin {
   background: var(--bg);
@@ -600,21 +602,23 @@ footer a:last-child {
   .steps button.arrived:nth-child(3) {
     animation-delay: 140ms;
   }
-  .pinned .steps button[aria-current]::before {
-    --trace-color: var(--cyan);
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    background: linear-gradient(90deg, transparent, rgb(110 215 220 / 10%));
-    box-shadow: inset 0 -2px var(--trace-color);
-    transform-origin: left;
-    transform: scaleX(var(--step-progress, 0));
-  }
-  .pinned .steps button:first-child[aria-current]::before {
-    --trace-color: #ef7866;
-    background: linear-gradient(90deg, transparent, rgb(239 120 102 / 13%));
+  @media (min-height: 560px) and (prefers-reduced-motion: no-preference) {
+    .enhanced .steps button[aria-current]::before {
+      --trace-color: var(--cyan);
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background: linear-gradient(90deg, transparent, rgb(110 215 220 / 10%));
+      box-shadow: inset 0 -2px var(--trace-color);
+      transform-origin: left;
+      transform: scaleX(var(--step-progress, 0));
+    }
+    .enhanced .steps button:first-child[aria-current]::before {
+      --trace-color: #ef7866;
+      background: linear-gradient(90deg, transparent, rgb(239 120 102 / 13%));
+    }
   }
   .setup li.arrived {
     animation-name: open-step;
@@ -708,8 +712,10 @@ footer a:last-child {
     grid-template-rows: repeat(3, auto);
     flex: none;
   }
-  .pinned .steps {
-    height: 204px;
+  @media (min-height: 560px) and (prefers-reduced-motion: no-preference) {
+    .enhanced .steps {
+      height: 204px;
+    }
   }
   .steps button {
     padding: 9px var(--pad);
@@ -782,30 +788,34 @@ footer a:last-child {
   }
 }
 @media (max-width: 670px) and (max-height: 700px) {
-  .pinned .walk .section-head {
-    position: relative;
-    padding-block: 12px;
-  }
-  .pinned .walk .section-head > a {
-    position: absolute;
-    top: 12px;
-    right: var(--pad);
-    max-width: none;
-  }
-  .pinned .walk h2 {
-    font-size: 25px;
-  }
-  .pinned .steps {
-    height: 174px;
+  @media (min-height: 560px) and (prefers-reduced-motion: no-preference) {
+    .enhanced .walk .section-head {
+      position: relative;
+      padding-block: 12px;
+    }
+    .enhanced .walk .section-head > a {
+      position: absolute;
+      top: 12px;
+      right: var(--pad);
+      max-width: none;
+    }
+    .enhanced .walk h2 {
+      font-size: 25px;
+    }
+    .enhanced .steps {
+      height: 174px;
+    }
   }
 }
 @media (min-width: 671px) and (max-height: 700px) {
-  .pinned .story-body {
-    grid-template-rows: minmax(0, 1fr);
-  }
-  .pinned .monitor .label,
-  .pinned .sql-example,
-  .pinned .steps button {
-    padding-block: 8px;
+  @media (min-height: 560px) and (prefers-reduced-motion: no-preference) {
+    .enhanced .story-body {
+      grid-template-rows: minmax(0, 1fr);
+    }
+    .enhanced .monitor .label,
+    .enhanced .sql-example,
+    .enhanced .steps button {
+      padding-block: 8px;
+    }
   }
 }

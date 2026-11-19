@@ -340,8 +340,9 @@
   function range() {
     return walk.offsetHeight - pin.offsetHeight;
   }
+  const canPin = () => roomy.matches && !reduced.matches;
   function follow() {
-    if (!root.classList.contains("pinned")) return;
+    if (!canPin()) return;
     const navHeight = document.querySelector("header").offsetHeight;
     progress = Math.max(
       0,
@@ -360,13 +361,9 @@
       progress * steps.length - index,
     );
   }
-  function layout() {
-    root.classList.toggle("pinned", roomy.matches && !reduced.matches);
-    follow();
-  }
   steps.forEach((button, i) =>
     button.addEventListener("click", () => {
-      if (root.classList.contains("pinned")) {
+      if (canPin()) {
         const start =
           scrollY +
           walk.getBoundingClientRect().top -
@@ -380,10 +377,10 @@
     }),
   );
   root.classList.add("enhanced");
-  layout();
-  roomy.addEventListener("change", layout);
-  reduced.addEventListener("change", layout);
-  window.addEventListener("resize", layout);
+  follow();
+  roomy.addEventListener("change", follow);
+  reduced.addEventListener("change", follow);
+  window.addEventListener("resize", follow);
   window.addEventListener("scroll", follow, { passive: true });
   const reveal = new IntersectionObserver((entries) => {
     for (const entry of entries)
