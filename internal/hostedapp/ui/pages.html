@@ -327,7 +327,7 @@ ALTER ROLE {{.Role}} LOGIN;</textarea>
 
 {{define "query-windows"}}
   <section class="panel query-panel" aria-labelledby="queries-title">
-  <div class="panel-heading"><h2 id="queries-title">Query activity</h2><p class="help">Past 7 days · Latest 100 distinct query IDs, grouped by database and role.</p></div>
+  <div class="panel-heading"><h2 id="queries-title">Query activity</h2><p class="help">Past 7 days · Up to 100 groups by query ID, database and role.</p></div>
   {{if .Queries}}<div class="query-list" tabindex="0" role="region" aria-label="Recorded queries">{{range .Queries}}
     <details class="query-group"><summary><span><small>Query ID</small><code>{{.ID}}</code></span><span><small>Measured calls</small><b>{{if .Measured}}{{.Calls}}{{else}}—{{end}}</b></span><span class="query-state">{{if .Measured}}{{.Decision}}{{else}}Awaiting sample{{end}}</span></summary>
       <div class="query-detail"><p>Database {{.Database}} · Role {{.Role}} · {{.Measured}} of {{.Windows}} windows measured</p>

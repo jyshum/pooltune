@@ -299,15 +299,19 @@
 
     const last = route[route.length - 1];
     ctx.lineWidth = 0.24;
-    trace(stage === 1 ? "#ff6654" : "#35cdff", corners, corners.length, ...last);
-    if (stage === 1) {
-      ctx.shadowColor = "#00b9ff";
-      ctx.shadowBlur = 7;
-      trace("#38d9ff", route, visited + 1, x, y);
-    } else {
-      // The four highlighted stops represent the verified four block accesses.
-      ctx.fillStyle = "#76eaff";
-      for (const [cx, cy] of corners.slice(1, -1)) {
+    trace("#ff6654", corners, corners.length, ...last);
+    ctx.shadowColor = "#00b9ff";
+    ctx.shadowBlur = 7;
+    trace("#38d9ff", route, visited + 1, x, y);
+    if (stage === 2) {
+      // Turn each of the four block stops blue when the verification reaches it.
+      let distance = 0;
+      for (let i = 1; i < corners.length - 1; i++) {
+        const [cx, cy] = corners[i];
+        distance += Math.abs(cx - corners[i - 1][0]) + Math.abs(cy - corners[i - 1][1]);
+        const reached = travel >= distance;
+        ctx.shadowBlur = reached ? 7 : 0;
+        ctx.fillStyle = reached ? "#76eaff" : "#ff6654";
         ctx.fillRect(cx - 0.34, cy - 0.34, 0.68, 0.68);
       }
     }
