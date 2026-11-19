@@ -360,11 +360,37 @@ h2 {
   grid-template-columns: repeat(2, 1fr);
 }
 .repairs li {
+  position: relative;
+  isolation: isolate;
   display: flex;
   align-items: center;
   font-size: clamp(16px, 1.35vw, 22px);
   padding: clamp(22px, 2.8vw, 44px) var(--pad);
   background: #161b1b;
+}
+@media (any-hover: hover) and (any-pointer: fine) {
+  .repairs li::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: radial-gradient(
+      ellipse 175px 105px at var(--spot-x, 50%) var(--spot-y, 50%),
+      rgb(63 181 196 / 18%),
+      rgb(63 181 196 / 7%) 48%,
+      transparent 100%
+    );
+    opacity: 0;
+  }
+  .repairs li:hover::before {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .repairs li::before {
+    transition: opacity 180ms ease-out;
+  }
 }
 .repairs li:nth-child(odd) {
   border-right: 1px solid var(--line);

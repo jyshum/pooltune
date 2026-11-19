@@ -71,6 +71,15 @@
     if (event.pointerType !== "mouse") releasePointer();
   });
 
+  const repairs = document.querySelector(".repairs ul");
+  repairs.addEventListener("pointermove", (event) => {
+    const tile = event.target.closest("li");
+    if (!tile || event.pointerType === "touch" || reduced.matches) return;
+    const bounds = tile.getBoundingClientRect();
+    tile.style.setProperty("--spot-x", event.clientX - bounds.left + "px");
+    tile.style.setProperty("--spot-y", event.clientY - bounds.top + "px");
+  });
+
   const palette = [
     "#102b2d",
     "#174144",
@@ -93,7 +102,7 @@
       offsets = new Float32Array(cols * rows * 2);
       columns = cols;
     }
-    const radius = Math.min(125, w * 0.24);
+    const radius = Math.min(54, w * 0.12);
     const repel = pointer?.inside && !reduced.matches;
     for (let col = 0; col * pitch < w; col++) {
       const x = col * pitch,
@@ -127,7 +136,7 @@
           const dy = y + pitch / 2 - pointer.y;
           const distance = Math.hypot(dx, dy);
           if (distance < radius) {
-            const push = radius * 0.63 * (1 - distance / radius) ** 2;
+            const push = radius * 0.5 * (1 - distance / radius) ** 2;
             targetX = distance ? (push * dx) / distance : push;
             targetY = distance ? (push * dy) / distance : 0;
           }
