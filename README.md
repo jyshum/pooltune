@@ -54,6 +54,13 @@ The application keeps talking directly to PostgreSQL. A Go worker samples databa
 
 Go checks the proposed target, permissions, and operating limits before running the repair. It records the intended change in PostgreSQL so a restarted worker can check what happened before trying again. Verification compares the affected work and, where available, checks other traffic for regressions. [Engineering overview](docs/design/hosted-query-agent/overview.md) · [Original connection-pool gateway](legacy/README.md)
 
+## Technical trade-offs
+
+- **Go executes repairs.** Keeping LangGraph in TypeScript adds a second runtime to deploy. Go can check every proposed operation against the database role and project permissions before it runs. [Backend decision](docs/product/backend-language-decision.md)
+- **Sample existing traffic.** PostgreSQL’s statement counters let us measure blocks touched per call without rerunning customer queries. Those counts alone can’t identify which step in the query plan did the work. [Measurement design](docs/design/hosted-query-agent/observed-page-access.md)
+- **Send index evidence up front.** Including the query plan and existing-index check makes the first prompt larger and saves a model round trip. Across six paired replays of one lookup, median investigation time fell from 2.56 s to 1.61 s. [Replay results](docs/design/hosted-query-agent/index-slice.md#one-claude-request-versus-two)
+- **Record intent before changing the database.** Each repair adds a PostgreSQL write. After a restart, the worker can check whether an interrupted operation completed before deciding whether to retry. [Recovery design](docs/design/hosted-query-agent/overview.md#why-the-worker-remembers-unfinished-work)
+
 <details>
 <summary>Run the tests</summary>
 
