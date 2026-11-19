@@ -327,6 +327,10 @@
       Math.floor(progress * steps.length),
     );
     if (index !== stage) select(index);
+    steps[index].style.setProperty(
+      "--step-progress",
+      progress * steps.length - index,
+    );
   }
   function layout() {
     root.classList.toggle("pinned", roomy.matches && !reduced.matches);
@@ -362,7 +366,7 @@
   });
   document
     .querySelectorAll(
-      ".walk .section-head, .repairs .section-head, .repairs li, .provider-heading, .providers > *, .setup > div, .setup li",
+      ".walk .section-head, .steps button, .monitor, .repairs .section-head, .repairs li, .provider-heading, .providers > *, .setup > div, .setup li",
     )
     .forEach((section) => reveal.observe(section));
 })();

@@ -267,6 +267,8 @@ h2 {
   border-right: 1px solid var(--line);
 }
 .steps button {
+  position: relative;
+  isolation: isolate;
   color: var(--ink);
   text-align: left;
   border: 0;
@@ -532,6 +534,16 @@ footer a:last-child {
     opacity: 1;
   }
 }
+@keyframes open-step {
+  from {
+    clip-path: inset(0 95% 0 0);
+    opacity: 0.65;
+  }
+  to {
+    clip-path: inset(0);
+    opacity: 1;
+  }
+}
 @keyframes settle {
   from {
     transform: translateY(-12px);
@@ -564,6 +576,32 @@ footer a:last-child {
   }
   .arrived:focus-within {
     animation: none;
+  }
+  .steps button.arrived:nth-child(2) {
+    animation-delay: 70ms;
+  }
+  .steps button.arrived:nth-child(3) {
+    animation-delay: 140ms;
+  }
+  .pinned .steps button[aria-current]::before {
+    --trace-color: var(--cyan);
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: linear-gradient(90deg, transparent, rgb(110 215 220 / 10%));
+    box-shadow: inset 0 -2px var(--trace-color);
+    transform-origin: left;
+    transform: scaleX(var(--step-progress, 0));
+  }
+  .pinned .steps button:first-child[aria-current]::before {
+    --trace-color: #ef7866;
+    background: linear-gradient(90deg, transparent, rgb(239 120 102 / 13%));
+  }
+  .setup li.arrived {
+    animation-name: open-step;
+    animation-duration: 560ms;
   }
   .steps button[aria-current] .detail {
     animation: settle 0.35s ease-out backwards;
