@@ -109,7 +109,7 @@ footer {
 }
 .links a,
 .login,
-footer > a:not(.brand),
+footer > a,
 .section-head > a,
 .actions a,
 .start {
@@ -501,12 +501,8 @@ h2 {
 }
 footer {
   gap: 26px;
-}
-footer .brand {
-  margin-right: auto;
-}
-footer .mark {
-  height: var(--nav);
+  min-height: var(--nav);
+  justify-content: flex-end;
 }
 footer a:last-child {
   padding-right: var(--pad);
