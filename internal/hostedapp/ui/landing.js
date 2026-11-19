@@ -91,6 +91,16 @@
     "#88e2df",
     "#b4f4ec",
   ];
+  // Only the bright crest picks up heat. Its darker wake stays teal.
+  const emberCrest = ["#805052", "#c25a56", "#ee695a", "#ff8267", "#ffb18b"];
+  function crestHeight(u, t) {
+    return (
+      0.39 +
+      0.17 * Math.sin(u * 6.4 + t * 0.72) +
+      0.13 * Math.sin(u * 12.4 - t * 0.51) +
+      0.045 * Math.sin(u * 24 + t * 0.81)
+    );
+  }
   surface(wave, (ctx, w, h, t) => {
     ctx.fillStyle = "#081b1c";
     ctx.fillRect(0, 0, w, h);
@@ -107,12 +117,7 @@
     for (let col = 0; col * pitch < w; col++) {
       const x = col * pitch,
         u = x / w;
-      const top =
-        h *
-        (0.39 +
-          0.17 * Math.sin(u * 6.4 + t * 0.72) +
-          0.13 * Math.sin(u * 12.4 - t * 0.51) +
-          0.045 * Math.sin(u * 24 + t * 0.81));
+      const top = h * crestHeight(u, t);
       for (let row = 0; row * pitch < h; row++) {
         const y = row * pitch,
           depth = (y - top) / h;
@@ -159,8 +164,20 @@
         );
       }
     }
+    const center = 0.62 + 0.09 * Math.sin(t * 0.32);
+    const x = w * center;
+    const y = h * crestHeight(center, t);
+    const reach = Math.min(w * 0.22, h * 0.34);
     buckets.forEach((path, i) => {
-      ctx.fillStyle = palette[i];
+      if (i >= 4) {
+        const heat = ctx.createRadialGradient(x, y, 0, x, y, reach);
+        heat.addColorStop(0, emberCrest[i - 4]);
+        heat.addColorStop(0.35, emberCrest[i - 4]);
+        heat.addColorStop(1, palette[i]);
+        ctx.fillStyle = heat;
+      } else {
+        ctx.fillStyle = palette[i];
+      }
       ctx.fill(path);
     });
   });
@@ -245,7 +262,7 @@
         if (stage === 0)
           fill =
             distance < 0.09
-              ? "#9ce2d7"
+              ? "#ef7866"
               : distance < 0.47
                 ? "#408181"
                 : "#285457";
