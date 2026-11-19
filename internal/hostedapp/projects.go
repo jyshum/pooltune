@@ -20,6 +20,7 @@ import (
 )
 
 const maxActiveProjects = 5
+const dailyDiagnosisCredits = 8
 
 var (
 	errProjectCapacity = errors.New("preview project limit reached")
@@ -29,6 +30,7 @@ var (
 )
 
 type projectRecord struct {
+	CreditsUsed                     int
 	ID, Ref, Name                   string
 	SupabaseConnection, SupabaseOrg string
 	Owner, Epoch                    int64
@@ -164,7 +166,7 @@ func (s projectStore) find(ctx context.Context, owner int64, id string) (project
 }
 
 func (s projectStore) list(ctx context.Context, owner int64) ([]projectRecord, error) {
-	rows, err := s.db.Query(ctx, `SELECT `+publicProjectColumns+` FROM pooltune_app.projects WHERE owner_id=$1 ORDER BY created_at,id`, owner)
+	rows, err := s.db.Query(ctx, `SELECT `+publicProjectColumns+`, COALESCE((SELECT calls FROM pooltune_app.model_budgets WHERE project_id=p.id AND utc_day=(CURRENT_TIMESTAMP AT TIME ZONE 'UTC')::date),0) FROM pooltune_app.projects p WHERE owner_id=$1 ORDER BY lower(name),id`, owner)
 	if err != nil {
 		return nil, err
 	}
@@ -172,7 +174,7 @@ func (s projectStore) list(ctx context.Context, owner int64) ([]projectRecord, e
 	var projects []projectRecord
 	for rows.Next() {
 		var p projectRecord
-		if err := rows.Scan(&p.ID, &p.Ref, &p.Name, &p.Owner, &p.Epoch, &p.Configured, &p.SupabaseConnection, &p.SupabaseOrg, &p.SupabaseBlocked, &p.AgentPaused); err != nil {
+		if err := rows.Scan(&p.ID, &p.Ref, &p.Name, &p.Owner, &p.Epoch, &p.Configured, &p.SupabaseConnection, &p.SupabaseOrg, &p.SupabaseBlocked, &p.AgentPaused, &p.CreditsUsed); err != nil {
 			return nil, err
 		}
 		projects = append(projects, p)
@@ -346,14 +348,13 @@ func checkProject(ctx context.Context, project projectRecord, credentials projec
 
 // Admission happens immediately before the provider request and survives restarts.
 func (s projectStore) admitModel(ctx context.Context, id string, epoch int64) error {
-	const maxCalls = 8
 	var calls int
 	err := s.db.QueryRow(ctx, `WITH current_day AS (SELECT (statement_timestamp() AT TIME ZONE 'UTC')::date AS day),
 		active AS (SELECT id FROM pooltune_app.projects WHERE id=$1 AND epoch=$3 AND epoch>0 AND NOT agent_paused FOR UPDATE),
 		cleanup AS (DELETE FROM pooltune_app.model_budgets WHERE project_id=$1 AND utc_day < (SELECT day-8 FROM current_day))
 		INSERT INTO pooltune_app.model_budgets(project_id,utc_day,calls) SELECT id, day, 1 FROM current_day CROSS JOIN active
 		ON CONFLICT (project_id, utc_day) DO UPDATE SET calls=model_budgets.calls+1 WHERE model_budgets.calls < $2
-		RETURNING calls`, id, maxCalls, epoch).Scan(&calls)
+		RETURNING calls`, id, dailyDiagnosisCredits, epoch).Scan(&calls)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return hostedquery.ErrProjectModelBudget
 	}

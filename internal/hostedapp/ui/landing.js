@@ -7,11 +7,16 @@
   const steps = [...document.querySelectorAll(".steps button")];
   const blockValue = document.querySelector("#block-value");
   const timing = document.querySelector("#timing");
+  const sampleStage = document.querySelector("#sample-stage");
+  const exampleSql = document.querySelector("#example-sql");
+  const lookupSql = exampleSql.textContent;
+  const indexSql = "CREATE INDEX CONCURRENTLY ON workload\n  (customer, category);";
   const states = [
-    ["866", "16.605 ms"],
-    ["866", "16.605 ms"],
-    ["4", "0.070 ms"],
+    ["866", "16.605 ms", "Before index", lookupSql],
+    ["866", "16.605 ms", "Pre-build sample", indexSql],
+    ["4", "0.070 ms", "After index", lookupSql],
   ];
+  let stageStart = 0;
   let stage = 0;
   let progress = 0;
 
@@ -188,12 +193,15 @@
     const f = i / 13;
     const mix = Math.max(0, Math.min(1, (f - 0.55) / 0.4));
     const blend = mix * mix * (3 - 2 * mix);
-    const rgb = [63, 181, 196].map((c) => Math.round(150 + (c - 150) * blend));
-    return "rgba(" + rgb.join(",") + "," + (0.22 + f * 0.38) + ")";
+    const rgb = [45, 207, 255].map((c) => Math.round(150 + (c - 150) * blend));
+    const alpha = 0.22 + f * 0.38 + blend * 0.31;
+    return "rgba(" + rgb.join(",") + "," + alpha + ")";
   });
+  const warmSwells = ["#ff6452", "#ff8e54", "#ffb36e"];
   surface(document.querySelector("#swells"), (ctx, w, h, t) => {
     ctx.clearRect(0, 0, w, h);
     const paths = swellShades.map(() => new Path2D());
+    const warmPaths = warmSwells.map(() => new Path2D());
     for (let y = 5.5; y < h; y += 11) {
       for (let x = 5.5; x < w; x += 11) {
         const a = Math.sin(x * 0.014 + y * 0.006 - t * 0.8);
@@ -204,7 +212,15 @@
         const crest = Math.min(1, (a * 0.5 + b * 0.3 + c * 0.2) / 0.84);
         if (crest <= 0) continue;
         const size = 3 + 2 * crest;
-        paths[Math.round(crest * 13)].rect(
+        let path = paths[Math.round(crest * 13)];
+        if (crest > 0.77) {
+          // This second field colors a few crest tips without adding any dots.
+          const heat = Math.sin(x * 0.025 - y * 0.031 + t * 0.35);
+          if (heat > 0.84) {
+            path = warmPaths[Math.min(2, Math.floor((heat - 0.84) / 0.055))];
+          }
+        }
+        path.rect(
           x - size / 2,
           y - size / 2,
           size,
@@ -216,97 +232,105 @@
       ctx.fillStyle = swellShades[i];
       ctx.fill(path);
     });
+    warmPaths.forEach((path, i) => {
+      ctx.fillStyle = warmSwells[i];
+      ctx.fill(path);
+    });
   });
 
-  // Illustrative map of table pages. The readouts below it are measured endpoints.
+  // Each entry represents one square along the illustrative index path.
+  const corners = [[2, 6], [9, 6], [9, 3], [19, 3], [19, 8], [25, 8]];
+  const route = [corners[0]];
+  for (let i = 1; i < corners.length; i++) {
+    let [x, y] = corners[i - 1];
+    const [endX, endY] = corners[i];
+    while (x !== endX || y !== endY) {
+      x += Math.sign(endX - x);
+      y += Math.sign(endY - y);
+      route.push([x, y]);
+    }
+  }
+
   const redraw = surface(document.querySelector("#blocks"), (ctx, w, h, t) => {
     ctx.clearRect(0, 0, w, h);
-    const cols = 28,
-      rows = 12;
+    const cols = 28;
+    const rows = 12;
     const pitch = Math.min((w * 0.78) / cols, (h * 0.77) / rows);
-    const left = (w - cols * pitch) / 2,
-      top = (h - rows * pitch) / 2;
-    const sweep = (t * 0.31 + progress) % 1;
-    const route = [
-      [2, 6],
-      [9, 6],
-      [9, 3],
-      [19, 3],
-      [19, 8],
-      [25, 8],
-    ];
-    const routeLength = route
-      .slice(1)
-      .reduce(
-        (sum, point, i) =>
-          sum +
-          Math.abs(point[0] - route[i][0]) +
-          Math.abs(point[1] - route[i][1]),
-        0,
-      );
+    const left = (w - cols * pitch) / 2;
+    const top = (h - rows * pitch) / 2;
     const size = pitch * 0.67;
-    for (let row = 0; row < rows; row++)
+    const sweep = (t * 0.31 + progress) % 1;
+    for (let row = 0; row < rows; row++) {
       for (let col = 0; col < cols; col++) {
         const order = (col + row * cols) / (cols * rows);
         const distance = (sweep - order + 1) % 1;
-        const onRoute =
-          (row === 6 && col >= 2 && col <= 9) ||
-          (col === 9 && row >= 3 && row <= 6) ||
-          (row === 3 && col >= 9 && col <= 19) ||
-          (col === 19 && row >= 3 && row <= 8) ||
-          (row === 8 && col >= 19 && col <= 25);
-        const hit = route.some(
-          ([x, y], i) => i > 0 && i < 5 && x === col && y === row,
-        );
-        let fill = "#204447";
-        if (stage === 0)
-          fill =
-            distance < 0.09
-              ? "#ef7866"
-              : distance < 0.47
-                ? "#408181"
-                : "#285457";
-        if (stage === 1 && onRoute)
-          fill = order < 0.17 + 0.74 * sweep ? "#77d7ce" : "#385e61";
-        if (stage === 2 && hit) fill = "#b0fae5";
-        ctx.fillStyle = fill;
+        ctx.fillStyle = "#204447";
+        if (stage === 0) {
+          ctx.fillStyle =
+            distance < 0.09 ? "#ff7868" : distance < 0.47 ? "#71433f" : "#344f50";
+        }
         ctx.fillRect(left + col * pitch, top + row * pitch, size, size);
       }
-    if (stage > 0) {
-      const points = route.map(([x, y]) => [
-        left + x * pitch + size / 2,
-        top + y * pitch + size / 2,
-      ]);
+    }
+    if (stage === 0) return;
+
+    const cycle = Math.max(0, t - stageStart) % 4.6;
+    const fraction = reduced.matches
+      ? 1
+      : Math.min(1, Math.max(0, (cycle - 0.45) / 3.35));
+    const travel = fraction * (route.length - 1);
+    const visited = Math.floor(travel);
+    const [col, row] = route[visited];
+    const [nextCol, nextRow] = route[Math.min(visited + 1, route.length - 1)];
+    const x = col + (nextCol - col) * (travel - visited);
+    const y = row + (nextRow - row) * (travel - visited);
+    ctx.save();
+    ctx.translate(left + size / 2, top + size / 2);
+    ctx.scale(pitch, pitch);
+
+    function trace(color, points, count, tipX, tipY) {
       ctx.beginPath();
-      points.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
-      ctx.strokeStyle = stage === 1 ? "#6bb5aa" : "#50857c";
-      ctx.lineWidth = 1.5;
+      ctx.moveTo(points[0][0], points[0][1]);
+      for (let i = 1; i < count; i++) ctx.lineTo(points[i][0], points[i][1]);
+      ctx.lineTo(tipX, tipY);
+      ctx.strokeStyle = color;
       ctx.stroke();
-      let travel = sweep * routeLength;
-      for (let i = 1; i < route.length; i++) {
-        const length =
-          Math.abs(route[i][0] - route[i - 1][0]) +
-          Math.abs(route[i][1] - route[i - 1][1]);
-        if (travel <= length) {
-          const f = travel / length;
-          const x = points[i - 1][0] + (points[i][0] - points[i - 1][0]) * f;
-          const y = points[i - 1][1] + (points[i][1] - points[i - 1][1]) * f;
-          ctx.fillStyle = "#d5fff0";
-          ctx.fillRect(x - size * 0.4, y - size * 0.4, size * 0.8, size * 0.8);
-          break;
-        }
-        travel -= length;
+    }
+
+    const last = route[route.length - 1];
+    ctx.lineWidth = 0.24;
+    trace(stage === 1 ? "#ff6654" : "#35cdff", corners, corners.length, ...last);
+    if (stage === 1) {
+      ctx.shadowColor = "#00b9ff";
+      ctx.shadowBlur = 7;
+      trace("#38d9ff", route, visited + 1, x, y);
+    } else {
+      // The four highlighted stops represent the verified four block accesses.
+      ctx.fillStyle = "#76eaff";
+      for (const [cx, cy] of corners.slice(1, -1)) {
+        ctx.fillRect(cx - 0.34, cy - 0.34, 0.68, 0.68);
       }
     }
+    ctx.shadowColor = "#00b9ff";
+    ctx.shadowBlur = 8;
+    ctx.fillStyle = "#deffff";
+    ctx.fillRect(x - 0.42, y - 0.42, 0.84, 0.84);
+    ctx.restore();
   });
 
   function select(index) {
+    if (stage !== index) stageStart = performance.now() / 1000;
     stage = index;
     steps.forEach((step, i) => {
       if (i === index) step.setAttribute("aria-current", "step");
       else step.removeAttribute("aria-current");
     });
-    [blockValue.textContent, timing.textContent] = states[index];
+    [
+      blockValue.textContent,
+      timing.textContent,
+      sampleStage.textContent,
+      exampleSql.textContent,
+    ] = states[index];
     redraw();
   }
   function range() {

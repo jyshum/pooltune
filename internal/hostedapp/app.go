@@ -205,6 +205,7 @@ func (a *App) routes() *http.ServeMux {
 	mux.Handle("GET /assets/workspace.css", files)
 	mux.Handle("GET /assets/croatia.webp", files)
 	mux.Handle("GET /assets/app.js", files)
+	mux.Handle("GET /assets/gsap.min.js", files)
 	mux.Handle("GET /assets/landing.css", files)
 	mux.Handle("GET /assets/landing.js", files)
 	mux.Handle("GET /assets/wave.svg", files)
@@ -234,6 +235,7 @@ func (a *App) routes() *http.ServeMux {
 	mux.HandleFunc("GET /app/projects/new", a.requireAccount(a.newProject))
 	mux.HandleFunc("POST /app/projects/new", a.requireAccount(a.createProject))
 	mux.HandleFunc("GET /app/projects/{id}", a.requireAccount(a.project))
+	mux.HandleFunc("GET /app/projects/{id}/metrics", a.requireAccount(a.projectMetrics))
 	mux.HandleFunc("GET /app/projects/{id}/activity", a.requireAccount(a.downloadActivity))
 	mux.HandleFunc("POST /app/projects/{id}/connect", a.requireAccount(a.connectProject))
 	mux.HandleFunc("POST /app/projects/{id}/start", a.requireAccount(a.startProject))
@@ -286,7 +288,11 @@ func (a *App) accountPage(w http.ResponseWriter, r *http.Request, page string) {
 		http.Redirect(w, r, "/app", http.StatusSeeOther)
 		return
 	}
-	a.render(w, http.StatusOK, page, accountPage(page, ""))
+	message := ""
+	if page == "signin" && r.URL.Query().Get("restart") == "google" {
+		message = "Start a new sign-in to continue."
+	}
+	a.render(w, http.StatusOK, page, accountPage(page, message))
 }
 
 func accountPage(page, failure string) Page {

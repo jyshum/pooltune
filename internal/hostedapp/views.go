@@ -15,21 +15,25 @@ import (
 )
 
 type Page struct {
-	Draft              string
-	Capabilities       []CapabilityView
-	Title, User, Error string
-	Notice             string
-	GoogleEnabled      bool
-	SupabaseProjects   []SupabaseProject
-	SupabaseConnection string
-	RepairWorkerKey    string
-	Invite             bool
-	Projects           []ProjectView
-	Project            ProjectView
-	Enrollment         EnrollmentView
+	ProjectLimit, CreditLimit, CreditsUsed int
+	Draft                                  string
+	Capabilities                           []CapabilityView
+	Title, User, Error                     string
+	Notice                                 string
+	GoogleEnabled                          bool
+	SupabaseProjects                       []SupabaseProject
+	SupabaseConnection                     string
+	RepairWorkerKey                        string
+	Invite                                 bool
+	Projects                               []ProjectView
+	Project                                ProjectView
+	Enrollment                             EnrollmentView
 }
 
 type ProjectView struct {
+	SharedName                            bool
+	CreditsUsed                           int
+	PollCadence                           string
 	BeforeRun                             int64
 	OlderRunsAfter                        int64
 	Section                               string
@@ -50,12 +54,58 @@ type ProjectView struct {
 	RepairWorkerSummary                   string
 	FixtureIndex                          bool
 	FixtureRepair                         *CapabilityView
-	Queries                               []QueryView
+	Queries                               []QueryGroup
 	Runs                                  []RunView
 	Polls                                 []PollView
 }
 
-type QueryView struct{ ID, Calls, Mean, Target, Blocks, Decision, At string }
+type QueryView struct{ Calls, Mean, Target, Blocks, Decision, At string }
+type QueryGroup struct {
+	ID                string
+	Role, Database    uint32
+	Windows, Measured int
+	Calls             int64
+	Decision          string
+	Recent            []QueryView
+}
+
+func groupQueryWindows(windows []hostedquery.ProjectWindow) []QueryGroup {
+	type fingerprint struct {
+		database, role uint32
+		query          int64
+	}
+	positions := make(map[fingerprint]int)
+	var groups []QueryGroup
+	for i := len(windows) - 1; i >= 0; i-- {
+		w := windows[i]
+		key := fingerprint{w.Database, w.Role, w.Query}
+		pos, found := positions[key]
+		if !found {
+			if len(groups) >= 100 {
+				continue
+			}
+			pos = len(groups)
+			positions[key] = pos
+			groups = append(groups, QueryGroup{ID: strconv.FormatInt(w.Query, 10), Role: w.Role, Database: w.Database, Decision: outcomeLabel(string(w.Decision))})
+		}
+		group := &groups[pos]
+		group.Windows++
+		if w.Calls != nil {
+			group.Measured++
+			group.Calls += *w.Calls
+		}
+		if len(group.Recent) >= 6 {
+			continue
+		}
+		mean := "—"
+		if w.MeanMS != nil {
+			mean = decimalMS(*w.MeanMS)
+		}
+		group.Recent = append(group.Recent, QueryView{Calls: integerOrUnavailable(w.Calls), Mean: mean, Target: decimalMS(w.ObjectiveMS), Blocks: integerOrUnavailable(w.SharedBlocks), Decision: outcomeLabel(string(w.Decision)), At: displayTime(w.End)})
+	}
+	return groups
+}
+
 type RunView struct {
 	ParentID                                                                    int64
 	ParentVisible                                                               bool
@@ -97,9 +147,17 @@ func (a *App) dashboard(w http.ResponseWriter, r *http.Request, user auth.User) 
 		a.setupPermissions(w, r, user)
 		return
 	}
-	page := Page{Title: "Projects", User: user.Email}
+	page := Page{Title: "Projects", User: user.Email, ProjectLimit: maxActiveProjects, CreditLimit: dailyDiagnosisCredits}
+	names := make(map[string]int, len(rows))
 	for _, row := range rows {
-		page.Projects = append(page.Projects, baseProjectView(row))
+		names[strings.ToLower(row.Name)]++
+	}
+	for _, row := range rows {
+		project := baseProjectView(row)
+		project.SharedName = names[strings.ToLower(row.Name)] > 1
+		project.CreditsUsed = row.CreditsUsed
+		page.CreditsUsed += row.CreditsUsed
+		page.Projects = append(page.Projects, project)
 	}
 	a.render(w, http.StatusOK, "dashboard", page)
 }
@@ -302,7 +360,7 @@ func decimalMS(ms float64) string { return fmt.Sprintf("%.2f ms", ms) }
 
 func integerOrUnavailable(value *int64) string {
 	if value == nil {
-		return "Unavailable"
+		return "—"
 	}
 	return strconv.FormatInt(*value, 10)
 }
@@ -328,23 +386,15 @@ func outcomeLabel(outcome string) string {
 
 func populateActivity(view *ProjectView, activity hostedquery.ProjectActivity, interval time.Duration, now time.Time) {
 	view.Charts = overviewCharts(activity, now)
+	view.PollCadence = cadenceLabel(interval)
 	if activity.LastPoll != nil {
 		view.LastPoll = displayTime(*activity.LastPoll)
 		if view.Status == "Monitoring" && now.Sub(*activity.LastPoll) > 2*interval {
 			view.LastPoll += " (delayed)"
 		}
 	}
-	for i := len(activity.Windows) - 1; i >= 0 && len(view.Queries) < 100; i-- {
-		window := activity.Windows[i]
-		mean := "Unavailable"
-		if window.MeanMS != nil {
-			mean = decimalMS(*window.MeanMS)
-		}
-		view.Queries = append(view.Queries, QueryView{
-			ID: strconv.FormatInt(window.Query, 10), Calls: integerOrUnavailable(window.Calls), Mean: mean,
-			Target: decimalMS(window.ObjectiveMS), Blocks: integerOrUnavailable(window.SharedBlocks),
-			Decision: outcomeLabel(string(window.Decision)), At: displayTime(window.End),
-		})
+	if view.Section == "queries" {
+		view.Queries = groupQueryWindows(activity.Windows)
 	}
 	if len(activity.Jobs) > 40 {
 		view.OlderRunsAfter = activity.Jobs[39].ID

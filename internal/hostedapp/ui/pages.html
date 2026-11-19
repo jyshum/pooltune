@@ -7,9 +7,10 @@
   <link rel="icon" href="/assets/wave.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/assets/app.css">
   <link rel="stylesheet" href="/assets/workspace.css">
+  {{if .User}}<script src="/assets/gsap.min.js" defer></script>{{end}}
   <script src="/assets/app.js" defer></script>
 </head>
-<body>
+<body{{if .User}} class="signed-in"{{end}}>
   <a class="skip" href="#main">Skip to content</a>
   <header class="topbar">
     <div class="shell topbar-inner">
@@ -18,9 +19,9 @@
       </a>
       {{if .User}}
       <nav class="topnav" aria-label="Account">
-        <a href="/app?view=projects">Projects</a>
+        <a href="/app?view=projects">Projects <i aria-hidden="true">↗</i></a>
         <span class="account">{{.User}}</span>
-        {{if .GoogleEnabled}}<a href="/app/account">Account</a>{{end}}
+        {{if .GoogleEnabled}}<a href="/app/account">Account <i aria-hidden="true">↗</i></a>{{end}}
         <form action="/signout" method="post"><button class="button button-quiet" type="submit">Sign out</button></form>
       </nav>
       {{else}}
@@ -40,31 +41,32 @@
 {{define "status"}}<span class="status{{if eq . "Monitoring"}} status-active{{else if eq . "Pending setup"}} status-pending{{end}}"><span aria-hidden="true"></span>{{.}}</span>{{end}}
 
 {{define "dashboard"}}{{template "header" .}}
-<main class="shell workspace" id="main">
-  <div class="page-heading">
-    <div><h1>Projects</h1><p class="lead">Manage your Supabase connections and review query activity.</p></div>
-    <a class="button button-primary" href="/app/setup">Connect a project</a>
-  </div>
+<main class="shell directory" id="main">
+  <h1>Projects</h1>
   {{template "error" .}}
-  {{if .Projects}}
-  <ul class="project-grid" aria-label="Your projects">
-    {{range .Projects}}
-    <li class="project-card">
-      <a class="project-link" href="/app/projects/{{.ID}}">
-        <div class="project-card-heading"><span class="card-provider">{{template "logo-supabase"}}</span><h2>{{.Name}}</h2><span class="project-arrow" aria-hidden="true">→</span></div>
-        <p class="project-ref"><code>{{.Ref}}</code></p>
-        <div class="project-card-footer">{{template "status" .Status}}{{if .LastPoll}}<span class="last-poll">Last poll {{.LastPoll}}</span>{{end}}</div>
-      </a>
-    </li>
-    {{end}}
-  </ul>
-  {{else}}
-  <div class="panel empty-dashboard">
-
-    <h2>No projects yet</h2>
-    <p>Connect a Supabase project to start monitoring query performance.</p>
+  <div class="directory-layout">
+    <section aria-label="Your projects">
+      <div class="directory-tools">
+        {{if .Projects}}<label class="project-search" hidden><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8" cy="8" r="5"/><path d="m12 12 5 5"/></svg><input type="search" aria-label="Search projects" placeholder="Search projects" autocomplete="off"></label>{{end}}
+        <a class="button button-primary" href="/app/setup"><span aria-hidden="true">＋</span> New project</a>
+      </div>
+      <ul class="project-grid">{{range .Projects}}
+        <li class="project-card" data-project-name="{{.Name}}{{if .SharedName}} {{.Ref}}{{end}}"><a class="project-link" href="/app/projects/{{.ID}}">
+          <div class="project-card-heading"><span class="card-provider">{{template "logo-supabase"}}</span><span class="project-arrow" aria-hidden="true">↗</span></div>
+          <h2>{{.Name}}</h2>{{if .SharedName}}<small class="duplicate-ref">Ref · {{.Ref}}</small>{{end}}<div class="project-card-footer">{{template "status" .Status}}</div>
+        </a></li>
+      {{end}}</ul>
+      {{if .Projects}}<p class="directory-empty" id="no-matches" role="status" hidden>No matching projects.</p>{{else}}<p class="directory-empty">No projects yet.</p>{{end}}
+    </section>
+    <aside class="plan-usage" aria-labelledby="plan-title"><h2 id="plan-title">Free plan</h2>
+      <div class="usage-heading"><span>Project slots</span><strong>{{len .Projects}} / {{.ProjectLimit}}</strong></div>
+      <meter min="0" max="{{.ProjectLimit}}" value="{{len .Projects}}" aria-label="Project slots used"></meter>
+      <div class="usage-heading"><span>Diagnosis credits today</span><strong>{{.CreditsUsed}}</strong></div>
+      <p>{{.CreditLimit}} per project · resets at 00:00 UTC</p>
+      {{range .Projects}}<div class="credit-project"><span>{{.Name}}{{if .SharedName}}<small class="duplicate-ref">Ref · {{.Ref}}</small>{{end}}</span><small>{{.CreditsUsed}} / {{$.CreditLimit}}</small></div>
+      <meter min="0" max="{{$.CreditLimit}}" value="{{.CreditsUsed}}" aria-label="Credits used for {{.Name}}"></meter>{{end}}
+    </aside>
   </div>
-  {{end}}
 </main>
 {{template "footer" .}}{{end}}
 
@@ -324,19 +326,17 @@ ALTER ROLE {{.Role}} LOGIN;</textarea>
 {{end}}
 
 {{define "query-windows"}}
-  <section class="panel" aria-labelledby="queries-title">
-    <div class="panel-heading"><h2 id="queries-title">Query windows</h2><p class="help">Latest 100 windows from the past seven days. Latency needs a measured execution in that window.</p></div>
-    {{if .Queries}}
-    <div class="table-scroll" role="region" tabindex="0" aria-labelledby="queries-title">
-      <table class="query-table">
-        <thead><tr><th scope="col">Query ID</th><th scope="col">Calls</th><th scope="col">Mean latency</th><th scope="col">Objective</th><th scope="col">Block accesses</th><th scope="col">Decision</th><th scope="col">Observed</th></tr></thead>
-        <tbody>{{range .Queries}}<tr>
-          <th scope="row"><code>{{.ID}}</code></th><td>{{.Calls}}</td><td>{{.Mean}}</td><td>{{.Target}}</td><td>{{.Blocks}}</td><td>{{.Decision}}</td><td>{{.At}}</td>
-        </tr>{{end}}</tbody>
-      </table>
-    </div>
-    {{else}}<p class="panel-empty">No query windows recorded yet.</p>{{end}}
-  </section>
+  <section class="panel query-panel" aria-labelledby="queries-title">
+  <div class="panel-heading"><h2 id="queries-title">Query activity</h2><p class="help">Past 7 days · Latest 100 distinct query IDs, grouped by database and role.</p></div>
+  {{if .Queries}}<div class="query-list" tabindex="0" role="region" aria-label="Recorded queries">{{range .Queries}}
+    <details class="query-group"><summary><span><small>Query ID</small><code>{{.ID}}</code></span><span><small>Measured calls</small><b>{{if .Measured}}{{.Calls}}{{else}}—{{end}}</b></span><span class="query-state">{{if .Measured}}{{.Decision}}{{else}}Awaiting sample{{end}}</span></summary>
+      <div class="query-detail"><p>Database {{.Database}} · Role {{.Role}} · {{.Measured}} of {{.Windows}} windows measured</p>
+      <div class="table-scroll"><table><caption>Latest {{len .Recent}} windows</caption><thead><tr><th>Observed (UTC)</th><th>Calls</th><th>Mean</th><th>Target</th><th>Blocks</th><th>Decision</th></tr></thead><tbody>
+      {{range .Recent}}<tr><td>{{.At}}</td><td>{{.Calls}}</td><td>{{.Mean}}</td><td>{{.Target}}</td><td>{{.Blocks}}</td><td>{{.Decision}}</td></tr>{{end}}
+      </tbody></table></div></div>
+    </details>{{end}}</div>
+    <details class="query-key"><summary>Reading these measurements</summary><p>A query ID groups statements with the same SQL structure. Zero calls means a measured window was idle. A dash means the measurement is missing. Mean latency needs at least one execution. Pooltune waits for enough comparable samples before deciding whether to investigate.</p><a href="/app/projects/{{.ID}}/activity">Download recent activity ↓</a></details>
+  {{else}}<p class="panel-empty">No query windows recorded yet.</p>{{end}}</section>
 {{end}}
 {{define "change-history"}}
   <section class="panel" aria-labelledby="runs-title">
@@ -391,7 +391,7 @@ ALTER ROLE {{.Role}} LOGIN;</textarea>
 
 {{define "google-result"}}{{template "header" .}}
 <main class="shell auth-page" id="main"><section class="form-panel"><h1>Google sign-in</h1>{{template "error" .}}
-<p><a href="/signin">Sign in</a> · <a href="/signup">Create an account</a> · <a href="/app/account">Account</a></p>
+<p><a href="/signin">Sign in</a> · <a href="/signup">Create an account</a> · <a href="/app/account">Account <i aria-hidden="true">↗</i></a></p>
 </section></main>{{template "footer" .}}{{end}}
 
 {{define "account-settings"}}{{template "header" .}}

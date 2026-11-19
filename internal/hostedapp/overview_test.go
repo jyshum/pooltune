@@ -24,3 +24,18 @@ func TestOverviewCountsMeasuredCallsWithinDisplayedHours(t *testing.T) {
 		t.Fatal("missing calls appeared as a measured zero")
 	}
 }
+
+func TestQueryGroupsKeepMissingCountersAndSeparateRoles(t *testing.T) {
+	zero, three := int64(0), int64(3)
+	windows := []hostedquery.ProjectWindow{
+		{Database: 1, Role: 2, Query: 7, Calls: &three}, {Database: 1, Role: 2, Query: 7, Calls: &zero},
+		{Database: 1, Role: 2, Query: 7}, {Database: 1, Role: 3, Query: 7},
+	}
+	groups := groupQueryWindows(windows)
+	if len(groups) != 2 || groups[0].Measured != 0 || groups[1].Calls != 3 || groups[1].Measured != 2 || groups[1].Windows != 3 {
+		t.Fatalf("wrong summaries: %+v", groups)
+	}
+	if got := groups[1].Recent; got[0].Calls != "—" || got[1].Calls != "0" {
+		t.Fatal("missing measurement shown as zero")
+	}
+}

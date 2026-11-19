@@ -128,7 +128,7 @@ func TestAccountDashboardAndProjectOwnership(t *testing.T) {
 			t.Errorf("owner setup did not disclose %q", requirement)
 		}
 	}
-	for _, route := range []struct{ method, path string }{{"GET", ""}, {"GET", "/activity"}, {"POST", "/connect"}, {"POST", "/start"}, {"POST", "/repair-mode"}, {"POST", "/disconnect"}} {
+	for _, route := range []struct{ method, path string }{{"GET", ""}, {"GET", "/activity"}, {"GET", "/metrics"}, {"POST", "/connect"}, {"POST", "/start"}, {"POST", "/repair-mode"}, {"POST", "/disconnect"}} {
 		if w := request(route.method, projectPath+route.path, nil, other, origin); w.Code != 404 {
 			t.Fatalf("cross-account %s %s allowed: %d", route.method, route.path, w.Code)
 		}
@@ -176,6 +176,12 @@ func TestAccountDashboardAndProjectOwnership(t *testing.T) {
 	}
 	if err := (projectStore{pool}).admitModel(ctx, projectID, row.Epoch); !errors.Is(err, hostedquery.ErrProjectModelBudget) {
 		t.Fatalf("budget did not survive store reconnect: %v", err)
+	}
+	if w := request("GET", "/app?view=projects", nil, owner, ""); w.Code != 200 || !strings.Contains(w.Body.String(), "8 / 8") {
+		t.Fatal("directory did not show the eight reserved diagnosis credits")
+	}
+	if w := request("GET", "/app?view=projects", nil, other, ""); w.Code != 200 || strings.Contains(w.Body.String(), "8 / 8") {
+		t.Fatal("directory disclosed another owner's credit usage")
 	}
 	keyPath := projectPath + "/repair-worker-key"
 	apiPath := "/api/projects/" + projectID + "/repair-worker"

@@ -31,12 +31,14 @@
     <div class="section-head"><div><p class="label">How it works</p><h2 id="how-title">Inside a database repair.</h2></div><a href="#integrations">Skip walkthrough ↓</a></div>
     <div class="story-body">
       <div class="steps">
-        <button type="button" aria-current="step"><small>01</small><span><strong>Measure the lookup</strong><span class="detail">One lookup touched 866 database blocks. Pooltune measured it before making a change.</span></span></button>
-        <button type="button"><small>02</small><span><strong>Build the index</strong><span class="detail">With index repairs enabled, Pooltune created a compound index concurrently so writes could continue.</span></span></button>
-        <button type="button"><small>03</small><span><strong>Verify the result</strong><span class="detail">The same lookup touched four blocks in 0.070 ms with the new index. Pooltune checked the execution plan and compared the timings.</span></span></button>
+        <button type="button" aria-current="step"><small>01</small><span><strong>Measure the lookup</strong><span class="detail">The query looks for rows that match both a customer and a category. PostgreSQL touched 866 blocks for one input.</span></span></button>
+        <button type="button"><small>02</small><span><strong>Build the index</strong><span class="detail">With permission, Pooltune indexed customer and category together. Writes continued while PostgreSQL built the index.</span></span></button>
+        <button type="button"><small>03</small><span><strong>Verify the result</strong><span class="detail">Pooltune ran the lookup again with the same input. PostgreSQL used the new index and touched four blocks in 0.070 ms.</span></span></button>
       </div>
       <div class="monitor">
-        <p class="label">Controlled Supabase test <span>Compound index</span></p>
+        <p class="label">Controlled Supabase test <span id="sample-stage">Before index</span></p>
+        <div class="sql-example"><small>Example SQL</small><code id="example-sql">SELECT row_id FROM workload
+WHERE customer = 7 AND category = 3;</code></div>
         <div class="diagram" aria-hidden="true"><canvas id="blocks"></canvas></div>
         <div class="readout"><div><small>Block accesses</small><strong id="block-value">866</strong></div><div><small>Sample execution time</small><strong id="timing">16.605 ms</strong></div></div>
       </div>

@@ -115,7 +115,7 @@ func TestGoogleHTTPFlowSecurity(t *testing.T) {
 		t.Fatal("cross-site Google start accepted")
 	}
 	path, browser := start("signup", nil)
-	if w := request("GET", path, nil); w.Code != 400 {
+	if w := request("GET", path, nil); w.Code != 303 || w.Header().Get("Location") != "/signin?restart=google" || len(w.Result().Cookies()) != 0 {
 		t.Fatal("unbound callback accepted")
 	}
 	w := request("GET", path, nil, browser)
@@ -134,7 +134,13 @@ func TestGoogleHTTPFlowSecurity(t *testing.T) {
 	if w := request("GET", "/app", nil, session); w.Code != 200 {
 		t.Fatal("Google session cannot open dashboard")
 	}
-	if w := request("GET", path, nil, browser); w.Code != 400 {
+	for _, cookies := range [][]*http.Cookie{{session}, {session, browser}} {
+		back := request("GET", path, nil, cookies...)
+		if back.Code != 303 || back.Header().Get("Location") != "/app" || len(back.Result().Cookies()) != 0 {
+			t.Fatal("revisiting callback must reuse only the existing session")
+		}
+	}
+	if w := request("GET", path, nil, browser); w.Code != 303 || w.Header().Get("Location") != "/signin?restart=google" || len(w.Result().Cookies()) != 0 {
 		t.Fatal("callback replay accepted")
 	}
 	for _, tc := range []struct {

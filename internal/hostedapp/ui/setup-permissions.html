@@ -23,11 +23,11 @@
 
 {{define "supabase-picker"}}{{template "header" .}}
 <main class="setup-layout" id="main">{{template "connect-context"}}<section class="setup-selection">
-  <h2>Choose your project</h2>{{template "error" .}}<p>Review your repair choices before monitoring starts.</p>
+  <h2>Choose your project</h2>{{template "error" .}}<p>Select a database from your connected organization.</p>
   <ul class="picker-list">{{range .SupabaseProjects}}<li>
     <div><strong>{{.Name}}</strong><small>{{.OrganizationName}}</small></div>
     {{if eq .Status "ACTIVE_HEALTHY"}}<form action="/app/supabase/projects" method="post"><input type="hidden" name="draft" value="{{$.Draft}}"><input type="hidden" name="connection" value="{{$.SupabaseConnection}}"><input type="hidden" name="ref" value="{{.Ref}}"><button class="button button-secondary" type="submit">Use {{.Name}} →</button></form>
     {{else}}<span>Unavailable</span>{{end}}</li>
     {{else}}<li>No accessible projects. Check your organization access in Supabase.</li>{{end}}</ul>
-  <form action="/auth/supabase/start" method="post"><input type="hidden" name="draft" value="{{.Draft}}"><button class="button button-quiet" type="submit">Reconnect Supabase</button></form>
+  <form action="/auth/supabase/start" method="post"><input type="hidden" name="draft" value="{{.Draft}}"><button class="button button-quiet" type="submit">Use another organization ↗</button></form>
 </section></main>{{template "footer" .}}{{end}}

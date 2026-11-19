@@ -310,7 +310,7 @@ h2 {
 }
 .monitor {
   display: grid;
-  grid-template-rows: auto minmax(120px, 1fr) auto;
+  grid-template-rows: auto auto minmax(120px, 1fr) auto;
   background: #0a1e20;
   min-width: 0;
 }
@@ -324,6 +324,23 @@ h2 {
 }
 .monitor .label span {
   color: #aac7c5;
+}
+.sql-example {
+  padding: 12px var(--pad);
+  border-bottom: 1px solid #264345;
+}
+.sql-example small {
+  display: block;
+  color: #aac7c5;
+  margin-bottom: 4px;
+}
+.sql-example code {
+  display: block;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: #d2eee9;
+  font-size: clamp(11px, 1vw, 14px);
+  line-height: 1.4;
 }
 .diagram {
   min-height: 150px;
@@ -709,7 +726,10 @@ footer a:last-child {
     border-top: 1px solid var(--line);
     flex: 1;
     min-height: 0;
-    grid-template-rows: auto minmax(72px, 1fr) auto;
+    grid-template-rows: auto auto minmax(72px, 1fr) auto;
+  }
+  .sql-example {
+    padding: 6px var(--pad);
   }
   .diagram {
     min-height: 72px;
@@ -759,5 +779,33 @@ footer a:last-child {
   }
   footer {
     gap: 17px;
+  }
+}
+@media (max-width: 670px) and (max-height: 700px) {
+  .pinned .walk .section-head {
+    position: relative;
+    padding-block: 12px;
+  }
+  .pinned .walk .section-head > a {
+    position: absolute;
+    top: 12px;
+    right: var(--pad);
+    max-width: none;
+  }
+  .pinned .walk h2 {
+    font-size: 25px;
+  }
+  .pinned .steps {
+    height: 174px;
+  }
+}
+@media (min-width: 671px) and (max-height: 700px) {
+  .pinned .story-body {
+    grid-template-rows: minmax(0, 1fr);
+  }
+  .pinned .monitor .label,
+  .pinned .sql-example,
+  .pinned .steps button {
+    padding-block: 8px;
   }
 }

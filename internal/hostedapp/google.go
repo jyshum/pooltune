@@ -124,19 +124,32 @@ func (a *App) googleStart(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, a.google.oauth.AuthCodeURL(flow.State, oauth2.S256ChallengeOption(flow.Verifier), oidc.Nonce(flow.Nonce), oauth2.SetAuthURLParam("prompt", "select_account")), http.StatusSeeOther)
 }
 
+func (a *App) staleGoogleCallback(w http.ResponseWriter, r *http.Request) {
+	if _, err := a.session(r); err == nil {
+		http.Redirect(w, r, "/app", http.StatusSeeOther)
+		return
+	}
+	http.Redirect(w, r, "/signin?restart=google", http.StatusSeeOther)
+}
+
 func (a *App) googleCallback(w http.ResponseWriter, r *http.Request) {
 	if a.google == nil {
 		http.NotFound(w, r)
 		return
 	}
+	w.Header().Set("Referrer-Policy", "no-referrer")
 	cookie, err := r.Cookie(a.cookie + "_google")
 	if err != nil {
-		a.googleFailure(w, 400, "Google sign-in expired or was opened in a different browser. Start again.")
+		a.staleGoogleCallback(w, r)
 		return
 	}
 	flow, err := a.accounts.ConsumeGoogleFlow(r.Context(), r.URL.Query().Get("state"), cookie.Value)
+	if errors.Is(err, auth.ErrInvalidCredentials) {
+		a.staleGoogleCallback(w, r)
+		return
+	}
 	if err != nil {
-		a.googleFailure(w, 400, "Google sign-in expired or was already used. Start again.")
+		a.googleFailure(w, 503, "Sign-in is temporarily unavailable. Try again.")
 		return
 	}
 	a.googleCookie(w, "", -1)
