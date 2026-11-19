@@ -197,11 +197,9 @@
     const alpha = 0.22 + f * 0.38 + blend * 0.31;
     return "rgba(" + rgb.join(",") + "," + alpha + ")";
   });
-  const warmSwells = ["#ff6452", "#ff8e54", "#ffb36e"];
   surface(document.querySelector("#swells"), (ctx, w, h, t) => {
     ctx.clearRect(0, 0, w, h);
     const paths = swellShades.map(() => new Path2D());
-    const warmPaths = warmSwells.map(() => new Path2D());
     for (let y = 5.5; y < h; y += 11) {
       for (let x = 5.5; x < w; x += 11) {
         const a = Math.sin(x * 0.014 + y * 0.006 - t * 0.8);
@@ -212,14 +210,7 @@
         const crest = Math.min(1, (a * 0.5 + b * 0.3 + c * 0.2) / 0.84);
         if (crest <= 0) continue;
         const size = 3 + 2 * crest;
-        let path = paths[Math.round(crest * 13)];
-        if (crest > 0.77) {
-          // This second field colors a few crest tips without adding any dots.
-          const heat = Math.sin(x * 0.025 - y * 0.031 + t * 0.35);
-          if (heat > 0.84) {
-            path = warmPaths[Math.min(2, Math.floor((heat - 0.84) / 0.055))];
-          }
-        }
+        const path = paths[Math.round(crest * 13)];
         path.rect(
           x - size / 2,
           y - size / 2,
@@ -232,10 +223,28 @@
       ctx.fillStyle = swellShades[i];
       ctx.fill(path);
     });
-    warmPaths.forEach((path, i) => {
-      ctx.fillStyle = warmSwells[i];
-      ctx.fill(path);
-    });
+    // Tint only the existing dots. Each small circle follows a crest of the first swell.
+    const radius = 34;
+    const wavelength = (2 * Math.PI) / 0.014;
+    ctx.save();
+    ctx.globalCompositeOperation = "source-atop";
+    for (let row = 0; row * 255 < h; row++) {
+      const cy = row * 255 + 70 + 24 * Math.sin(t * 0.22 + row);
+      const peakX = (Math.PI / 2 - cy * 0.006 + t * 0.8) / 0.014;
+      const firstX = ((peakX + radius) % wavelength + wavelength) % wavelength - radius;
+      for (let cx = firstX; cx - radius < w; cx += wavelength) {
+        const secondSwell = Math.sin(-cx * 0.005 + cy * 0.017 - t * 0.55 + 1.3);
+        ctx.globalAlpha = Math.max(0, secondSwell);
+        if (!ctx.globalAlpha) continue;
+        const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
+        glow.addColorStop(0, "#ffb36e");
+        glow.addColorStop(0.45, "#ff7158");
+        glow.addColorStop(1, "rgba(255,100,82,0)");
+        ctx.fillStyle = glow;
+        ctx.fillRect(cx - radius, cy - radius, radius * 2, radius * 2);
+      }
+    }
+    ctx.restore();
   });
 
   // Each entry represents one square along the illustrative index path.
