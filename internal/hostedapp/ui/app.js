@@ -37,3 +37,25 @@ if (selectAll) {
   updateSelectAll();
   selectAll.closest("label").hidden = false;
 }
+
+const passwordToggle = document.getElementById("password-toggle");
+if (passwordToggle) {
+  const input = document.getElementById("password");
+  passwordToggle.hidden = false;
+  passwordToggle.addEventListener("click", () => {
+    const visible = input.type === "password";
+    input.type = visible ? "text" : "password";
+    passwordToggle.textContent = visible ? "Hide" : "Show";
+    passwordToggle.setAttribute("aria-label", visible ? "Hide password" : "Show password");
+  });
+}
+
+const googleCode = document.getElementById("google-code");
+if (googleCode) {
+  const invite = document.getElementById("invite");
+  googleCode.disabled = false;
+  googleCode.form.addEventListener("submit", event => {
+    if (!invite.reportValidity()) event.preventDefault();
+    googleCode.value = invite.value;
+  });
+}

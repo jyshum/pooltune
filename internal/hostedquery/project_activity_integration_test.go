@@ -613,3 +613,30 @@ func TestProjectActivitySeparatesCleanupSettingFromActualAutomaticCleanup(t *tes
 		}
 	}
 }
+
+func TestActivityPagesKeepHourlyTotalsAndScope(t *testing.T) {
+	ctx, state, _ := projectActivityTestState(t)
+	const project = "example/retained-history"
+	if _, err := state.Exec(ctx, `INSERT INTO pooltune_worker.projects(project_id,monitor_epoch) VALUES($1,1)`, project); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := state.Exec(ctx, `INSERT INTO pooltune_worker.investigations(project_id,database_oid,role_oid,query_id,created_at,finished_at,evidence)
+		SELECT $1,1,1,n,now()-n*interval '1 second',now(),'{}'::jsonb FROM generate_series(1,215)n`, project); err != nil {
+		t.Fatal(err)
+	}
+	first, err := ReadProjectActivity(ctx, state, project, time.Now().Add(-24*time.Hour), 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var total int64
+	for _, n := range first.HourlyJobs {
+		total += n
+	}
+	if total != 215 || len(first.Jobs) != 41 {
+		t.Fatalf("total=%d rows=%d", total, len(first.Jobs))
+	}
+	next, err := ReadProjectActivity(ctx, state, project, time.Now().Add(-24*time.Hour), first.Jobs[39].ID)
+	if err != nil || len(next.Jobs) != 41 || next.Jobs[0].ID != first.Jobs[40].ID {
+		t.Fatalf("unexpected history continuation: %v", err)
+	}
+}

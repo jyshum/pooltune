@@ -166,8 +166,14 @@ func TestSupabaseOAuthBindingPickerAndRefresh(t *testing.T) {
 		app.ServeHTTP(w, r)
 		return w
 	}
+	draftPage := request("POST", "/app/setup", session, nil, url.Values{"capability": {"index"}})
+	draftURL, err := url.Parse(draftPage.Header().Get("Location"))
+	if err != nil || draftPage.Code != 303 || draftURL.Query().Get("draft") == "" {
+		t.Fatal("could not create setup draft")
+	}
+	draft := draftURL.Query().Get("draft")
 	start := func() (string, *http.Cookie) {
-		w := request("POST", "/auth/supabase/start", session, nil, nil)
+		w := request("POST", "/auth/supabase/start", session, nil, url.Values{"draft": {draft}})
 		if w.Code != 303 {
 			t.Fatalf("start %d %s", w.Code, w.Body.String())
 		}
@@ -180,6 +186,10 @@ func TestSupabaseOAuthBindingPickerAndRefresh(t *testing.T) {
 		return q.Get("state"), w.Result().Cookies()[0]
 	}
 	s, c := start()
+	_, secondTab := start()
+	if c.Name == secondTab.Name {
+		t.Fatal("starting another setup replaced the first tab's browser binding")
+	}
 	if w := request("GET", "/auth/supabase/callback?code=code&state="+s, other, c, nil); w.Code == 303 {
 		t.Fatal("account swap accepted")
 	}
@@ -222,6 +232,9 @@ func TestSupabaseOAuthBindingPickerAndRefresh(t *testing.T) {
 		t.Fatalf("picker %d %s", w.Code, w.Body.String())
 	}
 	u, _ := url.Parse(picker)
+	if u.Query().Get("draft") != draft || !strings.Contains(w.Body.String(), draft) {
+		t.Fatal("Supabase authorization lost the repair draft")
+	}
 	connection := u.Query().Get("connection")
 	if w := request("POST", "/app/supabase/projects", other, nil, url.Values{"connection": {connection}, "ref": {"abcdefghijklmnopqrst"}}); w.Code == 303 {
 		t.Fatal("cross-owner connection accepted")
@@ -229,12 +242,15 @@ func TestSupabaseOAuthBindingPickerAndRefresh(t *testing.T) {
 	if w := request("POST", "/app/supabase/projects", session, nil, url.Values{"connection": {connection}, "ref": {"zzzzzzzzzzzzzzzzzzzz"}}); w.Code == 303 {
 		t.Fatal("unauthorized project accepted")
 	}
-	w = request("POST", "/app/supabase/projects", session, nil, url.Values{"connection": {connection}, "ref": {"abcdefghijklmnopqrst"}, "name": {"forged"}, "host": {"evil.example"}})
+	w = request("POST", "/app/supabase/projects", session, nil, url.Values{"connection": {connection}, "ref": {"abcdefghijklmnopqrst"}, "draft": {draft}, "name": {"forged"}, "host": {"evil.example"}})
 	if w.Code != 303 {
 		t.Fatalf("select %d %s", w.Code, w.Body.String())
 	}
 	projectPath := w.Header().Get("Location")
 	w = request("GET", projectPath, session, nil, nil)
+	if !strings.Contains(w.Body.String(), `aria-describedby="capability-index-help" checked`) {
+		t.Fatal("project review lost selected repair")
+	}
 	for _, field := range []string{`name="setup_token"`, `name="ca"`, `name="repair_password"`, `name="ref"`} {
 		if strings.Contains(w.Body.String(), field) {
 			t.Fatalf("normal setup exposes %s", field)

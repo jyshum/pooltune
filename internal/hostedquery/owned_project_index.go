@@ -65,7 +65,10 @@ const projectIndexIntentSchema = `
 		intent jsonb NOT NULL,
 		outcome text NOT NULL DEFAULT 'pending',
 		recorded_at timestamptz NOT NULL DEFAULT statement_timestamp()
-	);`
+    );
+    ALTER TABLE pooltune_worker.owned_index_actions
+        ADD COLUMN IF NOT EXISTS customer_revert_xid text,
+        ADD COLUMN IF NOT EXISTS customer_reverted_at timestamptz;`
 
 func (f *OwnedProjectIndex) matchesClaim(project supabaseproject.Project, claim investigationClaim) bool {
 	return f.Matches(project) && claim.Database == f.Target.DatabaseOID &&

@@ -30,7 +30,7 @@ func TestOAuthFormActionAllowsOnlyEnabledProviderDestinations(t *testing.T) {
 			}
 			response := httptest.NewRecorder()
 			app.ServeHTTP(response, httptest.NewRequest(http.MethodGet, origin+"/signin", nil))
-			want := "default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action " + tc.destinations + "; frame-ancestors 'none'"
+			want := "default-src 'none'; style-src 'self'; font-src 'self'; script-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action " + tc.destinations + "; frame-ancestors 'none'"
 			if got := response.Header().Get("Content-Security-Policy"); got != want {
 				t.Fatalf("CSP=%q, want %q", got, want)
 			}

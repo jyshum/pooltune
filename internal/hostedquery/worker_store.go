@@ -94,7 +94,9 @@ func PrepareWorkerState(ctx context.Context, state *pgx.Conn) error {
 				last_poll timestamptz,
 				evidence jsonb NOT NULL DEFAULT '{}'
 			);
-			ALTER TABLE pooltune_worker.projects ADD COLUMN IF NOT EXISTS monitor_epoch bigint;
+			ALTER TABLE pooltune_worker.projects ADD COLUMN IF NOT EXISTS monitor_epoch bigint,
+                ADD COLUMN IF NOT EXISTS agent_paused boolean NOT NULL DEFAULT false,
+                ADD COLUMN IF NOT EXISTS last_disconnected_at timestamptz;
 			CREATE TABLE IF NOT EXISTS pooltune_worker.investigations (
 				id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 				project_id text NOT NULL,
@@ -144,24 +146,25 @@ func recordProjectPoll(ctx context.Context, state *pgx.Conn, project string, pol
 		var last *time.Time
 		var raw []byte
 		var registered *int64
-		lockProject := "SELECT last_poll, evidence, monitor_epoch FROM pooltune_worker.projects WHERE project_id=$1 FOR UPDATE"
+		var paused bool
+		lockProject := "SELECT last_poll, evidence, monitor_epoch, agent_paused FROM pooltune_worker.projects WHERE project_id=$1 FOR UPDATE"
 		if managed {
 			lockProject += " SKIP LOCKED"
 		}
-		err := tx.QueryRow(ctx, lockProject, project).Scan(&last, &raw, &registered)
+		err := tx.QueryRow(ctx, lockProject, project).Scan(&last, &raw, &registered, &paused)
 		if managed && errors.Is(err, pgx.ErrNoRows) {
 			// An active repair holds this row to fence pause and disconnect.
 			// Skip this sample without stopping the worker that owns the repair.
-			if err := tx.QueryRow(ctx, `SELECT monitor_epoch FROM pooltune_worker.projects WHERE project_id=$1`, project).Scan(&registered); err != nil && !errors.Is(err, pgx.ErrNoRows) {
+			if err := tx.QueryRow(ctx, `SELECT monitor_epoch, agent_paused FROM pooltune_worker.projects WHERE project_id=$1`, project).Scan(&registered, &paused); err != nil && !errors.Is(err, pgx.ErrNoRows) {
 				return err
 			}
-			if registered == nil || *registered != epoch {
+			if paused || registered == nil || *registered != epoch {
 				return ErrProjectDisconnected
 			}
 			result.Skipped = true
 			return nil
 		}
-		if managed && err == nil && (registered == nil || *registered != epoch) {
+		if managed && err == nil && (paused || registered == nil || *registered != epoch) {
 			return ErrProjectDisconnected
 		}
 		if err != nil {

@@ -42,7 +42,7 @@ func TestApplyProjectIndexKeepsAppWritesAndJournalsExactIntent(t *testing.T) {
 	}
 	name := fmt.Sprintf("pooltune_ix_%d_4_2", target.TableOID)
 	key1, key2 := ProjectIndexKey{Number: 4, Name: `User "ID"`}, ProjectIndexKey{Number: 2, Name: "issued"}
-	evidence := IndexEvidence{RunID: "owned-test", TableOID: target.TableOID, Column: 4, Columns: []int16{4, 2}, Decision: Investigate,
+	evidence := IndexEvidence{RunID: "managed-index-9-1", TableOID: target.TableOID, Column: 4, Columns: []int16{4, 2}, Decision: Investigate,
 		Plan: PlanEvidence{Node: "Seq Scan", ExaminedRows: 50_000, ReturnedRows: 1}}
 	proposal := ScriptedInvestigator
 	deny := errors.New("denied by test guard")
@@ -192,7 +192,7 @@ func TestApplyProjectIndexKeepsAppWritesAndJournalsExactIntent(t *testing.T) {
 		t.Fatal(err)
 	}
 	result, runErr := <-resultReady, <-completed
-	if runErr != nil || !result.WriteAttempted || result.IndexOID == 0 || result.IndexBytes <= 0 || !slices.Equal(checks, []string{"permission", "capacity", "journal", "permission"}) {
+	if runErr != nil || !result.WriteAttempted || result.IndexOID == 0 || len(result.IndexVersion) != 64 || result.IndexBytes <= 0 || !slices.Equal(checks, []string{"permission", "capacity", "journal", "permission"}) {
 		t.Fatalf("invalid index result: %+v checks=%v error=%v", result, checks, runErr)
 	}
 	var definition string

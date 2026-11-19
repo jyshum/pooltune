@@ -11,7 +11,7 @@ import (
 )
 
 func TestProjectActivityRendersRecordedRepairAndProposalSeparately(t *testing.T) {
-	page := Page{Project: ProjectView{ID: "test", Status: "Monitoring"}}
+	page := Page{Project: ProjectView{ID: "test", Section: "changes", Status: "Monitoring"}}
 	populateActivity(&page.Project, hostedquery.ProjectActivity{Jobs: []hostedquery.ProjectJob{
 		{ID: 1, Outcome: "improved_tested_inputs", Repair: &hostedquery.ProjectRepair{
 			Kind: "index", Action: "recorded", Metrics: []hostedquery.ProjectRepairMetric{

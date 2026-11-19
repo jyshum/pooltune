@@ -1,0 +1,56 @@
+{{define "project"}}{{template "header" .}}{{$p := .Project}}
+<main class="project-layout" id="main">
+  <aside class="project-rail">
+    <a class="back-link" href="/app?view=projects">← All projects</a>
+    <nav aria-label="Project sections">
+      <a href="/app/projects/{{$p.ID}}" {{if eq $p.Section "overview"}}aria-current="page"{{end}}><span aria-hidden="true">▦</span> Overview</a>
+      <a href="/app/projects/{{$p.ID}}?section=queries" {{if eq $p.Section "queries"}}aria-current="page"{{end}}><span aria-hidden="true">≋</span> Query activity</a>
+      <a href="/app/projects/{{$p.ID}}?section=changes" {{if eq $p.Section "changes"}}aria-current="page"{{end}}><span aria-hidden="true">⑂</span> Change history</a>
+      <a href="/app/projects/{{$p.ID}}?section=permissions" {{if eq $p.Section "permissions"}}aria-current="page"{{end}}><span aria-hidden="true">☑</span> Permissions</a>
+      <a href="/app/projects/{{$p.ID}}?section=connection" {{if eq $p.Section "connection"}}aria-current="page"{{end}}><span aria-hidden="true">⇄</span> Connection</a>
+    </nav>
+  </aside>
+  <div class="project-body">
+    <header class="project-heading"><div><div class="micro">Supabase project</div><h1>{{$p.Name}}</h1></div>
+      {{if gt $p.Epoch 0}}<div class="actions">
+        {{if not (or $p.SupabaseBlocked $p.DisconnectPending)}}<form action="/app/projects/{{$p.ID}}/agent-mode" method="post">
+          <input type="hidden" name="epoch" value="{{$p.Epoch}}">
+          {{if $p.AgentPaused}}<button class="button button-primary" name="mode" value="resume">Resume agent</button>{{else}}<button class="button button-secondary" name="mode" value="pause">Pause agent</button>{{end}}</form>{{end}}
+        <a class="button button-quiet danger" href="/app/projects/{{$p.ID}}?section=connection#disconnect">Disconnect</a>
+      </div>{{end}}
+    </header>{{template "error" .}}
+    {{if eq $p.Section "queries"}}
+      {{template "query-windows" $p}}
+    {{else if eq $p.Section "changes"}}
+      {{template "change-history" $p}}
+      {{if $p.OlderRunsAfter}}<a class="button button-secondary" href="/app/projects/{{$p.ID}}?section=changes&amp;before={{$p.OlderRunsAfter}}">Older runs →</a>{{end}}
+      <a class="download-link" href="/app/projects/{{$p.ID}}/activity">Download recent activity ↓</a>
+    {{else if eq $p.Section "permissions"}}
+      {{if and (gt $p.Epoch 0) (not $p.SupabaseBlocked)}}{{template "repair-permissions" $p}}{{else}}{{template "pending-setup" $p}}{{end}}
+    {{else if eq $p.Section "connection"}}
+      {{if $p.SupabaseBlocked}}{{template "pending-setup" $p}}{{end}}
+      {{if gt $p.Epoch 0}}
+        <section class="panel settings-panel"><h2>Database connection</h2><dl class="record-facts"><div><dt>Project reference</dt><dd><code>{{$p.Ref}}</code></dd></div><div><dt>Monitor role</dt><dd><code>{{$p.Role}}</code></dd></div></dl></section>
+        {{template "token-settings" $p}}
+        <section class="panel settings-panel" id="disconnect"><h2>Disconnect this database?</h2><p>Pooltune will stop monitoring this project. Its saved activity stays in your workspace.</p><form action="/app/projects/{{$p.ID}}/disconnect" method="post"><input type="hidden" name="epoch" value="{{$p.Epoch}}"><button class="button button-secondary danger" type="submit">Disconnect database</button></form></section>
+      {{else if not $p.SupabaseBlocked}}{{template "pending-setup" $p}}{{end}}
+    {{else}}
+      {{if or $p.QuickStart $p.SupabaseBlocked}}{{template "pending-setup" $p}}{{else}}
+        <div class="overview-board"><section class="overview-facts"><div class="micro">Project overview</div>
+          <h2>{{if $p.AgentPaused}}Agent paused{{else}}{{$p.Status}}{{end}}</h2>
+          <dl><div><dt>Last monitor check</dt><dd>{{if $p.LastPoll}}{{$p.LastPoll}}{{else}}Waiting for first check{{end}}</dd></div>
+          <div><dt>Repair permissions</dt><dd><a href="/app/projects/{{$p.ID}}?section=permissions">{{$p.Allowed}} of 6 enabled ↗</a></dd></div>
+          <div><dt>Repair activity</dt><dd>{{if $p.AgentPaused}}Agent paused{{else if $p.RepairsPaused}}Repairs paused{{else if $p.RepairsSelected}}Checking eligible workloads{{else}}Monitoring only{{end}}</dd></div></dl>
+        </section><div class="connection-map"><div class="map-node"><span class="node-symbol">{{template "logo-supabase"}}</span><span><strong>{{$p.Name}}</strong><small>Supabase database</small></span></div><div class="map-line"></div><div class="map-node"><span class="node-symbol">{{template "workspace-signal"}}</span><span><strong>Pooltune agent</strong><small>{{if $p.AgentPaused}}Paused{{else}}{{$p.Status}}{{end}}</small></span></div></div></div>
+        <section class="metrics"><div class="metrics-head"><h2>Workload activity</h2><span>Last 24 hours · UTC</span></div>
+          <div class="metric-grid">{{range $p.Charts}}<article><h3>{{.Label}}</h3><strong>{{.Total}}</strong>
+            <svg viewBox="0 0 240 66" preserveAspectRatio="none" role="img" aria-label="{{.Label}} per hour, total {{.Total}}"><path d="M0 64.5H240" stroke="currentColor" opacity=".3"/>{{range .Bars}}<rect x="{{.X}}" y="{{.Y}}" width="7" height="{{.Height}}" fill="currentColor"><title>{{.Label}}</title></rect>{{end}}</svg>
+            {{if .Note}}<small>{{.Note}}</small>{{end}}</article>{{end}}</div></section>
+        {{if $p.Runs}}<a class="latest-run" href="/app/projects/{{$p.ID}}?section=changes"><span>Latest investigation</span>{{with index $p.Runs 0}}<strong>{{.Outcome}}</strong>{{end}}<span aria-hidden="true">→</span></a>{{end}}
+      {{end}}
+    {{end}}
+    {{if eq $p.Section "connection"}}{{template "poll-history" $p}}{{end}}
+  </div>
+</main>{{template "footer" .}}{{end}}
+
+{{define "workspace-signal"}}<svg width="22" height="22" viewBox="0 0 22 22" fill="currentColor" aria-hidden="true"><path d="M2 13h4v6H2zm7-10h4v16H9zm7 6h4v10h-4z"/></svg>{{end}}

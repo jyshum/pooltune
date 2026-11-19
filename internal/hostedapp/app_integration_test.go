@@ -82,7 +82,24 @@ func TestAccountDashboardAndProjectOwnership(t *testing.T) {
 	if w := request(http.MethodPost, "/app/projects/new", nil, owner, "https://another.example.com"); w.Code != 403 {
 		t.Fatal("cross-site project write accepted")
 	}
+	firstPage := request(http.MethodGet, "/app", nil, owner, "")
+	if firstPage.Code != 200 || strings.Count(firstPage.Body.String(), `name="capability"`) != len(projectCapabilities) {
+		t.Fatal("a new workspace did not open the six repair choices")
+	}
+	draftPage := request(http.MethodPost, "/app/setup", url.Values{"capability": {"index", "cron"}}, owner, origin)
+	draftURL, err := url.Parse(draftPage.Header().Get("Location"))
+	if err != nil || draftPage.Code != 303 || draftURL.Path != "/app/projects/new" || draftURL.Query().Get("draft") == "" {
+		t.Fatal("could not continue to connect a database")
+	}
 	values := url.Values{"name": {"Rookery fixture"}, "ref": {"abcdefghijklmnopqrst"}}
+	// A second tab chooses a different set before the first tab selects its project.
+	if w := request(http.MethodPost, "/app/setup", url.Values{"capability": {"memory"}}, owner, origin); w.Code != 303 {
+		t.Fatal("could not start a second setup")
+	}
+	values.Set("draft", draftURL.Query().Get("draft"))
+	if w := request(http.MethodPost, "/app/projects/new", values, other, origin); w.Code != 400 {
+		t.Fatal("another account reused the setup draft")
+	}
 	created := request(http.MethodPost, "/app/projects/new", values, owner, origin)
 	if created.Code != 303 {
 		t.Fatalf("create project returned %d", created.Code)
@@ -100,6 +117,11 @@ func TestAccountDashboardAndProjectOwnership(t *testing.T) {
 	setupPage := request(http.MethodGet, projectPath, nil, owner, "")
 	if setupPage.Code != 200 || !strings.Contains(setupPage.Body.String(), "CREATE ROLE pt_monitor_") {
 		t.Fatal("owner setup did not render generated SQL")
+	}
+	for _, capability := range []string{"index", "cron"} {
+		if !strings.Contains(setupPage.Body.String(), `aria-describedby="capability-`+capability+`-help" checked`) {
+			t.Errorf("project lost draft permission %s", capability)
+		}
 	}
 	for _, requirement := range []string{"Requires table-owner access", "direct MAINTAIN grant", "Requires function-owner access", "Requires job-owner access and an approved schedule window"} {
 		if !strings.Contains(setupPage.Body.String(), requirement) {
@@ -140,7 +162,7 @@ func TestAccountDashboardAndProjectOwnership(t *testing.T) {
 	if err != nil || row.Epoch <= 0 {
 		t.Fatalf("activation did not persist: %v", err)
 	}
-	monitorOnlyPage := request(http.MethodGet, projectPath, nil, owner, "")
+	monitorOnlyPage := request(http.MethodGet, projectPath+"?section=permissions", nil, owner, "")
 	if monitorOnlyPage.Code != 200 || !strings.Contains(monitorOnlyPage.Body.String(), "Connect repair access") || strings.Contains(monitorOnlyPage.Body.String(), "Create worker key") {
 		t.Fatal("automatic monitoring-only connection did not explain the managed credential route")
 	}
@@ -208,7 +230,7 @@ func TestAccountDashboardAndProjectOwnership(t *testing.T) {
 	if w := workerRequest(http.MethodPost, apiPath, key, report(row.Epoch, "analyze")); w.Code != 204 {
 		t.Fatalf("worker could not submit valid permission report: %d", w.Code)
 	}
-	if w := request(http.MethodGet, projectPath, nil, owner, ""); w.Code != 200 ||
+	if w := request(http.MethodGet, projectPath+"?section=permissions", nil, owner, ""); w.Code != 200 ||
 		!strings.Contains(w.Body.String(), "Database access reported") || strings.Contains(w.Body.String(), key) {
 		t.Fatal("the dashboard did not show the report privately")
 	}
@@ -259,11 +281,18 @@ func TestAccountDashboardAndProjectOwnership(t *testing.T) {
 		t.Fatal("owner revocation did not stop the worker")
 	}
 	linked := issueKey()
-	if w := request(http.MethodPost, projectPath+"/disconnect", nil, owner, origin); w.Code != 303 {
+	if w := request(http.MethodPost, projectPath+"/disconnect", nil, owner, origin); w.Code != 409 {
+		t.Fatalf("disconnect without a confirmation epoch returned %d", w.Code)
+	}
+	confirmed := url.Values{"epoch": {fmt.Sprint(policy.Epoch)}}
+	if w := request(http.MethodPost, projectPath+"/disconnect", confirmed, owner, origin); w.Code != 303 {
 		t.Fatalf("disconnect returned %d", w.Code)
 	}
 	if stopped, err := app.projects.find(ctx, ownerUser.ID, projectID); err != nil || stopped.Configured || stopped.Epoch >= 0 {
 		t.Fatalf("disconnect kept the credentials or an active epoch: %v", err)
+	}
+	if w := request(http.MethodPost, projectPath+"/disconnect", confirmed, owner, origin); w.Code != 303 {
+		t.Fatalf("disconnect retry returned %d", w.Code)
 	}
 	if w := workerRequest(http.MethodGet, apiPath, linked, ""); w.Code != 401 {
 		t.Fatalf("disconnect preserved the worker key: %d", w.Code)

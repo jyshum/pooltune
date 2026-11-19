@@ -1,0 +1,33 @@
+{{define "setup-permissions"}}{{template "header" .}}
+<main class="setup-layout" id="main"><div class="setup-context">
+<a class="back-link" href="/app?view=projects">← All projects</a>
+<h1>Set up your<br>workspace.</h1>
+<ol class="setup-stages"><li aria-current="step">Repair permissions</li><li>Connect a database</li><li>Review and start</li></ol>
+</div><section class="setup-selection"><h2>What can Pooltune change?</h2><p>Choose the repairs you want to allow for this database. Leave every box clear for monitoring only.</p>
+<form method="post" action="/app/setup" class="fields"><div class="choice-list">
+{{range .Capabilities}}<label class="capability-option"><input type="checkbox" name="capability" value="{{.Key}}" {{if .Selected}}checked{{end}}><span><strong>{{.Label}}</strong><span class="help">{{.Description}}</span></span></label>{{end}}</div>
+<div class="setup-next"><span>You can edit these choices later.</span><button class="button button-primary" type="submit">Continue to database <span aria-hidden="true">→</span></button></div>
+</form></section></main>{{template "footer" .}}{{end}}
+
+{{define "connect-context"}}<div class="setup-context"><a class="back-link" href="/app?view=projects">← All projects</a>
+<h1>Connect a<br>database.</h1><ol class="setup-stages"><li><a href="/app/setup">Repair permissions</a></li><li aria-current="step">Connect a database</li><li>Review and start</li></ol></div>{{end}}
+
+{{define "supabase-connect"}}{{template "header" .}}
+<main class="setup-layout" id="main">{{template "connect-context"}}<section class="setup-selection">
+  <div class="provider-icon">{{template "logo-supabase"}}</div>
+  <h2>Connect Supabase</h2>{{template "error" .}}
+  <p>Authorize your organization in Supabase, then pick the database you want Pooltune to monitor.</p>
+  <form action="/auth/supabase/start" method="post"><input type="hidden" name="draft" value="{{.Draft}}"><button class="button button-primary" type="submit">Connect Supabase ↗</button></form>
+  <a class="download-link" href="/app/projects/manual?draft={{.Draft}}">Advanced manual connection</a>
+</section></main>{{template "footer" .}}{{end}}
+
+{{define "supabase-picker"}}{{template "header" .}}
+<main class="setup-layout" id="main">{{template "connect-context"}}<section class="setup-selection">
+  <h2>Choose your project</h2>{{template "error" .}}<p>Review your repair choices before monitoring starts.</p>
+  <ul class="picker-list">{{range .SupabaseProjects}}<li>
+    <div><strong>{{.Name}}</strong><small>{{.OrganizationName}}</small></div>
+    {{if eq .Status "ACTIVE_HEALTHY"}}<form action="/app/supabase/projects" method="post"><input type="hidden" name="draft" value="{{$.Draft}}"><input type="hidden" name="connection" value="{{$.SupabaseConnection}}"><input type="hidden" name="ref" value="{{.Ref}}"><button class="button button-secondary" type="submit">Use {{.Name}} →</button></form>
+    {{else}}<span>Unavailable</span>{{end}}</li>
+    {{else}}<li>No accessible projects. Check your organization access in Supabase.</li>{{end}}</ul>
+  <form action="/auth/supabase/start" method="post"><input type="hidden" name="draft" value="{{.Draft}}"><button class="button button-quiet" type="submit">Reconnect Supabase</button></form>
+</section></main>{{template "footer" .}}{{end}}

@@ -34,6 +34,7 @@ type projectRecord struct {
 	Owner, Epoch                    int64
 	Configured                      bool
 	SupabaseBlocked                 bool
+	AgentPaused                     bool
 	Secret                          []byte
 }
 
@@ -104,6 +105,8 @@ func (s projectStore) prepare(ctx context.Context) error {
 				CHECK ((secret IS NOT NULL) = (epoch > 0))
 			);
 			ALTER TABLE pooltune_app.projects ADD COLUMN IF NOT EXISTS pending_setup bytea;
+            ALTER TABLE pooltune_app.projects ADD COLUMN IF NOT EXISTS agent_paused boolean NOT NULL DEFAULT false;
+            ALTER TABLE pooltune_app.projects ADD COLUMN IF NOT EXISTS pause_cleanup boolean NOT NULL DEFAULT false;
 			CREATE TABLE IF NOT EXISTS pooltune_app.repair_worker_links (
 				project_id text PRIMARY KEY REFERENCES pooltune_app.projects(id) ON DELETE CASCADE,
 				token_digest bytea NOT NULL CHECK (octet_length(token_digest)=32),
@@ -121,7 +124,7 @@ func (s projectStore) prepare(ctx context.Context) error {
 	})
 }
 
-func (s projectStore) create(ctx context.Context, owner int64, name, ref string) (id string, err error) {
+func (s projectStore) create(ctx context.Context, owner int64, name, ref string, choices ...string) (id string, err error) {
 	name, ref = strings.TrimSpace(name), strings.TrimSpace(ref)
 	var token [8]byte
 	if _, err := rand.Read(token[:]); err != nil {
@@ -145,18 +148,18 @@ func (s projectStore) create(ctx context.Context, owner int64, name, ref string)
 		if count >= maxActiveProjects {
 			return errProjectCapacity
 		}
-		_, err := tx.Exec(ctx, `INSERT INTO pooltune_app.projects(id,ref,name,owner_id) VALUES ($1,$2,$3,$4)`, id, ref, name, owner)
+		_, err := tx.Exec(ctx, `INSERT INTO pooltune_app.projects(id,ref,name,owner_id,setup_capabilities) VALUES($1,$2,$3,$4,$5)`, id, ref, name, owner, append([]string{}, choices...))
 		return err
 	})
 	return id, err
 }
 
-const publicProjectColumns = `id, ref, name, owner_id, epoch, secret IS NOT NULL, coalesce(supabase_connection,''), supabase_org, supabase_blocked`
+const publicProjectColumns = `id, ref, name, owner_id, epoch, secret IS NOT NULL, coalesce(supabase_connection,''), supabase_org, supabase_blocked, agent_paused`
 
 func (s projectStore) find(ctx context.Context, owner int64, id string) (projectRecord, error) {
 	var project projectRecord
 	err := s.db.QueryRow(ctx, `SELECT `+publicProjectColumns+`, secret FROM pooltune_app.projects WHERE owner_id=$1 AND id=$2`, owner, id).
-		Scan(&project.ID, &project.Ref, &project.Name, &project.Owner, &project.Epoch, &project.Configured, &project.SupabaseConnection, &project.SupabaseOrg, &project.SupabaseBlocked, &project.Secret)
+		Scan(&project.ID, &project.Ref, &project.Name, &project.Owner, &project.Epoch, &project.Configured, &project.SupabaseConnection, &project.SupabaseOrg, &project.SupabaseBlocked, &project.AgentPaused, &project.Secret)
 	return project, err
 }
 
@@ -169,7 +172,7 @@ func (s projectStore) list(ctx context.Context, owner int64) ([]projectRecord, e
 	var projects []projectRecord
 	for rows.Next() {
 		var p projectRecord
-		if err := rows.Scan(&p.ID, &p.Ref, &p.Name, &p.Owner, &p.Epoch, &p.Configured, &p.SupabaseConnection, &p.SupabaseOrg, &p.SupabaseBlocked); err != nil {
+		if err := rows.Scan(&p.ID, &p.Ref, &p.Name, &p.Owner, &p.Epoch, &p.Configured, &p.SupabaseConnection, &p.SupabaseOrg, &p.SupabaseBlocked, &p.AgentPaused); err != nil {
 			return nil, err
 		}
 		projects = append(projects, p)
@@ -178,7 +181,7 @@ func (s projectStore) list(ctx context.Context, owner int64) ([]projectRecord, e
 }
 
 func (s projectStore) active(ctx context.Context) ([]projectRecord, error) {
-	rows, err := s.db.Query(ctx, `SELECT id, ref, name, owner_id, epoch, secret, coalesce(supabase_connection,''), supabase_org, supabase_blocked FROM pooltune_app.projects WHERE epoch>0 AND NOT supabase_blocked ORDER BY created_at,id LIMIT $1`, maxActiveProjects)
+	rows, err := s.db.Query(ctx, `SELECT id, ref, name, owner_id, epoch, secret, coalesce(supabase_connection,''), supabase_org, supabase_blocked, agent_paused FROM pooltune_app.projects WHERE epoch>0 AND NOT supabase_blocked AND (NOT agent_paused OR pause_cleanup) ORDER BY created_at,id LIMIT $1`, maxActiveProjects)
 	if err != nil {
 		return nil, err
 	}
@@ -186,7 +189,7 @@ func (s projectStore) active(ctx context.Context) ([]projectRecord, error) {
 	var projects []projectRecord
 	for rows.Next() {
 		var p projectRecord
-		if err := rows.Scan(&p.ID, &p.Ref, &p.Name, &p.Owner, &p.Epoch, &p.Secret, &p.SupabaseConnection, &p.SupabaseOrg, &p.SupabaseBlocked); err != nil {
+		if err := rows.Scan(&p.ID, &p.Ref, &p.Name, &p.Owner, &p.Epoch, &p.Secret, &p.SupabaseConnection, &p.SupabaseOrg, &p.SupabaseBlocked, &p.AgentPaused); err != nil {
 			return nil, err
 		}
 		projects = append(projects, p)
@@ -248,6 +251,9 @@ func (s projectStore) disconnect(ctx context.Context, project projectRecord) err
 		if err := tx.QueryRow(ctx, `SELECT epoch FROM pooltune_app.projects WHERE owner_id=$1 AND id=$2 FOR UPDATE`, project.Owner, project.ID).Scan(&epoch); err != nil {
 			return err
 		}
+		if epoch != project.Epoch {
+			return hostedquery.ErrProjectDisconnected
+		}
 		if epoch <= 0 {
 			_, err := tx.Exec(ctx, `UPDATE pooltune_app.projects SET pending_setup=NULL WHERE owner_id=$1 AND id=$2`, project.Owner, project.ID)
 			return err
@@ -258,7 +264,7 @@ func (s projectStore) disconnect(ctx context.Context, project projectRecord) err
 		if _, err := tx.Exec(ctx, `DELETE FROM pooltune_app.repair_worker_links WHERE project_id=$1`, project.ID); err != nil {
 			return err
 		}
-		_, err := tx.Exec(ctx, `UPDATE pooltune_app.projects SET epoch=-$3::bigint,secret=NULL,pending_setup=NULL WHERE owner_id=$1 AND id=$2`, project.Owner, project.ID, epoch)
+		_, err := tx.Exec(ctx, `UPDATE pooltune_app.projects SET epoch=-$3::bigint,secret=NULL,pending_setup=NULL,agent_paused=false,pause_cleanup=false WHERE owner_id=$1 AND id=$2`, project.Owner, project.ID, epoch)
 		if err != nil {
 			return err
 		}
@@ -266,6 +272,11 @@ func (s projectStore) disconnect(ctx context.Context, project projectRecord) err
 		return err
 	})
 }
+
+// Negative worker epochs also fence supervisors from older application builds.
+const advanceWorkerEpochSQL = `UPDATE pooltune_worker.projects
+    SET monitor_epoch=CASE WHEN agent_paused THEN -($2::bigint+1) ELSE $2::bigint+1 END
+    WHERE project_id=$1 AND monitor_epoch=CASE WHEN agent_paused THEN -$2::bigint ELSE $2::bigint END`
 
 func (s projectStore) replaceActivePermissions(ctx context.Context, project projectRecord, secret []byte) error {
 	identity, err := project.identity()
@@ -281,8 +292,7 @@ func (s projectStore) replaceActivePermissions(ctx context.Context, project proj
 		if tag.RowsAffected() != 1 {
 			return hostedquery.ErrProjectDisconnected
 		}
-		tag, err = tx.Exec(ctx, `UPDATE pooltune_worker.projects SET monitor_epoch=monitor_epoch+1
-			WHERE project_id=$1 AND monitor_epoch=$2`, identity.ID(), project.Epoch)
+		tag, err = tx.Exec(ctx, advanceWorkerEpochSQL, identity.ID(), project.Epoch)
 		if err == nil && tag.RowsAffected() != 1 {
 			return hostedquery.ErrProjectDisconnected
 		}
@@ -339,7 +349,7 @@ func (s projectStore) admitModel(ctx context.Context, id string, epoch int64) er
 	const maxCalls = 8
 	var calls int
 	err := s.db.QueryRow(ctx, `WITH current_day AS (SELECT (statement_timestamp() AT TIME ZONE 'UTC')::date AS day),
-		active AS (SELECT id FROM pooltune_app.projects WHERE id=$1 AND epoch=$3 AND epoch>0 FOR UPDATE),
+		active AS (SELECT id FROM pooltune_app.projects WHERE id=$1 AND epoch=$3 AND epoch>0 AND NOT agent_paused FOR UPDATE),
 		cleanup AS (DELETE FROM pooltune_app.model_budgets WHERE project_id=$1 AND utc_day < (SELECT day-8 FROM current_day))
 		INSERT INTO pooltune_app.model_budgets(project_id,utc_day,calls) SELECT id, day, 1 FROM current_day CROSS JOIN active
 		ON CONFLICT (project_id, utc_day) DO UPDATE SET calls=model_budgets.calls+1 WHERE model_budgets.calls < $2

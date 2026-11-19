@@ -109,10 +109,10 @@ func (a *App) repairWorker(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var row projectRecord
-	err := a.projects.db.QueryRow(r.Context(), `SELECT p.id,p.ref,p.owner_id,p.epoch,p.secret
+	err := a.projects.db.QueryRow(r.Context(), `SELECT p.id,p.ref,p.owner_id,p.epoch,p.secret,p.agent_paused
 		FROM pooltune_app.projects p JOIN pooltune_app.repair_worker_links l ON l.project_id=p.id
 		WHERE p.id=$1 AND p.epoch>0 AND l.token_digest=$2`, r.PathValue("id"), digest[:]).
-		Scan(&row.ID, &row.Ref, &row.Owner, &row.Epoch, &row.Secret)
+		Scan(&row.ID, &row.Ref, &row.Owner, &row.Epoch, &row.Secret, &row.AgentPaused)
 	if errors.Is(err, pgx.ErrNoRows) {
 		http.Error(w, "Worker key unavailable.", http.StatusUnauthorized)
 		return
@@ -129,7 +129,7 @@ func (a *App) repairWorker(w http.ResponseWriter, r *http.Request) {
 	}
 	if r.Method == http.MethodGet {
 		policy := repairWorkerPolicy{Project: identity.ID(), Epoch: row.Epoch,
-			Capabilities: append([]string{}, secrets.Capabilities...), Paused: secrets.RepairsPaused}
+			Capabilities: append([]string{}, secrets.Capabilities...), Paused: secrets.RepairsPaused || row.AgentPaused}
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(policy)
 		return
@@ -145,7 +145,7 @@ func (a *App) receiveRepairWorkerReport(w http.ResponseWriter, r *http.Request, 
 		http.Error(w, "Invalid repair access report.", http.StatusBadRequest)
 		return
 	}
-	if secrets.RepairsPaused || report.Epoch != row.Epoch {
+	if row.AgentPaused || secrets.RepairsPaused || report.Epoch != row.Epoch {
 		http.Error(w, "The repair policy changed. Refresh it before reporting.", http.StatusConflict)
 		return
 	}

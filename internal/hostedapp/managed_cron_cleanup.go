@@ -33,8 +33,8 @@ func (a *App) disconnectAfterCleanup(ctx context.Context, row projectRecord, cle
 		row.Secret = sealed
 	}
 	a.workerMu.Lock()
-	if stop := a.workerStops[row.ID]; stop != nil {
-		stop()
+	if process, ok := a.workerStops[row.ID]; ok && process.epoch <= row.Epoch {
+		process.cancel()
 	}
 	a.workerMu.Unlock()
 	identity, err := row.identity()
@@ -61,6 +61,13 @@ func (a *App) disconnectAfterCleanup(ctx context.Context, row projectRecord, cle
 			labdb.Close(conn.Conn())
 		}
 	}()
+	var current bool
+	if err := conn.QueryRow(ctx, `SELECT EXISTS(SELECT FROM pooltune_app.projects WHERE id=$1 AND owner_id=$2 AND epoch=$3 AND epoch>0)`, row.ID, row.Owner, row.Epoch).Scan(&current); err != nil {
+		return err
+	}
+	if !current {
+		return hostedquery.ErrProjectDisconnected
+	}
 	if err := cleanup(ctx, row, secret); err != nil {
 		return err
 	}
@@ -96,11 +103,17 @@ func (a *App) cleanupProjectWitnesses(ctx context.Context, row projectRecord, se
 	if err := project.VerifyManagedRepair(ctx, db); err != nil {
 		return err
 	}
-	for _, witness := range witnesses {
-		if err := hostedquery.RemoveManagedCronWitness(ctx, db, witness); err != nil {
-			return err
+	for len(witnesses) > 0 {
+		for _, witness := range witnesses {
+			if err := hostedquery.RemoveManagedCronWitness(ctx, db, witness); err != nil {
+				return err
+			}
+			if err := hostedquery.SettleManagedCronWitness(ctx, state.Conn(), witness); err != nil {
+				return err
+			}
 		}
-		if err := hostedquery.SettleManagedCronWitness(ctx, state.Conn(), witness); err != nil {
+		witnesses, err = hostedquery.PendingManagedCronWitnesses(ctx, state.Conn(), project.ID())
+		if err != nil {
 			return err
 		}
 	}

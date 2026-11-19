@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"net/url"
 	"slices"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -25,7 +26,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-//go:embed ui/*.html ui/*.css ui/*.js ui/wave.svg ui/fonts/*
+//go:embed ui/*.html ui/*.css ui/*.js ui/wave.svg ui/croatia.webp ui/fonts/*
 var frontend embed.FS
 
 type Config struct {
@@ -62,7 +63,7 @@ type App struct {
 	handler           http.Handler
 	authQuota         requestQuota
 	workerMu          sync.Mutex
-	workerStops       map[string]context.CancelFunc
+	workerStops       map[string]projectProcess
 }
 
 type requestQuota struct {
@@ -171,7 +172,7 @@ func (a *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "unrecognized host", http.StatusBadRequest)
 		return
 	}
-	w.Header().Set("Content-Security-Policy", "default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'")
+	w.Header().Set("Content-Security-Policy", "default-src 'none'; style-src 'self'; font-src 'self'; script-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'")
 	if a.google != nil {
 		w.Header().Set("Content-Security-Policy", strings.Replace(w.Header().Get("Content-Security-Policy"), "form-action 'self'", "form-action 'self' https://accounts.google.com", 1))
 	}
@@ -201,13 +202,14 @@ func (a *App) routes() *http.ServeMux {
 	assets, _ := fs.Sub(frontend, "ui")
 	files := http.StripPrefix("/assets/", http.FileServerFS(assets))
 	mux.Handle("GET /assets/app.css", files)
+	mux.Handle("GET /assets/workspace.css", files)
+	mux.Handle("GET /assets/croatia.webp", files)
 	mux.Handle("GET /assets/app.js", files)
 	mux.Handle("GET /assets/landing.css", files)
 	mux.Handle("GET /assets/landing.js", files)
 	mux.Handle("GET /assets/wave.svg", files)
 	mux.Handle("GET /assets/fonts/", files)
 	mux.HandleFunc("GET /{$}", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Security-Policy", w.Header().Get("Content-Security-Policy")+"; font-src 'self'")
 		user, _ := a.session(r)
 		a.render(w, http.StatusOK, "home", Page{Title: "Pooltune", User: user.Email, Capabilities: projectCapabilities})
 	})
@@ -223,8 +225,10 @@ func (a *App) routes() *http.ServeMux {
 	mux.HandleFunc("GET /app/supabase/projects", a.requireAccount(a.supabasePicker))
 	mux.HandleFunc("POST /app/supabase/projects", a.requireAccount(a.selectSupabaseProject))
 	mux.HandleFunc("GET /app/projects/manual", a.requireAccount(func(w http.ResponseWriter, r *http.Request, u auth.User) {
-		a.render(w, 200, "new-project", Page{Title: "Manual connection", User: u.Email})
+		a.render(w, 200, "new-project", Page{Title: "Manual connection", User: u.Email, Draft: r.URL.Query().Get("draft")})
 	}))
+	mux.HandleFunc("GET /app/setup", a.requireAccount(a.setupPermissions))
+	mux.HandleFunc("POST /app/setup", a.requireAccount(a.saveSetupPermissions))
 	mux.HandleFunc("GET /app/account", a.requireAccount(a.accountSettings))
 	mux.HandleFunc("GET /app", a.requireAccount(a.dashboard))
 	mux.HandleFunc("GET /app/projects/new", a.requireAccount(a.newProject))
@@ -234,6 +238,8 @@ func (a *App) routes() *http.ServeMux {
 	mux.HandleFunc("POST /app/projects/{id}/connect", a.requireAccount(a.connectProject))
 	mux.HandleFunc("POST /app/projects/{id}/start", a.requireAccount(a.startProject))
 	mux.HandleFunc("POST /app/projects/{id}/monitoring-token", a.requireAccount(a.replaceMonitoringToken))
+	mux.HandleFunc("POST /app/projects/{id}/agent-mode", a.requireAccount(a.changeAgentMode))
+	mux.HandleFunc("POST /app/projects/{id}/changes/{job}/revert", a.requireAccount(a.revertChange))
 	mux.HandleFunc("POST /app/projects/{id}/repair-mode", a.requireAccount(a.changeRepairMode))
 	mux.HandleFunc("GET /app/projects/{id}/repair-enrollment", a.requireAccount(a.repairEnrollmentPage))
 	mux.HandleFunc("POST /app/projects/{id}/repair-enrollment", a.requireAccount(a.changeRepairEnrollment))
@@ -351,24 +357,31 @@ func (a *App) signOut(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) newProject(w http.ResponseWriter, r *http.Request, user auth.User) {
+	draft := r.URL.Query().Get("draft")
 	if a.supabase != nil {
 		var connection string
 		if a.projects.db.QueryRow(r.Context(), `SELECT id FROM pooltune_app.supabase_connections WHERE owner_id=$1 AND NOT revoked ORDER BY created_at DESC LIMIT 1`, user.ID).Scan(&connection) == nil {
-			http.Redirect(w, r, "/app/supabase/projects?connection="+url.QueryEscape(connection), 303)
+			http.Redirect(w, r, withDraft("/app/supabase/projects?connection="+url.QueryEscape(connection), draft), 303)
 			return
 		}
-		a.render(w, 200, "supabase-connect", Page{Title: "Connect Supabase", User: user.Email})
+		a.render(w, 200, "supabase-connect", Page{Title: "Connect Supabase", User: user.Email, Draft: draft})
 		return
 	}
-	a.render(w, http.StatusOK, "new-project", Page{Title: "Connect a project", User: user.Email})
+	a.render(w, http.StatusOK, "new-project", Page{Title: "Connect a project", User: user.Email, Draft: draft})
 }
 
 func (a *App) createProject(w http.ResponseWriter, r *http.Request, user auth.User) {
+	draft := r.PostFormValue("draft")
 	if r.ParseForm() != nil {
-		a.render(w, http.StatusBadRequest, "new-project", Page{Title: "Connect a project", User: user.Email, Error: "Check the form and try again."})
+		a.render(w, http.StatusBadRequest, "new-project", Page{Title: "Connect a project", User: user.Email, Draft: draft, Error: "Check the form and try again."})
 		return
 	}
-	id, err := a.projects.create(r.Context(), user.ID, r.PostForm.Get("name"), r.PostForm.Get("ref"))
+	choices, ok := a.draftChoices(user.ID, draft)
+	if !ok {
+		http.Error(w, "This setup link is invalid. Start again from Projects.", 400)
+		return
+	}
+	id, err := a.projects.create(r.Context(), user.ID, r.PostForm.Get("name"), r.PostForm.Get("ref"), choices...)
 	if err != nil {
 		message := "Could not create this project. Try again."
 		var pgErr *pgconn.PgError
@@ -378,7 +391,7 @@ func (a *App) createProject(w http.ResponseWriter, r *http.Request, user auth.Us
 		case errors.Is(err, errProjectCapacity), errors.Is(err, errProjectName), errors.Is(err, errProjectRef):
 			message = err.Error()
 		}
-		a.render(w, http.StatusBadRequest, "new-project", Page{Title: "Connect a project", User: user.Email, Error: message})
+		a.render(w, http.StatusBadRequest, "new-project", Page{Title: "Connect a project", User: user.Email, Draft: draft, Error: message})
 		return
 	}
 	http.Redirect(w, r, "/app/projects/"+id, http.StatusSeeOther)
@@ -459,7 +472,24 @@ func (a *App) disconnectProject(w http.ResponseWriter, r *http.Request, user aut
 	if !ok {
 		return
 	}
+	if r.ParseForm() != nil {
+		http.Error(w, "Refresh the connection page and confirm disconnect again.", http.StatusConflict)
+		return
+	}
+	confirmed, err := strconv.ParseInt(r.PostForm.Get("epoch"), 10, 64)
+	if err == nil && confirmed > 0 && row.Epoch < 0 && (confirmed == -row.Epoch || confirmed == -row.Epoch-1) {
+		http.Redirect(w, r, "/app/projects/"+row.ID, http.StatusSeeOther)
+		return
+	}
+	if err != nil || confirmed <= 0 || confirmed != row.Epoch {
+		http.Error(w, "The connection changed. Refresh the connection page and confirm disconnect again.", http.StatusConflict)
+		return
+	}
 	if err := a.disconnectAfterCleanup(r.Context(), row, a.cleanupProjectWitnesses); err != nil {
+		if errors.Is(err, hostedquery.ErrProjectDisconnected) {
+			http.Error(w, "The connection changed during cleanup. Refresh before confirming disconnect.", http.StatusConflict)
+			return
+		}
 		fresh, lookupErr := a.projects.find(r.Context(), user.ID, row.ID)
 		if lookupErr == nil {
 			row = fresh

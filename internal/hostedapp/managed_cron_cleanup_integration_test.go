@@ -55,7 +55,7 @@ func TestManagedCronDisconnectFailureKeepsStopStateAndCleanupCredential(t *testi
 	}
 	worker, stop := context.WithCancel(ctx)
 	defer stop()
-	app.workerStops = map[string]context.CancelFunc{id: stop}
+	app.workerStops = map[string]projectProcess{id: {epoch: row.Epoch, cancel: stop}}
 	failed := errors.New("provider unavailable")
 	err = app.disconnectAfterCleanup(ctx, row, func(_ context.Context, p projectRecord, s projectSecrets) error {
 		if worker.Err() == nil || !s.RepairsPaused || !s.DisconnectPending || p.Epoch != row.Epoch+1 {

@@ -20,24 +20,26 @@ const (
 type IndexInvestigator func(context.Context, IndexEvidence) (IndexProposal, error)
 
 type IndexTrialReport struct {
-	JobID        int64         `json:"job_id,omitempty"`
-	RunID        string        `json:"run_id"`
-	Outcome      string        `json:"outcome"`
-	Reason       string        `json:"reason"`
-	Measurement  string        `json:"measurement_scope,omitempty"`
-	Evidence     IndexEvidence `json:"evidence"`
-	Proposal     IndexProposal `json:"proposal"`
-	Before       TrialSample   `json:"before"`
-	After        TrialSample   `json:"after"`
-	Reverted     bool          `json:"reverted,omitempty"`
-	IndexValid   bool          `json:"index_valid"`
-	HealthyBuilt bool          `json:"healthy_index_built"`
-	IndexBytes   int64         `json:"index_bytes"`
-	DetectWallMS float64       `json:"detect_wall_ms"`
-	ModelWallMS  float64       `json:"investigation_wall_ms"`
-	BuildWallMS  float64       `json:"build_wall_ms"`
-	VerifyWallMS float64       `json:"verify_wall_ms"`
-	TotalWallMS  float64       `json:"total_wall_ms"`
+	JobID               int64         `json:"job_id,omitempty"`
+	RunID               string        `json:"run_id"`
+	Outcome             string        `json:"outcome"`
+	Reason              string        `json:"reason"`
+	Measurement         string        `json:"measurement_scope,omitempty"`
+	Evidence            IndexEvidence `json:"evidence"`
+	Proposal            IndexProposal `json:"proposal"`
+	Before              TrialSample   `json:"before"`
+	After               TrialSample   `json:"after"`
+	Reverted            bool          `json:"reverted,omitempty"`
+	CreatedIndexOID     uint32        `json:"created_index_oid,omitempty"`
+	CreatedIndexVersion string        `json:"created_index_version,omitempty"`
+	IndexValid          bool          `json:"index_valid"`
+	HealthyBuilt        bool          `json:"healthy_index_built"`
+	IndexBytes          int64         `json:"index_bytes"`
+	DetectWallMS        float64       `json:"detect_wall_ms"`
+	ModelWallMS         float64       `json:"investigation_wall_ms"`
+	BuildWallMS         float64       `json:"build_wall_ms"`
+	VerifyWallMS        float64       `json:"verify_wall_ms"`
+	TotalWallMS         float64       `json:"total_wall_ms"`
 }
 
 type TrialInput struct {

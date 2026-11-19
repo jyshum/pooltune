@@ -49,6 +49,10 @@ func requestManagedIndexRollback(ctx context.Context, state *pgx.Conn, project s
 // exclusive relation lock prevents replacement between the catalog check and
 // transactional DROP. Busy tables time out and retain an unsettled journal.
 func rollbackManagedIndex(ctx context.Context, db *pgx.Conn, claim investigationClaim, intent ProjectIndexActionIntent) error {
+	return rollbackManagedIndexWithReceipt(ctx, db, claim, intent, "", nil)
+}
+
+func rollbackManagedIndexWithReceipt(ctx context.Context, db *pgx.Conn, claim investigationClaim, intent ProjectIndexActionIntent, version string, save func(context.Context, string) error) error {
 	if !intent.RollbackRequested || intent.AppliedIndexOID == 0 {
 		return ErrProjectIndexTargetChanged
 	}
@@ -62,7 +66,7 @@ func rollbackManagedIndex(ctx context.Context, db *pgx.Conn, claim investigation
 	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 	return pgx.BeginTxFunc(ctx, db, pgx.TxOptions{}, func(tx pgx.Tx) error {
-		if _, err := tx.Exec(ctx, `SET LOCAL search_path=pg_catalog; SET LOCAL lock_timeout='250ms'; SET LOCAL statement_timeout='750ms'`); err != nil {
+		if _, err := tx.Exec(ctx, `SET LOCAL search_path=pg_catalog; SET LOCAL lock_timeout='250ms'; SET LOCAL statement_timeout='750ms'; SET LOCAL idle_in_transaction_session_timeout='2s'`); err != nil {
 			return err
 		}
 		var locked bool
@@ -95,6 +99,15 @@ func rollbackManagedIndex(ctx context.Context, db *pgx.Conn, claim investigation
 		if !exact || oid != intent.AppliedIndexOID || bytes <= 0 || bytes > projectIndexMaxIndexBytes {
 			return ErrProjectIndexTargetChanged
 		}
+		if save != nil {
+			var currentVersion string
+			if err := tx.QueryRow(ctx, managedIndexVersionSQL, oid).Scan(&currentVersion); err != nil {
+				return err
+			}
+			if version == "" || version != currentVersion {
+				return ErrProjectIndexTargetChanged
+			}
+		}
 		if _, err := tx.Exec(ctx, "DROP INDEX "+qualified(intent.Target.Schema, intent.IndexName)); err != nil {
 			return err
 		}
@@ -104,6 +117,13 @@ func rollbackManagedIndex(ctx context.Context, db *pgx.Conn, claim investigation
 		}
 		if !absent {
 			return errors.New("created index is still present after rollback")
+		}
+		if save != nil {
+			var xid string
+			if err := tx.QueryRow(ctx, `SELECT pg_current_xact_id()::text`).Scan(&xid); err != nil {
+				return err
+			}
+			return save(ctx, xid)
 		}
 		return nil
 	})

@@ -4,25 +4,27 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{if .Title}}{{.Title}} · {{end}}Pooltune</title>
+  <link rel="icon" href="/assets/wave.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/assets/app.css">
+  <link rel="stylesheet" href="/assets/workspace.css">
+  <script src="/assets/app.js" defer></script>
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
   <header class="topbar">
     <div class="shell topbar-inner">
       <a class="brand" href="{{if .User}}/app{{else}}/{{end}}" aria-label="Pooltune {{if .User}}workspace{{else}}home{{end}}">
-        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
-        <span>pooltune</span>
+        {{template "landing-brand"}}
       </a>
       {{if .User}}
       <nav class="topnav" aria-label="Account">
-        <a href="/app">Projects</a>
+        <a href="/app?view=projects">Projects</a>
         <span class="account">{{.User}}</span>
         {{if .GoogleEnabled}}<a href="/app/account">Account</a>{{end}}
         <form action="/signout" method="post"><button class="button button-quiet" type="submit">Sign out</button></form>
       </nav>
       {{else}}
-      <nav class="topnav" aria-label="Account"><a href="/signin">Sign in</a></nav>
+      <nav class="topnav" aria-label="Account"><a href="/">Back to home ↗</a></nav>
       {{end}}
     </div>
   </header>
@@ -37,61 +39,11 @@
 
 {{define "status"}}<span class="status{{if eq . "Monitoring"}} status-active{{else if eq . "Pending setup"}} status-pending{{end}}"><span aria-hidden="true"></span>{{.}}</span>{{end}}
 
-{{define "signup"}}{{template "header" .}}
-<main class="shell auth-page" id="main">
-  <section class="form-panel" aria-labelledby="form-title">
-    <div class="section-intro">
-      <h1 id="form-title">Create an account</h1>
-      {{if .Invite}}<p>Enter your preview invite code to get started.</p>{{end}}
-    </div>
-    {{template "error" .}}
-    {{if .GoogleEnabled}}
-    <form class="fields" action="/auth/google/start" method="post">
-      <input type="hidden" name="mode" value="signup">
-      <div class="field"><label for="google-invite">Invite code for Google signup</label><input type="password" id="google-invite" name="invite_code" autocomplete="off" required></div>
-      <button class="button button-secondary" type="submit">Continue with Google</button>
-    </form>
-    <p>Or create an account with email and password.</p>
-    {{end}}
-    <form class="fields" action="/signup" method="post">
-      <div class="field"><label for="email">Email</label><input type="email" id="email" name="email" autocomplete="email" maxlength="254" required></div>
-      <div class="field">
-        <label for="password">Password</label>
-        <input type="password" id="password" name="password" autocomplete="new-password" minlength="15" maxlength="1024" aria-describedby="password-help" required>
-        <p class="help" id="password-help">Use at least 15 characters.</p>
-      </div>
-      {{if .Invite}}<div class="field"><label for="invite-code">Invite code</label><input type="password" id="invite-code" name="invite_code" autocomplete="off" required></div>{{end}}
-      <button class="button button-primary" type="submit">Create account</button>
-    </form>
-    <p class="form-tail">Already have an account? <a href="/signin">Sign in</a></p>
-  </section>
-</main>
-{{template "footer" .}}{{end}}
-
-{{define "signin"}}{{template "header" .}}
-<main class="shell auth-page" id="main">
-  <section class="form-panel" aria-labelledby="form-title">
-    <div class="section-intro"><h1 id="form-title">Sign in</h1><p>Open your Pooltune workspace.</p></div>
-    {{template "error" .}}
-    {{if .GoogleEnabled}}
-    <form action="/auth/google/start" method="post"><input type="hidden" name="mode" value="signin"><button class="button button-secondary" type="submit">Continue with Google</button></form>
-    <p>Or sign in with email and password.</p>
-    {{end}}
-    <form class="fields" action="/signin" method="post">
-      <div class="field"><label for="email">Email</label><input type="email" id="email" name="email" autocomplete="username" maxlength="254" required></div>
-      <div class="field"><label for="password">Password</label><input type="password" id="password" name="password" autocomplete="current-password" required></div>
-      <button class="button button-primary" type="submit">Sign in</button>
-    </form>
-    <p class="form-tail">New to Pooltune? <a href="/signup">Create an account</a></p>
-  </section>
-</main>
-{{template "footer" .}}{{end}}
-
 {{define "dashboard"}}{{template "header" .}}
 <main class="shell workspace" id="main">
   <div class="page-heading">
     <div><h1>Projects</h1><p class="lead">Manage your Supabase connections and review query activity.</p></div>
-    <a class="button button-primary" href="/app/projects/new">Connect Supabase</a>
+    <a class="button button-primary" href="/app/setup">Connect a project</a>
   </div>
   {{template "error" .}}
   {{if .Projects}}
@@ -99,7 +51,7 @@
     {{range .Projects}}
     <li class="project-card">
       <a class="project-link" href="/app/projects/{{.ID}}">
-        <div class="project-card-heading"><h2>{{.Name}}</h2><span class="project-arrow" aria-hidden="true">→</span></div>
+        <div class="project-card-heading"><span class="card-provider">{{template "logo-supabase"}}</span><h2>{{.Name}}</h2><span class="project-arrow" aria-hidden="true">→</span></div>
         <p class="project-ref"><code>{{.Ref}}</code></p>
         <div class="project-card-footer">{{template "status" .Status}}{{if .LastPoll}}<span class="last-poll">Last poll {{.LastPoll}}</span>{{end}}</div>
       </a>
@@ -108,7 +60,7 @@
   </ul>
   {{else}}
   <div class="panel empty-dashboard">
-    <div class="empty-mark" aria-hidden="true"><span class="brand-mark"><i></i><i></i><i></i></span></div>
+
     <h2>No projects yet</h2>
     <p>Connect a Supabase project to start monitoring query performance.</p>
   </div>
@@ -122,7 +74,7 @@
   <div class="page-heading"><div><h1>Connect Supabase</h1><p class="lead">Add your Supabase project to continue to database setup.</p></div></div>
   <section class="form-panel" aria-label="Project details">
     {{template "error" .}}
-    <form class="fields" action="/app/projects/new" method="post">
+    <form class="fields" action="/app/projects/new" method="post"><input type="hidden" name="draft" value="{{.Draft}}">
       <div class="field"><label for="name">Project name</label><input type="text" id="name" name="name" value="{{.Project.Name}}" maxlength="100" required></div>
       <div class="field">
         <label for="ref">Supabase project reference</label>
@@ -135,35 +87,15 @@
 </main>
 {{template "footer" .}}{{end}}
 
-{{define "project"}}{{template "header" .}}
-<main class="shell workspace" id="main">
-  <a class="back-link" href="/app">← <span>Projects</span></a>
-  {{$project := .Project}}
-  <div class="page-heading">
-    <div>
-      <h1>{{$project.Name}}</h1>
-      <div class="project-meta">{{template "status" $project.Status}}<code>{{$project.Ref}}</code>{{if $project.LastPoll}}<span>Last poll {{$project.LastPoll}}</span>{{end}}</div>
-    </div>
-    {{if eq $project.Status "Monitoring"}}
-    <div class="actions"><a class="button button-secondary" href="/app/projects/{{$project.ID}}/activity">Download history</a><a class="button button-secondary" href="/app/projects/{{$project.ID}}">Refresh activity</a></div>
-    {{end}}
-  </div>
-  {{template "error" .}}
-  {{if $project.SupabaseBlocked}}<section class="form-panel"><h2>Reconnect Supabase</h2><p>Monitoring and new repairs are stopped. Your choices and unfinished recovery records are saved. Reconnect the same organization and project to continue.</p><form action="/auth/supabase/start" method="post"><button class="button button-primary" type="submit">Reconnect Supabase</button></form></section>
+{{define "pending-setup"}}{{$project := .}}{{if $project.SupabaseBlocked}}<section class="form-panel"><h2>Reconnect Supabase</h2><p>Monitoring and new repairs are stopped. Your choices and unfinished recovery records are saved. Reconnect the same organization and project to continue.</p><form action="/auth/supabase/start" method="post"><button class="button button-primary" type="submit">Reconnect Supabase</button></form></section>
  {{else if ne $project.Status "Monitoring"}}
     {{if $project.QuickStart}}{{template "agent-setup" $project}}{{end}}
     {{if not $project.SupabaseConnected}}<details class="panel advanced-setup"{{if not $project.QuickStart}} open{{end}}>
       <summary>{{if or $project.FixtureIndex $project.FixtureRepair}}Owned Rookery repair setup{{else}}Advanced read-only setup{{end}}</summary>
       {{template "project-setup" $project}}
     </details>{{end}}
-  {{else if $project.Capabilities}}
-    {{template "repair-permissions" $project}}
-  {{end}}
-  {{if or (ne $project.Status "Pending setup") (not $project.QuickStart)}}
-    {{template "project-activity" $project}}
-  {{end}}
-  {{if eq $project.Status "Monitoring"}}
-  {{if not $project.SupabaseConnected}}<details class="panel optional">
+  {{end}}{{end}}
+{{define "token-settings"}}{{$project := .}}{{if not $project.SupabaseConnected}}<details class="panel optional">
     <summary>Update monitoring access</summary>
     <p>Use this when your monitoring token expires or you revoke it. Pooltune stores the replacement encrypted on Railway. It must be limited to this project with Logs Read (Analytics Read).</p>
     <form class="fields" action="/app/projects/{{$project.ID}}/monitoring-token" method="post">
@@ -171,19 +103,11 @@
       <button class="button button-secondary" type="submit">Save monitoring access</button>
     </form>
   </details>
-  {{end}}<section class="panel disconnect" aria-labelledby="connection-title">
-    <div><h2 id="connection-title">Connection</h2><p>Disconnecting stops monitoring and keeps your saved activity.</p></div>
-    <form action="/app/projects/{{$project.ID}}/disconnect" method="post"><button class="button button-secondary" type="submit">Disconnect</button></form>
-  </section>
-  {{end}}
-</main>
-{{if ne $project.Status "Monitoring"}}<script src="/assets/app.js" defer></script>{{end}}
-{{template "footer" .}}{{end}}
-
+  {{end}}{{end}}
 {{define "agent-setup"}}
-<section class="form-panel agent-setup" aria-labelledby="agent-setup-title">
+<section class="form-panel agent-setup{{if .SupabaseConnected}} managed-review{{end}}" aria-labelledby="agent-setup-title">
   <div class="section-intro">
-    <h2 id="agent-setup-title">Set up the Pooltune agent</h2>
+    <h2 id="agent-setup-title">{{if .SupabaseConnected}}Review and start monitoring{{else}}Set up the Pooltune agent{{end}}</h2>
     <p>Pooltune installs a dedicated database login to read workload statistics and discover queries from ordinary traffic. Choose which repairs the agent may consider.</p>
   </div>
   <form class="enrollment-form" action="/app/projects/{{.ID}}/start" method="post" autocomplete="off">
@@ -399,10 +323,9 @@ ALTER ROLE {{.Role}} LOGIN;</textarea>
 </section>
 {{end}}
 
-{{define "project-activity"}}
-<div class="activity">
+{{define "query-windows"}}
   <section class="panel" aria-labelledby="queries-title">
-    <div class="panel-heading"><h2 id="queries-title">Query windows</h2></div>
+    <div class="panel-heading"><h2 id="queries-title">Query windows</h2><p class="help">Latest 100 windows from the past seven days. Latency needs a measured execution in that window.</p></div>
     {{if .Queries}}
     <div class="table-scroll" role="region" tabindex="0" aria-labelledby="queries-title">
       <table class="query-table">
@@ -414,12 +337,15 @@ ALTER ROLE {{.Role}} LOGIN;</textarea>
     </div>
     {{else}}<p class="panel-empty">No query windows recorded yet.</p>{{end}}
   </section>
+{{end}}
+{{define "change-history"}}
   <section class="panel" aria-labelledby="runs-title">
-    <div class="panel-heading"><h2 id="runs-title">Investigations</h2></div>
+    <div class="panel-heading"><h2 id="runs-title">Agent history</h2><p class="help">Select a run to see what the agent found and changed.</p></div>
     {{if .Runs}}
-    <ul class="records">
-      {{range .Runs}}<li class="record">
-        <div class="record-heading"><h3>Run {{.ID}}</h3><p class="outcome">{{.Outcome}}</p></div>
+    <ul class="records change-tree">
+      {{range .Runs}}<li class="record{{if .ParentID}} branch{{end}}" id="run-{{.ID}}">
+        <details><summary><strong>{{if .Repair}}{{.Repair}}{{else}}Investigation{{end}}</strong><span class="outcome">{{.Outcome}}</span><small>Run {{.ID}} · {{if .Finished}}{{.Finished}}{{else}}{{.Created}}{{end}}</small></summary>
+        {{if .ParentID}}<p class="help">Verification of {{if .ParentVisible}}<a href="#run-{{.ParentID}}">run {{.ParentID}}</a>{{else}}run {{.ParentID}}{{end}}</p>{{end}}
         <dl class="record-facts">
           {{if .Query}}<div><dt>Query ID</dt><dd><code>{{.Query}}</code></dd></div>{{end}}
           {{if .Started}}<div><dt>Started</dt><dd>{{.Started}}</dd></div>{{end}}
@@ -442,10 +368,14 @@ ALTER ROLE {{.Role}} LOGIN;</textarea>
           </table>
         </div>
         {{end}}
+        {{if .CanRevert}}<details class="undo-options"><summary>Revert this change</summary><p>Remove the index Pooltune created for this run. Pooltune checks that the index still matches its original record.</p><form class="undo-form" action="/app/projects/{{$.ID}}/changes/{{.ID}}/revert" method="post"><input type="hidden" name="epoch" value="{{$.Epoch}}"><input type="hidden" name="before" value="{{$.BeforeRun}}"><button class="button button-secondary" type="submit">Remove this index</button></form></details>{{else if .Reverted}}<p class="help">Reverted by the project owner.</p>{{else if and .Repair (eq .RepairStatus "Action recorded")}}<p class="help">A verified undo is unavailable for this change.</p>{{end}}
+        </details>
       </li>{{end}}
     </ul>
     {{else}}<p class="panel-empty">No investigations recorded yet.</p>{{end}}
   </section>
+{{end}}
+{{define "poll-history"}}
   <section class="panel" aria-labelledby="polls-title">
     <div class="panel-heading"><h2 id="polls-title">Monitor activity</h2></div>
     {{if .Polls}}
@@ -457,7 +387,6 @@ ALTER ROLE {{.Role}} LOGIN;</textarea>
     </div>
     {{else}}<p class="panel-empty">No monitor checks recorded yet.</p>{{end}}
   </section>
-</div>
 {{end}}
 
 {{define "google-result"}}{{template "header" .}}
@@ -471,6 +400,3 @@ ALTER ROLE {{.Role}} LOGIN;</textarea>
 {{if .GoogleEnabled}}<p>Link Google to sign in to this account. Choose the Google account with the same email address.</p>
 <form action="/auth/google/start" method="post"><input type="hidden" name="mode" value="link"><button class="button button-primary" type="submit">Link Google account</button></form>{{end}}
 <p><a href="/app">Back to projects</a></p></section></main>{{template "footer" .}}{{end}}
-
-{{define "supabase-connect"}}{{template "header" .}}<main class="shell workspace narrow" id="main"><h1>Connect Supabase</h1>{{template "error" .}}<p>Choose your organization in Supabase, then choose the project Pooltune will monitor.</p><p>Supabase authorizes access to the organization. Pooltune works only on the projects you select and the repairs you allow.</p><form action="/auth/supabase/start" method="post"><button class="button button-primary" type="submit">Connect Supabase</button></form><p><a href="/app/projects/manual">Advanced manual connection</a></p></main>{{template "footer" .}}{{end}}
-{{define "supabase-picker"}}{{template "header" .}}<main class="shell workspace narrow" id="main"><h1>Choose your project</h1>{{template "error" .}}<p>Confirm the project Pooltune may monitor. You will choose repair permissions next.</p>{{range .SupabaseProjects}}<section class="form-panel"><h2>{{.Name}}</h2><p>{{.OrganizationName}} · {{if eq .Status "ACTIVE_HEALTHY"}}Ready{{else}}Unavailable{{end}}</p>{{if eq .Status "ACTIVE_HEALTHY"}}<form action="/app/supabase/projects" method="post"><input type="hidden" name="connection" value="{{$.SupabaseConnection}}"><input type="hidden" name="ref" value="{{.Ref}}"><button class="button button-primary" type="submit">Use {{.Name}}</button></form>{{else}}<p>This project is not ready. Activate it in Supabase and refresh this page.</p>{{end}}</section>{{else}}<p>No accessible projects were returned. Check your organization access in Supabase.</p>{{end}}<form action="/auth/supabase/start" method="post"><button class="button button-secondary" type="submit">Reconnect Supabase</button></form></main>{{template "footer" .}}{{end}}

@@ -43,6 +43,7 @@ type ProjectIndexActionResult struct {
 	WriteAttempted bool
 	IndexOID       uint32
 	IndexBytes     int64
+	IndexVersion   string
 }
 
 // ApplyProjectIndex builds one plain nonunique B-tree for a qualifying lookup.
@@ -177,7 +178,10 @@ func ApplyProjectIndex(ctx context.Context, config *pgx.ConnConfig, target Proje
 	if !matches || result.IndexBytes <= 0 || result.IndexBytes > projectIndexMaxIndexBytes {
 		return result, errors.New("project index readback failed exact definition or size checks")
 	}
-	return result, nil
+	if managedIndexRunID.MatchString(evidence.RunID) {
+		err = db.QueryRow(ctx, managedIndexVersionSQL, result.IndexOID).Scan(&result.IndexVersion)
+	}
+	return result, err
 }
 
 func projectIndexPreflight(ctx context.Context, db *pgx.Conn, intent ProjectIndexActionIntent, keys []int16, pinPID int32) (int64, error) {

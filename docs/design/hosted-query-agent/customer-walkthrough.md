@@ -64,3 +64,15 @@ The fresh customer journey has not yet been completed by Jared. Retained-token
 handling, newer managed statistics/memory/scheduling/cleanup outcomes and a
 managed mid-repair restart remain open. State restore and broader workload support
 remain separate operational gaps. These limits must stay visible on the map.
+
+## November 19 workspace update
+
+Jared requested a permissions-first setup and a project workspace with separate pages for overview, queries, changes, permissions and connection. The existing invite, account session and Supabase authorization checks still apply.
+
+Each setup tab carries its own account-bound repair choices through database selection. Starting the selected project confirms those choices. Choosing no repairs enables monitoring only. Existing sessions open the project list.
+
+The overview charts use recorded monitor checks, measured calls and investigations over the trailing 24 hours. The changes page follows saved parent runs and can page back through retained investigations.
+
+Pause keeps the connection and its repair choices. Disconnect checks that the connection still matches the one the owner reviewed. Manual undo is available for successful managed index changes that recorded the created index's identity. Older records, maintenance operations and changed indexes do not qualify.
+
+The contact photo and links come from Jared's portfolio. Its published domain is www.jaredshum.ca.

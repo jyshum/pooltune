@@ -145,6 +145,7 @@ func (s *supabaseOAuth) projects(ctx context.Context, token string) ([]SupabaseP
 func (a *App) prepareSupabase(ctx context.Context) error {
 	return pgx.BeginFunc(ctx, a.projects.db, func(tx pgx.Tx) error {
 		_, err := tx.Exec(ctx, `SELECT pg_advisory_xact_lock(761994345012);CREATE TABLE IF NOT EXISTS pooltune_app.supabase_flows(state bytea PRIMARY KEY, browser bytea NOT NULL, session bytea NOT NULL, owner_id bigint NOT NULL REFERENCES pooltune_app.users(id), verifier text NOT NULL, expires_at timestamptz NOT NULL);
+ ALTER TABLE pooltune_app.supabase_flows ADD COLUMN IF NOT EXISTS setup_draft text NOT NULL DEFAULT '';
  CREATE TABLE IF NOT EXISTS pooltune_app.supabase_connections(id text PRIMARY KEY,owner_id bigint NOT NULL REFERENCES pooltune_app.users(id),secret bytea,expires_at timestamptz NOT NULL,revoked boolean NOT NULL DEFAULT false,created_at timestamptz NOT NULL DEFAULT now(),UNIQUE(id,owner_id));
  ALTER TABLE pooltune_app.projects ADD COLUMN IF NOT EXISTS supabase_connection text;
  ALTER TABLE pooltune_app.projects ADD COLUMN IF NOT EXISTS supabase_org text NOT NULL DEFAULT '';
@@ -251,11 +252,11 @@ func (a *App) supabaseToken(ctx context.Context, owner int64, id string) (string
 	}
 	return g.Access, nil
 }
-func (a *App) supabaseCookie(w http.ResponseWriter, value string, age int) {
-	http.SetCookie(w, &http.Cookie{Name: a.cookie + "_supabase", Value: value, Path: "/", Secure: a.origin.Scheme == "https", HttpOnly: true, SameSite: http.SameSiteLaxMode, MaxAge: age})
+func (a *App) supabaseCookie(w http.ResponseWriter, name, value string, age int) {
+	http.SetCookie(w, &http.Cookie{Name: name, Value: value, Path: "/", Secure: a.origin.Scheme == "https", HttpOnly: true, SameSite: http.SameSiteLaxMode, MaxAge: age})
 }
-func (a *App) supabaseFailure(w http.ResponseWriter, user auth.User, status int, err error) {
-	a.render(w, status, "supabase-connect", Page{Title: "Connect Supabase", User: user.Email, Error: err.Error()})
+func (a *App) supabaseFailure(w http.ResponseWriter, user auth.User, status int, err error, draft string) {
+	a.render(w, status, "supabase-connect", Page{Title: "Connect Supabase", User: user.Email, Draft: draft, Error: err.Error()})
 }
 func (a *App) supabaseStart(w http.ResponseWriter, r *http.Request, user auth.User) {
 	if a.supabase == nil {
@@ -270,14 +271,19 @@ func (a *App) supabaseStart(w http.ResponseWriter, r *http.Request, user auth.Us
 		http.Error(w, "Try again in a minute.", 429)
 		return
 	}
-	session, _ := r.Cookie(a.cookie)
-	state, browser, verifier := randomSupabaseState(), randomSupabaseState(), randomSupabaseState()
-	_, err := a.projects.db.Exec(r.Context(), `WITH expired AS(DELETE FROM pooltune_app.supabase_flows WHERE expires_at<now()) INSERT INTO pooltune_app.supabase_flows VALUES($1,$2,$3,$4,$5,now()+interval '10 minutes')`, digestBytes(state), digestBytes(browser), digestBytes(session.Value), user.ID, verifier)
-	if err != nil {
-		a.supabaseFailure(w, user, 503, errSupabaseUnavailable)
+	draft := r.PostFormValue("draft")
+	if _, ok := a.draftChoices(user.ID, draft); !ok {
+		http.Error(w, "Invalid setup. Start again from Projects.", 400)
 		return
 	}
-	a.supabaseCookie(w, browser, 600)
+	session, _ := r.Cookie(a.cookie)
+	state, browser, verifier := randomSupabaseState(), randomSupabaseState(), randomSupabaseState()
+	_, err := a.projects.db.Exec(r.Context(), `WITH expired AS(DELETE FROM pooltune_app.supabase_flows WHERE expires_at<now()) INSERT INTO pooltune_app.supabase_flows(state,browser,session,owner_id,verifier,expires_at,setup_draft) VALUES($1,$2,$3,$4,$5,now()+interval '10 minutes',$6)`, digestBytes(state), digestBytes(browser), digestBytes(session.Value), user.ID, verifier, draft)
+	if err != nil {
+		a.supabaseFailure(w, user, 503, errSupabaseUnavailable, draft)
+		return
+	}
+	a.supabaseCookie(w, a.cookie+"_supabase_"+state, browser, 600)
 	q := url.Values{"client_id": {a.supabase.id}, "redirect_uri": {a.supabase.redirect}, "response_type": {"code"}, "state": {state}, "code_challenge_method": {"S256"}, "code_challenge": {base64.RawURLEncoding.EncodeToString(digestBytes(verifier))}}
 	http.Redirect(w, r, "https://api.supabase.com/v1/oauth/authorize?"+q.Encode(), 303)
 }
@@ -287,37 +293,50 @@ func (a *App) supabaseCallback(w http.ResponseWriter, r *http.Request, user auth
 		http.NotFound(w, r)
 		return
 	}
-	browser, err := r.Cookie(a.cookie + "_supabase")
+	var draft string
+	state := r.URL.Query().Get("state")
+	decoded, err := base64.RawURLEncoding.DecodeString(state)
+	if err != nil || len(decoded) != 32 || base64.RawURLEncoding.EncodeToString(decoded) != state {
+		a.supabaseFailure(w, user, 400, errSupabaseReconnect, "")
+		return
+	}
+	cookieName := a.cookie + "_supabase_" + state
+	browser, err := r.Cookie(cookieName)
+	if err == http.ErrNoCookie {
+		// Accept a flow that was already in flight during the deployment.
+		cookieName = a.cookie + "_supabase"
+		browser, err = r.Cookie(cookieName)
+	}
 	if err != nil {
-		a.supabaseFailure(w, user, 400, errSupabaseReconnect)
+		a.supabaseFailure(w, user, 400, errSupabaseReconnect, draft)
 		return
 	}
 	session, _ := r.Cookie(a.cookie)
 	var verifier string
-	err = a.projects.db.QueryRow(r.Context(), `DELETE FROM pooltune_app.supabase_flows WHERE state=$1 AND browser=$2 RETURNING CASE WHEN owner_id=$3 AND session=$4 AND expires_at>now() THEN verifier ELSE '' END`, digestBytes(r.URL.Query().Get("state")), digestBytes(browser.Value), user.ID, digestBytes(session.Value)).Scan(&verifier)
-	a.supabaseCookie(w, "", -1)
+	err = a.projects.db.QueryRow(r.Context(), `DELETE FROM pooltune_app.supabase_flows WHERE state=$1 AND browser=$2 RETURNING CASE WHEN owner_id=$3 AND session=$4 AND expires_at>now() THEN verifier ELSE '' END,setup_draft`, digestBytes(state), digestBytes(browser.Value), user.ID, digestBytes(session.Value)).Scan(&verifier, &draft)
+	a.supabaseCookie(w, cookieName, "", -1)
 	code := r.URL.Query().Get("code")
 	if err != nil || verifier == "" || code == "" || len(code) > 4096 || r.URL.Query().Get("error") != "" {
-		a.supabaseFailure(w, user, 400, errSupabaseReconnect)
+		a.supabaseFailure(w, user, 400, errSupabaseReconnect, draft)
 		return
 	}
 	grant, err := a.supabase.exchange(r.Context(), url.Values{"grant_type": {"authorization_code"}, "code": {code}, "code_verifier": {verifier}, "redirect_uri": {a.supabase.redirect}})
 	if err != nil {
-		a.supabaseFailure(w, user, 400, err)
+		a.supabaseFailure(w, user, 400, err, draft)
 		return
 	}
 	// Revalidate the live account session after the network exchange as well.
 	fresh, err := a.session(r)
 	if err != nil || fresh.ID != user.ID {
-		a.supabaseFailure(w, user, 400, errSupabaseReconnect)
+		a.supabaseFailure(w, user, 400, errSupabaseReconnect, draft)
 		return
 	}
 	id, err := a.saveSupabaseGrant(r.Context(), user.ID, grant)
 	if err != nil {
-		a.supabaseFailure(w, user, 503, errSupabaseUnavailable)
+		a.supabaseFailure(w, user, 503, errSupabaseUnavailable, draft)
 		return
 	}
-	http.Redirect(w, r, "/app/supabase/projects?connection="+url.QueryEscape(id), 303)
+	http.Redirect(w, r, withDraft("/app/supabase/projects?connection="+url.QueryEscape(id), draft), 303)
 }
 func (a *App) authorizedSupabaseProjects(ctx context.Context, owner int64, id string) ([]SupabaseProject, error) {
 	token, err := a.supabaseToken(ctx, owner, id)
@@ -327,23 +346,25 @@ func (a *App) authorizedSupabaseProjects(ctx context.Context, owner int64, id st
 	return a.supabase.projects(ctx, token)
 }
 func (a *App) supabasePicker(w http.ResponseWriter, r *http.Request, user auth.User) {
+	draft := r.URL.Query().Get("draft")
 	id := r.URL.Query().Get("connection")
 	projects, err := a.authorizedSupabaseProjects(r.Context(), user.ID, id)
 	if err != nil {
-		a.supabaseFailure(w, user, 400, err)
+		a.supabaseFailure(w, user, 400, err, draft)
 		return
 	}
-	a.render(w, 200, "supabase-picker", Page{Title: "Choose a Supabase project", User: user.Email, SupabaseProjects: projects, SupabaseConnection: id})
+	a.render(w, 200, "supabase-picker", Page{Title: "Choose a Supabase project", User: user.Email, SupabaseProjects: projects, SupabaseConnection: id, Draft: r.URL.Query().Get("draft")})
 }
 func (a *App) selectSupabaseProject(w http.ResponseWriter, r *http.Request, user auth.User) {
+	draft := r.PostFormValue("draft")
 	if r.ParseForm() != nil {
-		a.supabaseFailure(w, user, 400, errSupabaseProjectAccess)
+		a.supabaseFailure(w, user, 400, errSupabaseProjectAccess, draft)
 		return
 	}
 	id := r.PostForm.Get("connection")
 	projects, err := a.authorizedSupabaseProjects(r.Context(), user.ID, id)
 	if err != nil {
-		a.supabaseFailure(w, user, 400, err)
+		a.supabaseFailure(w, user, 400, err, draft)
 		return
 	}
 	var selected *SupabaseProject
@@ -354,16 +375,22 @@ func (a *App) selectSupabaseProject(w http.ResponseWriter, r *http.Request, user
 		}
 	}
 	if selected == nil {
-		a.supabaseFailure(w, user, 400, errSupabaseProjectAccess)
+		a.supabaseFailure(w, user, 400, errSupabaseProjectAccess, draft)
+		return
+	}
+
+	choices, ok := a.draftChoices(user.ID, draft)
+	if !ok {
+		http.Error(w, "Invalid setup. Start again from Projects.", 400)
 		return
 	}
 	// Project metadata comes only from the freshly authorized provider response.
-	projectID, err := a.projects.create(r.Context(), user.ID, selected.Name, selected.Ref)
+	projectID, err := a.projects.create(r.Context(), user.ID, selected.Name, selected.Ref, choices...)
 	if err != nil {
 		var existing projectRecord
 		err = a.projects.db.QueryRow(r.Context(), `SELECT id,epoch,supabase_org,supabase_blocked FROM pooltune_app.projects WHERE owner_id=$1 AND ref=$2`, user.ID, selected.Ref).Scan(&existing.ID, &existing.Epoch, &existing.SupabaseOrg, &existing.SupabaseBlocked)
 		if err != nil || existing.Epoch > 0 && !existing.SupabaseBlocked || existing.SupabaseOrg != "" && existing.SupabaseOrg != selected.Organization {
-			a.supabaseFailure(w, user, 400, errors.New("This project is already connected. Open it from your dashboard"))
+			a.supabaseFailure(w, user, 400, errors.New("This project is already connected. Open it from your dashboard"), draft)
 			return
 		}
 		projectID = existing.ID
@@ -379,7 +406,7 @@ func (a *App) selectSupabaseProject(w http.ResponseWriter, r *http.Request, user
 				if tag.RowsAffected() != 1 {
 					return errSupabaseProjectAccess
 				}
-				tag, err = tx.Exec(r.Context(), `UPDATE pooltune_worker.projects SET monitor_epoch=monitor_epoch+1 WHERE project_id=$1 AND monitor_epoch=$2`, identity.ID(), existing.Epoch)
+				tag, err = tx.Exec(r.Context(), advanceWorkerEpochSQL, identity.ID(), existing.Epoch)
 				if err != nil {
 					return err
 				}
@@ -389,16 +416,16 @@ func (a *App) selectSupabaseProject(w http.ResponseWriter, r *http.Request, user
 				return nil
 			})
 			if err != nil {
-				a.supabaseFailure(w, user, 400, errSupabaseProjectAccess)
+				a.supabaseFailure(w, user, 400, errSupabaseProjectAccess, draft)
 				return
 			}
 			http.Redirect(w, r, "/app/projects/"+projectID, 303)
 			return
 		}
 	}
-	tag, err := a.projects.db.Exec(r.Context(), `UPDATE pooltune_app.projects SET supabase_connection=$3,supabase_org=$4,supabase_blocked=false WHERE id=$1 AND owner_id=$2 AND epoch<=0`, projectID, user.ID, id, selected.Organization)
+	tag, err := a.projects.db.Exec(r.Context(), `UPDATE pooltune_app.projects SET supabase_connection=$3,supabase_org=$4,supabase_blocked=false,setup_capabilities=CASE WHEN $5::boolean THEN $6 ELSE setup_capabilities END WHERE id=$1 AND owner_id=$2 AND epoch<=0`, projectID, user.ID, id, selected.Organization, draft != "", append([]string{}, choices...))
 	if err != nil || tag.RowsAffected() != 1 {
-		a.supabaseFailure(w, user, 503, errSupabaseUnavailable)
+		a.supabaseFailure(w, user, 503, errSupabaseUnavailable, draft)
 		return
 	}
 	http.Redirect(w, r, "/app/projects/"+projectID, 303)

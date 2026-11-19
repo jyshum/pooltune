@@ -48,10 +48,12 @@ const projectActivitySchema = `
 
 // ProjectActivity contains only bounded, displayable summaries for one project.
 type ProjectActivity struct {
-	LastPoll *time.Time      `json:"last_poll"`
-	Polls    []ProjectPoll   `json:"polls"`
-	Windows  []ProjectWindow `json:"windows"`
-	Jobs     []ProjectJob    `json:"jobs"`
+	ChartEnd   time.Time       `json:"-"`
+	HourlyJobs [24]int64       `json:"-"`
+	LastPoll   *time.Time      `json:"last_poll"`
+	Polls      []ProjectPoll   `json:"polls"`
+	Windows    []ProjectWindow `json:"windows"`
+	Jobs       []ProjectJob    `json:"jobs"`
 }
 
 type ProjectPoll struct {
@@ -75,6 +77,9 @@ type ProjectWindow struct {
 }
 
 type ProjectJob struct {
+	ParentID     int64          `json:"parent_id,omitempty"`
+	CanRevert    bool           `json:"can_revert,omitempty"`
+	Reverted     bool           `json:"reverted,omitempty"`
 	ID           int64          `json:"id"`
 	Database     uint32         `json:"database_oid"`
 	Role         uint32         `json:"role_oid"`
@@ -182,7 +187,7 @@ func recordProjectActivity(ctx context.Context, tx pgx.Tx, projectID string, at 
 // activity from one state snapshot. The caller authorizes the project first.
 func ReadProjectActivity(ctx context.Context, db interface {
 	BeginTx(context.Context, pgx.TxOptions) (pgx.Tx, error)
-}, projectID string, since time.Time) (ProjectActivity, error) {
+}, projectID string, since time.Time, beforeJob ...int64) (ProjectActivity, error) {
 	activity := ProjectActivity{
 		Polls: []ProjectPoll{}, Windows: []ProjectWindow{}, Jobs: []ProjectJob{},
 	}
@@ -214,7 +219,26 @@ func ReadProjectActivity(ctx context.Context, db interface {
 		if err != nil {
 			return err
 		}
-		activity.Jobs, err = readProjectJobs(ctx, tx, projectID, cutoff)
+		activity.ChartEnd = now
+		start := now.Add(-24 * time.Hour)
+		rows, err := tx.Query(ctx, `SELECT least(23,floor(extract(epoch FROM created_at-$2::timestamptz)/3600)::int),count(*)
+			FROM pooltune_worker.investigations WHERE project_id=$1 AND created_at BETWEEN $2 AND $3 GROUP BY 1`, projectID, start, now)
+		if err != nil {
+			return err
+		}
+		for rows.Next() {
+			var hour int
+			var count int64
+			if err := rows.Scan(&hour, &count); err != nil {
+				rows.Close()
+				return err
+			}
+			activity.HourlyJobs[hour] = count
+		}
+		if err := rows.Err(); err != nil {
+			return err
+		}
+		activity.Jobs, err = readProjectJobs(ctx, tx, projectID, cutoff, beforeJob...)
 		return err
 	})
 	if err != nil {
@@ -261,7 +285,15 @@ func readProjectWindows(ctx context.Context, tx pgx.Tx, projectID string, cutoff
 	})
 }
 
-func readProjectJobs(ctx context.Context, tx pgx.Tx, projectID string, cutoff time.Time) ([]ProjectJob, error) {
+func readProjectJobs(ctx context.Context, tx pgx.Tx, projectID string, cutoff time.Time, beforeJob ...int64) ([]ProjectJob, error) {
+	var before int64
+	limit := projectActivityJobLimit
+	if len(beforeJob) > 0 {
+		before = beforeJob[0]
+		limit = 41
+		// The history page can reach every retained investigation, independently of the telemetry window.
+		cutoff = time.Time{}
+	}
 	rows, err := tx.Query(ctx, `
 		SELECT id, database_oid, role_oid, query_id, created_at, claimed_at, finished_at, attempts,
 			CASE WHEN owned.pending_operation IS NOT NULL THEN 'repair_interrupted' ELSE COALESCE(NULLIF(result->>'outcome', ''), CASE
@@ -296,7 +328,9 @@ func readProjectJobs(ctx context.Context, tx pgx.Tx, projectID string, cutoff ti
 				'analyze', result->'analyze', 'statistics', result->'statistics',
 				'vacuum', result->'vacuum', 'memory', result->'memory', 'cron', result->'cron',
                 'managed', result->'managed_maintenance', 'managed_statistics', result->'managed_statistics', 'managed_cron', result->'managed_cron', 'managed_memory', result->'managed_memory', 'managed_cleanup', result->'managed_cleanup'
-			)) END
+			)) END,
+            EXISTS (SELECT FROM pooltune_worker.owned_index_actions a WHERE `+customerIndexChangeSQL+` AND a.customer_reverted_at IS NULL),
+            EXISTS (SELECT FROM pooltune_worker.owned_index_actions a WHERE a.project_id=j.project_id AND a.job_id=j.id AND a.customer_reverted_at IS NOT NULL), coalesce(j.parent_id,0)
 		FROM pooltune_worker.investigations j
 		CROSS JOIN LATERAL (
 			SELECT CASE WHEN (j.finished_at IS NOT NULL OR j.lease_until<=transaction_timestamp())
@@ -310,8 +344,9 @@ func readProjectJobs(ctx context.Context, tx pgx.Tx, projectID string, cutoff ti
 			) END AS pending_operation
 		) owned
 		WHERE project_id=$1 AND created_at >= $2
+        AND ($4::bigint=0 OR (j.created_at,j.id)<(SELECT pivot.created_at,pivot.id FROM pooltune_worker.investigations pivot WHERE pivot.id=$4 AND pivot.project_id=$1))
 		ORDER BY created_at DESC, id DESC LIMIT $3
-	`, projectID, cutoff, projectActivityJobLimit)
+	`, projectID, cutoff, limit, before)
 	if err != nil {
 		return nil, err
 	}
@@ -319,7 +354,7 @@ func readProjectJobs(ctx context.Context, tx pgx.Tx, projectID string, cutoff ti
 		var job ProjectJob
 		var reports []byte
 		err := row.Scan(&job.ID, &job.Database, &job.Role, &job.Query, &job.CreatedAt, &job.ClaimedAt, &job.FinishedAt, &job.Attempts,
-			&job.Outcome, &job.Reason, &job.PlanNode, &job.PlanSource, &job.ElapsedMS, &job.TargetPlanMS, &job.GraphMS, &job.ModelMS, &reports)
+			&job.Outcome, &job.Reason, &job.PlanNode, &job.PlanSource, &job.ElapsedMS, &job.TargetPlanMS, &job.GraphMS, &job.ModelMS, &reports, &job.CanRevert, &job.Reverted, &job.ParentID)
 		if err == nil {
 			readProjectRepair(&job, reports)
 		}

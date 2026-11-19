@@ -202,6 +202,7 @@ func (m *ManagedProjectIndex) run(ctx context.Context, state, monitor *pgx.Conn,
 		var bytes int64
 		err = owner.QueryRow(ctx, projectIndexReadbackSQL, observed.TableOID, observed.Schema, after.IndexName, observed.Columns).Scan(&oid, &bytes, &exact)
 		if controlErr == nil && err == nil && exact && oid == action.IndexOID && before.Sample.PlanReturned == after.Sample.PlanReturned && after.Sample.ReadMS > 0 && after.Sample.ReadMS < before.Sample.ReadMS*.8 && after.Sample.Blocks < before.Sample.Blocks && afterControls.ReadMS <= controls.ReadMS*1.25 && afterControls.WriteMS <= controls.WriteMS*1.25 {
+			report.CreatedIndexOID, report.CreatedIndexVersion = action.IndexOID, action.IndexVersion
 			report.Outcome, report.Reason = "improved_tested_inputs", "the sampled lookup improved and observed protected reads and writes stayed within their limits"
 		}
 	}

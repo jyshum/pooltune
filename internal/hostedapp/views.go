@@ -15,6 +15,7 @@ import (
 )
 
 type Page struct {
+	Draft              string
 	Capabilities       []CapabilityView
 	Title, User, Error string
 	Notice             string
@@ -29,6 +30,13 @@ type Page struct {
 }
 
 type ProjectView struct {
+	BeforeRun                             int64
+	OlderRunsAfter                        int64
+	Section                               string
+	Charts                                []activityChart
+	Allowed                               int
+	Epoch                                 int64
+	AgentPaused, DisconnectPending        bool
 	ID, Name, Ref, Status, Role, LastPoll string
 	SetupSQL, QuerySQL                    string
 	QuickStart                            bool
@@ -49,6 +57,10 @@ type ProjectView struct {
 
 type QueryView struct{ ID, Calls, Mean, Target, Blocks, Decision, At string }
 type RunView struct {
+	ParentID                                                                    int64
+	ParentVisible                                                               bool
+	Created                                                                     string
+	CanRevert, Reverted                                                         bool
 	ID, Query, Outcome, Started, Finished, Queue, Model, Analysis, Reason, Plan string
 	Repair, RepairStatus                                                        string
 	Measurements                                                                []RepairMeasurementView
@@ -66,16 +78,23 @@ func baseProjectView(row projectRecord) ProjectView {
 	if row.Configured {
 		status = "Monitoring"
 	}
+	if row.AgentPaused {
+		status = "Paused"
+	}
 	if row.SupabaseBlocked {
 		status = "Reconnect Supabase"
 	}
-	return ProjectView{SupabaseBlocked: row.SupabaseBlocked, ID: row.ID, Name: row.Name, Ref: row.Ref, Status: status}
+	return ProjectView{Epoch: row.Epoch, AgentPaused: row.AgentPaused, SupabaseBlocked: row.SupabaseBlocked, ID: row.ID, Name: row.Name, Ref: row.Ref, Status: status}
 }
 
 func (a *App) dashboard(w http.ResponseWriter, r *http.Request, user auth.User) {
 	rows, err := a.projects.list(r.Context(), user.ID)
 	if err != nil {
 		http.Error(w, "Could not load your projects.", http.StatusServiceUnavailable)
+		return
+	}
+	if len(rows) == 0 && r.URL.Query().Get("view") != "projects" {
+		a.setupPermissions(w, r, user)
 		return
 	}
 	page := Page{Title: "Projects", User: user.Email}
@@ -92,12 +111,12 @@ func (a *App) project(w http.ResponseWriter, r *http.Request, user auth.User) {
 	}
 }
 
-func (a *App) projectActivity(row projectRecord, r *http.Request) (hostedquery.ProjectActivity, error) {
+func (a *App) projectActivity(row projectRecord, r *http.Request, beforeJob ...int64) (hostedquery.ProjectActivity, error) {
 	identity, err := row.identity()
 	if err != nil {
 		return hostedquery.ProjectActivity{}, err
 	}
-	return hostedquery.ReadProjectActivity(r.Context(), a.projects.db, identity.ID(), time.Now().Add(-historyRange))
+	return hostedquery.ReadProjectActivity(r.Context(), a.projects.db, identity.ID(), time.Now().Add(-historyRange), beforeJob...)
 }
 
 func (a *App) downloadActivity(w http.ResponseWriter, r *http.Request, user auth.User) {
@@ -122,6 +141,10 @@ func (a *App) showProject(w http.ResponseWriter, r *http.Request, user auth.User
 		return
 	}
 	view := baseProjectView(row)
+	view.Section = r.URL.Query().Get("section")
+	if !slices.Contains([]string{"overview", "queries", "changes", "permissions", "connection"}, view.Section) {
+		view.Section = "overview"
+	}
 	view.Role = identity.Role()
 	view.SupabaseConnected = row.SupabaseConnection != ""
 	fixtureMatches := a.ownedIndex.Matches(identity)
@@ -142,7 +165,7 @@ func (a *App) showProject(w http.ResponseWriter, r *http.Request, user auth.User
 	}
 	if !row.Configured {
 		view.QuickStart = true
-		if len(requested) == 0 && row.SupabaseConnection != "" {
+		if len(requested) == 0 {
 			var saved []string
 			if a.projects.db.QueryRow(r.Context(), `SELECT setup_capabilities FROM pooltune_app.projects WHERE id=$1 AND owner_id=$2`, row.ID, row.Owner).Scan(&saved) == nil {
 				requested = [][]string{saved}
@@ -159,7 +182,9 @@ func (a *App) showProject(w http.ResponseWriter, r *http.Request, user auth.User
 	} else if configured, err := a.vault.open(row, row.Secret); err == nil {
 		view.Capabilities = slices.Clone(projectCapabilities)
 		view.RepairsSelected = len(configured.Capabilities) > 0
+		view.Allowed = len(configured.Capabilities)
 		view.RepairsPaused = configured.RepairsPaused
+		view.DisconnectPending = configured.DisconnectPending
 		if configured.DisconnectPending && failure == "" {
 			failure = "Repairs are stopped. Temporary scheduler cleanup is pending. Retry disconnect to finish; the encrypted credential is retained only for cleanup."
 		}
@@ -201,7 +226,13 @@ func (a *App) showProject(w http.ResponseWriter, r *http.Request, user auth.User
 	if failure != "" {
 		status = http.StatusBadRequest
 	}
-	activity, err := a.projectActivity(row, r)
+	var cursor []int64
+	if view.Section == "changes" {
+		before, _ := strconv.ParseInt(r.URL.Query().Get("before"), 10, 64)
+		view.BeforeRun = max(before, 0)
+		cursor = []int64{view.BeforeRun}
+	}
+	activity, err := a.projectActivity(row, r, cursor...)
 	if err != nil {
 		if failure == "" {
 			failure = "Activity is temporarily unavailable. Try refreshing this page."
@@ -296,6 +327,7 @@ func outcomeLabel(outcome string) string {
 }
 
 func populateActivity(view *ProjectView, activity hostedquery.ProjectActivity, interval time.Duration, now time.Time) {
+	view.Charts = overviewCharts(activity, now)
 	if activity.LastPoll != nil {
 		view.LastPoll = displayTime(*activity.LastPoll)
 		if view.Status == "Monitoring" && now.Sub(*activity.LastPoll) > 2*interval {
@@ -314,11 +346,18 @@ func populateActivity(view *ProjectView, activity hostedquery.ProjectActivity, i
 			Decision: outcomeLabel(string(window.Decision)), At: displayTime(window.End),
 		})
 	}
+	if len(activity.Jobs) > 40 {
+		view.OlderRunsAfter = activity.Jobs[39].ID
+	}
+	visibleRuns := make(map[int64]bool)
+	for _, job := range activity.Jobs[:min(40, len(activity.Jobs))] {
+		visibleRuns[job.ID] = true
+	}
 	for i, job := range activity.Jobs {
 		if i >= 40 {
 			break
 		}
-		item := RunView{ID: strconv.FormatInt(job.ID, 10), Query: strconv.FormatInt(job.Query, 10),
+		item := RunView{ParentID: job.ParentID, ParentVisible: visibleRuns[job.ParentID], Created: displayTime(job.CreatedAt), CanRevert: job.CanRevert && view.ManagedRepairs && !view.SupabaseBlocked && !view.DisconnectPending && view.Epoch > 0, Reverted: job.Reverted, ID: strconv.FormatInt(job.ID, 10), Query: strconv.FormatInt(job.Query, 10),
 			Outcome: outcomeLabel(job.Outcome), Reason: job.Reason, Plan: job.PlanNode}
 		switch job.Outcome {
 		case "propose":

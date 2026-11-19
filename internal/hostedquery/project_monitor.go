@@ -110,7 +110,7 @@ func ActivateProjectMonitor(ctx context.Context, state interface {
 		INSERT INTO pooltune_worker.projects(project_id, monitor_epoch) VALUES ($1, 1)
 		ON CONFLICT (project_id) DO UPDATE
 		SET monitor_epoch = CASE WHEN projects.monitor_epoch < 0 THEN 1 - projects.monitor_epoch ELSE projects.monitor_epoch END
-		WHERE projects.monitor_epoch IS NOT NULL AND ($2::boolean OR projects.monitor_epoch>0)
+		WHERE projects.monitor_epoch IS NOT NULL AND NOT projects.agent_paused AND ($2::boolean OR projects.monitor_epoch>0)
 		RETURNING monitor_epoch
 	`, project.ID(), reactivate).Scan(&epoch)
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -123,7 +123,7 @@ func ActivateProjectMonitor(ctx context.Context, state interface {
 // this value so a previous process cannot resume after a disconnect/reconnect.
 func ProjectMonitorEpoch(ctx context.Context, state *pgx.Conn, project supabaseproject.Project) (int64, error) {
 	var epoch int64
-	err := state.QueryRow(ctx, "SELECT monitor_epoch FROM pooltune_worker.projects WHERE project_id=$1 AND monitor_epoch>0", project.ID()).Scan(&epoch)
+	err := state.QueryRow(ctx, "SELECT monitor_epoch FROM pooltune_worker.projects WHERE project_id=$1 AND monitor_epoch>0 AND NOT agent_paused", project.ID()).Scan(&epoch)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return 0, ErrProjectDisconnected
 	}
@@ -133,7 +133,7 @@ func ProjectMonitorEpoch(ctx context.Context, state *pgx.Conn, project supabasep
 // HostedProjectEpoch returns zero only for a new, explicitly configured installation.
 func HostedProjectEpoch(ctx context.Context, state *pgx.Conn, project supabaseproject.Project) (int64, error) {
 	var epoch *int64
-	err := state.QueryRow(ctx, "SELECT monitor_epoch FROM pooltune_worker.projects WHERE project_id=$1", project.ID()).Scan(&epoch)
+	err := state.QueryRow(ctx, "SELECT CASE WHEN NOT agent_paused THEN monitor_epoch END FROM pooltune_worker.projects WHERE project_id=$1", project.ID()).Scan(&epoch)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return 0, nil
 	}
@@ -175,7 +175,7 @@ func DisconnectProjectMonitorTx(ctx context.Context, tx pgx.Tx, project supabase
 	tag, err := tx.Exec(ctx, `
 			INSERT INTO pooltune_worker.projects(project_id, monitor_epoch) VALUES ($1, -1)
 			ON CONFLICT (project_id) DO UPDATE
-			SET monitor_epoch = -abs(projects.monitor_epoch), last_poll = NULL, evidence = '{}'
+			SET monitor_epoch = -abs(projects.monitor_epoch), agent_paused=false, last_disconnected_at=statement_timestamp(), last_poll = NULL, evidence = '{}'
 			WHERE projects.monitor_epoch IS NOT NULL
 		`, project.ID())
 	if err != nil {

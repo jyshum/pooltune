@@ -56,9 +56,9 @@ func (a *App) RunWorkers(ctx context.Context) {
 				processes[row.ID] = projectProcess{epoch: row.Epoch, cancel: cancel}
 				a.workerMu.Lock()
 				if a.workerStops == nil {
-					a.workerStops = make(map[string]context.CancelFunc)
+					a.workerStops = make(map[string]projectProcess)
 				}
-				a.workerStops[row.ID] = cancel
+				a.workerStops[row.ID] = processes[row.ID]
 				a.workerMu.Unlock()
 				workers.Go(func() { a.superviseProject(worker, row) })
 			}
@@ -96,6 +96,12 @@ func (a *App) runProject(ctx context.Context, row projectRecord) error {
 		return err
 	}
 	if credentials.DisconnectPending {
+		return hostedquery.ErrProjectDisconnected
+	}
+	if row.AgentPaused {
+		if err := a.finishPauseCleanup(ctx, row, credentials); err != nil {
+			return err
+		}
 		return hostedquery.ErrProjectDisconnected
 	}
 	if row.SupabaseConnection != "" {
