@@ -92,7 +92,7 @@
     "#b4f4ec",
   ];
   // Only the bright crest picks up heat. Its darker wake stays teal.
-  const emberCrest = ["#805052", "#c25a56", "#ee695a", "#ff8267", "#ffb18b"];
+  const emberCrest = ["#894247", "#cb444a", "#ef5052", "#ff645b", "#ff9073"];
   function crestHeight(u, t) {
     return (
       0.39 +
@@ -167,12 +167,12 @@
     const center = 0.62 + 0.09 * Math.sin(t * 0.32);
     const x = w * center;
     const y = h * crestHeight(center, t);
-    const reach = Math.min(w * 0.22, h * 0.34);
+    const reach = Math.min(w * 0.34, h * 0.48);
     buckets.forEach((path, i) => {
       if (i >= 4) {
         const heat = ctx.createRadialGradient(x, y, 0, x, y, reach);
         heat.addColorStop(0, emberCrest[i - 4]);
-        heat.addColorStop(0.35, emberCrest[i - 4]);
+        heat.addColorStop(0.49, emberCrest[i - 4]);
         heat.addColorStop(1, palette[i]);
         ctx.fillStyle = heat;
       } else {
@@ -361,6 +361,8 @@
       }
   });
   document
-    .querySelectorAll("#integrations,.setup,.repairs")
+    .querySelectorAll(
+      ".walk .section-head, .repairs .section-head, .repairs li, .provider-heading, .providers > *, .setup > div, .setup li",
+    )
     .forEach((section) => reveal.observe(section));
 })();

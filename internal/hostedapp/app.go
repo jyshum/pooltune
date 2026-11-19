@@ -25,7 +25,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-//go:embed ui/*.html ui/*.css ui/*.js ui/wave.svg
+//go:embed ui/*.html ui/*.css ui/*.js ui/wave.svg ui/fonts/*
 var frontend embed.FS
 
 type Config struct {
@@ -205,7 +205,9 @@ func (a *App) routes() *http.ServeMux {
 	mux.Handle("GET /assets/landing.css", files)
 	mux.Handle("GET /assets/landing.js", files)
 	mux.Handle("GET /assets/wave.svg", files)
+	mux.Handle("GET /assets/fonts/", files)
 	mux.HandleFunc("GET /{$}", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Security-Policy", w.Header().Get("Content-Security-Policy")+"; font-src 'self'")
 		user, _ := a.session(r)
 		a.render(w, http.StatusOK, "home", Page{Title: "Pooltune", User: user.Email, Capabilities: projectCapabilities})
 	})

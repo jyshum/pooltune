@@ -1,3 +1,16 @@
+@font-face {
+  font-family: "Bricolage Grotesque";
+  src: url("/assets/fonts/bricolage-latin.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+}
+h1,
+h2,
+.steps strong,
+.providers strong {
+  font-family: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+}
 :root {
   color-scheme: dark;
   --bg: #101313;
@@ -507,6 +520,18 @@ footer {
 footer a:last-child {
   padding-right: var(--pad);
 }
+@keyframes panel-enter {
+  from {
+    clip-path: inset(0 0 95% 0);
+    transform: translateY(8px);
+    opacity: 0.65;
+  }
+  to {
+    clip-path: inset(0);
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
 @keyframes settle {
   from {
     transform: translateY(-12px);
@@ -521,22 +546,27 @@ footer a:last-child {
   html {
     scroll-behavior: smooth;
   }
-  .arrived .section-head > div,
-  .arrived .providers > *,
-  .setup.arrived li,
+  .arrived {
+    animation: panel-enter 670ms cubic-bezier(0.18, 0.76, 0.2, 1) backwards;
+  }
+  .providers > :nth-child(2),
+  .repairs li:nth-child(even),
+  .setup li:nth-child(2) {
+    animation-delay: 65ms;
+  }
+  .providers > :nth-child(3),
+  .setup li:nth-child(3) {
+    animation-delay: 115ms;
+  }
+  .providers > :nth-child(4),
+  .setup li:nth-child(4) {
+    animation-delay: 155ms;
+  }
+  .arrived:focus-within {
+    animation: none;
+  }
   .steps button[aria-current] .detail {
-    animation: settle 0.4s ease-out backwards;
-  }
-  .arrived .providers > :nth-child(2),
-  .setup.arrived li:nth-child(2) {
-    animation-delay: 0.06s;
-  }
-  .arrived .providers > :nth-child(3),
-  .setup.arrived li:nth-child(3) {
-    animation-delay: 0.12s;
-  }
-  .arrived .providers > :last-child {
-    animation-delay: 0.18s;
+    animation: settle 0.35s ease-out backwards;
   }
 }
 @media (max-width: 900px) {
