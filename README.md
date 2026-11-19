@@ -3,32 +3,56 @@
 <a href="https://pooltune.up.railway.app/#how"><img src="docs/images/pooltune-preview.jpg" alt="Pooltune’s live preview with its animated database workload" width="100%"></a>
 
 <p align="center">
-  <a href="https://go.dev/"><img alt="Worker: Go" src="https://img.shields.io/badge/Worker-Go-454d54?style=flat-square"></a>
-  <a href="https://www.typescriptlang.org/"><img alt="Investigator: TypeScript" src="https://img.shields.io/badge/Investigator-TypeScript-454d54?style=flat-square"></a>
-  <a href="https://docs.langchain.com/oss/javascript/langgraph/overview"><img alt="Workflow: LangGraph" src="https://img.shields.io/badge/Workflow-LangGraph-454d54?style=flat-square"></a>
-  <a href="https://www.postgresql.org/"><img alt="Database: PostgreSQL" src="https://img.shields.io/badge/Database-PostgreSQL-454d54?style=flat-square"></a>
-  <a href="https://supabase.com/"><img alt="Integration: Supabase" src="https://img.shields.io/badge/Integration-Supabase-454d54?style=flat-square"></a>
-  <a href="https://railway.com/"><img alt="Hosting: Railway" src="https://img.shields.io/badge/Hosting-Railway-454d54?style=flat-square"></a>
+  <a href="https://go.dev/"><img alt="Go" src="https://img.shields.io/badge/Go-007D9C?style=flat-square&amp;logo=go&amp;logoColor=white"></a>
+  <a href="https://www.typescriptlang.org/"><img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&amp;logo=typescript&amp;logoColor=white"></a>
+  <a href="https://docs.langchain.com/oss/javascript/langgraph/overview"><img alt="LangGraph" src="https://img.shields.io/badge/LangGraph-216A54?style=flat-square&amp;logo=langgraph&amp;logoColor=white"></a>
+  <a href="https://www.postgresql.org/"><img alt="PostgreSQL" src="https://img.shields.io/badge/PostgreSQL-416A93?style=flat-square&amp;logo=postgresql&amp;logoColor=white"></a>
+  <a href="https://supabase.com/"><img alt="Supabase" src="https://img.shields.io/badge/Supabase-187951?style=flat-square&amp;logo=supabase&amp;logoColor=white"></a>
+  <a href="https://railway.com/"><img alt="Railway" src="https://img.shields.io/badge/Railway-7047AE?style=flat-square&amp;logo=railway&amp;logoColor=white"></a>
 </p>
 
 <p align="center"><a href="https://pooltune.up.railway.app/#how"><b>Try the interactive walkthrough</b></a> · <a href="https://pooltune.up.railway.app/signin">Open workspace</a></p>
 
-Pooltune helps developers find out why a PostgreSQL query is slow and whether a repair actually helped. Connect a Supabase project, choose which repairs the agent may run, or leave them all off to monitor only. The walkthrough is public. Connecting your own database requires a preview invite.
+Pooltune is a tuning agent for developers running PostgreSQL on Supabase. When a query starts doing more work than it used to, Pooltune investigates the cause, runs a repair you have allowed, and measures the same work again. You can also connect a project in monitor-only mode. The walkthrough is public. Connecting your own database requires a preview invite.
 
-## One repair, measured
+## A repair from start to finish
 
-A lookup filtered by both customer and category. PostgreSQL touched **866 blocks** to find the matching rows. With index creation enabled, Pooltune built an index on those two columns while writes continued, then measured the same input again.
+In a controlled PostgreSQL test, an application looked up records by customer and category. To find the matching rows, PostgreSQL touched 866 blocks. Pooltune identified that the two filters could share an index. With index creation enabled, it built that index while application reads and writes continued.
 
-| Controlled PostgreSQL test | Before index | After index |
+| What Pooltune measured | Before the index | After the index |
 | --- | ---: | ---: |
-| Block accesses | 866 | 4 |
-| Execution time for one input | 16.605 ms | 0.070 ms |
+| Block accesses for the same lookup input | 866 | 4 |
+| Database execution time for that input | 16.605 ms | 0.070 ms |
+| Average time seen by the client across candidate calls | 41.85 ms | 24.36 ms |
 
-In the workspace you can inspect the measurements, pause the agent, and revert an eligible index from its change history. [Recorded trial](docs/design/hosted-query-agent/evidence/mvp-simple-index-railway.json)
+The database measurement shows how much work the lookup saved. The client measurement includes the rest of the round trip. The index added about 3.45 MiB of storage. The trial also recorded timings for writes and a healthy query so you can inspect what happened to other traffic. [See the recorded trial](docs/design/hosted-query-agent/evidence/mvp-simple-index-railway.json)
 
-## Under the hood
+## What you can let Pooltune change
 
-Go serves the workspace, samples PostgreSQL statistics, and runs permitted repairs. A TypeScript investigator uses LangGraph and Claude to diagnose eligible queries. PostgreSQL records the observations and repair history. [Engineering overview](docs/design/hosted-query-agent/overview.md) · [Original connection-pool gateway](legacy/README.md)
+Each project has six independent permissions. Enabling one lets the worker consider that operation. The database role still needs access to the target, and the worker checks the evidence before acting.
+
+| Permission | When it helps |
+| --- | --- |
+| Add indexes | A frequent, selective lookup reads many blocks to find a few rows. A nonunique index can give it a shorter path. |
+| Refresh statistics | After a table changes, the planner may still use old estimates. Refreshing its statistics gives it a current picture of the data. |
+| Improve statistics detail | Two columns often occur together, or one value is unusually common. More detailed statistics can help the planner estimate how many rows will match. |
+| Maintain tables | Updates and deletes leave old row versions behind. A targeted cleanup can reclaim space for reuse within the table. |
+| Tune function memory | A sort inside a selected function spills to disk. A bounded memory adjustment can keep that work in memory. |
+| Reschedule jobs | A recurring background job competes with application traffic. Pooltune can move it within an approved window and check future executions. |
+
+All six repair families have controlled staging cases. The linked trials document the workloads and permissions exercised for each. [Repair evidence and current coverage](docs/design/hosted-query-agent/repair-expansion.md)
+
+## Inside the workspace
+
+1. **Connect a project.** Choose the allowed repairs, connect your Supabase database, and review its access. You can manage several projects from one account.
+2. **Follow the workload.** Overview shows monitoring checks and observed query activity. A monitoring check is one sample taken by the agent. Query calls count work the application actually ran.
+3. **Inspect a change.** Open Change history to see the repair and its measured outcome. You can revert an eligible index there, pause the agent from the project header, or adjust its permissions for future repairs.
+
+## How the agent works
+
+The application keeps talking directly to PostgreSQL. A Go worker samples database statistics in the background and queues an investigation when it sees repeated expensive work. A TypeScript workflow built with LangGraph gives Claude the query plan and supporting observations. It can request more evidence, propose a supported repair, or close the investigation.
+
+Go checks the proposed target, permissions, and operating limits before running the repair. It records the intended change in PostgreSQL so a restarted worker can check what happened before trying again. Verification compares the affected work and, where available, checks other traffic for regressions. [Engineering overview](docs/design/hosted-query-agent/overview.md) · [Original connection-pool gateway](legacy/README.md)
 
 <details>
 <summary>Run the tests</summary>
