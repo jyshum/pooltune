@@ -13,7 +13,7 @@
 
 <p align="center"><a href="https://pooltune.up.railway.app/#how"><b>Try the interactive walkthrough</b></a> · <a href="https://pooltune.up.railway.app/signin">Open workspace</a></p>
 
-Pooltune is a tuning agent for developers running PostgreSQL on Supabase. When a query starts doing more work than it used to, Pooltune investigates the cause, runs a repair you have allowed, and measures the same work again. You can also connect a project in monitor-only mode. The walkthrough is public. Connecting your own database requires a preview invite.
+Pooltune is a tuning agent for developers running PostgreSQL on Supabase. When a query starts doing more work than it used to, Pooltune investigates the cause, runs a repair you have allowed, and measures the same work again. You can also connect a project in monitor-only mode. The walkthrough is public. Create a free account with email or Google to connect your database. The free plan allows five projects per account and eight diagnosis credits per project each UTC day.
 
 ## A repair from start to finish
 

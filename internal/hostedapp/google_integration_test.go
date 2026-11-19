@@ -32,8 +32,7 @@ func TestGoogleHTTPFlowSecurity(t *testing.T) {
 	}
 	defer pool.Close()
 	const origin = "https://preview.example.com"
-	const invite = "private-local-test-invite"
-	app, err := New(ctx, pool, Config{Origin: origin, InviteCode: invite, Key: bytes.Repeat([]byte{23}, 32), Sampling: hostedquery.SamplingPolicy{Interval: time.Minute, Window: 5 * time.Minute}, QueueInterval: time.Second, GoogleClientID: "test-client", GoogleClientSecret: "test-secret"})
+	app, err := New(ctx, pool, Config{Origin: origin, Key: bytes.Repeat([]byte{23}, 32), Sampling: hostedquery.SamplingPolicy{Interval: time.Minute, Window: 5 * time.Minute}, QueueInterval: time.Second, GoogleClientID: "test-client", GoogleClientSecret: "test-secret"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -83,7 +82,7 @@ func TestGoogleHTTPFlowSecurity(t *testing.T) {
 	}
 	start := func(mode string, session *http.Cookie) (string, *http.Cookie) {
 		t.Helper()
-		w := request("POST", "/auth/google/start", url.Values{"mode": {mode}, "invite_code": {invite}}, session)
+		w := request("POST", "/auth/google/start", url.Values{"mode": {mode}}, session)
 		if w.Code != 303 {
 			t.Fatalf("start %s: %d %s", mode, w.Code, w.Body.String())
 		}
@@ -100,8 +99,8 @@ func TestGoogleHTTPFlowSecurity(t *testing.T) {
 		claims = map[string]any{"iss": "https://accounts.google.com", "aud": "test-client", "sub": "google-subject", "email": "new@example.com", "email_verified": true, "nonce": q.Get("nonce"), "exp": time.Now().Add(time.Hour).Unix(), "iat": time.Now().Unix()}
 		return "/auth/google/callback?state=" + url.QueryEscape(q.Get("state")) + "&code=code", w.Result().Cookies()[0]
 	}
-	if w := request("POST", "/auth/google/start", url.Values{"mode": {"signup"}}); w.Code != 403 {
-		t.Fatal("signup without invite accepted")
+	if w := request("GET", "/signup", nil); w.Code != 200 || strings.Contains(w.Body.String(), "invite_code") || !strings.Contains(w.Body.String(), "Continue with Google") {
+		t.Fatal("signup must offer Google and email without an invite field")
 	}
 	if w := request("GET", "/signin", nil); !strings.Contains(w.Body.String(), "Continue with Google") {
 		t.Fatal("Google sign-in missing")

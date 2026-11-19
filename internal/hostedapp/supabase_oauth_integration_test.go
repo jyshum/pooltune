@@ -37,7 +37,7 @@ func TestSupabaseOAuthBindingPickerAndRefresh(t *testing.T) {
 	}
 	defer pool.Close()
 	const origin = "https://preview.example.com"
-	app, err := New(ctx, pool, Config{Origin: origin, InviteCode: "private-local-test-invite", Key: bytes.Repeat([]byte{23}, 32), Sampling: hostedquery.SamplingPolicy{Interval: time.Minute, Window: 5 * time.Minute}, QueueInterval: time.Second, SupabaseClientID: "client", SupabaseClientSecret: "secret"})
+	app, err := New(ctx, pool, Config{Origin: origin, Key: bytes.Repeat([]byte{23}, 32), Sampling: hostedquery.SamplingPolicy{Interval: time.Minute, Window: 5 * time.Minute}, QueueInterval: time.Second, SupabaseClientID: "client", SupabaseClientSecret: "secret"})
 	if err != nil {
 		t.Fatal(err)
 	}

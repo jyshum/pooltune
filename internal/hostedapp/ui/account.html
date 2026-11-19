@@ -4,32 +4,26 @@
 {{define "auth-layout"}}{{template "header" .}}
 <main class="account-layout" id="main">
   <section class="account-form">
-    <h1>{{if .Invite}}Create an account{{else}}Welcome back{{end}}</h1>
-    <p class="intro">{{if .Invite}}Set up your Pooltune workspace.{{else}}Sign in to your workspace.{{end}}</p>
+    <h1>{{if .Signup}}Create an account{{else}}Welcome back{{end}}</h1>
+    <p class="intro">{{if .Signup}}Set up your free Pooltune workspace.{{else}}Sign in to your workspace.{{end}}</p>
     {{template "error" .}}
-    {{if .Invite}}
-    <div class="field invite-field"><label for="invite">Preview invite code</label>
-      <input id="invite" name="invite_code" form="email-form" type="password" autocomplete="off" required></div>
-    {{end}}
     {{if .GoogleEnabled}}
     <form class="google-form" action="/auth/google/start" method="post">
-      <input type="hidden" name="mode" value="{{if .Invite}}signup{{else}}signin{{end}}">
-      {{if .Invite}}<input type="hidden" id="google-code" disabled name="invite_code">
-      <noscript><label>Invite code for Google signup<input type="password" name="invite_code" required></label></noscript>{{end}}
+      <input type="hidden" name="mode" value="{{if .Signup}}signup{{else}}signin{{end}}">
       <button class="button button-secondary" type="submit">{{template "google-mark"}}Continue with Google</button>
     </form>
     <div class="divider"><span>or</span></div>
     {{end}}
-    <form class="fields" id="email-form" action="{{if .Invite}}/signup{{else}}/signin{{end}}" method="post">
+    <form class="fields" id="email-form" action="{{if .Signup}}/signup{{else}}/signin{{end}}" method="post">
       <div class="field"><label for="email">Email</label><input type="email" id="email" name="email" placeholder="you@example.com" autocomplete="username" maxlength="254" required></div>
       <div class="field"><label for="password">Password</label>
-        <div class="password-wrap"><input type="password" id="password" name="password" placeholder="Enter your password" {{if .Invite}}autocomplete="new-password" minlength="15" aria-describedby="password-help"{{else}}autocomplete="current-password"{{end}} maxlength="1024" required>
+        <div class="password-wrap"><input type="password" id="password" name="password" placeholder="Enter your password" {{if .Signup}}autocomplete="new-password" minlength="15" aria-describedby="password-help"{{else}}autocomplete="current-password"{{end}} maxlength="1024" required>
         <button type="button" id="password-toggle" aria-controls="password" hidden>Show</button></div>
-        {{if .Invite}}<p class="help" id="password-help">Use at least 15 characters.</p>{{end}}
+        {{if .Signup}}<p class="help" id="password-help">Use at least 15 characters.</p>{{end}}
       </div>
-      <button class="button button-primary" type="submit">{{if .Invite}}Create account{{else}}Sign in{{end}} <span aria-hidden="true">→</span></button>
+      <button class="button button-primary" type="submit">{{if .Signup}}Create account{{else}}Sign in{{end}} <span aria-hidden="true">→</span></button>
     </form>
-    <p class="form-tail">{{if .Invite}}Already have an account? <a href="/signin">Sign in</a>{{else}}New to Pooltune? <a href="/signup">Create an account</a>{{end}}</p>
+    <p class="form-tail">{{if .Signup}}Already have an account? <a href="/signin">Sign in</a>{{else}}New to Pooltune? <a href="/signup">Create an account</a>{{end}}</p>
   </section>
   <aside class="creator">
     <a class="portrait-link" href="https://www.jaredshum.ca/" target="_blank" rel="noopener" aria-label="Visit Jared Shum’s portfolio (opens in a new tab)">

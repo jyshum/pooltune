@@ -26,7 +26,6 @@ h1, h2, h3, .brand, .portrait-caption strong, .metric-grid article > strong {
 .account-form { width: min(100% - 64px, 370px); margin: auto; padding-block: clamp(40px, 7vh, 90px); }
 .account-form h1 { font-size: clamp(2rem, 3.5vw, 3.2rem); letter-spacing: -.06em; }
 .intro { color: var(--muted); margin: 8px 0 32px; }
-.invite-field { margin-bottom: 20px; }
 .google-form .button, .account-form .button { width: 100%; gap: 12px; min-height: 46px; }
 .divider { display: flex; align-items: center; gap: 14px; color: var(--muted); font-size: 12px; margin: 20px 0; }
 .divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }

@@ -25,7 +25,7 @@ func TestSupabaseRefreshPersistsAfterRequestDeadline(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer pool.Close()
-	app, err := New(ctx, pool, Config{Origin: "https://preview.example.com", InviteCode: "private-local-test-invite", Key: bytes.Repeat([]byte{23}, 32), Sampling: hostedquery.SamplingPolicy{Interval: time.Minute, Window: 5 * time.Minute}, QueueInterval: time.Second, SupabaseClientID: "client", SupabaseClientSecret: "secret"})
+	app, err := New(ctx, pool, Config{Origin: "https://preview.example.com", Key: bytes.Repeat([]byte{23}, 32), Sampling: hostedquery.SamplingPolicy{Interval: time.Minute, Window: 5 * time.Minute}, QueueInterval: time.Second, SupabaseClientID: "client", SupabaseClientSecret: "secret"})
 	if err != nil {
 		t.Fatal(err)
 	}

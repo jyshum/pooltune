@@ -31,7 +31,7 @@ func TestAgentControlsRetainHistoryAndFenceOwnerActions(t *testing.T) {
 	}
 	defer pool.Close()
 	const origin = "https://preview.example.com"
-	a, err := New(ctx, pool, Config{Origin: origin, InviteCode: "private-local-test-invite", Key: bytes.Repeat([]byte{42}, 32), Sampling: hostedquery.SamplingPolicy{Interval: time.Minute, Window: 5 * time.Minute}, QueueInterval: time.Second})
+	a, err := New(ctx, pool, Config{Origin: origin, Key: bytes.Repeat([]byte{42}, 32), Sampling: hostedquery.SamplingPolicy{Interval: time.Minute, Window: 5 * time.Minute}, QueueInterval: time.Second})
 	if err != nil {
 		t.Fatal(err)
 	}

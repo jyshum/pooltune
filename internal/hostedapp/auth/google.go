@@ -119,7 +119,7 @@ func (s *Store) ConsumeGoogleFlow(ctx context.Context, state, browser string) (G
 }
 
 // GoogleAccount accepts only a subject and verified email from the OIDC verifier.
-// Signup callers must first validate the preview invite. Linking requires the same
+// Linking requires the same
 // live session that initiated the flow, checked again inside this transaction.
 func (s *Store) GoogleAccount(ctx context.Context, mode, subject, email string, linkID int64, linkSession string) (User, string, error) {
 	address := canonicalEmail(email)

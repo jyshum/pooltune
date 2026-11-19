@@ -2,7 +2,6 @@ package hostedapp
 
 import (
 	"context"
-	"crypto/sha256"
 	"crypto/subtle"
 	"errors"
 	"net/http"
@@ -95,13 +94,7 @@ func (a *App) googleStart(w http.ResponseWriter, r *http.Request) {
 	var userID int64
 	var session string
 	switch mode {
-	case "signup":
-		invite := sha256.Sum256([]byte(r.PostForm.Get("invite_code")))
-		if subtle.ConstantTimeCompare(invite[:], a.invite[:]) != 1 {
-			a.render(w, 403, "signup", accountPage("signup", "Enter a valid preview invite code."))
-			return
-		}
-	case "signin":
+	case "signin", "signup":
 	case "link":
 		user, err := a.session(r)
 		if err != nil {
@@ -182,7 +175,7 @@ func (a *App) googleCallback(w http.ResponseWriter, r *http.Request) {
 		case errors.Is(err, auth.ErrGoogleLinkRequired):
 			message = "Sign in to your existing account with your password, then open Account and choose Link Google account. Use the same email address."
 		case errors.Is(err, auth.ErrGoogleUnknown):
-			message = "Create an account with your preview invite code before signing in with Google."
+			message = "Create an account with Google to open your free workspace."
 		case errors.Is(err, auth.ErrInvalidCredentials):
 			message = "Sign in to your existing account and link the Google account with the same email address."
 		}

@@ -24,7 +24,7 @@ type Page struct {
 	SupabaseProjects                       []SupabaseProject
 	SupabaseConnection                     string
 	RepairWorkerKey                        string
-	Invite                                 bool
+	Signup                                 bool
 	Projects                               []ProjectView
 	Project                                ProjectView
 	Enrollment                             EnrollmentView

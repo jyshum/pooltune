@@ -50,16 +50,6 @@ if (passwordToggle) {
   });
 }
 
-const googleCode = document.getElementById("google-code");
-if (googleCode) {
-  const invite = document.getElementById("invite");
-  googleCode.disabled = false;
-  googleCode.form.addEventListener("submit", event => {
-    if (!invite.reportValidity()) event.preventDefault();
-    googleCode.value = invite.value;
-  });
-}
-
 const cards = document.querySelectorAll(".directory .project-card");
 if (cards.length && window.gsap) {
   gsap.matchMedia().add("(prefers-reduced-motion: no-preference)", () => {

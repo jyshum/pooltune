@@ -31,7 +31,7 @@ func TestEnrollmentEndpointStoresOnlyFreshOwnerSelectedCatalogIdentity(t *testin
 		t.Fatal(err)
 	}
 	defer pool.Close()
-	app, err := New(ctx, pool, Config{Origin: "https://preview.example.com", InviteCode: "private-enroll-test-code", Key: bytes.Repeat([]byte{18}, 32), Sampling: hostedquery.SamplingPolicy{Interval: time.Minute, Window: 5 * time.Minute}, QueueInterval: time.Second})
+	app, err := New(ctx, pool, Config{Origin: "https://preview.example.com", Key: bytes.Repeat([]byte{18}, 32), Sampling: hostedquery.SamplingPolicy{Interval: time.Minute, Window: 5 * time.Minute}, QueueInterval: time.Second})
 	if err != nil {
 		t.Fatal(err)
 	}

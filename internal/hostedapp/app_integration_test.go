@@ -36,9 +36,8 @@ func TestAccountDashboardAndProjectOwnership(t *testing.T) {
 	}
 	defer pool.Close()
 	const origin = "https://preview.example.com"
-	const code = "private-local-test-invite"
 	const password = "one exact test passphrase"
-	app, err := New(ctx, pool, Config{Origin: origin, InviteCode: code, Key: bytes.Repeat([]byte{23}, 32),
+	app, err := New(ctx, pool, Config{Origin: origin, Key: bytes.Repeat([]byte{23}, 32),
 		Sampling: hostedquery.SamplingPolicy{Interval: time.Minute, Window: 5 * time.Minute}, QueueInterval: time.Second})
 	if err != nil {
 		t.Fatal(err)
@@ -67,7 +66,7 @@ func TestAccountDashboardAndProjectOwnership(t *testing.T) {
 	}
 	register := func(email string) *http.Cookie {
 		t.Helper()
-		values := url.Values{"email": {email}, "password": {password}, "invite_code": {code}}
+		values := url.Values{"email": {email}, "password": {password}}
 		w := request(http.MethodPost, "/signup", values, nil, origin)
 		if w.Code != 303 || w.Header().Get("Location") != "/app" {
 			t.Fatalf("signup returned %d", w.Code)

@@ -29,7 +29,7 @@ func TestMonitoringTokenReplacementIsEncryptedOwnerBoundAndRevalidated(t *testin
 		t.Fatal(e)
 	}
 	defer pool.Close()
-	app, e := New(ctx, pool, Config{Origin: "https://preview.example.com", InviteCode: "private-token-test-code", Key: bytes.Repeat([]byte{23}, 32), Sampling: hostedquery.SamplingPolicy{Interval: time.Minute, Window: 5 * time.Minute}, QueueInterval: time.Second})
+	app, e := New(ctx, pool, Config{Origin: "https://preview.example.com", Key: bytes.Repeat([]byte{23}, 32), Sampling: hostedquery.SamplingPolicy{Interval: time.Minute, Window: 5 * time.Minute}, QueueInterval: time.Second})
 	if e != nil {
 		t.Fatal(e)
 	}

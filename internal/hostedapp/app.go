@@ -4,8 +4,6 @@ package hostedapp
 import (
 	"bytes"
 	"context"
-	"crypto/sha256"
-	"crypto/subtle"
 	"embed"
 	"errors"
 	"html/template"
@@ -30,7 +28,7 @@ import (
 var frontend embed.FS
 
 type Config struct {
-	Origin, InviteCode                     string
+	Origin                                 string
 	GoogleClientID, GoogleClientSecret     string
 	SupabaseClientID, SupabaseClientSecret string
 	Key                                    []byte
@@ -57,7 +55,6 @@ type App struct {
 	ownedRepair       *hostedquery.OwnedProjectRepair
 	ownedCron         *hostedquery.OwnedProjectCron
 	origin            *url.URL
-	invite            [32]byte
 	cookie            string
 	templates         *template.Template
 	handler           http.Handler
@@ -95,9 +92,6 @@ func New(ctx context.Context, db *pgxpool.Pool, cfg Config) (*App, error) {
 	local := host == "localhost" || host == "127.0.0.1" || host == "::1"
 	if origin.Scheme != "https" && !(local && origin.Scheme == "http") {
 		return nil, errors.New("the dashboard requires HTTPS outside loopback")
-	}
-	if len(cfg.InviteCode) < 16 || len(cfg.InviteCode) > 256 {
-		return nil, errors.New("set POOLTUNE_SIGNUP_CODE to a private code of 16 to 256 bytes")
 	}
 	if cfg.Sampling.Interval <= 0 || cfg.Sampling.Window <= 0 || cfg.QueueInterval < 500*time.Millisecond {
 		return nil, errors.New("invalid preview monitoring intervals")
@@ -142,7 +136,7 @@ func New(ctx context.Context, db *pgxpool.Pool, cfg Config) (*App, error) {
 		queueInterval: cfg.QueueInterval, investigate: cfg.Investigate,
 		investigateRepair: cfg.InvestigateRepair,
 		ownedIndex:        cfg.OwnedIndex, ownedRepair: cfg.OwnedRepair, ownedCron: cfg.OwnedCron,
-		origin: origin, invite: sha256.Sum256([]byte(cfg.InviteCode)), templates: templates, cookie: "__Host-pooltune",
+		origin: origin, templates: templates, cookie: "__Host-pooltune",
 	}
 	if origin.Scheme == "http" {
 		a.cookie = "pooltune_preview"
@@ -300,7 +294,7 @@ func accountPage(page, failure string) Page {
 	if page == "signup" {
 		title = "Create an account"
 	}
-	return Page{Title: title, Invite: page == "signup", Error: failure}
+	return Page{Title: title, Signup: page == "signup", Error: failure}
 }
 
 func (a *App) setSession(w http.ResponseWriter, session string, maxAge int) {
@@ -327,11 +321,6 @@ func (a *App) signIn(w http.ResponseWriter, r *http.Request, creating bool) {
 	var session string
 	var err error
 	if creating {
-		invite := sha256.Sum256([]byte(r.PostForm.Get("invite_code")))
-		if subtle.ConstantTimeCompare(invite[:], a.invite[:]) != 1 {
-			a.render(w, http.StatusForbidden, page, accountPage(page, "Enter a valid preview invite code."))
-			return
-		}
 		_, session, err = a.accounts.Register(r.Context(), email, password)
 	} else {
 		_, session, err = a.accounts.SignIn(r.Context(), email, password)

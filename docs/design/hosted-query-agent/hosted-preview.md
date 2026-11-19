@@ -1,6 +1,6 @@
 # Account and dashboard preview
 
-This slice turns the existing enrolled-query worker into a product path. An invited user creates a Pooltune account, signs in, creates an owner-scoped project and follows an installation guide. The database owner creates the dedicated monitor login and enrolls exact app-role statements. The dashboard verifies the connection before activating the same detector and read-only Sonnet path previously qualified from the operator command. It displays actual saved activity and can disconnect the worker.
+This slice turns the existing enrolled-query worker into a product path. A user creates a Pooltune account, signs in, creates an owner-scoped project and follows an installation guide. The database owner creates the dedicated monitor login and enrolls exact app-role statements. The dashboard verifies the connection before activating the same detector and read-only Sonnet path previously qualified from the operator command. It displays actual saved activity and can disconnect the worker.
 
 PostgreSQL is the source for account membership, sessions, monitored projects, query windows and job history. Each route checks account ownership. Store monitor credentials and an optional scoped Logs Read token under an authenticated encryption key held outside PostgreSQL. Use HTTPS cookies for the hosted preview and allow local HTTP on loopback. Invite-code registration keeps the preview usable without public enrollment. This first flow uses email and password. Account recovery and email address verification remain later release work.
 
@@ -16,7 +16,7 @@ The automatic monitor tracks up to 20 query identities. Existing manual enrollme
 
 ### Advanced setup
 
-1. Open the [Pooltune preview](https://pooltune-web-preview-staging.up.railway.app/) and select **Create account**. Use your private invite code, then add a project with your Supabase project reference. Existing account holders select **Sign in**.
+1. Open the [Pooltune preview](https://pooltune-web-preview-staging.up.railway.app/) and select **Create account**. Sign up with email or Google, then add a project with your Supabase project reference. Existing account holders select **Sign in**.
 2. Run **Installation SQL** from the dashboard in the project's `postgres` database as the database owner. Use the dashboard's `psql` commands to set a fresh password and enable the dedicated monitor login.
 3. Run the dashboard's discovery query after your application has exercised the queries you want to watch. Enroll the exact app role and query ID with a mean latency objective in milliseconds. Use the optional lookup grant when the statement qualifies. For measured evidence, use the [owner-captured lookup procedure](enrolled-plans.md) or the [ordinary-traffic plan procedure](traffic-plans.md) when the role and workload meet that source's requirements.
 4. Paste the dedicated monitor password and the root certificate PEM from Supabase's database connection settings. Select **Start read-only monitoring**.
