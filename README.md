@@ -13,7 +13,9 @@
 
 <p align="center"><a href="https://pooltune.up.railway.app/#how"><b>Try the interactive walkthrough</b></a> · <a href="https://pooltune.up.railway.app/signin">Open workspace</a></p>
 
-Pooltune is a tuning agent for developers running PostgreSQL on Supabase. When a query starts doing more work than it used to, Pooltune investigates the cause, runs a repair you have allowed, and measures the same work again. You can also connect a project in monitor-only mode. The walkthrough is public. Create a free account with email or Google to connect your database. Each free account gets a one-time $0.25 AI budget shared across up to five projects. Each model request also uses one of 50 credits that renew each UTC calendar month. All demo accounts draw from the same $45 lifetime fund. Monitoring continues when a limit is reached.
+Pooltune is a PostgreSQL tuning agent. It investigates expensive queries and database bottlenecks, runs repairs you allow, and measures the same workload again to see what changed. You can also run it in monitor-only mode.
+
+The walkthrough is public. Today, the hosted workspace connects to PostgreSQL databases on Supabase. Create a free account with email or Google to connect yours. Each free account gets a one-time $0.25 AI budget shared across up to five projects. Each model request also uses one of 50 credits that renew each UTC calendar month. All demo accounts draw from the same $45 lifetime fund. Monitoring continues when a limit is reached.
 
 ## A repair from start to finish
 
@@ -44,7 +46,7 @@ All six repair families have controlled staging cases. The linked trials documen
 
 ## Inside the workspace
 
-1. **Connect a project.** Choose the allowed repairs, connect your Supabase database, and review its access. You can manage several projects from one account.
+1. **Connect a project.** Choose the allowed repairs, connect your database, and review the permissions you granted. You can manage several projects from one account.
 2. **Follow the workload.** Overview shows monitoring checks and observed query activity. A monitoring check is one sample taken by the agent. Query calls count work the application actually ran.
 3. **Inspect a change.** Open Change history to see the repair and its measured outcome. You can revert an eligible index there, pause the agent from the project header, or adjust its permissions for future repairs.
 
@@ -53,8 +55,8 @@ All six repair families have controlled staging cases. The linked trials documen
 ```mermaid
 flowchart TB
     accTitle: Pooltune system architecture
-    accDescr: The application queries Supabase directly. In the background, Go samples PostgreSQL statistics and asks a LangGraph investigator to diagnose repeated expensive work. Go checks permissions, applies eligible repairs, and records the measured outcome.
-    app["Your application"] -->|Reads and writes| db[("Your PostgreSQL on Supabase")]
+    accDescr: The application queries its PostgreSQL database directly. In the background, Go samples PostgreSQL statistics and asks a LangGraph investigator to diagnose repeated expensive work. Go checks permissions, applies eligible repairs, and records the measured outcome.
+    app["Your application"] -->|Reads and writes| db[("Your PostgreSQL database")]
     db -->|Statement statistics| worker
     worker -->|Apply permitted repair and remeasure| db
 
@@ -80,6 +82,11 @@ Go checks the proposed target, permissions, and operating limits before running 
 - **Sample existing traffic.** PostgreSQL’s statement counters let us measure blocks touched per call without rerunning customer queries. Those counts alone can’t identify which step in the query plan did the work. [Measurement design](docs/design/hosted-query-agent/observed-page-access.md)
 - **Send index evidence up front.** Including the query plan and existing-index check makes the first prompt larger and saves a model round trip. Across six paired replays of one lookup, median investigation time fell from 2.56 s to 1.61 s. [Replay results](docs/design/hosted-query-agent/index-slice.md#one-claude-request-versus-two)
 - **Record intent before changing the database.** Each repair adds a PostgreSQL write. After a restart, the worker can check whether an interrupted operation completed before deciding whether to retry. [Recovery design](docs/design/hosted-query-agent/overview.md#why-the-worker-remembers-unfinished-work)
+
+## What's next
+
+- **More PostgreSQL deployments.** Add a direct connection for self-hosted PostgreSQL, then test other managed providers. For each environment, verify which statistics the agent can read and which repairs its database role can run.
+- **Explore MongoDB.** Start with one slow lookup in a document database. Use MongoDB’s query plan to identify a candidate index, then compare how many documents the same lookup examines before and after.
 
 <details>
 <summary>Run the tests</summary>
