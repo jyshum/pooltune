@@ -48,7 +48,27 @@ All six repair families have controlled staging cases. The linked trials documen
 2. **Follow the workload.** Overview shows monitoring checks and observed query activity. A monitoring check is one sample taken by the agent. Query calls count work the application actually ran.
 3. **Inspect a change.** Open Change history to see the repair and its measured outcome. You can revert an eligible index there, pause the agent from the project header, or adjust its permissions for future repairs.
 
-## How the agent works
+## System architecture
+
+```mermaid
+flowchart TB
+    accTitle: Pooltune system architecture
+    accDescr: The application queries Supabase directly. In the background, Go samples PostgreSQL statistics and asks a LangGraph investigator to diagnose repeated expensive work. Go checks permissions, applies eligible repairs, and records the measured outcome.
+    app["Your application"] -->|Reads and writes| db[("Your PostgreSQL on Supabase")]
+    db -->|Statement statistics| worker
+    worker -->|Apply permitted repair and remeasure| db
+
+    subgraph hosted["Pooltune on Railway"]
+        worker["Go worker"]
+        state[("Pooltune PostgreSQL")]
+        investigator["TypeScript investigator · LangGraph"]
+        worker -->|Queue jobs and record repair outcomes| state
+        worker -->|Query plan and observations| investigator
+        investigator -->|Request evidence or propose a repair| worker
+    end
+
+    investigator <-->|Model requests and responses| claude["Claude"]
+```
 
 The application keeps talking directly to PostgreSQL. A Go worker samples database statistics in the background and queues an investigation when it sees repeated expensive work. A TypeScript workflow built with LangGraph gives Claude the query plan and supporting observations. It can request more evidence, propose a supported repair, or close the investigation.
 
