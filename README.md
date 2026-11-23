@@ -46,6 +46,8 @@ The database measurement shows how much work the lookup saved. The client measur
 
 ## Inside the workspace
 
+The customer dashboard is the signed-in workspace served by Pooltune’s Go web app. [Open the dashboard](https://pooltune.up.railway.app/app)
+
 1. **Connect a project.** Choose the allowed repairs, connect your database, and review the permissions you granted. You can manage several projects from one account.
 2. **Follow the workload.** Overview shows monitoring checks and observed query activity. A monitoring check is one sample taken by the agent. Query calls count work the application actually ran.
 3. **Inspect a change.** Open Change history to see the repair and its measured outcome. You can revert an eligible index there, pause the agent from the project header, or adjust its permissions for future repairs.
@@ -55,20 +57,24 @@ The database measurement shows how much work the lookup saved. The client measur
 ```mermaid
 flowchart TB
     accTitle: Pooltune system architecture
-    accDescr: The application queries its PostgreSQL database directly. In the background, Go samples PostgreSQL statistics and asks a LangGraph investigator to diagnose repeated expensive work. Go checks permissions, applies eligible repairs, and records the measured outcome.
+    accDescr: Project owners use the hosted dashboard to manage repairs and view recorded results. The application queries its PostgreSQL database directly. In the background, Go samples PostgreSQL statistics and asks a LangGraph investigator to diagnose repeated expensive work. Go checks permissions, applies eligible repairs, and records the measured outcome.
     app["Your application"] -->|Reads and writes| db[("Your PostgreSQL database")]
     db -->|Statement statistics| worker
     worker -->|Apply permitted repair and remeasure| db
 
     subgraph hosted["Pooltune on Railway"]
+        dashboard["Customer dashboard · Go web app"]
         worker["Go worker"]
         state[("Pooltune PostgreSQL")]
         investigator["TypeScript investigator · LangGraph"]
+        dashboard -->|Save project settings| state
+        state -->|Query activity and repair history| dashboard
         worker -->|Queue jobs and record repair outcomes| state
         worker -->|Query plan and observations| investigator
         investigator -->|Request evidence or propose a repair| worker
     end
 
+    owner["Project owner"] -->|Sign in and manage projects| dashboard
     investigator <-->|Model requests and responses| claude["Claude"]
 ```
 
