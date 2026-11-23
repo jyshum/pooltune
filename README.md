@@ -17,9 +17,24 @@ Pooltune is a PostgreSQL tuning agent. It investigates expensive queries and dat
 
 The walkthrough is public. Today, the hosted workspace connects to PostgreSQL databases on Supabase. Create a free account with email or Google to connect yours. Each free account gets a one-time $0.25 AI budget shared across up to five projects. Each model request also uses one of 50 credits that renew each UTC calendar month. All demo accounts draw from the same $45 lifetime fund. Monitoring continues when a limit is reached.
 
+## Repair tools and measured results
+
+Each row shows one controlled PostgreSQL staging trial with synthetic traffic. Times are mean database execution times for the affected query. Each project owner chooses which of the six repairs to allow, and the database role must have the required privileges.
+
+| Repair tool | Bottleneck and fix | Before → after |
+| --- | --- | ---: |
+| Add a two-column index | A lookup scanned 100,000 rows to find one match. A compound index reduced that to one row examined. | [11.370 → 0.036 ms](docs/design/hosted-query-agent/evidence/repair-expansion/compound-20261114-201546.json) |
+| Refresh stale statistics | PostgreSQL expected 106,720 rows for a lookup that returned one. After `ANALYZE`, it estimated one row and used the existing index. | [10.260 → 0.024 ms](docs/design/hosted-query-agent/evidence/repair-expansion/analyze-20261114-195906.json) |
+| Collect joint column statistics | The planner misjudged how often two filter values occurred together. For one input returning 100 rows, joint statistics brought its estimate from 24,883 rows to 120. | [13.520 → 0.276 ms](docs/design/hosted-query-agent/evidence/repair-expansion/statistics-20261114-200207.json) |
+| Vacuum a table | After updates, an index-only scan still fetched 50,000 rows from the table to check visibility. A targeted `VACUUM` reduced those fetches to zero. | [38.844 → 8.627 ms](docs/design/hosted-query-agent/evidence/repair-expansion/vacuum-20261114-200629.json) |
+| Tune function memory | A sort spilled to disk. Raising the memory allowance for that function brought temporary writes from 14 MiB to zero. | [220.592 → 147.383 ms](docs/design/hosted-query-agent/evidence/repair-expansion/memory-20261114-200950.json) |
+| Reschedule a background job | A recurring job competed with foreground queries. Pooltune moved it to an approved quiet window and verified the next three runs. Times cover 120 busy-period calls on each side. | [35.261 → 0.086 ms](docs/design/hosted-query-agent/evidence/repair-expansion/cron-20261114-220423.json) |
+
+[Trial methodology and coverage](docs/design/hosted-query-agent/repair-expansion.md#live-results)
+
 ## A repair from start to finish
 
-In a controlled PostgreSQL test, an application looked up records by customer and category. To find the matching rows, PostgreSQL touched 866 blocks. Pooltune identified that the two filters could share an index. With index creation enabled, it built that index while application reads and writes continued.
+In a separate controlled index trial, an application looked up records by customer and category. To find the matching rows, PostgreSQL touched 866 blocks. Pooltune identified that the two filters could share an index. With index creation enabled, it built that index while application reads and writes continued.
 
 | What Pooltune measured | Before the index | After the index |
 | --- | ---: | ---: |
@@ -28,21 +43,6 @@ In a controlled PostgreSQL test, an application looked up records by customer an
 | Average time seen by the client across candidate calls | 41.85 ms | 24.36 ms |
 
 The database measurement shows how much work the lookup saved. The client measurement includes the rest of the round trip. The index added about 3.45 MiB of storage. The trial also recorded timings for writes and a healthy query so you can inspect what happened to other traffic. [See the recorded trial](docs/design/hosted-query-agent/evidence/mvp-simple-index-railway.json)
-
-## What you can let Pooltune change
-
-Each project has six independent permissions. Enabling one lets the worker consider that operation. The database role still needs access to the target, and the worker checks the evidence before acting.
-
-| Permission | When it helps |
-| --- | --- |
-| Add indexes | A frequent, selective lookup reads many blocks to find a few rows. A nonunique index can give it a shorter path. |
-| Refresh statistics | After a table changes, the planner may still use old estimates. Refreshing its statistics gives it a current picture of the data. |
-| Improve statistics detail | Two columns often occur together, or one value is unusually common. More detailed statistics can help the planner estimate how many rows will match. |
-| Maintain tables | Updates and deletes leave old row versions behind. A targeted cleanup can reclaim space for reuse within the table. |
-| Tune function memory | A sort inside a selected function spills to disk. A bounded memory adjustment can keep that work in memory. |
-| Reschedule jobs | A recurring background job competes with application traffic. Pooltune can move it within an approved window and check future executions. |
-
-All six repair families have controlled staging cases. The linked trials document the workloads and permissions exercised for each. [Repair evidence and current coverage](docs/design/hosted-query-agent/repair-expansion.md)
 
 ## Inside the workspace
 
