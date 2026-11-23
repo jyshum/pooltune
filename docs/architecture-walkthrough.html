@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>PoolTune · Architecture walkthrough</title>
+<style>
+:root{color-scheme:dark;--bg:#101817;--panel:#182320;--line:#384842;--ink:#eff4ec;--muted:#bbc8bf;--mint:#84ebcd;--warm:#ffab87;--mono:ui-monospace,Menlo,monospace;font-family:Inter,"Helvetica Neue",Arial,sans-serif}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink)}main{max-width:1640px;min-height:100svh;margin:auto;padding:0 clamp(16px,4vw,68px);display:flex;flex-direction:column}header,footer,.nav,.cap,.links{display:flex;align-items:center;gap:12px}header,footer{justify-content:space-between;border-color:var(--line);min-height:61px}header{border-bottom:1px solid var(--line)}footer{border-top:1px solid var(--line);margin-top:auto}button{color:inherit;background:transparent;cursor:pointer;border:1px solid var(--line);font:inherit}.brand{font-size:22px;font-weight:650;letter-spacing:-.06em;display:flex;align-items:center;gap:10px}.brand i{display:inline-block;width:19px;height:18px;background:linear-gradient(to top,var(--mint) 40%,transparent 40%) left / 5px 100% no-repeat,linear-gradient(var(--mint),var(--mint)) center / 5px 100% no-repeat,linear-gradient(to top,var(--mint) 70%,transparent 70%) right / 5px 100% no-repeat}
+nav button{border:0;border-bottom:2px solid transparent;padding:12px 6px;font-size:13px;color:var(--muted)}nav button[aria-current=true]{color:var(--mint);border-color:var(--mint)}button:focus-visible,a:focus-visible{outline:2px solid var(--warm);outline-offset:2px}footer button,.replay{padding:7px 14px;min-width:40px}button:hover{color:var(--mint)}button:disabled{opacity:.35;cursor:default}
+article{flex:1;display:flex;flex-direction:column;justify-content:center;padding:clamp(16px,3vh,40px) 0}h1,h2,h3,p{margin:0}h1{font-size:clamp(30px,3.45vw,56px);line-height:1.04;letter-spacing:-.049em;font-weight:560;margin-bottom:clamp(16px,3vh,32px)}h2{font-size:clamp(22px,2.1vw,34px);letter-spacing:-.042em;line-height:1.09;font-weight:550}h3{font-size:clamp(19px,1.65vw,27px);letter-spacing:-.03em;font-weight:540}p{line-height:1.43;color:var(--muted);font-size:clamp(15px,1.24vw,19px)}small,.label,footer>span,a,.replay{font:12px/1.45 var(--mono)}.label{color:var(--mint);text-transform:uppercase;letter-spacing:.065em}.alt{color:var(--warm)}a{color:var(--mint);text-underline-offset:3px;overflow-wrap:anywhere}.links{gap:10px;flex-wrap:wrap}svg{display:block;width:100%;overflow:visible}.split{display:grid;grid-template-columns:minmax(0,1.95fr) minmax(270px,1fr);gap:clamp(18px,2.8vw,48px);align-items:center}.canvas,.heroart,.viz,.mini{background-color:var(--panel);background-image:radial-gradient(#3b4b43 0.8px,transparent .9px);background-size:16px 16px;border:1px solid var(--line)}.canvas{padding:clamp(4px,1vw,18px)}.decision{padding-left:clamp(12px,1.5vw,26px);border-left:2px solid var(--mint);display:grid;gap:12px;align-content:center}.decision .trade{border-top:1px solid var(--line);padding-top:12px}.trade p{margin-top:4px}.rail{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 0}.rail button{padding:6px 10px;font-size:12px;color:var(--muted)}.rail button[aria-pressed=true]{border-color:var(--mint);color:var(--mint)}.scope{fill:#182320;stroke:#58665e;stroke-dasharray:5 4}.node{fill:#24312c;stroke:#718278;stroke-width:1.45}.node.on{fill:#1e4037;stroke:var(--mint);stroke-width:2.5}.nodeName{font:600 18px Arial,sans-serif;fill:var(--ink)}.sub,.edgeLab,.scopeLab{font:13px var(--mono);fill:#c3d0c7}.scopeLab{fill:#9dafa2;font-size:12px;letter-spacing:.05em}.edge{fill:none;stroke:#7e9386;stroke-width:1.8}.edge.hot{stroke:var(--mint);stroke-width:2.7}.flowMark{fill:none;stroke:#e1fff5;stroke-width:2.5;stroke-dasharray:6 160;animation:flow 3s linear infinite}.edgeLab{paint-order:stroke;stroke:var(--panel);stroke-width:5px;stroke-linejoin:round}.edgeLab.on{fill:var(--mint)}@keyframes flow{to{stroke-dashoffset:-166}}.hero{display:grid;grid-template-columns:1fr 1fr;gap:5vw;align-items:center}.hero h1{font-size:clamp(44px,5.2vw,83px);max-width:12ch}.hero p{max-width:41ch;font-size:clamp(17px,1.53vw,24px)}.heroart{padding:clamp(16px,2vw,32px)}.big{display:block;font-size:clamp(44px,5vw,86px);color:var(--warm);letter-spacing:-.065em;line-height:1.08}.compare,.three{display:grid;grid-template-columns:1fr 1fr;gap:18px}.three{grid-template-columns:repeat(3,minmax(0,1fr))}.trial{padding:clamp(12px,1.55vw,24px);border:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;gap:11px}.trial .mini{border:0;margin:1px 0}.metric{font-size:clamp(21px,2.1vw,35px);letter-spacing:-.052em;color:var(--mint);font-variant-numeric:tabular-nums}.result{margin-top:auto;padding-top:12px;border-top:1px solid var(--line)}.result small,.foot{color:var(--muted)}.foot{margin-top:12px;font:12px/1.4 var(--mono)}.cap{justify-content:space-between;margin-bottom:10px}.viz{padding:17px}.viz h2{margin:6px 0 12px}.viz p{font-size:16px}.replay{margin-left:auto}.sym{font:14px var(--mono);fill:#c4d0c7}.bright{fill:var(--mint)}.bad{fill:var(--warm)}.wire{fill:none;stroke:#667a6c;stroke-width:2}.page{fill:#24372e;stroke:#758b7d}.selected{stroke:var(--mint);stroke-width:2;fill:#214438}.trace{stroke:var(--mint);stroke-width:3;fill:none;stroke-dasharray:1;stroke-dashoffset:1;animation:draw 1s ease forwards;animation-delay:var(--delay,0s)}@keyframes draw{to{stroke-dashoffset:0}}.visit{animation:visit .48s ease-out both;animation-delay:var(--delay,0s)}@keyframes visit{from{opacity:.28}to{opacity:1}}.blink{animation:ink 1.7s ease-in-out infinite alternate}@keyframes ink{to{opacity:.5}}.swap{animation:reveal .25s ease-out}@keyframes reveal{from{opacity:.3;transform:translateY(3px)}}.choices{font:14px/1.8 var(--mono);color:var(--ink)}.choices small{display:inline-block;min-width:94px;color:var(--muted)}.narrow{display:none}
+@media(max-width:850px){main{padding:0 16px}.split{grid-template-columns:minmax(0,1.65fr) minmax(230px,1fr);gap:12px}.three{gap:8px}.trial{padding:12px}header nav{gap:0}nav button{font-size:12px}.decision{gap:7px}}
+@media(max-width:680px){header{flex-wrap:wrap;gap:0;padding-top:10px}header nav{width:100%;overflow:auto;display:flex}nav button{flex:1;white-space:nowrap;padding:8px 2px}.split,.hero,.three,.compare{grid-template-columns:1fr}.hero,.three,.compare{gap:16px}.canvas{overflow:auto}.canvas svg{min-width:540px}.decision{margin:4px 0}.heroart{max-width:480px}.three .mini svg{max-height:170px}.narrow{display:block}.viz svg{max-height:185px}footer{min-height:56px}footer button{padding:6px 11px}.rail{gap:4px}.rail button{font-size:11px;padding:5px}.hero h1{max-width:17ch}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important}.trace{stroke-dashoffset:0}}
+
+.split>div,.hero>div,.compare>section,.three>section{min-width:0}
+@media(min-width:681px) and (max-height:750px){header,footer{min-height:48px}article{padding:12px 0}.trial{gap:8px}.decision{gap:8px}.decision .trade{padding-top:8px}h1{margin-bottom:17px}}
+@media(max-width:680px){.split{grid-template-columns:minmax(0,1fr)}}
+details{font-size:13px;color:var(--muted)}summary{cursor:pointer}details p{margin:6px 0}.lookup-example code{display:block;font:clamp(13px,1.22vw,18px)/1.5 var(--mono);color:var(--ink);overflow-wrap:anywhere}.lookup-id,.pair-query{padding:12px 16px;border:1px solid var(--line)}.lookup-id{display:grid;grid-template-columns:1.4fr 1fr;align-items:center}.lookup-id svg{max-height:82px}.lookup-example .compare{margin-top:10px}.lookup-example .viz svg{height:clamp(84px,13vh,125px)}.lookup-example .viz code{font-size:.85em;color:var(--mint)}.pair-query{margin-top:12px;border-left:3px solid var(--mint);background:var(--panel)}.lookup-example .viz h2{font-size:clamp(19px,1.65vw,28px)}.lookup-example .viz p{font-size:clamp(14px,1.15vw,18px)}.split .canvas{padding:3px}.decision .trade{padding-top:7px}.decision .trade p{margin-top:2px}.decision h2{font-size:clamp(21px,1.9vw,30px)}
+@media(min-width:851px){main{max-width:1770px;padding-inline:clamp(18px,2vw,40px)}.split{grid-template-columns:minmax(0,2.5fr) minmax(290px,1fr);gap:clamp(16px,1.6vw,28px)}.decision{padding-left:14px}.decision p{font-size:clamp(14px,1.16vw,18px)}}
+@media(max-width:680px){.lookup-id{display:block}.lookup-id svg{margin-top:8px}.lookup-example .viz svg{height:auto}}
+@media(min-width:681px) and (max-height:660px){.lookup-id,.pair-query{padding:7px 12px}.lookup-id svg{max-height:66px}}
+@media(min-width:681px) and (max-height:670px){.trial .mini svg{max-height:135px}}
+</style></head><body><main><header><span class="brand"><i aria-hidden="true"></i>PoolTune</span><nav id="chapters" aria-label="Chapters"></nav></header><article id="screen"></article><footer><span id="where" aria-live="polite"></span><div class="nav"><button id="prev" aria-label="Previous step">←</button><button id="next" aria-label="Next step">Next →</button></div></footer></main>
+<script>
+const repo='https://github.com/jyshum/pooltune/blob/49264c7/';
+const docs='docs/design/hosted-query-agent/',go='internal/hostedquery/';
+function link(path,label){return '<a target="_blank" rel="noopener" href="'+repo+path+'">'+label+' ↗</a>'}
+function txt(x,y,s,cls='sym',anchor='start'){return '<text x="'+x+'" y="'+y+'" class="'+cls+'" text-anchor="'+anchor+'">'+s+'</text>'}
+function box(x,y,w,h,cls='page'){return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="3" class="'+cls+'"/>'}
+function wire(d){return '<path d="'+d+'" class="wire"/>'}
+function trace(d,delay=0){return '<path d="'+d+'" pathLength="1" class="trace" style="--delay:'+delay+'s"/>'}
+function svg(w,h,body,desc){return '<svg viewBox="0 0 '+w+' '+h+'" role="img" aria-label="'+desc+'">'+body+'</svg>'}
+function labelBox(x,y,w,label,selected=false){return box(x,y,w,30,selected?'selected':'page')+txt(x+w/2,y+20,label,'sym','middle')}
+function databaseShape(x,y,w,cls){
+ const rx=w/2, top=y+4, bottom=y+52;
+ return `<path class="${cls}" d="M${x} ${top} a${rx} 8 0 0 1 ${w} 0 V${bottom} a${rx} 8 0 0 1 -${w} 0 Z"/><path class="${cls}" style="fill:none" d="M${x} ${top} a${rx} 8 0 0 0 ${w} 0"/>`;
+}
+function mapSVG(nodes,edges,scopes,focus,desc){
+ const defs='<defs>'+['soft','hot'].map((id,i)=>'<marker id="'+id+'" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L8 4 L0 8" fill="'+(i?'#84ebcd':'#7e9386')+'"/></marker>').join('')+'</defs>';
+ const groups=scopes.map(([x,y,w,h,label])=>box(x,y,w,h,'scope')+txt(x+12,y+21,label,'scopeLab')).join('');
+ const connections=edges.map(([id,d,label,x,y])=>{const on=focus.edges.includes(id);return '<path d="'+d+'" class="edge '+(on?'hot':'')+'" marker-end="url(#'+(on?'hot':'soft')+')"/>'+(on?'<path d="'+d+'" class="flowMark"/>':'')+(label?txt(x,y,label,'edgeLab'+(on?' on':''),'middle'):'')}).join('');
+ const shapes=nodes.map(([id,x,y,w,title,detail])=>{
+   const cls='node'+(focus.nodes.includes(id)?' on':'');
+   const db=id==='db'||id==='store';
+   const shape=db?databaseShape(x,y,w,cls):box(x,y,w,58,cls);
+   return shape+txt(x+w/2,y+(db?31:25),title,'nodeName','middle')+txt(x+w/2,y+(db?49:45),detail,'sub','middle');
+ }).join('');
+ return svg(780,scopes.length?396:316,defs+groups+connections+shapes,desc)
+}
+const systemNodes=[
+ ['app',58,43,174,'Customer app','reads and writes'],['db',406,43,209,'Customer PostgreSQL','Supabase project'],
+ ['monitor',250,185,157,'Query monitor','sample · enqueue'],['worker',438,185,184,'Investigation worker','one job at a time'],['store',27,185,202,'PoolTune PostgreSQL','jobs · repair log'],
+ ['dashboard',27,314,202,'Customer dashboard','Go web app · /app'],
+ ['agent',370,314,239,'Investigator','TypeScript · LangGraph'],['model',654,314,118,'Claude','Anthropic']];
+const systemEdges=[
+ ['settings','M72 314 V248','settings',75,282],['history','M184 245 V311','repair history',199,277],
+ ['reads','M232 72 H403','SQL',319,65],['stats','M450 102 V133 H332 V182','counters',382,126],['apply','M557 185 V104','repair + verify ↑',613,155],
+ ['enqueue','M250 211 H232','',0,0],['claim','M216 229 V259 H469 V246','queued job',321,253],['store','M603 243 V277 H219 V239','record outcome',328,274],['plan','M482 243 V311','plan',500,300],
+ ['proposal','M549 314 V246','proposal',583,302],['model','M609 329 H651','',0,0],['answer','M654 356 H612','',0,0]];
+const systemScopes=[[14,10,630,108,'CUSTOMER PROJECT'],[14,151,626,235,'POOLTUNE ON RAILWAY · ONE ACTIVE PROJECT SHOWN']];
+const agentNodes=[
+ ['screen',22,85,180,'Screen evidence','target + freshness'],['compare',289,85,190,'Compare causes','Claude via LangGraph'],
+ ['request',289,242,190,'Request evidence','Go inspection tools'],['finish',561,85,193,'Finish','validate proposal'],
+ ['go',552,242,120,'Go gate','check permission'],['stop',683,242,87,'Stop','no change']];
+const agentEdges=[
+ ['start','M202 114 H286','valid',247,105],['invalid','M113 85 V45 H658 V82','invalid / healthy',380,38],
+ ['ask','M336 143 V239','needs evidence',261,196],['back','M439 242 V146','observations',493,197],
+ ['done','M479 114 H558','decision',520,105],['yes','M610 143 V239','proposal',598,197],
+ ['no','M707 143 V239','decline',729,197]];
+const system=[
+ {tab:'Traffic',nodes:['app','db','dashboard','store'],edges:['reads','settings','history'],title:"Follow a query from the customer app.",body:"The app sends its query straight to Postgres. In the PoolTune dashboard, the owner can see query activity, choose permitted repairs, and review measured results.",alternative:"Run a worker in each customer environment.",why:"Hosting removes the install and upkeep for each customer. PoolTune takes on credential handling and access control.",file:'internal/hostedapp/views.go#L148',ref:'docs/product/query-performance-v1.md'},
+ {tab:'Detection',nodes:['db','monitor','store'],edges:['stats','enqueue'],title:"Find queries that repeatedly exceed their target.",body:"Each active project has its own monitor. It samples average time per call and queues repeatedly expensive queries, even while an investigation waits for Claude.",alternative:"Replay queries to measure every sample.",why:"Postgres already keeps those totals. Go inspects the query plan to see which operation did the work.",file:go+'worker_store.go#L250',ref:docs+'observed-page-access.md'},
+ {tab:'Diagnosis',nodes:['store','worker','agent','model'],edges:['claim','plan','proposal','model','answer'],title:"Explain why this query is expensive.",body:"One investigation worker takes queued jobs in order of availability for this project. Workers for other projects can run concurrently. Claude compares causes using the plan and index definitions.",alternative:"A Go rule can catch a known missing-index pattern cheaply.",why:"A slow scan can also come from stale estimates. Comparing explanations justified running both Go and Node.js and waiting for Claude during diagnosis.",file:'investigator/diagnostic.ts#L84',ref:docs+'index-slice.md#engineering-choices'},
+ {tab:'Recovery',nodes:['worker','store','db'],edges:['apply','store'],title:"Save the planned repair before starting.",body:"Go checks the owner’s permission and saves which index it plans to build. After a restart it checks the database before retrying.",alternative:"Save only where the investigator stopped.",why:"Postgres might finish building the index just before Go loses the reply. Recording the intended index tells Go exactly what to look for when it reconnects.",file:go+'managed_project_index.go#L237',ref:docs+'index-slice.md#engineering-choices'},
+ {tab:'Verification',nodes:['worker','db','store'],edges:['apply','store'],title:"Check the lookup and nearby writes.",body:"Go repeats the lookup with the same inputs and checks nearby read and write traffic.",alternative:"Time only the affected lookup.",why:"Testing the same customer and category makes the timings comparable. Checking nearby traffic can also reveal slower writes.",file:go+'managed_project_index.go#L189',ref:docs+'index-slice.md#engineering-choices'}
+];
+const agent=[
+ {tab:'Screen',nodes:['screen'],edges:['start','invalid'],title:"Screen cheap cases before calling Claude.",body:"Check that measurements are recent and belong to this query. Healthy or invalid cases can stop here.",alternative:"Ask Claude about every sample.",why:"Basic checks are predictable and cheap. The healthy control finished with zero model calls, saving tokens and wait time.",file:'investigator/diagnostic.ts#L73',ref:docs+'diagnostic-loop.md'},
+ {tab:'Compare',nodes:['compare'],edges:['start','done','ask'],title:"Compare possible causes for one query.",body:"A slow scan could mean a missing index or a bad row estimate. One investigator weighs the evidence from this query before proposing a repair.",alternative:"Give each repair a specialist agent.",why:"A single investigator avoids coordinating competing recommendations. It can finish in one call when the evidence is sufficient. Go consistently enforces the same checks.",file:'investigator/diagnostic.ts#L84',ref:'docs/product/query-performance-v1.md'},
+ {tab:'Inspect',nodes:['compare','request'],edges:['ask','back'],title:"Fetch the missing measurement.",body:"A flagged scan starts with existing evidence. If index coverage is unknown, LangGraph asks Go to read index definitions and returns the result to the same case.",alternative:"Collect every measurement before diagnosis.",why:"Targeted reads reduce database work. Sending known evidence up front also saves a round trip. In six paired index replays, median diagnosis fell from 2.56 s to 1.61 s.",file:'investigator/diagnostic.ts#L114',ref:docs+'index-slice.md#one-claude-request-versus-two'},
+ {tab:'Decide',nodes:['finish','go','stop'],edges:['done','yes','no'],title:"Validate the proposal before execution.",body:"LangGraph returns a supported repair or closes the case. Go checks the target, permission and limits before running a repair tool.",alternative:"Build diagnosis and execution entirely in Go.",why:"LangGraph makes each branch and saved decision inspectable. We accepted an extra interface and kept database permissions in the Go worker.",file:'investigator/diagnostic.ts#L127',ref:'docs/product/backend-language-decision.md#alternatives-and-accepted-trade-offs'}
+];
+function dots(count,cols,x,y,dx,dy,match,animate=false){
+ return Array.from({length:count},(_,i)=>'<rect x="'+(x+i%cols*dx)+'" y="'+(y+Math.floor(i/cols)*dy)+'" width="'+(dx-3)+'" height="'+(dy-3)+'" rx="1" fill="'+(i===match?'#84ebcd':'#9c6955')+'" '+(animate?'class="visit" style="--delay:'+((i/count)*1.5)+'s"':'')+'/>').join('')
+}
+function problem(){return '<div class="hero"><div><h1>Why is this Postgres query slow?</h1><p>PoolTune finds queries that repeatedly take too long, checks where the time goes, and measures the same query after a permitted repair.</p></div><div class="heroart"><div class="label">A two-column lookup</div><strong class="big">100,000</strong><p>rows examined to return <b style="color:var(--mint)">one match</b></p>'+svg(420,122,dots(180,30,0,21,14,15,127),'Schematic table scan with one matching row')+'<div class="foot">Controlled staging trial · '+link(docs+'evidence/repair-expansion/compound-20261114-201546.json','Measurement')+'</div></div></div>'}
+function btree(){
+ const base='M196 39 L73 78 M196 39 L197 78 M196 39 L320 78 M197 105 L197 141';
+ return wire(base)+trace('M196 39 L197 78',.35)+trace('M197 105 L197 141',1)+labelBox(132,9,128,'30  |  70',true)+labelBox(16,77,110,'key < 30')+labelBox(140,77,116,'30 ≤ key < 70',true)+labelBox(270,77,105,'key ≥ 70')+labelBox(100,141,152,'Bitmap: match',true)+trace('M252 155 H277',1.55)+labelBox(278,141,98,'heap row',true)
+}
+function lookup(){
+ const byId="SELECT * FROM orders WHERE id = 42";
+ const byPair="SELECT * FROM orders WHERE customer_id = 7 AND category = 'books'";
+ const idx=svg(340,98,labelBox(4,34,92,'id = 42',true)+trace('M96 49 H120',.25)+labelBox(122,34,100,'ID index',true)+trace('M222 49 H246',.7)+labelBox(248,34,88,'order 42',true),'An existing primary-key B-tree can locate order 42 by ID.');
+ const scan=svg(340,98,dots(100,20,8,13,16,15,34,true),'A sequential scan checks rows because orders for one customer and category can have many different IDs.');
+ const branches='M143 31 L53 54 M143 31 V54 M143 31 L241 54';
+ const pair=svg(420,98,wire(branches)+trace('M143 31 V54',.35)+labelBox(72,2,142,'customer ranges')+labelBox(5,54,92,'3, ’toys’')+labelBox(102,54,104,"7, ’books’",true)+labelBox(211,54,88,'9, ’art’')+trace('M154 84 V94 H345 V84',.85)+labelBox(310,54,100,'heap row',true),'The root routes the pair to a matching leaf. PostgreSQL uses the row location to fetch the table row.');
+ return `<div class="cap"><h1>Which index can this lookup use?</h1><button class="replay" id="again">↻ Replay</button></div>
+ <div class="lookup-example"><section class="lookup-id"><div><span class="label">Existing primary key · orders(id)</span><code>${byId}</code><p>Postgres can look up 42 in the ID index.</p></div>${idx}</section>
+ <div class="pair-query"><span class="label">Same table · different filter</span><code>${byPair}</code></div>
+ <div class="compare"><section class="viz"><span class="label alt">Before · only the ID index</span><h2>Which IDs belong to this pair?</h2>${scan}<p>The ID index is sorted by order ID. Orders for customer 7 in ‘books’ can have any ID, so Postgres checks the rows.</p></section>
+ <section class="viz"><span class="label">PoolTune adds a compound B-tree</span><h2>Seek by customer, then category.</h2>${pair}<p><code>CREATE INDEX ON orders (customer_id, category);</code>Postgres can use the new index for the same filter and fetch the matching rows.</p></section></div></div>
+ <div class="foot">Illustrative orders schema. Measured compound-index trial · 100,000 → 1 row examined · 11.370 → 0.036 ms per call. ${link(docs+'evidence/repair-expansion/compound-20261114-201546.json','Trial')}</div>`;
+}
+function mapChapter(kind,n){
+ const isSystem=kind==='system',steps=isSystem?system:agent,step=steps[n];
+ const graph=isSystem?mapSVG(systemNodes,systemEdges,systemScopes,step,'Customer application and PostgreSQL, customer dashboard, per-project query monitor and separate investigation worker, state store, LangGraph investigator and Claude'):mapSVG(agentNodes,agentEdges,[],step,'LangGraph screens evidence, compares causes, requests evidence and loops or finishes with a proposal or no change');
+ const shortFile=step.file.split('/').pop().split('#')[0];
+ const language=isSystem&&n===2?'<details><summary>Why Go over Rust?</summary><p>Rust offered stronger ownership checks. Postgres and Claude do the heavy work, and Go made the network-bound worker quicker to build.</p>'+link('docs/product/backend-language-decision.md#alternatives-and-accepted-trade-offs','Language decision')+'</details>':'';
+
+ return '<h1>'+(isSystem?'How PoolTune follows a slow query':'How PoolTune diagnoses a slow query')+'</h1><div class="split"><div><div class="canvas">'+graph+'</div><div class="rail" aria-label="Map stages">'+steps.map((s,i)=>'<button data-step="'+i+'" aria-pressed="'+(i===n)+'">'+s.tab+'</button>').join('')+'</div></div><aside class="decision swap"><div class="label">'+step.tab+'</div><h2>'+step.title+'</h2><p>'+step.body+'</p>'+'<div class="trade"><span class="label alt">Next-best alternative</span><p>'+step.alternative+'</p></div><div class="trade"><span class="label">Why we chose this</span><p>'+step.why+'</p></div><div class="links">'+link(step.file,shortFile)+link(step.ref,'Decision record')+'</div>'+language+'</aside></div>'
+}
+const repairs=[
+ ['A lookup scans the table','PoolTune added a compound index on the two filters. Postgres could then locate the one matching row directly.','11.370','0.036','100,000 → 1 row examined','compound-20261114-201546'],
+ ['A lookup skips a useful index','Postgres expected 106,720 matches and found one. Refreshing table statistics let the query use its existing index.','10.260','0.024','106,720 → 1 estimated row · 1 actual','analyze-20261114-195906'],
+ ['Two filters mislead the planner','Postgres overestimated the matches. PoolTune collected joint statistics to show how often the two filters matched together.','13.520','0.276','24,883 → 120 estimated rows · 100 actual','statistics-20261114-200207'],
+ ['An index-only scan visits the table','The query kept fetching rows to check visibility. PoolTune vacuumed the table so Postgres could skip those fetches.','38.844','8.627','50,000 → 0 heap fetches','vacuum-20261114-200629'],
+ ['A query’s sort spills to disk','The sort wrote temporary data. PoolTune raised the memory allowance for that function, and the same sort finished in memory.','220.592','147.383','14 MiB → 0 temporary writes','memory-20261114-200950'],
+ ['Queries slow during a scheduled job','PoolTune moved the competing job to a quiet window. The same foreground SQL then ran faster during the busy period.','35.261','0.086','3 subsequent job runs verified','cron-20261114-220423']
+];
+function bar(x,y,w,color,delay=0){return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="12" fill="'+color+'" class="visit" style="--delay:'+delay+'s"/>'}
+function repairVisual(i){
+ const after='#84ebcd',before='#ffa589';
+ if(i===0)return svg(392,184,btree(),'An index path follows one key range to one row');
+ if(i===1)return svg(320,155,txt(8,24,'Old estimate')+bar(8,31,281,before)+txt(8,84,'After ANALYZE')+bar(8,91,4,after,.8)+txt(8,137,'Actual result · one row'),'Schematic comparison of the inflated estimate and corrected single row estimate');
+ if(i===2){let grid='';for(let row=0;row<5;row++)for(let col=0;col<5;col++)grid+='<rect x="'+(46+col*18)+'" y="'+(16+row*18)+'" width="14" height="14" fill="'+(row===col?after:'#34483e')+'" class="visit" style="--delay:'+row*.18+'s"/>';return svg(320,155,grid+txt(147,42,'Paired filter')+txt(147,66,'values cluster.')+txt(40,135,'Measure their joint frequency.'),'Schematic distribution with correlated filter values clustered along the diagonal')}
+ if(i===3)return svg(320,155,labelBox(7,13,88,'Index')+wire('M95 28 H183')+labelBox(184,13,113,'Heap page')+txt(105,21,'fetch','bad')+labelBox(7,82,88,'Index',true)+trace('M95 97 H165',.4)+labelBox(165,82,145,'Visibility map',true)+txt(8,144,'All-visible → skip heap read.'),'Before vacuum, check the heap. After vacuum, the visibility map can satisfy the check');
+ if(i===4)return svg(320,155,labelBox(8,15,80,'Sort')+wire('M88 31 H168')+labelBox(169,15,134,'Temp file')+txt(9,69,'Spill to disk','bad')+labelBox(8,89,80,'Sort',true)+trace('M88 104 H168',.45)+labelBox(169,89,134,'Function RAM',true),'The sort spills to a temporary file before tuning and fits in memory after tuning');
+ return svg(320,155,txt(10,27,'Foreground traffic')+bar(10,37,165,before)+txt(10,85,'Background job')+bar(61,95,75,'#9b705c')+trace('M138 102 H215',.35)+bar(219,95,75,after,.85)+txt(10,139,'Busy period')+txt(210,139,'Quiet window'),'Job shifts away from foreground traffic to a quiet window')
+}
+function trialPage(group){
+ return '<h1>'+(group?'Where a query spends time':'How Postgres plans a lookup')+'</h1><div class="three">'+repairs.slice(group*3,group*3+3).map(([name,how,before,after,measure,ref],j)=>'<section class="trial"><h2>'+name+'</h2><div class="mini">'+repairVisual(group*3+j)+'</div><p>'+how+'</p><div class="result"><div class="metric">'+(Number(before)-Number(after)).toFixed(3)+' ms saved</div><p>'+before+' → '+after+' ms per call</p><div class="foot">'+measure+'</div></div>'+link(docs+'evidence/repair-expansion/'+ref+'.json','Trial data')+'</section>').join('')+'</div><div class="foot">Mean time per affected query call · controlled PostgreSQL staging trials with synthetic traffic</div>'
+}
+const chapters=['Problem','Lookup','System','Investigator','Repairs'];
+const frames=[{group:0,name:'The problem',render:problem},{group:1,name:'PostgreSQL lookup',render:lookup},
+ ...system.map((s,i)=>({group:2,name:s.tab,render:()=>mapChapter('system',i)})),
+ ...agent.map((s,i)=>({group:3,name:s.tab,render:()=>mapChapter('agent',i)})),
+ {group:4,name:'Query planning',render:()=>trialPage(0)},{group:4,name:'Resource contention',render:()=>trialPage(1)}];
+const screenEl=document.getElementById('screen'), next=document.getElementById('next'),prev=document.getElementById('prev'),chap=document.getElementById('chapters');
+let index=0;
+function show(to){
+ index=Math.max(0,Math.min(frames.length-1,to));const frame=frames[index];
+ screenEl.innerHTML=frame.render();
+ chap.innerHTML=chapters.map((c,i)=>'<button data-chapter="'+i+'" aria-current="'+(i===frame.group)+'">'+c+'</button>').join('');
+ document.getElementById('where').textContent=(index+1)+' / '+frames.length+' · '+chapters[frame.group]+' / '+frame.name;
+ prev.disabled=index===0;next.disabled=index===frames.length-1;
+}
+function groupStart(g){return frames.findIndex(f=>f.group===g)}
+chap.onclick=e=>{if(e.target.matches('[data-chapter]'))show(groupStart(Number(e.target.dataset.chapter)))};
+screenEl.onclick=e=>{if(e.target.id==='again')show(index);if(e.target.matches('[data-step]'))show(groupStart(frames[index].group)+Number(e.target.dataset.step))};
+prev.onclick=()=>show(index-1);next.onclick=()=>show(index+1);
+document.addEventListener('keydown',e=>{if(e.altKey||e.ctrlKey||e.metaKey)return;const actions={ArrowLeft:index-1,ArrowRight:index+1,Home:0,End:frames.length-1};if(e.key in actions){e.preventDefault();show(actions[e.key])}});
+show(0);
+</script></body></html>

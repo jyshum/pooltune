@@ -57,19 +57,24 @@ The customer dashboard is the signed-in workspace served by Pooltune’s Go web 
 ```mermaid
 flowchart TB
     accTitle: Pooltune system architecture
-    accDescr: Project owners use the hosted dashboard to manage repairs and view recorded results. The application queries its PostgreSQL database directly. In the background, Go samples PostgreSQL statistics and asks a LangGraph investigator to diagnose repeated expensive work. Go checks permissions, applies eligible repairs, and records the measured outcome.
+    accDescr: Project owners use the hosted dashboard to manage repairs and view recorded results. The application queries its PostgreSQL database directly. Each active project has an independent Go monitor. With investigations enabled, a separate goroutine consumes one queued job at a time for that project. Go checks permissions, applies eligible repairs, and records the measured outcome.
     app["Your application"] -->|Reads and writes| db[("Your PostgreSQL database")]
-    db -->|Statement statistics| worker
+    db -->|Statement statistics| monitor
     worker -->|Apply permitted repair and remeasure| db
 
     subgraph hosted["Pooltune on Railway"]
         dashboard["Customer dashboard · Go web app"]
-        worker["Go worker"]
+        subgraph project["Go goroutines per active project"]
+            monitor["Query monitor"]
+            worker["Investigation worker"]
+        end
         state[("Pooltune PostgreSQL")]
         investigator["TypeScript investigator · LangGraph"]
         dashboard -->|Save project settings| state
         state -->|Query activity and repair history| dashboard
-        worker -->|Queue jobs and record repair outcomes| state
+        monitor -->|Queue repeated expensive queries| state
+        state -->|Claim one job at a time| worker
+        worker -->|Record repair outcome| state
         worker -->|Query plan and observations| investigator
         investigator -->|Request evidence or propose a repair| worker
     end
@@ -78,7 +83,7 @@ flowchart TB
     investigator <-->|Model requests and responses| claude["Claude"]
 ```
 
-The application keeps talking directly to PostgreSQL. A Go worker samples database statistics in the background and queues an investigation when it sees repeated expensive work. A TypeScript workflow built with LangGraph gives Claude the query plan and supporting observations. It can request more evidence, propose a supported repair, or close the investigation.
+The application keeps talking directly to PostgreSQL. Each active project has its own query monitor. When investigation is enabled, a separate Go goroutine handles one queued job at a time for that project. While one investigation waits for Claude, monitoring and other projects can keep running. Projects with an enrolled managed background job also run a schedule observer. [Hosted supervisor](internal/hostedapp/supervisor.go) A TypeScript workflow built with LangGraph gives Claude the query plan and supporting observations. It can request more evidence, propose a supported repair, or close the investigation.
 
 Go checks the proposed target, permissions, and operating limits before running the repair. It records the intended change in PostgreSQL so a restarted worker can check what happened before trying again. Verification compares the affected work and, where available, checks other traffic for regressions. [Engineering overview](docs/design/hosted-query-agent/overview.md) · [Original connection-pool gateway](legacy/README.md)
 
