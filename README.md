@@ -13,7 +13,7 @@
 
 <p align="center"><a href="https://pooltune.up.railway.app/#how"><b>Try the interactive walkthrough</b></a> · <a href="https://pooltune.up.railway.app/signin">Open workspace</a></p>
 
-Pooltune is a PostgreSQL tuning agent. It investigates expensive queries and database bottlenecks, runs repairs you allow, and measures the same workload again to see what changed. You can also run it in monitor-only mode.
+Pooltune is a PostgreSQL tuning agent. It investigates expensive and slow queries, runs repairs you allow, and measures the same workload again to see what changed. You can also run it in monitor-only mode.
 
 The walkthrough is public. Today, the hosted workspace connects to PostgreSQL databases on Supabase. Create a free account with email or Google to connect yours. Each free account gets a one-time $0.25 AI budget shared across up to five projects. Each model request also uses one of 50 credits that renew each UTC calendar month. All demo accounts draw from the same $45 lifetime fund. Monitoring continues when a limit is reached.
 
