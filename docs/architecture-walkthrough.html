@@ -46,15 +46,15 @@ function mapSVG(nodes,edges,scopes,focus,desc){
 }
 const systemNodes=[
  ['app',58,43,174,'Customer app','reads and writes'],['db',406,43,209,'Customer PostgreSQL','Supabase project'],
- ['monitor',250,185,157,'Query monitor','sample · enqueue'],['worker',438,185,184,'Investigation worker','one job at a time'],['store',27,185,202,'PoolTune PostgreSQL','jobs · repair log'],
+ ['worker',341,185,287,'Go workers','1 monitor + 1 investigation worker'],['store',27,185,202,'PoolTune PostgreSQL','jobs · repair log'],
  ['dashboard',27,314,202,'Customer dashboard','Go web app · /app'],
  ['agent',370,314,239,'Investigator','TypeScript · LangGraph'],['model',654,314,118,'Claude','Anthropic']];
 const systemEdges=[
  ['settings','M72 314 V248','settings',75,282],['history','M184 245 V311','repair history',199,277],
- ['reads','M232 72 H403','SQL',319,65],['stats','M450 102 V133 H332 V182','counters',382,126],['apply','M557 185 V104','repair + verify ↑',613,155],
- ['enqueue','M250 211 H232','',0,0],['claim','M216 229 V259 H469 V246','queued job',321,253],['store','M603 243 V277 H219 V239','record outcome',328,274],['plan','M482 243 V311','plan',500,300],
+ ['reads','M232 72 H403','SQL',319,65],['stats','M450 102 V182','counters ↓',410,141],['apply','M557 185 V104','repair + verify ↑',613,155],
+ ['store','M341 214 H232','jobs / results',285,205],['plan','M430 243 V311','plan + evidence',368,270],
  ['proposal','M549 314 V246','proposal',583,302],['model','M609 329 H651','',0,0],['answer','M654 356 H612','',0,0]];
-const systemScopes=[[14,10,630,108,'CUSTOMER PROJECT'],[14,151,626,235,'POOLTUNE ON RAILWAY · ONE ACTIVE PROJECT SHOWN']];
+const systemScopes=[[14,10,630,108,'CUSTOMER PROJECT'],[14,151,626,235,'POOLTUNE ON RAILWAY']];
 const agentNodes=[
  ['screen',22,85,180,'Screen evidence','target + freshness'],['compare',289,85,190,'Compare causes','Claude via LangGraph'],
  ['request',289,242,190,'Request evidence','Go inspection tools'],['finish',561,85,193,'Finish','validate proposal'],
@@ -66,8 +66,8 @@ const agentEdges=[
  ['no','M707 143 V239','decline',729,197]];
 const system=[
  {tab:'Traffic',nodes:['app','db','dashboard','store'],edges:['reads','settings','history'],title:"Follow a query from the customer app.",body:"The app sends its query straight to Postgres. In the PoolTune dashboard, the owner can see query activity, choose permitted repairs, and review measured results.",alternative:"Run a worker in each customer environment.",why:"Hosting removes the install and upkeep for each customer. PoolTune takes on credential handling and access control.",file:'internal/hostedapp/views.go#L148',ref:'docs/product/query-performance-v1.md'},
- {tab:'Detection',nodes:['db','monitor','store'],edges:['stats','enqueue'],title:"Find queries that repeatedly exceed their target.",body:"Each active project has its own monitor. It samples average time per call and queues repeatedly expensive queries, even while an investigation waits for Claude.",alternative:"Replay queries to measure every sample.",why:"Postgres already keeps those totals. Go inspects the query plan to see which operation did the work.",file:go+'worker_store.go#L250',ref:docs+'observed-page-access.md'},
- {tab:'Diagnosis',nodes:['store','worker','agent','model'],edges:['claim','plan','proposal','model','answer'],title:"Explain why this query is expensive.",body:"One investigation worker takes queued jobs in order of availability for this project. Workers for other projects can run concurrently. Claude compares causes using the plan and index definitions.",alternative:"A Go rule can catch a known missing-index pattern cheaply.",why:"A slow scan can also come from stale estimates. Comparing explanations justified running both Go and Node.js and waiting for Claude during diagnosis.",file:'investigator/diagnostic.ts#L84',ref:docs+'index-slice.md#engineering-choices'},
+ {tab:'Detection',nodes:['db','worker','store'],edges:['stats','store'],title:"Find queries that repeatedly exceed their target.",body:"Each active project has its own monitor. It samples average time per call and queues repeatedly expensive queries, even while an investigation waits for Claude.",alternative:"Replay queries to measure every sample.",why:"Postgres already keeps those totals. Go inspects the query plan to see which operation did the work.",file:go+'worker_store.go#L250',ref:docs+'observed-page-access.md'},
+ {tab:'Diagnosis',nodes:['worker','agent','model'],edges:['plan','proposal','model','answer'],title:"Explain why this query is expensive.",body:"The investigation worker handles one job at a time. Claude compares possible causes using the query plan and existing indexes.",alternative:"A Go rule can catch a known missing-index pattern cheaply.",why:"A slow scan can also come from stale estimates. Comparing explanations justified running both Go and Node.js and waiting for Claude during diagnosis.",file:'investigator/diagnostic.ts#L84',ref:docs+'index-slice.md#engineering-choices'},
  {tab:'Recovery',nodes:['worker','store','db'],edges:['apply','store'],title:"Save the planned repair before starting.",body:"Go checks the owner’s permission and saves which index it plans to build. After a restart it checks the database before retrying.",alternative:"Save only where the investigator stopped.",why:"Postgres might finish building the index just before Go loses the reply. Recording the intended index tells Go exactly what to look for when it reconnects.",file:go+'managed_project_index.go#L237',ref:docs+'index-slice.md#engineering-choices'},
  {tab:'Verification',nodes:['worker','db','store'],edges:['apply','store'],title:"Check the lookup and nearby writes.",body:"Go repeats the lookup with the same inputs and checks nearby read and write traffic.",alternative:"Time only the affected lookup.",why:"Testing the same customer and category makes the timings comparable. Checking nearby traffic can also reveal slower writes.",file:go+'managed_project_index.go#L189',ref:docs+'index-slice.md#engineering-choices'}
 ];
